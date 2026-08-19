@@ -1,0 +1,7 @@
+export const SCORE_CONFIG = {
+
+  NEW_NUMBER_GROWTH: 10,
+
+  REPEAT_SCORE: 1
+
+};

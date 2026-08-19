@@ -1,0 +1,1365 @@
+@import "tailwindcss";
+
+:root {
+  --text: #6b6375;
+  --text-h: #08060d;
+  --bg: #fff;
+  --border: #e5e4e7;
+  --code-bg: #f4f3ec;
+  --accent: #aa3bff;
+  --accent-bg: rgba(170, 59, 255, 0.1);
+  --accent-border: rgba(170, 59, 255, 0.5);
+  --social-bg: rgba(244, 243, 236, 0.5);
+  --shadow:
+    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+
+  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --mono: ui-monospace, Consolas, monospace;
+
+  font: 18px/145% var(--sans);
+  letter-spacing: 0.18px;
+  color-scheme: light dark;
+  color: var(--text);
+  background: var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  @media (max-width: 1024px) {
+    font-size: 16px;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text: #9ca3af;
+    --text-h: #f3f4f6;
+    --bg: #16171d;
+    --border: #2e303a;
+    --code-bg: #1f2028;
+    --accent: #c084fc;
+    --accent-bg: rgba(192, 132, 252, 0.15);
+    --accent-border: rgba(192, 132, 252, 0.5);
+    --social-bg: rgba(47, 48, 58, 0.5);
+    --shadow:
+      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
+  }
+
+  #social .button-icon {
+    filter: invert(1) brightness(2);
+  }
+}
+
+body {
+  margin: 0;
+}
+
+#root {
+  width: 1126px;
+  max-width: 100%;
+  margin: 0 auto;
+  text-align: center;
+  border-inline: 1px solid var(--border);
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+h1,
+h2 {
+  font-family: var(--heading);
+  font-weight: 500;
+  color: var(--text-h);
+}
+
+h1 {
+  font-size: 56px;
+  letter-spacing: -1.68px;
+  margin: 32px 0;
+  @media (max-width: 1024px) {
+    font-size: 36px;
+    margin: 20px 0;
+  }
+}
+h2 {
+  font-size: 24px;
+  line-height: 118%;
+  letter-spacing: -0.24px;
+  margin: 0 0 8px;
+  @media (max-width: 1024px) {
+    font-size: 20px;
+  }
+}
+p {
+  margin: 0;
+}
+
+code,
+.counter {
+  font-family: var(--mono);
+  display: inline-flex;
+  border-radius: 4px;
+  color: var(--text-h);
+}
+
+code {
+  font-size: 15px;
+  line-height: 135%;
+  padding: 4px 8px;
+  background: var(--code-bg);
+}
+
+
+/* =========================
+   约分预览
+   ========================= */
+
+
+/* 原数字 */
+
+@keyframes reduceOriginal {
+
+  0%,
+  30% {
+    opacity: 1;
+  }
+
+  48%,
+  72% {
+    opacity: 0.12;
+  }
+
+  90%,
+  100% {
+    opacity: 1;
+  }
+
+}
+
+
+/* 约分后的数字 */
+
+@keyframes reducePreview {
+
+  0%,
+  30% {
+    opacity: 0;
+  }
+
+  48% {
+    opacity: 0.35;
+  }
+
+  58%,
+  72% {
+    opacity: 0.95;
+  }
+
+  90%,
+  100% {
+    opacity: 0;
+  }
+
+}
+
+
+/* 卡片颜色 */
+
+@keyframes reduceCard {
+
+  0%,
+  30% {
+    background-color: rgb(59 130 246);
+  }
+
+  48% {
+    background-color: rgb(56 189 248);
+  }
+
+  58%,
+  72% {
+    background-color: rgb(14 165 233);
+  }
+
+  90%,
+  100% {
+    background-color: rgb(59 130 246);
+  }
+
+}
+
+
+.reduce-original {
+
+  animation:
+    reduceOriginal
+    1.7s
+    ease-in-out
+    infinite;
+
+}
+
+
+.reduce-preview {
+
+  opacity: 0;
+
+  animation:
+    reducePreview
+    1.7s
+    ease-in-out
+    infinite;
+
+}
+
+
+.reduce-card {
+
+  animation:
+    reduceCard
+    1.7s
+    ease-in-out
+    infinite;
+
+}
+
+/* =========================
+   新发现数字1
+   ========================= */
+
+@keyframes newOneCard {
+
+  0%,
+  100% {
+    box-shadow:
+      0 4px 10px
+      rgba(245, 158, 11, 0.2);
+  }
+
+  50% {
+    box-shadow:
+      0 5px 16px
+      rgba(245, 158, 11, 0.5);
+  }
+
+}
+
+
+.new-one-card {
+
+  animation:
+    newOneCard
+    1.8s
+    ease-in-out
+    infinite;
+
+}
+
+/* =========================
+   Prime Game
+   第一版游戏动画
+   ========================= */
+
+
+/* 棋盘格尺寸 */
+
+.number-slot,
+.number-card {
+
+    width: 78px;
+
+    height: 78px;
+
+}
+
+
+
+/* =========================
+   新数字出现
+   由于 React key 不变，
+   已有数字不会反复触发
+   新创建节点会触发一次
+   ========================= */
+
+.number-card-enter {
+
+    animation:
+        numberCardEnter
+        .28s
+        cubic-bezier(.2,.85,.3,1.25);
+
+}
+
+
+@keyframes numberCardEnter {
+
+    0% {
+
+        opacity: 0;
+
+        transform:
+            scale(.72)
+            translateY(6px);
+
+    }
+
+    70% {
+
+        opacity: 1;
+
+        transform:
+            scale(1.07)
+            translateY(-1px);
+
+    }
+
+    100% {
+
+        opacity: 1;
+
+        transform:
+            scale(1)
+            translateY(0);
+
+    }
+
+}
+
+
+
+/* =========================
+   合成目标格
+   比 animate-pulse 更轻
+   ========================= */
+
+.combine-preview-slot {
+
+    animation:
+        combineSlotBreath
+        1.5s
+        ease-in-out
+        infinite;
+
+}
+
+
+@keyframes combineSlotBreath {
+
+    0%,
+    100% {
+
+        opacity: .55;
+
+        transform:
+            scale(.98);
+
+    }
+
+    50% {
+
+        opacity: .9;
+
+        transform:
+            scale(1);
+
+    }
+
+}
+
+
+
+/* =========================
+   Preview 出现
+   ========================= */
+
+.preview-enter {
+
+    animation:
+        previewEnter
+        .2s
+        ease-out;
+
+}
+
+
+@keyframes previewEnter {
+
+    from {
+
+        opacity: 0;
+
+        transform:
+            translateY(4px)
+            scale(.97);
+
+    }
+
+    to {
+
+        opacity: 1;
+
+        transform:
+            translateY(0)
+            scale(1);
+
+    }
+
+}
+
+
+
+/* =========================
+   约分动画
+   ========================= */
+
+.reduce-card {
+
+    animation:
+        reduceCardPulse
+        1.1s
+        ease-in-out
+        infinite;
+
+}
+
+
+.reduce-original {
+
+    opacity: .22;
+
+    transform:
+        scale(.82);
+
+}
+
+
+.reduce-preview {
+
+    animation:
+        reducePreviewEnter
+        .22s
+        ease-out;
+
+}
+
+
+@keyframes reducePreviewEnter {
+
+    from {
+
+        opacity: 0;
+
+        transform:
+            scale(.65);
+
+    }
+
+    to {
+
+        opacity: 1;
+
+        transform:
+            scale(1);
+
+    }
+
+}
+
+
+@keyframes reduceCardPulse {
+
+    0%,
+    100% {
+
+        filter:
+            brightness(1);
+
+    }
+
+    50% {
+
+        filter:
+            brightness(1.06);
+
+    }
+
+}
+
+
+
+/* =========================
+   新发现 1
+   ========================= */
+
+.new-one-card {
+
+    animation:
+        newOneBreath
+        1.3s
+        ease-in-out
+        infinite;
+
+}
+
+
+.new-one-selected {
+
+    animation:
+        newOneSelected
+        .7s
+        ease-in-out
+        infinite
+        alternate;
+
+}
+
+
+@keyframes newOneBreath {
+
+    0%,
+    100% {
+
+        box-shadow:
+            0 6px 18px
+            rgba(245,158,11,.18);
+
+    }
+
+    50% {
+
+        box-shadow:
+            0 9px 25px
+            rgba(245,158,11,.34);
+
+    }
+
+}
+
+
+@keyframes newOneSelected {
+
+    from {
+
+        filter:
+            brightness(1);
+
+    }
+
+    to {
+
+        filter:
+            brightness(1.08);
+
+    }
+
+}
+
+
+
+/* =========================
+   得分提示
+   ========================= */
+
+.new-score-preview {
+
+    transform:
+        translateX(-50%);
+
+    animation:
+        scoreFloat
+        .85s
+        ease-out
+        infinite
+        alternate;
+
+}
+
+
+@keyframes scoreFloat {
+
+    from {
+
+        transform:
+            translateX(-50%)
+            translateY(1px);
+
+    }
+
+    to {
+
+        transform:
+            translateX(-50%)
+            translateY(-3px);
+
+    }
+
+}
+
+
+
+/* =========================
+   操作按钮
+   ========================= */
+
+.game-action-button {
+
+    height: 58px;
+
+    border-radius: 18px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 5px;
+
+    font-size: 13px;
+
+    font-weight: 800;
+
+    transition:
+        transform .14s ease,
+        box-shadow .18s ease,
+        background .18s ease;
+
+}
+
+
+.game-action-button:not(:disabled):active {
+
+    transform:
+        scale(.94);
+
+}
+
+
+.game-action-button:disabled {
+
+    cursor: default;
+
+}
+
+
+
+/* 消除准备 */
+
+.remove-ready {
+
+    animation:
+        removeReady
+        1.4s
+        ease-in-out
+        infinite;
+
+}
+
+
+@keyframes removeReady {
+
+    0%,
+    100% {
+
+        transform:
+            translateY(0);
+
+    }
+
+    50% {
+
+        transform:
+            translateY(-2px);
+
+    }
+
+}
+
+
+
+/* =========================
+   收藏新元素
+   ========================= */
+
+.collection-item {
+
+    animation:
+        collectionEnter
+        .3s
+        cubic-bezier(.2,.8,.3,1.2);
+
+}
+
+
+@keyframes collectionEnter {
+
+    from {
+
+        opacity: 0;
+
+        transform:
+            scale(.7);
+
+    }
+
+    to {
+
+        opacity: 1;
+
+        transform:
+            scale(1);
+
+    }
+
+}
+
+
+
+/* =========================
+   阶段提示
+   ========================= */
+
+.checkpoint-flash {
+
+    animation:
+        checkpointFlash
+        1.5s
+        ease-in-out
+        infinite;
+
+}
+
+
+@keyframes checkpointFlash {
+
+    0%,
+    100% {
+
+        opacity: .72;
+
+    }
+
+    50% {
+
+        opacity: 1;
+
+    }
+
+}
+
+
+
+/* =========================
+   容量满
+   ========================= */
+
+.capacity-warning {
+
+    animation:
+        capacityEnter
+        .25s
+        ease-out;
+
+}
+
+
+@keyframes capacityEnter {
+
+    from {
+
+        opacity: 0;
+
+        transform:
+            translateY(-3px);
+
+    }
+
+    to {
+
+        opacity: 1;
+
+        transform:
+            translateY(0);
+
+    }
+
+}
+
+
+
+/* =========================
+   Game Over
+   ========================= */
+
+.game-over-backdrop {
+
+    animation:
+        gameOverBackdrop
+        .25s
+        ease-out;
+
+}
+
+
+.game-over-card {
+
+    animation:
+        gameOverCard
+        .32s
+        cubic-bezier(.2,.8,.3,1.1);
+
+}
+
+
+@keyframes gameOverBackdrop {
+
+    from {
+
+        opacity: 0;
+
+    }
+
+    to {
+
+        opacity: 1;
+
+    }
+
+}
+
+
+@keyframes gameOverCard {
+
+    from {
+
+        opacity: 0;
+
+        transform:
+            translateY(10px)
+            scale(.94);
+
+    }
+
+    to {
+
+        opacity: 1;
+
+        transform:
+            translateY(0)
+            scale(1);
+
+    }
+
+}
+
+
+
+/* =========================
+   手机
+   ========================= */
+
+@media (
+    max-width: 390px
+) {
+
+    .number-slot,
+    .number-card {
+
+        width: 68px;
+
+        height: 68px;
+
+    }
+
+}
+
+
+
+/* =========================
+   尊重系统减少动画设置
+   ========================= */
+
+@media (
+    prefers-reduced-motion: reduce
+) {
+
+    *,
+    *::before,
+    *::after {
+
+        animation-duration:
+            .01ms !important;
+
+        animation-iteration-count:
+            1 !important;
+
+        transition-duration:
+            .01ms !important;
+
+    }
+
+}
+
+/* =========================
+   消除 1
+   ========================= */
+
+
+.removing-card-wrapper {
+
+    position: relative;
+
+    z-index: 30;
+
+}
+
+
+/* 卡片本体离场 */
+
+.remove-card {
+
+    pointer-events: none;
+
+    animation:
+        removeCardExit
+        .30s
+        cubic-bezier(.4,0,.7,.2)
+        forwards;
+
+}
+
+
+@keyframes removeCardExit {
+
+    0% {
+
+        opacity: 1;
+
+        transform:
+            scale(1.06)
+            translateY(-4px);
+
+        filter:
+            brightness(1);
+
+    }
+
+
+    35% {
+
+        opacity: 1;
+
+        transform:
+            scale(1.16)
+            translateY(-5px);
+
+        filter:
+            brightness(1.18);
+
+    }
+
+
+    100% {
+
+        opacity: 0;
+
+        transform:
+            scale(.35)
+            translateY(-16px);
+
+        filter:
+            brightness(1.25);
+
+    }
+
+}
+
+
+
+/* =========================
+   金色闪光
+   ========================= */
+
+.remove-flash {
+
+    background:
+
+        radial-gradient(
+
+            circle,
+
+            rgba(255,255,255,.95) 0%,
+
+            rgba(251,191,36,.55) 30%,
+
+            rgba(245,158,11,.15) 55%,
+
+            transparent 72%
+
+        );
+
+
+    animation:
+        removeFlash
+        .30s
+        ease-out
+        forwards;
+
+}
+
+
+@keyframes removeFlash {
+
+    0% {
+
+        opacity: 0;
+
+        transform:
+            scale(.45);
+
+    }
+
+
+    40% {
+
+        opacity: 1;
+
+        transform:
+            scale(1.25);
+
+    }
+
+
+    100% {
+
+        opacity: 0;
+
+        transform:
+            scale(1.7);
+
+    }
+
+}
+
+
+
+/* =========================
+   得分向上飞
+   ========================= */
+
+.remove-score-fly {
+
+    transform:
+        translateX(-50%);
+
+    animation:
+        removeScoreFly
+        .45s
+        ease-out
+        forwards;
+
+}
+
+
+@keyframes removeScoreFly {
+
+    0% {
+
+        opacity: 1;
+
+        transform:
+            translateX(-50%)
+            translateY(0)
+            scale(1);
+
+    }
+
+
+    45% {
+
+        opacity: 1;
+
+        transform:
+            translateX(-50%)
+            translateY(-10px)
+            scale(1.15);
+
+    }
+
+
+    100% {
+
+        opacity: 0;
+
+        transform:
+            translateX(-50%)
+            translateY(-26px)
+            scale(.95);
+
+    }
+
+}
+
+
+
+/* =========================
+   小粒子
+   ========================= */
+
+.remove-particle {
+
+    position: absolute;
+
+    z-index: 40;
+
+    left: 50%;
+
+    top: 50%;
+
+    color: #f59e0b;
+
+    font-size: 11px;
+
+    pointer-events: none;
+
+    opacity: 0;
+
+}
+
+
+/* 左上 */
+
+.remove-particle-1 {
+
+    animation:
+        particle1
+        .36s
+        ease-out
+        forwards;
+
+}
+
+
+@keyframes particle1 {
+
+    0% {
+
+        opacity: 0;
+
+        transform:
+            translate(-50%, -50%)
+            scale(.4);
+
+    }
+
+
+    25% {
+
+        opacity: 1;
+
+    }
+
+
+    100% {
+
+        opacity: 0;
+
+        transform:
+            translate(-34px, -32px)
+            scale(1.2);
+
+    }
+
+}
+
+
+
+/* 右上 */
+
+.remove-particle-2 {
+
+    animation:
+        particle2
+        .38s
+        ease-out
+        forwards;
+
+}
+
+
+@keyframes particle2 {
+
+    0% {
+
+        opacity: 0;
+
+        transform:
+            translate(-50%, -50%)
+            scale(.4);
+
+    }
+
+
+    25% {
+
+        opacity: 1;
+
+    }
+
+
+    100% {
+
+        opacity: 0;
+
+        transform:
+            translate(24px, -36px)
+            scale(1);
+
+    }
+
+}
+
+
+
+/* 左下 */
+
+.remove-particle-3 {
+
+    animation:
+        particle3
+        .34s
+        ease-out
+        forwards;
+
+}
+
+
+@keyframes particle3 {
+
+    0% {
+
+        opacity: 0;
+
+        transform:
+            translate(-50%, -50%)
+            scale(.4);
+
+    }
+
+
+    25% {
+
+        opacity: 1;
+
+    }
+
+
+    100% {
+
+        opacity: 0;
+
+        transform:
+            translate(-30px, 22px)
+            scale(.8);
+
+    }
+
+}
+
+
+
+/* 右 */
+
+.remove-particle-4 {
+
+    animation:
+        particle4
+        .40s
+        ease-out
+        forwards;
+
+}
+
+
+@keyframes particle4 {
+
+    0% {
+
+        opacity: 0;
+
+        transform:
+            translate(-50%, -50%)
+            scale(.4);
+
+    }
+
+
+    25% {
+
+        opacity: 1;
+
+    }
+
+
+    100% {
+
+        opacity: 0;
+
+        transform:
+            translate(34px, 14px)
+            scale(1.15);
+
+    }
+
+}
+
+
+/* =========================
+   即将获得积分
+   ========================= */
+
+@keyframes newScorePreview {
+
+  0% {
+    opacity: 0;
+    transform:
+      translateX(-50%)
+      translateY(5px);
+  }
+
+  25% {
+    opacity: 1;
+    transform:
+      translateX(-50%)
+      translateY(0);
+  }
+
+  70% {
+    opacity: 1;
+    transform:
+      translateX(-50%)
+      translateY(-2px);
+  }
+
+  100% {
+    opacity: 0;
+    transform:
+      translateX(-50%)
+      translateY(-6px);
+  }
+
+}
+
+
+.new-score-preview {
+
+  animation:
+    newScorePreview
+    1.8s
+    ease-in-out
+    infinite;
+
+}
