@@ -332,60 +332,73 @@ function App() {
 
 
 
-
         {/* =========================
-            主棋盘
+            主棋盘外层间距
             ========================= */}
 
         <div
 
           className="
-            game-board
-
-            mt-3
-
-            rounded-[34px]
-
-            bg-white
-
-            border
-            border-white
-
-            shadow-[0_14px_45px_rgba(15,23,42,0.075)]
-
-            px-5
-            py-5
+            pt-16
           "
 
         >
 
-          <NumberList
 
-            numbers={
-              game.numbers
-            }
+          {/* =========================
+              主棋盘
+              ========================= */}
 
-            selected={
-              game.selected
-            }
+          <div
 
-            preview={
-              game.preview
-            }
+            className="
+              game-board
 
-            onSelect={
-              game.selectNumber
-            }
+              rounded-[38px]
 
-            collection={
-              game.collection
-            }
+              bg-white
 
-            removingId={
-              removingId
-            }
+              border
+              border-white
 
-          />
+              shadow-[0_16px_50px_rgba(15,23,42,0.08)]
+
+              px-4
+              py-7
+            "
+
+          >
+
+            <NumberList
+
+              numbers={
+                game.numbers
+              }
+
+              selected={
+                game.selected
+              }
+
+              preview={
+                game.preview
+              }
+
+              onSelect={
+                game.selectNumber
+              }
+
+              collection={
+                game.collection
+              }
+
+              removingId={
+                removingId
+              }
+
+            />
+
+          </div>
+
 
         </div>
 
@@ -400,7 +413,7 @@ function App() {
         <div
 
           className="
-            mt-5
+            mt-6
           "
 
         >

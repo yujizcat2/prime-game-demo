@@ -78,10 +78,6 @@ export default function NumberCard({
 
   // =========================
   // 选中时数字颜色
-  //
-  // 1：玫红
-  // 猫：杏橘
-  // 狗：薄荷青
   // =========================
 
   const selectedNumberColor =
@@ -146,10 +142,6 @@ export default function NumberCard({
 
       {/* =========================
           积分提示
-
-          注意：
-          这里继续保留金色
-          金色只代表奖励 / 得分
           ========================= */}
 
       {
@@ -218,7 +210,7 @@ export default function NumberCard({
 
             z-20
 
-            rounded-[24px]
+            rounded-[18px]
 
             pointer-events-none
 
@@ -310,7 +302,7 @@ export default function NumberCard({
           items-center
           justify-center
 
-          rounded-[24px]
+          rounded-[18px]
 
           overflow-hidden
 
@@ -470,7 +462,7 @@ export default function NumberCard({
               absolute
 
               top-2.5
-              left-3
+              left-2.5
 
               w-1.5
               h-1.5
@@ -511,7 +503,7 @@ export default function NumberCard({
               absolute
 
               top-2
-              right-2.5
+              right-2
 
               text-[9px]
 
@@ -548,7 +540,7 @@ export default function NumberCard({
               absolute
 
               top-2
-              right-2.5
+              right-2
 
               text-[9px]
 
@@ -597,8 +589,8 @@ export default function NumberCard({
           <span
 
             className={`
-              text-[30px]
-              sm:text-[34px]
+              text-[29px]
+              sm:text-[32px]
 
               font-black
 
@@ -631,11 +623,6 @@ export default function NumberCard({
 
           {/* =========================
               约分后的新数字
-
-              原数字变浅
-              新数字弹出
-              短暂停留
-              再消失
               ========================= */}
 
           {
@@ -655,8 +642,8 @@ export default function NumberCard({
                 items-center
                 justify-center
 
-                text-[30px]
-                sm:text-[34px]
+                text-[29px]
+                sm:text-[32px]
 
                 font-black
 
@@ -762,7 +749,7 @@ export default function NumberCard({
               absolute
 
               bottom-2
-              right-2.5
+              right-2
 
               text-[8px]
               font-bold

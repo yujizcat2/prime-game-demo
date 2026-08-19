@@ -81,9 +81,6 @@ button {
 
 /* =========================
    主棋盘
-
-   静态、纯净
-   不呼吸、不闪烁
    ========================= */
 
 .game-board {
@@ -96,17 +93,87 @@ button {
 
 
 /* =========================
-   棋盘格尺寸
+   棋盘卡片尺寸
+   接近正方形
+   轻微卡牌感
    ========================= */
 
 .number-slot,
 .number-card {
 
   width:
-    92px;
+    84px;
 
   height:
-    92px;
+    90px;
+
+}
+
+
+
+/* =========================
+   手机竖屏
+   ========================= */
+
+@media (
+  max-width: 560px
+) {
+
+  .number-slot,
+  .number-card {
+
+    width:
+      64px;
+
+    height:
+      70px;
+
+    border-radius:
+      18px;
+
+  }
+
+
+  .game-action-button {
+
+    height:
+      56px;
+
+    border-radius:
+      17px;
+
+    font-size:
+      12px;
+
+  }
+
+}
+
+
+
+/* =========================
+   中等屏幕
+   ========================= */
+
+@media (
+  min-width: 561px
+) and (
+  max-width: 720px
+) {
+
+  .number-slot,
+  .number-card {
+
+    width:
+      76px;
+
+    height:
+      82px;
+
+    border-radius:
+      19px;
+
+  }
 
 }
 
@@ -114,7 +181,6 @@ button {
 
 /* =========================
    主棋盘首次进入
-   只播放一次
    ========================= */
 
 .game-board {
@@ -213,7 +279,6 @@ button {
 
 /* =========================
    合成预览
-   悬浮中的未来数字
    ========================= */
 
 .combine-preview-slot {
@@ -304,19 +369,8 @@ button {
 
 
 /* =========================
-   约分预览
-   梦境浮出效果
+   约分卡片轻微变化
    ========================= */
-
-/* =========================
-   约分预览
-   原数字淡化 → 新数字弹出
-   → 新数字消失 → 原数字恢复
-   → 停留 → 循环
-   ========================= */
-
-
-/* 卡片本体保持稳定 */
 
 .reduce-card {
 
@@ -347,12 +401,11 @@ button {
 
 @keyframes reduceOriginalCycle {
 
-  /* 原数字正常显示 */
-
   0%,
   18% {
 
-    opacity: 1;
+    opacity:
+      1;
 
     transform:
       scale(1);
@@ -360,11 +413,10 @@ button {
   }
 
 
-  /* 开始变浅 */
-
   28% {
 
-    opacity: .28;
+    opacity:
+      .28;
 
     transform:
       scale(.94);
@@ -372,13 +424,11 @@ button {
   }
 
 
-  /* 新数字显示期间
-     原数字留在背景 */
-
   35%,
   58% {
 
-    opacity: .20;
+    opacity:
+      .20;
 
     transform:
       scale(.92);
@@ -386,12 +436,10 @@ button {
   }
 
 
-  /* 新数字开始消失
-     原数字恢复 */
-
   68% {
 
-    opacity: .65;
+    opacity:
+      .65;
 
     transform:
       scale(.97);
@@ -399,12 +447,11 @@ button {
   }
 
 
-  /* 完全恢复 */
-
   76%,
   100% {
 
-    opacity: 1;
+    opacity:
+      1;
 
     transform:
       scale(1);
@@ -421,9 +468,11 @@ button {
 
 .reduce-preview {
 
-  opacity: 0;
+  opacity:
+    0;
 
-  z-index: 10;
+  z-index:
+    10;
 
   animation:
     reducePreviewCycle
@@ -436,12 +485,11 @@ button {
 
 @keyframes reducePreviewCycle {
 
-  /* 前面只显示原数字 */
-
   0%,
   26% {
 
-    opacity: 0;
+    opacity:
+      0;
 
     transform:
       translateY(4px)
@@ -453,11 +501,10 @@ button {
   }
 
 
-  /* 新数字开始弹出 */
-
   35% {
 
-    opacity: .65;
+    opacity:
+      .65;
 
     transform:
       translateY(-2px)
@@ -469,11 +516,10 @@ button {
   }
 
 
-  /* 完整出现 */
-
   43% {
 
-    opacity: 1;
+    opacity:
+      1;
 
     transform:
       translateY(-7px)
@@ -484,13 +530,12 @@ button {
 
   }
 
-
-  /* 短暂停留 */
 
   43%,
   56% {
 
-    opacity: 1;
+    opacity:
+      1;
 
     transform:
       translateY(-7px)
@@ -502,11 +547,10 @@ button {
   }
 
 
-  /* 开始消失 */
-
   66% {
 
-    opacity: 0;
+    opacity:
+      0;
 
     transform:
       translateY(-12px)
@@ -518,12 +562,11 @@ button {
   }
 
 
-  /* 后面只留下原数字 */
-
   67%,
   100% {
 
-    opacity: 0;
+    opacity:
+      0;
 
     transform:
       translateY(-12px)
@@ -536,8 +579,7 @@ button {
 
 
 /* =========================
-   卡片只做非常轻的亮度变化
-   不要抢数字动画
+   卡片轻亮度变化
    ========================= */
 
 @keyframes reduceCardSoftPulse {
@@ -562,6 +604,7 @@ button {
   }
 
 }
+
 
 
 /* =========================
@@ -1400,10 +1443,10 @@ button {
   .number-card {
 
     width:
-      64px;
+      62px;
 
     height:
-      64px;
+      82px;
 
     border-radius:
       18px;
@@ -1442,10 +1485,13 @@ button {
   .number-card {
 
     width:
-      80px;
+      72px;
 
     height:
-      80px;
+      92px;
+
+    border-radius:
+      18px;
 
   }
 

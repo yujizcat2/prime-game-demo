@@ -125,11 +125,13 @@ export default function NumberList({
 
       className="
         grid
-        grid-cols-5
 
-        gap-3
+        grid-cols-[repeat(5,max-content)]
 
-        place-items-center
+        justify-center
+
+        gap-x-1
+        gap-y-3
       "
 
     >
@@ -194,7 +196,7 @@ export default function NumberList({
                     items-center
                     justify-center
 
-                    rounded-[22px]
+                    rounded-[18px]
 
                     border
                     border-dashed
@@ -237,7 +239,7 @@ export default function NumberList({
                   <span
 
                     className="
-                      text-[30px]
+                      text-[29px]
 
                       font-black
 
@@ -463,7 +465,7 @@ export default function NumberList({
                 className="
                   number-slot
 
-                  rounded-[22px]
+                  rounded-[18px]
 
                   border
                   border-dashed
