@@ -4,8 +4,8 @@ import {
 
 import StartScreen from "./components/StartScreen";
 import NumberList from "./components/NumberList";
-import PreviewPanel from "./components/PreviewPanel";
 import ActionButtons from "./components/ActionButtons";
+import ActionHintPanel from "./components/ActionHintPanel";
 import CollectionPanel from "./components/CollectionPanel";
 import StepPanel from "./components/StepPanel";
 import GameOver from "./components/GameOver";
@@ -112,7 +112,7 @@ function App() {
 
 
   // =========================
-  // 开始
+  // 开始界面
   // =========================
 
   if (
@@ -268,13 +268,21 @@ function App() {
 
         <StepPanel
 
-          steps={game.steps}
+          steps={
+            game.steps
+          }
 
-          stepLimit={game.stepLimit}
+          stepLimit={
+            game.stepLimit
+          }
 
-          score={game.score}
+          score={
+            game.score
+          }
 
-          gameOver={game.gameOver}
+          gameOver={
+            game.gameOver
+          }
 
           checkpointPending={
             game.checkpointPending
@@ -295,16 +303,31 @@ function App() {
 
 
         {/* =========================
-            预览
+            动作提示
             ========================= */}
 
-        <PreviewPanel
+        <div
 
-          preview={
-            game.preview
-          }
+          className="
+            mt-3
+          "
 
-        />
+        >
+
+          <ActionHintPanel
+
+            numbers={
+              game.numbers
+            }
+
+            selected={
+              game.selected
+            }
+
+          />
+
+        </div>
+
 
 
 
@@ -317,6 +340,8 @@ function App() {
         <div
 
           className="
+            game-board
+
             mt-3
 
             rounded-[34px]
@@ -369,7 +394,7 @@ function App() {
 
 
         {/* =========================
-            操作
+            操作按钮
             ========================= */}
 
         <div
@@ -423,7 +448,7 @@ function App() {
 
 
         {/* =========================
-            收藏
+            收藏 / 发现记录
             ========================= */}
 
         <CollectionPanel

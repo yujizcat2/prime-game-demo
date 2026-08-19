@@ -28,7 +28,6 @@ export default function ActionButtons({
     removingId !== null;
 
 
-
   const canCombine =
 
     !gameOver &&
@@ -43,7 +42,6 @@ export default function ActionButtons({
       GAME_CONFIG.MAX_NUMBERS;
 
 
-
   const canReduce =
 
     !gameOver &&
@@ -53,7 +51,6 @@ export default function ActionButtons({
     selected.length === 2 &&
 
     !!preview?.reduce;
-
 
 
   const selectedNumber =
@@ -72,7 +69,6 @@ export default function ActionButtons({
       :
 
       null;
-
 
 
   const canRemoveOne =
@@ -97,11 +93,12 @@ export default function ActionButtons({
         className="
           grid
           grid-cols-3
-          gap-3
+
+          gap-2.5
+          sm:gap-3
         "
 
       >
-
 
 
         {/* 合成 */}
@@ -130,7 +127,7 @@ export default function ActionButtons({
                   bg-blue-500
                   text-white
 
-                  shadow-[0_8px_20px_rgba(59,130,246,0.22)]
+                  shadow-[0_8px_22px_rgba(59,130,246,0.19)]
 
                   hover:bg-blue-600
                 `
@@ -151,7 +148,8 @@ export default function ActionButtons({
 
           <span
             className="
-              text-xl
+              text-[20px]
+              leading-none
             "
           >
             ＋
@@ -162,8 +160,6 @@ export default function ActionButtons({
           </span>
 
         </button>
-
-
 
 
 
@@ -193,7 +189,7 @@ export default function ActionButtons({
                   bg-orange-500
                   text-white
 
-                  shadow-[0_8px_20px_rgba(249,115,22,0.20)]
+                  shadow-[0_8px_22px_rgba(249,115,22,0.18)]
 
                   hover:bg-orange-600
                 `
@@ -214,7 +210,8 @@ export default function ActionButtons({
 
           <span
             className="
-              text-xl
+              text-[18px]
+              leading-none
             "
           >
             ↓
@@ -225,8 +222,6 @@ export default function ActionButtons({
           </span>
 
         </button>
-
-
 
 
 
@@ -267,7 +262,7 @@ export default function ActionButtons({
                   bg-amber-400
                   text-white
 
-                  shadow-[0_8px_20px_rgba(245,158,11,0.25)]
+                  shadow-[0_8px_22px_rgba(245,158,11,0.20)]
 
                   hover:bg-amber-500
 
@@ -290,7 +285,7 @@ export default function ActionButtons({
 
           <span
             className="
-              text-lg
+              text-[15px]
             "
           >
             ✦
@@ -307,8 +302,6 @@ export default function ActionButtons({
 
 
 
-
-
       {
 
         numbers.length >=
@@ -321,15 +314,17 @@ export default function ActionButtons({
 
             text-center
 
-            text-xs
-            font-medium
+            text-[11px]
+            font-semibold
 
             text-rose-400
+
+            capacity-warning
           "
 
         >
 
-          数字槽已满 · 需要先约分
+          数字槽已满 · 先进行约分
 
         </div>
 

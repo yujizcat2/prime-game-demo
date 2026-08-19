@@ -11,19 +11,31 @@ export default function PreviewPanel({
     preview?.reduce;
 
 
+  const combineAnimal =
+    preview?.combine?.animal ?? null;
+
+
+  const combineIsCat =
+    combineAnimal === "cat";
+
+
+  const combineIsDog =
+    combineAnimal === "dog";
+
+
 
   return (
 
     <div
 
       className="
-        h-[62px]
-
-        mt-3
+        min-h-[72px]
 
         flex
         items-center
         justify-center
+
+        px-2
       "
 
     >
@@ -38,7 +50,9 @@ export default function PreviewPanel({
         <div
 
           className="
-            text-sm
+            text-[12px]
+            font-medium
+
             text-gray-300
 
             select-none
@@ -59,6 +73,8 @@ export default function PreviewPanel({
             flex
             items-center
             justify-center
+            flex-wrap
+
             gap-2
 
             preview-enter
@@ -67,10 +83,7 @@ export default function PreviewPanel({
         >
 
 
-
-          {/* =========================
-              合成
-              ========================= */}
+          {/* 合成 */}
 
           {
 
@@ -78,46 +91,62 @@ export default function PreviewPanel({
 
             <div
 
-              className="
+              className={`
                 flex
                 items-center
-                gap-2
+                gap-2.5
 
-                h-10
+                h-11
 
                 px-4
 
-                rounded-full
-
-                bg-blue-50
+                rounded-2xl
 
                 border
-                border-blue-100
-              "
+
+                ${
+                  combineIsCat
+
+                    ? `
+                      bg-violet-50
+                      border-violet-100
+                    `
+
+                    : combineIsDog
+
+                    ? `
+                      bg-sky-50
+                      border-sky-100
+                    `
+
+                    : `
+                      bg-blue-50
+                      border-blue-100
+                    `
+                }
+              `}
 
             >
 
+
               <span
 
-                className="
-                  text-xs
+                className={`
+                  text-[11px]
                   font-bold
-                  text-blue-400
-                "
 
-              >
+                  ${
+                    combineIsCat
 
-                ＋
+                      ? "text-violet-400"
 
-              </span>
+                      : combineIsDog
 
+                      ? "text-sky-400"
 
-              <span
-
-                className="
-                  text-sm
-                  text-blue-400
-                "
+                      : "text-blue-400"
+                  }
+                `}
 
               >
 
@@ -128,15 +157,26 @@ export default function PreviewPanel({
 
               <span
 
-                className="
-                  text-lg
+                className={`
+                  text-[21px]
                   font-black
-                  text-blue-600
-                "
+
+                  ${
+                    combineIsCat
+
+                      ? "text-violet-600"
+
+                      : combineIsDog
+
+                      ? "text-sky-600"
+
+                      : "text-blue-600"
+                  }
+                `}
 
               >
 
-                {preview.combine}
+                {preview.combine.value}
 
               </span>
 
@@ -146,9 +186,7 @@ export default function PreviewPanel({
 
 
 
-          {/* =========================
-              约分
-              ========================= */}
+          {/* 约分 */}
 
           {
 
@@ -159,13 +197,13 @@ export default function PreviewPanel({
               className="
                 flex
                 items-center
-                gap-2
+                gap-2.5
 
-                h-10
+                h-11
 
                 px-4
 
-                rounded-full
+                rounded-2xl
 
                 bg-orange-50
 
@@ -175,25 +213,12 @@ export default function PreviewPanel({
 
             >
 
+
               <span
 
                 className="
-                  text-xs
+                  text-[11px]
                   font-bold
-                  text-orange-400
-                "
-
-              >
-
-                ↓
-
-              </span>
-
-
-              <span
-
-                className="
-                  text-sm
                   text-orange-400
                 "
 
@@ -207,7 +232,7 @@ export default function PreviewPanel({
               <span
 
                 className="
-                  text-lg
+                  text-[20px]
                   font-black
                   text-orange-500
                 "

@@ -1,371 +1,260 @@
 @import "tailwindcss";
 
+
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
+  --text: #6b7280;
+  --text-h: #111827;
+  --bg: #f4f6f9;
 
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  --sans:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
 
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
+  font-family:
+    var(--sans);
+
+  color:
+    var(--text);
+
+  background:
+    var(--bg);
+
+  font-synthesis:
+    none;
+
+  text-rendering:
+    optimizeLegibility;
+
+  -webkit-font-smoothing:
+    antialiased;
+
+  -moz-osx-font-smoothing:
+    grayscale;
+
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
 
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
+* {
+
+  box-sizing:
+    border-box;
+
 }
+
+
+html,
+body,
+#root {
+
+  min-height:
+    100%;
+
+}
+
 
 body {
-  margin: 0;
+
+  margin:
+    0;
+
+  min-width:
+    320px;
+
+  background:
+    #f4f6f9;
+
 }
 
-#root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
+
+button {
+
+  font:
+    inherit;
+
 }
 
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
-}
-
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
-}
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
-}
-p {
-  margin: 0;
-}
-
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
-}
-
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
-}
 
 
 /* =========================
-   约分预览
+   主棋盘
+
+   静态、纯净
+   不呼吸、不闪烁
    ========================= */
 
+.game-board {
 
-/* 原数字 */
-
-@keyframes reduceOriginal {
-
-  0%,
-  30% {
-    opacity: 1;
-  }
-
-  48%,
-  72% {
-    opacity: 0.12;
-  }
-
-  90%,
-  100% {
-    opacity: 1;
-  }
+  background:
+    #ffffff;
 
 }
 
 
-/* 约分后的数字 */
-
-@keyframes reducePreview {
-
-  0%,
-  30% {
-    opacity: 0;
-  }
-
-  48% {
-    opacity: 0.35;
-  }
-
-  58%,
-  72% {
-    opacity: 0.95;
-  }
-
-  90%,
-  100% {
-    opacity: 0;
-  }
-
-}
-
-
-/* 卡片颜色 */
-
-@keyframes reduceCard {
-
-  0%,
-  30% {
-    background-color: rgb(59 130 246);
-  }
-
-  48% {
-    background-color: rgb(56 189 248);
-  }
-
-  58%,
-  72% {
-    background-color: rgb(14 165 233);
-  }
-
-  90%,
-  100% {
-    background-color: rgb(59 130 246);
-  }
-
-}
-
-
-.reduce-original {
-
-  animation:
-    reduceOriginal
-    1.7s
-    ease-in-out
-    infinite;
-
-}
-
-
-.reduce-preview {
-
-  opacity: 0;
-
-  animation:
-    reducePreview
-    1.7s
-    ease-in-out
-    infinite;
-
-}
-
-
-.reduce-card {
-
-  animation:
-    reduceCard
-    1.7s
-    ease-in-out
-    infinite;
-
-}
 
 /* =========================
-   新发现数字1
+   棋盘格尺寸
    ========================= */
-
-@keyframes newOneCard {
-
-  0%,
-  100% {
-    box-shadow:
-      0 4px 10px
-      rgba(245, 158, 11, 0.2);
-  }
-
-  50% {
-    box-shadow:
-      0 5px 16px
-      rgba(245, 158, 11, 0.5);
-  }
-
-}
-
-
-.new-one-card {
-
-  animation:
-    newOneCard
-    1.8s
-    ease-in-out
-    infinite;
-
-}
-
-/* =========================
-   Prime Game
-   第一版游戏动画
-   ========================= */
-
-
-/* 棋盘格尺寸 */
 
 .number-slot,
 .number-card {
 
-    width: 78px;
+  width:
+    92px;
 
-    height: 78px;
+  height:
+    92px;
 
 }
 
 
 
 /* =========================
-   新数字出现
-   由于 React key 不变，
-   已有数字不会反复触发
-   新创建节点会触发一次
+   主棋盘首次进入
+   只播放一次
+   ========================= */
+
+.game-board {
+
+  animation:
+    gameBoardEnter
+    .38s
+    cubic-bezier(.2,.8,.25,1);
+
+}
+
+
+@keyframes gameBoardEnter {
+
+  from {
+
+    opacity:
+      0;
+
+    transform:
+      translateY(7px)
+      scale(.985);
+
+  }
+
+
+  to {
+
+    opacity:
+      1;
+
+    transform:
+      translateY(0)
+      scale(1);
+
+  }
+
+}
+
+
+
+/* =========================
+   新数字生成
    ========================= */
 
 .number-card-enter {
 
-    animation:
-        numberCardEnter
-        .28s
-        cubic-bezier(.2,.85,.3,1.25);
+  animation:
+    numberCardEnter
+    .30s
+    cubic-bezier(.2,.82,.28,1.18);
 
 }
 
 
 @keyframes numberCardEnter {
 
-    0% {
+  0% {
 
-        opacity: 0;
+    opacity:
+      0;
 
-        transform:
-            scale(.72)
-            translateY(6px);
+    transform:
+      scale(.76)
+      translateY(7px);
 
-    }
+  }
 
-    70% {
 
-        opacity: 1;
+  70% {
 
-        transform:
-            scale(1.07)
-            translateY(-1px);
+    opacity:
+      1;
 
-    }
+    transform:
+      scale(1.045)
+      translateY(-1px);
 
-    100% {
+  }
 
-        opacity: 1;
 
-        transform:
-            scale(1)
-            translateY(0);
+  100% {
 
-    }
+    opacity:
+      1;
+
+    transform:
+      scale(1)
+      translateY(0);
+
+  }
 
 }
 
 
 
 /* =========================
-   合成目标格
-   比 animate-pulse 更轻
+   合成预览
+   悬浮中的未来数字
    ========================= */
 
 .combine-preview-slot {
 
-    animation:
-        combineSlotBreath
-        1.5s
-        ease-in-out
-        infinite;
+  box-shadow:
+    none;
+
+  animation:
+    combinePreviewFloat
+    1.7s
+    ease-in-out
+    infinite;
 
 }
 
 
-@keyframes combineSlotBreath {
+@keyframes combinePreviewFloat {
 
-    0%,
-    100% {
+  0%,
+  100% {
 
-        opacity: .55;
+    opacity:
+      .58;
 
-        transform:
-            scale(.98);
+    transform:
+      translateY(2px)
+      scale(.96);
 
-    }
+  }
 
-    50% {
 
-        opacity: .9;
+  50% {
 
-        transform:
-            scale(1);
+    opacity:
+      .88;
 
-    }
+    transform:
+      translateY(-2px)
+      scale(1.02);
+
+  }
 
 }
 
@@ -377,117 +266,302 @@ code {
 
 .preview-enter {
 
-    animation:
-        previewEnter
-        .2s
-        ease-out;
+  animation:
+    previewEnter
+    .20s
+    ease-out;
 
 }
 
 
 @keyframes previewEnter {
 
-    from {
+  from {
 
-        opacity: 0;
+    opacity:
+      0;
 
-        transform:
-            translateY(4px)
-            scale(.97);
+    transform:
+      translateY(3px)
+      scale(.98);
 
-    }
+  }
 
-    to {
 
-        opacity: 1;
+  to {
 
-        transform:
-            translateY(0)
-            scale(1);
+    opacity:
+      1;
 
-    }
+    transform:
+      translateY(0)
+      scale(1);
+
+  }
 
 }
 
 
 
 /* =========================
-   约分动画
+   约分预览
+   梦境浮出效果
    ========================= */
+
+/* =========================
+   约分预览
+   原数字淡化 → 新数字弹出
+   → 新数字消失 → 原数字恢复
+   → 停留 → 循环
+   ========================= */
+
+
+/* 卡片本体保持稳定 */
 
 .reduce-card {
 
-    animation:
-        reduceCardPulse
-        1.1s
-        ease-in-out
-        infinite;
+  animation:
+    reduceCardSoftPulse
+    2.6s
+    ease-in-out
+    infinite;
 
 }
 
+
+
+/* =========================
+   原数字
+   ========================= */
 
 .reduce-original {
 
-    opacity: .22;
-
-    transform:
-        scale(.82);
+  animation:
+    reduceOriginalCycle
+    2.6s
+    ease-in-out
+    infinite;
 
 }
 
+
+@keyframes reduceOriginalCycle {
+
+  /* 原数字正常显示 */
+
+  0%,
+  18% {
+
+    opacity: 1;
+
+    transform:
+      scale(1);
+
+  }
+
+
+  /* 开始变浅 */
+
+  28% {
+
+    opacity: .28;
+
+    transform:
+      scale(.94);
+
+  }
+
+
+  /* 新数字显示期间
+     原数字留在背景 */
+
+  35%,
+  58% {
+
+    opacity: .20;
+
+    transform:
+      scale(.92);
+
+  }
+
+
+  /* 新数字开始消失
+     原数字恢复 */
+
+  68% {
+
+    opacity: .65;
+
+    transform:
+      scale(.97);
+
+  }
+
+
+  /* 完全恢复 */
+
+  76%,
+  100% {
+
+    opacity: 1;
+
+    transform:
+      scale(1);
+
+  }
+
+}
+
+
+
+/* =========================
+   新数字
+   ========================= */
 
 .reduce-preview {
 
-    animation:
-        reducePreviewEnter
-        .22s
-        ease-out;
+  opacity: 0;
+
+  z-index: 10;
+
+  animation:
+    reducePreviewCycle
+    2.6s
+    cubic-bezier(.22,.75,.28,1)
+    infinite;
 
 }
 
 
-@keyframes reducePreviewEnter {
+@keyframes reducePreviewCycle {
 
-    from {
+  /* 前面只显示原数字 */
 
-        opacity: 0;
+  0%,
+  26% {
 
-        transform:
-            scale(.65);
+    opacity: 0;
 
-    }
+    transform:
+      translateY(4px)
+      scale(.72);
 
-    to {
+    filter:
+      blur(1.5px);
 
-        opacity: 1;
+  }
 
-        transform:
-            scale(1);
 
-    }
+  /* 新数字开始弹出 */
+
+  35% {
+
+    opacity: .65;
+
+    transform:
+      translateY(-2px)
+      scale(.90);
+
+    filter:
+      blur(.6px);
+
+  }
+
+
+  /* 完整出现 */
+
+  43% {
+
+    opacity: 1;
+
+    transform:
+      translateY(-7px)
+      scale(1.12);
+
+    filter:
+      blur(0);
+
+  }
+
+
+  /* 短暂停留 */
+
+  43%,
+  56% {
+
+    opacity: 1;
+
+    transform:
+      translateY(-7px)
+      scale(1.12);
+
+    filter:
+      blur(0);
+
+  }
+
+
+  /* 开始消失 */
+
+  66% {
+
+    opacity: 0;
+
+    transform:
+      translateY(-12px)
+      scale(1.04);
+
+    filter:
+      blur(.8px);
+
+  }
+
+
+  /* 后面只留下原数字 */
+
+  67%,
+  100% {
+
+    opacity: 0;
+
+    transform:
+      translateY(-12px)
+      scale(1);
+
+  }
 
 }
 
 
-@keyframes reduceCardPulse {
 
-    0%,
-    100% {
+/* =========================
+   卡片只做非常轻的亮度变化
+   不要抢数字动画
+   ========================= */
 
-        filter:
-            brightness(1);
+@keyframes reduceCardSoftPulse {
 
-    }
+  0%,
+  25%,
+  75%,
+  100% {
 
-    50% {
+    filter:
+      brightness(1);
 
-        filter:
-            brightness(1.06);
+  }
 
-    }
+
+  42%,
+  56% {
+
+    filter:
+      brightness(1.035);
+
+  }
 
 }
-
 
 
 /* =========================
@@ -496,105 +570,93 @@ code {
 
 .new-one-card {
 
-    animation:
-        newOneBreath
-        1.3s
-        ease-in-out
-        infinite;
-
-}
-
-
-.new-one-selected {
-
-    animation:
-        newOneSelected
-        .7s
-        ease-in-out
-        infinite
-        alternate;
+  animation:
+    newOneBreath
+    1.5s
+    ease-in-out
+    infinite;
 
 }
 
 
 @keyframes newOneBreath {
 
-    0%,
-    100% {
+  0%,
+  100% {
 
-        box-shadow:
-            0 6px 18px
-            rgba(245,158,11,.18);
+    box-shadow:
+      0 6px 18px
+      rgba(245,158,11,.10);
 
-    }
-
-    50% {
-
-        box-shadow:
-            0 9px 25px
-            rgba(245,158,11,.34);
-
-    }
-
-}
+  }
 
 
-@keyframes newOneSelected {
+  50% {
 
-    from {
+    box-shadow:
+      0 10px 26px
+      rgba(245,158,11,.24);
 
-        filter:
-            brightness(1);
-
-    }
-
-    to {
-
-        filter:
-            brightness(1.08);
-
-    }
+  }
 
 }
 
 
 
 /* =========================
-   得分提示
+   即将获得积分
    ========================= */
 
 .new-score-preview {
 
-    transform:
-        translateX(-50%);
+  transform:
+    translateX(-50%);
 
-    animation:
-        scoreFloat
-        .85s
-        ease-out
-        infinite
-        alternate;
+  animation:
+    newScorePreview
+    1.55s
+    ease-in-out
+    infinite;
 
 }
 
 
-@keyframes scoreFloat {
+@keyframes newScorePreview {
 
-    from {
+  0% {
 
-        transform:
-            translateX(-50%)
-            translateY(1px);
+    opacity:
+      .5;
 
-    }
+    transform:
+      translateX(-50%)
+      translateY(2px);
 
-    to {
+  }
 
-        transform:
-            translateX(-50%)
-            translateY(-3px);
 
-    }
+  50% {
+
+    opacity:
+      1;
+
+    transform:
+      translateX(-50%)
+      translateY(-3px);
+
+  }
+
+
+  100% {
+
+    opacity:
+      .5;
+
+    transform:
+      translateX(-50%)
+      translateY(2px);
+
+  }
 
 }
 
@@ -606,75 +668,96 @@ code {
 
 .game-action-button {
 
-    height: 58px;
+  height:
+    62px;
 
-    border-radius: 18px;
+  border-radius:
+    20px;
 
-    display: flex;
+  display:
+    flex;
 
-    align-items: center;
+  align-items:
+    center;
 
-    justify-content: center;
+  justify-content:
+    center;
 
-    gap: 5px;
+  gap:
+    6px;
 
-    font-size: 13px;
+  font-size:
+    13px;
 
-    font-weight: 800;
+  font-weight:
+    800;
 
-    transition:
-        transform .14s ease,
-        box-shadow .18s ease,
-        background .18s ease;
+  transition:
+    transform .14s ease,
+    box-shadow .18s ease,
+    background .18s ease,
+    opacity .18s ease;
+
+}
+
+
+.game-action-button:not(:disabled):hover {
+
+  transform:
+    translateY(-1px);
 
 }
 
 
 .game-action-button:not(:disabled):active {
 
-    transform:
-        scale(.94);
+  transform:
+    scale(.95);
 
 }
 
 
 .game-action-button:disabled {
 
-    cursor: default;
+  cursor:
+    default;
 
 }
 
 
 
-/* 消除准备 */
+/* =========================
+   消除准备
+   ========================= */
 
 .remove-ready {
 
-    animation:
-        removeReady
-        1.4s
-        ease-in-out
-        infinite;
+  animation:
+    removeReady
+    1.5s
+    ease-in-out
+    infinite;
 
 }
 
 
 @keyframes removeReady {
 
-    0%,
-    100% {
+  0%,
+  100% {
 
-        transform:
-            translateY(0);
+    transform:
+      translateY(0);
 
-    }
+  }
 
-    50% {
 
-        transform:
-            translateY(-2px);
+  50% {
 
-    }
+    transform:
+      translateY(-2px);
+
+  }
 
 }
 
@@ -686,33 +769,38 @@ code {
 
 .collection-item {
 
-    animation:
-        collectionEnter
-        .3s
-        cubic-bezier(.2,.8,.3,1.2);
+  animation:
+    collectionEnter
+    .28s
+    cubic-bezier(.2,.8,.3,1.15);
 
 }
 
 
 @keyframes collectionEnter {
 
-    from {
+  from {
 
-        opacity: 0;
+    opacity:
+      0;
 
-        transform:
-            scale(.7);
+    transform:
+      scale(.78)
+      translateY(3px);
 
-    }
+  }
 
-    to {
 
-        opacity: 1;
+  to {
 
-        transform:
-            scale(1);
+    opacity:
+      1;
 
-    }
+    transform:
+      scale(1)
+      translateY(0);
+
+  }
 
 }
 
@@ -724,29 +812,32 @@ code {
 
 .checkpoint-flash {
 
-    animation:
-        checkpointFlash
-        1.5s
-        ease-in-out
-        infinite;
+  animation:
+    checkpointFlash
+    1.6s
+    ease-in-out
+    infinite;
 
 }
 
 
 @keyframes checkpointFlash {
 
-    0%,
-    100% {
+  0%,
+  100% {
 
-        opacity: .72;
+    opacity:
+      .78;
 
-    }
+  }
 
-    50% {
 
-        opacity: 1;
+  50% {
 
-    }
+    opacity:
+      1;
+
+  }
 
 }
 
@@ -758,33 +849,36 @@ code {
 
 .capacity-warning {
 
-    animation:
-        capacityEnter
-        .25s
-        ease-out;
+  animation:
+    capacityEnter
+    .22s
+    ease-out;
 
 }
 
 
 @keyframes capacityEnter {
 
-    from {
+  from {
 
-        opacity: 0;
+    opacity:
+      0;
 
-        transform:
-            translateY(-3px);
+    transform:
+      translateY(-3px);
 
-    }
+  }
 
-    to {
 
-        opacity: 1;
+  to {
 
-        transform:
-            translateY(0);
+    opacity:
+      1;
 
-    }
+    transform:
+      translateY(0);
+
+  }
 
 }
 
@@ -796,570 +890,590 @@ code {
 
 .game-over-backdrop {
 
-    animation:
-        gameOverBackdrop
-        .25s
-        ease-out;
+  animation:
+    gameOverBackdrop
+    .25s
+    ease-out;
 
 }
 
 
 .game-over-card {
 
-    animation:
-        gameOverCard
-        .32s
-        cubic-bezier(.2,.8,.3,1.1);
+  animation:
+    gameOverCard
+    .32s
+    cubic-bezier(.2,.8,.3,1.1);
 
 }
 
 
 @keyframes gameOverBackdrop {
 
-    from {
+  from {
 
-        opacity: 0;
+    opacity:
+      0;
 
-    }
+  }
 
-    to {
 
-        opacity: 1;
+  to {
 
-    }
+    opacity:
+      1;
+
+  }
 
 }
 
 
 @keyframes gameOverCard {
 
-    from {
+  from {
 
-        opacity: 0;
+    opacity:
+      0;
 
-        transform:
-            translateY(10px)
-            scale(.94);
+    transform:
+      translateY(10px)
+      scale(.94);
 
-    }
-
-    to {
-
-        opacity: 1;
-
-        transform:
-            translateY(0)
-            scale(1);
-
-    }
-
-}
+  }
 
 
+  to {
 
-/* =========================
-   手机
-   ========================= */
+    opacity:
+      1;
 
-@media (
-    max-width: 390px
-) {
+    transform:
+      translateY(0)
+      scale(1);
 
-    .number-slot,
-    .number-card {
-
-        width: 68px;
-
-        height: 68px;
-
-    }
+  }
 
 }
 
 
 
 /* =========================
-   尊重系统减少动画设置
+   消除
    ========================= */
-
-@media (
-    prefers-reduced-motion: reduce
-) {
-
-    *,
-    *::before,
-    *::after {
-
-        animation-duration:
-            .01ms !important;
-
-        animation-iteration-count:
-            1 !important;
-
-        transition-duration:
-            .01ms !important;
-
-    }
-
-}
-
-/* =========================
-   消除 1
-   ========================= */
-
 
 .removing-card-wrapper {
 
-    position: relative;
+  position:
+    relative;
 
-    z-index: 30;
+  z-index:
+    30;
 
 }
 
 
-/* 卡片本体离场 */
-
 .remove-card {
 
-    pointer-events: none;
+  pointer-events:
+    none;
 
-    animation:
-        removeCardExit
-        .30s
-        cubic-bezier(.4,0,.7,.2)
-        forwards;
+  animation:
+    removeCardExit
+    .30s
+    cubic-bezier(.4,0,.7,.2)
+    forwards;
 
 }
 
 
 @keyframes removeCardExit {
 
-    0% {
+  0% {
 
-        opacity: 1;
+    opacity:
+      1;
 
-        transform:
-            scale(1.06)
-            translateY(-4px);
+    transform:
+      scale(1.045)
+      translateY(-4px);
 
-        filter:
-            brightness(1);
-
-    }
+  }
 
 
-    35% {
+  35% {
 
-        opacity: 1;
+    opacity:
+      1;
 
-        transform:
-            scale(1.16)
-            translateY(-5px);
+    transform:
+      scale(1.13)
+      translateY(-6px);
 
-        filter:
-            brightness(1.18);
+    filter:
+      brightness(1.15);
 
-    }
+  }
 
 
-    100% {
+  100% {
 
-        opacity: 0;
+    opacity:
+      0;
 
-        transform:
-            scale(.35)
-            translateY(-16px);
+    transform:
+      scale(.40)
+      translateY(-18px);
 
-        filter:
-            brightness(1.25);
-
-    }
+  }
 
 }
 
 
 
 /* =========================
-   金色闪光
+   消除闪光
    ========================= */
 
 .remove-flash {
 
-    background:
+  background:
 
-        radial-gradient(
+    radial-gradient(
 
-            circle,
+      circle,
 
-            rgba(255,255,255,.95) 0%,
+      rgba(255,255,255,.95)
+      0%,
 
-            rgba(251,191,36,.55) 30%,
+      rgba(251,191,36,.52)
+      30%,
 
-            rgba(245,158,11,.15) 55%,
+      rgba(245,158,11,.12)
+      56%,
 
-            transparent 72%
+      transparent
+      72%
 
-        );
+    );
 
 
-    animation:
-        removeFlash
-        .30s
-        ease-out
-        forwards;
+  animation:
+    removeFlash
+    .30s
+    ease-out
+    forwards;
 
 }
 
 
 @keyframes removeFlash {
 
-    0% {
+  0% {
 
-        opacity: 0;
+    opacity:
+      0;
 
-        transform:
-            scale(.45);
+    transform:
+      scale(.5);
 
-    }
-
-
-    40% {
-
-        opacity: 1;
-
-        transform:
-            scale(1.25);
-
-    }
+  }
 
 
-    100% {
+  40% {
 
-        opacity: 0;
+    opacity:
+      1;
 
-        transform:
-            scale(1.7);
+    transform:
+      scale(1.2);
 
-    }
+  }
+
+
+  100% {
+
+    opacity:
+      0;
+
+    transform:
+      scale(1.65);
+
+  }
 
 }
 
 
 
 /* =========================
-   得分向上飞
+   得分飞出
    ========================= */
 
 .remove-score-fly {
 
-    transform:
-        translateX(-50%);
+  transform:
+    translateX(-50%);
 
-    animation:
-        removeScoreFly
-        .45s
-        ease-out
-        forwards;
+  animation:
+    removeScoreFly
+    .45s
+    ease-out
+    forwards;
 
 }
 
 
 @keyframes removeScoreFly {
 
-    0% {
+  0% {
 
-        opacity: 1;
+    opacity:
+      1;
 
-        transform:
-            translateX(-50%)
-            translateY(0)
-            scale(1);
+    transform:
+      translateX(-50%)
+      translateY(0)
+      scale(1);
 
-    }
-
-
-    45% {
-
-        opacity: 1;
-
-        transform:
-            translateX(-50%)
-            translateY(-10px)
-            scale(1.15);
-
-    }
+  }
 
 
-    100% {
+  45% {
 
-        opacity: 0;
+    opacity:
+      1;
 
-        transform:
-            translateX(-50%)
-            translateY(-26px)
-            scale(.95);
+    transform:
+      translateX(-50%)
+      translateY(-10px)
+      scale(1.15);
 
-    }
+  }
+
+
+  100% {
+
+    opacity:
+      0;
+
+    transform:
+      translateX(-50%)
+      translateY(-28px)
+      scale(.95);
+
+  }
 
 }
 
 
 
 /* =========================
-   小粒子
+   消除粒子
    ========================= */
 
 .remove-particle {
 
-    position: absolute;
+  position:
+    absolute;
 
-    z-index: 40;
+  z-index:
+    40;
 
-    left: 50%;
+  left:
+    50%;
 
-    top: 50%;
+  top:
+    50%;
 
-    color: #f59e0b;
+  color:
+    #f59e0b;
 
-    font-size: 11px;
+  font-size:
+    11px;
 
-    pointer-events: none;
+  pointer-events:
+    none;
 
-    opacity: 0;
+  opacity:
+    0;
 
 }
 
 
-/* 左上 */
-
 .remove-particle-1 {
 
-    animation:
-        particle1
-        .36s
-        ease-out
-        forwards;
+  animation:
+    particle1
+    .36s
+    ease-out
+    forwards;
+
+}
+
+
+.remove-particle-2 {
+
+  animation:
+    particle2
+    .38s
+    ease-out
+    forwards;
+
+}
+
+
+.remove-particle-3 {
+
+  animation:
+    particle3
+    .34s
+    ease-out
+    forwards;
+
+}
+
+
+.remove-particle-4 {
+
+  animation:
+    particle4
+    .40s
+    ease-out
+    forwards;
 
 }
 
 
 @keyframes particle1 {
 
-    0% {
+  0% {
 
-        opacity: 0;
+    opacity:
+      0;
 
-        transform:
-            translate(-50%, -50%)
-            scale(.4);
+    transform:
+      translate(-50%, -50%)
+      scale(.4);
 
-    }
-
-
-    25% {
-
-        opacity: 1;
-
-    }
+  }
 
 
-    100% {
+  25% {
 
-        opacity: 0;
+    opacity:
+      1;
 
-        transform:
-            translate(-34px, -32px)
-            scale(1.2);
-
-    }
-
-}
+  }
 
 
+  100% {
 
-/* 右上 */
+    opacity:
+      0;
 
-.remove-particle-2 {
+    transform:
+      translate(-38px, -36px)
+      scale(1.2);
 
-    animation:
-        particle2
-        .38s
-        ease-out
-        forwards;
+  }
 
 }
 
 
 @keyframes particle2 {
 
-    0% {
+  0% {
 
-        opacity: 0;
+    opacity:
+      0;
 
-        transform:
-            translate(-50%, -50%)
-            scale(.4);
+    transform:
+      translate(-50%, -50%)
+      scale(.4);
 
-    }
-
-
-    25% {
-
-        opacity: 1;
-
-    }
+  }
 
 
-    100% {
+  25% {
 
-        opacity: 0;
+    opacity:
+      1;
 
-        transform:
-            translate(24px, -36px)
-            scale(1);
-
-    }
-
-}
+  }
 
 
+  100% {
 
-/* 左下 */
+    opacity:
+      0;
 
-.remove-particle-3 {
+    transform:
+      translate(28px, -39px)
+      scale(1);
 
-    animation:
-        particle3
-        .34s
-        ease-out
-        forwards;
+  }
 
 }
 
 
 @keyframes particle3 {
 
-    0% {
+  0% {
 
-        opacity: 0;
+    opacity:
+      0;
 
-        transform:
-            translate(-50%, -50%)
-            scale(.4);
+    transform:
+      translate(-50%, -50%)
+      scale(.4);
 
-    }
-
-
-    25% {
-
-        opacity: 1;
-
-    }
+  }
 
 
-    100% {
+  25% {
 
-        opacity: 0;
+    opacity:
+      1;
 
-        transform:
-            translate(-30px, 22px)
-            scale(.8);
-
-    }
-
-}
+  }
 
 
+  100% {
 
-/* 右 */
+    opacity:
+      0;
 
-.remove-particle-4 {
+    transform:
+      translate(-34px, 26px)
+      scale(.8);
 
-    animation:
-        particle4
-        .40s
-        ease-out
-        forwards;
+  }
 
 }
 
 
 @keyframes particle4 {
 
-    0% {
+  0% {
 
-        opacity: 0;
+    opacity:
+      0;
 
-        transform:
-            translate(-50%, -50%)
-            scale(.4);
+    transform:
+      translate(-50%, -50%)
+      scale(.4);
 
-    }
-
-
-    25% {
-
-        opacity: 1;
-
-    }
+  }
 
 
-    100% {
+  25% {
 
-        opacity: 0;
+    opacity:
+      1;
 
-        transform:
-            translate(34px, 14px)
-            scale(1.15);
+  }
 
-    }
+
+  100% {
+
+    opacity:
+      0;
+
+    transform:
+      translate(38px, 18px)
+      scale(1.15);
+
+  }
 
 }
+
 
 
 /* =========================
-   即将获得积分
+   手机竖屏
    ========================= */
 
-@keyframes newScorePreview {
+@media (
+  max-width: 560px
+) {
 
-  0% {
-    opacity: 0;
-    transform:
-      translateX(-50%)
-      translateY(5px);
+  .number-slot,
+  .number-card {
+
+    width:
+      64px;
+
+    height:
+      64px;
+
+    border-radius:
+      18px;
+
   }
 
-  25% {
-    opacity: 1;
-    transform:
-      translateX(-50%)
-      translateY(0);
-  }
 
-  70% {
-    opacity: 1;
-    transform:
-      translateX(-50%)
-      translateY(-2px);
-  }
+  .game-action-button {
 
-  100% {
-    opacity: 0;
-    transform:
-      translateX(-50%)
-      translateY(-6px);
+    height:
+      56px;
+
+    border-radius:
+      17px;
+
+    font-size:
+      12px;
+
   }
 
 }
 
 
-.new-score-preview {
 
-  animation:
-    newScorePreview
-    1.8s
-    ease-in-out
-    infinite;
+/* =========================
+   中等屏幕
+   ========================= */
+
+@media (
+  min-width: 561px
+) and (
+  max-width: 720px
+) {
+
+  .number-slot,
+  .number-card {
+
+    width:
+      80px;
+
+    height:
+      80px;
+
+  }
+
+}
+
+
+
+/* =========================
+   系统减少动画
+   ========================= */
+
+@media (
+  prefers-reduced-motion: reduce
+) {
+
+  *,
+  *::before,
+  *::after {
+
+    animation-duration:
+      .01ms !important;
+
+    animation-iteration-count:
+      1 !important;
+
+    transition-duration:
+      .01ms !important;
+
+  }
 
 }

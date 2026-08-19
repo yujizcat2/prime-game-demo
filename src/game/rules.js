@@ -1,60 +1,289 @@
 import { gcd } from "../utils/math";
 
+
+
+// ============================================================
 // 是否可以约分
+//
+// 规则：
+// 1. 两个动物必须相同
+// 2. gcd > 1
+// ============================================================
+
 export function canReduce(a, b) {
-  return gcd(a, b) > 1;
+
+
+  // 数字本身必须满足约分条件
+  return gcd(
+    a.value,
+    b.value
+  ) > 1;
+
 }
 
 
+
+
+
+// ============================================================
 // 判断合成后的数字
+// ============================================================
+
 export function combineValue(a, b) {
 
-  let value = a + b;
 
-  while (value > 101) {
+  let value =
+    a + b;
+
+
+  while(
+    value > 101
+  ){
+
     value -= 100;
+
   }
+
 
   return value;
+
 }
 
 
+
+
+
+// ============================================================
+// 判断合成后的动物
+//
+// front = 棋盘中位置靠前的数字
+// back  = 棋盘中位置靠后的数字
+//
+// 规则：
+//
+// 相同动物：
+// - 没跨101：动物不变
+// - 跨101：猫狗翻转
+//
+// 不同动物：
+// - 永远以前面位置的动物为准
+// - 即使跨101也不翻转
+// ============================================================
+
+export function combineAnimal(
+  front,
+  back
+) {
+
+
+  if(
+    !front ||
+    !back
+  ){
+
+    return null;
+
+  }
+
+
+
+  const sameAnimal =
+    front.animal ===
+    back.animal;
+
+
+  const crossed101 =
+    front.value +
+    back.value >
+    101;
+
+
+
+  // ==========================================================
+  // 不同动物
+  //
+  // 永远以前面的动物为准
+  // 跨101也不影响
+  // ==========================================================
+
+  if(
+    !sameAnimal
+  ){
+
+    return front.animal;
+
+  }
+
+
+
+  // ==========================================================
+  // 相同动物
+  // 没跨101
+  // ==========================================================
+
+  if(
+    !crossed101
+  ){
+
+    return front.animal;
+
+  }
+
+
+
+  // ==========================================================
+  // 相同动物
+  // 跨101
+  // 猫狗翻转
+  // ==========================================================
+
+  if(
+    front.animal === "cat"
+  ){
+
+    return "dog";
+
+  }
+
+
+  if(
+    front.animal === "dog"
+  ){
+
+    return "cat";
+
+  }
+
+
+
+  return front.animal;
+
+}
+
+
+
+
+
+// ============================================================
 // 判断是否已经存在同父母孩子
-export function hasSameParents(numbers, a, b) {
-  return numbers.some((item) => {
-    if (!item.parents) {
-      return false;
+// ============================================================
+
+export function hasSameParents(
+  numbers,
+  a,
+  b
+) {
+
+
+  return numbers.some(
+
+    item => {
+
+
+      if(
+        !item.parents
+      ){
+
+        return false;
+
+      }
+
+
+
+      const p1 =
+        item.parents[0];
+
+
+      const p2 =
+        item.parents[1];
+
+
+
+      return (
+
+        (
+          p1 === a &&
+          p2 === b
+        )
+
+        ||
+
+        (
+          p1 === b &&
+          p2 === a
+        )
+
+      );
+
     }
 
-    const p1 = item.parents[0];
-    const p2 = item.parents[1];
+  );
 
-    return (
-      (p1 === a && p2 === b) ||
-      (p1 === b && p2 === a)
-    );
-  });
 }
 
 
+
+
+
+// ============================================================
 // 判断是否可以合成
-export function canCombine(a, b, numbers) {
+// ============================================================
 
+export function canCombine(
+  a,
+  b,
+  numbers
+) {
+
+
+  // ==========================================================
   // 不能和自己的父母合成
-  if (a.parents && a.parents.includes(b.value)) {
+  // ==========================================================
+
+  if(
+    a.parents &&
+    a.parents.includes(
+      b.value
+    )
+  ){
+
     return false;
+
   }
 
-  if (b.parents && b.parents.includes(a.value)) {
+
+
+  if(
+    b.parents &&
+    b.parents.includes(
+      a.value
+    )
+  ){
+
     return false;
+
   }
 
 
+
+  // ==========================================================
   // 已存在同父母孩子
-  if (hasSameParents(numbers, a.value, b.value)) {
+  // ==========================================================
+
+  if(
+    hasSameParents(
+      numbers,
+      a.value,
+      b.value
+    )
+  ){
+
     return false;
+
   }
+
 
 
   return true;
+
 }

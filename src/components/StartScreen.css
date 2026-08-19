@@ -32,17 +32,22 @@
 
     border-radius: 32px;
 
-    background: rgba(255,255,255,.95);
+    background:
+        rgba(255,255,255,.95);
 
     box-shadow:
-        0 24px 70px rgba(15,23,42,.08);
+        0 24px 70px
+        rgba(15,23,42,.08);
 
-    border: 1px solid rgba(255,255,255,.9);
+    border:
+        1px solid
+        rgba(255,255,255,.9);
 
     text-align: center;
 
     animation:
-        startCardEnter .45s
+        startCardEnter
+        .45s
         cubic-bezier(.2,.8,.2,1);
 
 }
@@ -152,7 +157,9 @@
 
     height: 66px;
 
-    border: 1px solid #f0f1f3;
+    border:
+        1px solid
+        #f0f1f3;
 
     border-radius: 18px;
 
@@ -347,6 +354,7 @@
         padding: 16px;
 
     }
+
 
     .start-card {
 

@@ -1,8 +1,14 @@
-import { gcd } from "../utils/math";
+import {
+  gcd
+} from "../utils/math";
 
-import { GAME_CONFIG } from "./config";
+import {
+  GAME_CONFIG
+} from "./config";
 
-import { SCORE_CONFIG } from "./scoreConfig";
+import {
+  SCORE_CONFIG
+} from "./scoreConfig";
 
 import {
   CHECKPOINT_CONFIG,
@@ -11,6 +17,7 @@ import {
 
 import {
   combineValue,
+  combineAnimal,
   canReduce,
   canCombine
 } from "./rules";
@@ -25,7 +32,9 @@ import {
 // 创建初始游戏状态
 // ============================================================
 
-export function createGameState(values) {
+export function createGameState(
+  values
+) {
 
 
   const numbers =
@@ -34,13 +43,42 @@ export function createGameState(values) {
 
       (value, index) => ({
 
-        id: index + 1,
+
+        id:
+          index + 1,
+
 
         value,
 
-        parents: null,
 
-        reduceFrom: null
+        // ====================================================
+        // 第一版猫狗系统
+        //
+        // 开局按输入顺序：
+        //
+        // 第1个 = 猫
+        // 第2个 = 狗
+        // 第3个 = 猫
+        // 第4个 = 狗
+        //
+        // 以后可以改成玩家自己选择
+        // ====================================================
+
+        animal:
+
+          index % 2 === 0
+
+            ? "cat"
+
+            : "dog",
+
+
+        parents:
+          null,
+
+
+        reduceFrom:
+          null
 
       })
 
@@ -50,7 +88,9 @@ export function createGameState(values) {
   return {
 
     numbers:
-      sortNumbers(numbers),
+      sortNumbers(
+        numbers
+      ),
 
     collection: [],
 
@@ -59,11 +99,14 @@ export function createGameState(values) {
     steps: 0,
 
     stepLimit:
-      GAME_CONFIG.START_STEP_LIMIT,
+      GAME_CONFIG
+        .START_STEP_LIMIT,
 
-    checkpointPending: false,
+    checkpointPending:
+      false,
 
-    gameOver: false,
+    gameOver:
+      false,
 
     nextId:
       values.length + 1
@@ -80,7 +123,9 @@ export function createGameState(values) {
 // 是否存在数字1
 // ============================================================
 
-export function hasOne(numbers) {
+export function hasOne(
+  numbers
+) {
 
 
   return numbers.some(
@@ -161,7 +206,8 @@ export function resolveCheckpoint(
   // ==========================================================
 
   if(
-    state.score >= requiredScore
+    state.score >=
+    requiredScore
   ){
 
 
@@ -176,9 +222,11 @@ export function resolveCheckpoint(
         CHECKPOINT_CONFIG
           .STEP_INTERVAL,
 
-      checkpointPending: false,
+      checkpointPending:
+        false,
 
-      gameOver: false
+      gameOver:
+        false
 
     };
 
@@ -194,9 +242,11 @@ export function resolveCheckpoint(
 
     ...state,
 
-    checkpointPending: false,
+    checkpointPending:
+      false,
 
-    gameOver: true
+    gameOver:
+      true
 
   };
 
@@ -219,7 +269,8 @@ export function consumeStep(
 
     state.steps +
 
-    GAME_CONFIG.STEP_COST;
+    GAME_CONFIG
+      .STEP_COST;
 
 
 
@@ -227,7 +278,8 @@ export function consumeStep(
 
     ...state,
 
-    steps: nextStep
+    steps:
+      nextStep
 
   };
 
@@ -238,7 +290,8 @@ export function consumeStep(
   // ==========================================================
 
   if(
-    nextStep < state.stepLimit
+    nextStep <
+    state.stepLimit
   ){
 
 
@@ -266,7 +319,8 @@ export function consumeStep(
 
       ...nextState,
 
-      checkpointPending: true
+      checkpointPending:
+        true
 
     };
 
@@ -313,6 +367,89 @@ export function getNumberById(
 
 
 // ============================================================
+// 获取两个数字的棋盘前后顺序
+//
+// 猫狗不同的时候
+// 必须以前面位置的动物为准
+//
+// 所以不能依赖玩家点击顺序
+// ============================================================
+
+export function getOrderedPair(
+  state,
+  idA,
+  idB
+) {
+
+
+  const indexA =
+
+    state.numbers.findIndex(
+
+      item =>
+        item.id === idA
+
+    );
+
+
+  const indexB =
+
+    state.numbers.findIndex(
+
+      item =>
+        item.id === idB
+
+    );
+
+
+
+  if(
+    indexA === -1 ||
+    indexB === -1
+  ){
+
+    return null;
+
+  }
+
+
+
+  if(
+    indexA < indexB
+  ){
+
+
+    return {
+
+      front:
+        state.numbers[indexA],
+
+      back:
+        state.numbers[indexB]
+
+    };
+
+  }
+
+
+
+  return {
+
+    front:
+      state.numbers[indexB],
+
+    back:
+      state.numbers[indexA]
+
+  };
+
+}
+
+
+
+
+
+// ============================================================
 // 合成
 // ============================================================
 
@@ -340,7 +477,8 @@ export function combineNumbers(
 
   if(
     state.numbers.length >=
-    GAME_CONFIG.MAX_NUMBERS
+    GAME_CONFIG
+      .MAX_NUMBERS
   ){
 
     return state;
@@ -390,6 +528,10 @@ export function combineNumbers(
 
 
 
+  // ==========================================================
+  // 数字合成结果
+  // ==========================================================
+
   const result =
 
     combineValue(
@@ -399,6 +541,63 @@ export function combineNumbers(
 
 
 
+  // ==========================================================
+  // 获得棋盘前后顺序
+  //
+  // 防止玩家点击顺序影响动物结果
+  // ==========================================================
+
+  const orderedPair =
+
+    getOrderedPair(
+      state,
+      idA,
+      idB
+    );
+
+
+
+  if(
+    !orderedPair
+  ){
+
+    return state;
+
+  }
+
+
+
+  const {
+    front,
+    back
+  } = orderedPair;
+
+
+
+  // ==========================================================
+  // 动物合成结果
+  //
+  // 相同动物：
+  // 跨101 => 猫狗翻转
+  //
+  // 不同动物：
+  // 前面的动物决定结果
+  // 跨101不影响
+  // ==========================================================
+
+  const animal =
+
+    combineAnimal(
+      front,
+      back
+    );
+
+
+
+  // ==========================================================
+  // 创建新数字
+  // ==========================================================
+
   const newNumber = {
 
     id:
@@ -407,12 +606,15 @@ export function combineNumbers(
     value:
       result,
 
+    animal,
+
     parents: [
       a.value,
       b.value
     ],
 
-    reduceFrom: null
+    reduceFrom:
+      null
 
   };
 
@@ -453,6 +655,13 @@ export function combineNumbers(
 
 // ============================================================
 // 约分
+//
+// 规则：
+//
+// 1. 两个动物必须相同
+// 2. gcd > 1
+// 3. 约分只改变数字
+// 4. 约分绝对不改变动物
 // ============================================================
 
 export function reduceNumbers(
@@ -500,19 +709,17 @@ export function reduceNumbers(
 
 
 
-  const a =
-    first.value;
-
-
-  const b =
-    second.value;
-
-
+  // ==========================================================
+  // 现在canReduce直接接收节点
+  //
+  // 内部判断：
+  // animal相同 && gcd > 1
+  // ==========================================================
 
   if(
     !canReduce(
-      a,
-      b
+      first,
+      second
     )
   ){
 
@@ -522,7 +729,17 @@ export function reduceNumbers(
 
 
 
+  const a =
+    first.value;
+
+
+  const b =
+    second.value;
+
+
+
   const divisor =
+
     gcd(
       a,
       b
@@ -557,6 +774,13 @@ export function reduceNumbers(
 
           return {
 
+            // =================================================
+            // 保留原节点所有属性
+            // 包括animal
+            //
+            // 所以约分不会改变动物
+            // =================================================
+
             ...item,
 
             value:
@@ -568,7 +792,9 @@ export function reduceNumbers(
             reduceFrom:
 
               a2 === 1
+
                 ? a
+
                 : null
 
           };
@@ -588,6 +814,10 @@ export function reduceNumbers(
 
           return {
 
+            // =================================================
+            // 同样保留animal
+            // =================================================
+
             ...item,
 
             value:
@@ -599,7 +829,9 @@ export function reduceNumbers(
             reduceFrom:
 
               b2 === 1
+
                 ? b
+
                 : null
 
           };
@@ -814,7 +1046,9 @@ export function removeOne(
 
   if(
     state.checkpointPending &&
-    !hasOne(nextNumbers)
+    !hasOne(
+      nextNumbers
+    )
   ){
 
 
@@ -923,6 +1157,10 @@ export function getLegalCombineActions(
 
 // ============================================================
 // 所有合法约分
+//
+// 现在必须同时满足：
+// 1. 动物相同
+// 2. gcd > 1
 // ============================================================
 
 export function getLegalReduceActions(
@@ -970,8 +1208,8 @@ export function getLegalReduceActions(
 
       if(
         canReduce(
-          a.value,
-          b.value
+          a,
+          b
         )
       ){
 
@@ -1016,11 +1254,14 @@ export function getLegalRemoveActions(
   return state.numbers
 
     .filter(
+
       item =>
         item.value === 1
+
     )
 
     .map(
+
       item => ({
 
         type:
@@ -1030,6 +1271,7 @@ export function getLegalRemoveActions(
           item.id
 
       })
+
     );
 
 }

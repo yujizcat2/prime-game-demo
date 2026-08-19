@@ -84,6 +84,11 @@ export default function NumberList({
         );
 
 
+      // =========================
+      // 只要 gcd > 1
+      // 就显示约分预览
+      // =========================
+
       if (
         divisor > 1
       ) {
@@ -156,6 +161,22 @@ export default function NumberList({
             ) {
 
 
+              const combineValue =
+                preview.combine.value;
+
+
+              const combineAnimal =
+                preview.combine.animal;
+
+
+              const isCat =
+                combineAnimal === "cat";
+
+
+              const isDog =
+                combineAnimal === "dog";
+
+
               return (
 
                 <div
@@ -164,8 +185,10 @@ export default function NumberList({
                     `preview-${index}`
                   }
 
-                  className="
+                  className={`
                     number-slot
+
+                    relative
 
                     flex
                     items-center
@@ -173,23 +196,93 @@ export default function NumberList({
 
                     rounded-[22px]
 
-                    border-2
+                    border
                     border-dashed
-                    border-blue-200
-
-                    bg-blue-50/70
-
-                    text-blue-400
-
-                    text-2xl
-                    font-black
 
                     combine-preview-slot
-                  "
+
+                    ${
+                      isCat
+
+                        ? `
+                          border-orange-300/70
+                          bg-orange-50/35
+                          text-orange-500
+                        `
+
+                        : isDog
+
+                        ? `
+                          border-teal-300/70
+                          bg-teal-50/35
+                          text-teal-500
+                        `
+
+                        : `
+                          border-blue-300/70
+                          bg-blue-50/35
+                          text-blue-500
+                        `
+                    }
+                  `}
 
                 >
 
-                  {preview.combine}
+
+
+                  {/* =====================
+                      即将生成的数字
+                      ===================== */}
+
+                  <span
+
+                    className="
+                      text-[30px]
+
+                      font-black
+
+                      tracking-tight
+
+                      opacity-75
+                    "
+
+                  >
+
+                    {combineValue}
+
+                  </span>
+
+
+
+                  {/* =====================
+                      NEW 标记
+                      ===================== */}
+
+                  <span
+
+                    className="
+                      absolute
+
+                      bottom-1.5
+                      left-1/2
+
+                      -translate-x-1/2
+
+                      text-[7px]
+
+                      font-bold
+
+                      tracking-[0.14em]
+
+                      opacity-45
+                    "
+
+                  >
+
+                    NEW
+
+                  </span>
+
 
                 </div>
 
@@ -372,7 +465,7 @@ export default function NumberList({
 
                   rounded-[22px]
 
-                  border-2
+                  border
                   border-dashed
                   border-gray-200
 

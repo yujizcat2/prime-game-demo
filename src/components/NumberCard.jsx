@@ -1,4 +1,6 @@
-import { isPrime } from "../game/prime";
+import {
+  isPrime
+} from "../game/prime";
 
 
 export default function NumberCard({
@@ -23,8 +25,7 @@ export default function NumberCard({
 
 
   // =========================
-  // 最重要的保护
-  // 必须放在所有 item.xxx 之前
+  // 安全保护
   // =========================
 
   if (
@@ -41,11 +42,23 @@ export default function NumberCard({
 
 
   // =========================
-  // 从这里开始才能访问 item
+  // 基础属性
   // =========================
 
   const value =
     item.value;
+
+
+  const animal =
+    item.animal ?? null;
+
+
+  const isCat =
+    animal === "cat";
+
+
+  const isDog =
+    animal === "dog";
 
 
   const isOne =
@@ -57,7 +70,57 @@ export default function NumberCard({
 
 
   const prime =
-    isPrime(value);
+    isPrime(
+      value
+    );
+
+
+
+  // =========================
+  // 选中时数字颜色
+  //
+  // 1：玫红
+  // 猫：杏橘
+  // 狗：薄荷青
+  // =========================
+
+  const selectedNumberColor =
+
+    isOne
+
+      ? "text-rose-300"
+
+      : isCat
+
+      ? "text-orange-300"
+
+      : isDog
+
+      ? "text-teal-300"
+
+      : "text-blue-300";
+
+
+
+  // =========================
+  // 约分新数字颜色
+  // =========================
+
+  const reduceNumberColor =
+
+    isOne
+
+      ? "text-rose-300"
+
+      : isCat
+
+      ? "text-orange-400"
+
+      : isDog
+
+      ? "text-teal-400"
+
+      : "text-blue-400";
 
 
 
@@ -83,6 +146,10 @@ export default function NumberCard({
 
       {/* =========================
           积分提示
+
+          注意：
+          这里继续保留金色
+          金色只代表奖励 / 得分
           ========================= */}
 
       {
@@ -96,7 +163,7 @@ export default function NumberCard({
           className={`
             absolute
 
-            -top-8
+            -top-9
             left-1/2
 
             z-30
@@ -105,7 +172,7 @@ export default function NumberCard({
 
             pointer-events-none
 
-            text-base
+            text-[15px]
             font-black
 
             ${
@@ -151,7 +218,7 @@ export default function NumberCard({
 
             z-20
 
-            rounded-[22px]
+            rounded-[24px]
 
             pointer-events-none
 
@@ -224,16 +291,14 @@ export default function NumberCard({
         type="button"
 
         onClick={
-
           removing
-
             ? undefined
-
             : onClick
-
         }
 
-        disabled={removing}
+        disabled={
+          removing
+        }
 
         className={`
 
@@ -245,50 +310,48 @@ export default function NumberCard({
           items-center
           justify-center
 
-          rounded-[22px]
+          rounded-[24px]
 
           overflow-hidden
 
           select-none
 
-          transition-all
+          transition-colors
           duration-200
           ease-out
 
 
           ${
-            removing
+            selected &&
+            !removing
 
-              ?
+              ? "number-card-selected"
 
-              "remove-card"
-
-              :
-
-              "active:scale-[0.92]"
+              : ""
           }
 
 
           ${
-            isOne &&
-            isNewDiscovery &&
+            removing
+
+              ? "remove-card"
+
+              : "active:opacity-85"
+          }
+
+
+          ${
             selected
 
             ?
 
             `
-              bg-amber-500
-              text-white
+              bg-slate-700
 
-              -translate-y-1
-              scale-[1.06]
+              border
+              border-slate-600
 
-              shadow-[0_12px_28px_rgba(245,158,11,0.28)]
-
-              ring-2
-              ring-amber-200
-
-              new-one-selected
+              shadow-[0_10px_24px_rgba(15,23,42,0.18)]
             `
 
 
@@ -300,32 +363,15 @@ export default function NumberCard({
             ?
 
             `
-              bg-amber-400
-              text-white
+              bg-rose-100
+              text-rose-700
 
-              shadow-[0_8px_22px_rgba(245,158,11,0.20)]
+              border
+              border-rose-200
+
+              shadow-[0_8px_22px_rgba(244,63,94,0.14)]
 
               new-one-card
-            `
-
-
-            :
-
-            selected
-
-            ?
-
-            `
-              bg-blue-500
-              text-white
-
-              -translate-y-1
-              scale-[1.06]
-
-              shadow-[0_12px_28px_rgba(59,130,246,0.23)]
-
-              ring-2
-              ring-blue-200
             `
 
 
@@ -336,13 +382,47 @@ export default function NumberCard({
             ?
 
             `
-              bg-amber-50
-              text-amber-700
+              bg-rose-50
+              text-rose-600
 
               border
-              border-amber-100
+              border-rose-100
 
-              shadow-[0_5px_15px_rgba(15,23,42,0.055)]
+              shadow-[0_6px_18px_rgba(244,63,94,0.06)]
+            `
+
+
+            :
+
+            isCat
+
+            ?
+
+            `
+              bg-orange-50
+              text-gray-800
+
+              border
+              border-orange-100
+
+              shadow-[0_6px_18px_rgba(15,23,42,0.045)]
+            `
+
+
+            :
+
+            isDog
+
+            ?
+
+            `
+              bg-teal-50
+              text-gray-800
+
+              border
+              border-teal-100
+
+              shadow-[0_6px_18px_rgba(15,23,42,0.045)]
             `
 
 
@@ -355,10 +435,7 @@ export default function NumberCard({
               border
               border-gray-100
 
-              shadow-[0_5px_15px_rgba(15,23,42,0.06)]
-
-              hover:-translate-y-0.5
-              hover:shadow-[0_9px_22px_rgba(15,23,42,0.085)]
+              shadow-[0_6px_18px_rgba(15,23,42,0.05)]
             `
           }
 
@@ -393,7 +470,7 @@ export default function NumberCard({
               absolute
 
               top-2.5
-              left-2.5
+              left-3
 
               w-1.5
               h-1.5
@@ -401,9 +478,13 @@ export default function NumberCard({
               rounded-full
 
               ${
-                selected
+                isCat
 
-                  ? "bg-white/50"
+                  ? "bg-orange-300"
+
+                  : isDog
+
+                  ? "bg-teal-300"
 
                   : "bg-blue-300"
               }
@@ -416,7 +497,7 @@ export default function NumberCard({
 
 
         {/* =========================
-            已发现
+            已发现标记
             ========================= */}
 
         {
@@ -426,7 +507,7 @@ export default function NumberCard({
 
           <div
 
-            className="
+            className={`
               absolute
 
               top-2
@@ -434,8 +515,14 @@ export default function NumberCard({
 
               text-[9px]
 
-              text-amber-400
-            "
+              ${
+                selected
+
+                  ? "text-amber-300"
+
+                  : "text-amber-400"
+              }
+            `}
 
           >
 
@@ -448,7 +535,7 @@ export default function NumberCard({
 
 
         {/* =========================
-            1 标记
+            数字 1 标记
             ========================= */}
 
         {
@@ -466,12 +553,11 @@ export default function NumberCard({
               text-[9px]
 
               ${
-                isNewDiscovery ||
                 selected
 
-                  ? "text-white/80"
+                  ? "text-rose-300"
 
-                  : "text-amber-400"
+                  : "text-rose-400"
               }
             `}
 
@@ -486,7 +572,7 @@ export default function NumberCard({
 
 
         {/* =========================
-            主数字
+            主数字区域
             ========================= */}
 
         <div
@@ -503,17 +589,28 @@ export default function NumberCard({
         >
 
 
+
+          {/* =========================
+              原数字
+              ========================= */}
+
           <span
 
             className={`
-              text-[28px]
+              text-[30px]
+              sm:text-[34px]
 
               font-black
 
-              tracking-tight
+              tracking-[-0.04em]
 
-              transition-all
-              duration-200
+              ${
+                selected
+
+                  ? selectedNumberColor
+
+                  : ""
+              }
 
               ${
                 isReducing
@@ -533,7 +630,12 @@ export default function NumberCard({
 
 
           {/* =========================
-              约分预览
+              约分后的新数字
+
+              原数字变浅
+              新数字弹出
+              短暂停留
+              再消失
               ========================= */}
 
           {
@@ -543,16 +645,27 @@ export default function NumberCard({
 
             <span
 
-              className="
+              className={`
                 absolute
+                inset-0
 
-                text-[28px]
+                z-10
+
+                flex
+                items-center
+                justify-center
+
+                text-[30px]
+                sm:text-[34px]
+
                 font-black
 
-                text-white
+                tracking-[-0.04em]
+
+                ${reduceNumberColor}
 
                 reduce-preview
-              "
+              `}
 
             >
 
@@ -573,7 +686,9 @@ export default function NumberCard({
 
         {
 
-          Array.isArray(item.parents) &&
+          Array.isArray(
+            item.parents
+          ) &&
           item.parents.length >= 2 &&
 
           <div
@@ -581,18 +696,31 @@ export default function NumberCard({
             className={`
               absolute
 
-              bottom-1.5
+              bottom-2
               inset-x-0
 
               flex
               justify-center
 
               text-[8px]
+              font-semibold
 
               ${
                 selected
 
-                  ? "text-white/50"
+                  ? "text-slate-400"
+
+                  :
+
+                  isCat
+
+                  ? "text-orange-300"
+
+                  :
+
+                  isDog
+
+                  ? "text-teal-300"
 
                   : "text-gray-300"
               }
@@ -633,19 +761,18 @@ export default function NumberCard({
             className={`
               absolute
 
-              bottom-1.5
-              right-2
+              bottom-2
+              right-2.5
 
               text-[8px]
               font-bold
 
               ${
-                isNewDiscovery ||
                 selected
 
-                  ? "text-white/60"
+                  ? "text-rose-300/80"
 
-                  : "text-amber-400"
+                  : "text-rose-400"
               }
             `}
 

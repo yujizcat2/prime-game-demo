@@ -73,29 +73,23 @@ export default function StartScreen({
   return (
 
     <div
-
       className="
         start-screen
       "
-
     >
 
 
       <div
-
         className="
           start-card
         "
-
       >
 
 
         <div
-
           className="
             start-logo
           "
-
         >
 
           ✦
@@ -105,11 +99,9 @@ export default function StartScreen({
 
 
         <h1
-
           className="
             title
           "
-
         >
 
           PRIME GAME
@@ -119,11 +111,9 @@ export default function StartScreen({
 
 
         <p
-
           className="
             subtitle
           "
-
         >
 
           从数字中选择一条属于你的路径
@@ -133,11 +123,9 @@ export default function StartScreen({
 
 
         <div
-
           className="
             select-counter
           "
-
         >
 
           选择 4 个起始数字
@@ -153,11 +141,9 @@ export default function StartScreen({
 
 
         <div
-
           className="
             number-grid
           "
-
         >
 
           {
@@ -187,13 +173,9 @@ export default function StartScreen({
 
                     selected.includes(num)
 
-                      ?
+                      ? "number-btn active"
 
-                      "number-btn active"
-
-                      :
-
-                      "number-btn"
+                      : "number-btn"
 
                   }
 

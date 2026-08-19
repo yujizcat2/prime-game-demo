@@ -32,13 +32,9 @@ export default function StepPanel({
 
     checkpointRequiredScore > 0
 
-      ?
+      ? score >= checkpointRequiredScore
 
-      score >= checkpointRequiredScore
-
-      :
-
-      false;
+      : false;
 
 
   const remainingScore =
@@ -58,33 +54,31 @@ export default function StepPanel({
     <div
 
       className="
-        rounded-[26px]
+        rounded-[24px]
 
         bg-white
 
-        shadow-[0_8px_30px_rgba(15,23,42,0.06)]
+        shadow-[0_8px_28px_rgba(15,23,42,0.045)]
 
         border
         border-white
 
-        px-5
-        py-4
+        px-4
+        py-3.5
+
+        sm:px-5
       "
 
     >
 
 
-
-      {/* =========================
-          第一行 HUD
-          ========================= */}
-
       <div
 
         className="
-          flex
+          grid
+          grid-cols-3
+
           items-center
-          justify-between
         "
 
       >
@@ -95,9 +89,8 @@ export default function StepPanel({
         <div
 
           className="
-            flex
-            items-center
-            gap-2
+            text-left
+            pl-1
           "
 
         >
@@ -105,62 +98,39 @@ export default function StepPanel({
           <div
 
             className="
-              w-9
-              h-9
+              text-[9px]
+              font-bold
 
-              rounded-xl
+              tracking-[0.16em]
 
-              bg-amber-50
-
-              flex
-              items-center
-              justify-center
-
-              text-lg
+              text-gray-300
             "
 
           >
 
-            ★
+            SCORE
 
           </div>
 
 
-          <div>
+          <div
 
-            <div
+            className="
+              mt-0.5
 
-              className="
-                text-[10px]
-                uppercase
-                tracking-wider
-                text-gray-400
-              "
+              text-[21px]
+              font-black
 
-            >
+              leading-none
 
-              SCORE
+              text-gray-800
 
-            </div>
+              score-value
+            "
 
+          >
 
-            <div
-
-              className="
-                text-xl
-                font-black
-                text-gray-800
-
-                leading-tight
-
-                score-value
-              "
-
-            >
-
-              {score}
-
-            </div>
+            {score}
 
           </div>
 
@@ -174,6 +144,9 @@ export default function StepPanel({
 
           className="
             text-center
+
+            border-x
+            border-gray-100
           "
 
         >
@@ -181,9 +154,12 @@ export default function StepPanel({
           <div
 
             className="
-              text-[10px]
-              tracking-wider
-              text-gray-400
+              text-[9px]
+              font-bold
+
+              tracking-[0.16em]
+
+              text-gray-300
             "
 
           >
@@ -198,8 +174,11 @@ export default function StepPanel({
             className="
               mt-0.5
 
-              text-lg
+              text-[19px]
               font-black
+
+              leading-none
+
               text-gray-700
             "
 
@@ -218,9 +197,8 @@ export default function StepPanel({
         <div
 
           className="
-            flex
-            items-center
-            gap-2
+            text-right
+            pr-1
           "
 
         >
@@ -228,53 +206,17 @@ export default function StepPanel({
           <div
 
             className="
-              text-right
+              text-[9px]
+              font-bold
+
+              tracking-[0.16em]
+
+              text-gray-300
             "
 
           >
 
-            <div
-
-              className="
-                text-[10px]
-                tracking-wider
-                text-gray-400
-              "
-
-            >
-
-              STEP
-
-            </div>
-
-
-            <div
-
-              className="
-                text-lg
-                font-black
-                text-gray-800
-              "
-
-            >
-
-              {steps}
-
-              <span
-
-                className="
-                  text-xs
-                  text-gray-400
-                  ml-1
-                "
-
-              >
-
-                / {stepLimit}
-
-              </span>
-
-            </div>
+            STEP
 
           </div>
 
@@ -282,24 +224,36 @@ export default function StepPanel({
           <div
 
             className="
-              w-9
-              h-9
+              mt-0.5
 
-              rounded-xl
+              text-[19px]
+              font-black
 
-              bg-blue-50
+              leading-none
 
-              flex
-              items-center
-              justify-center
-
-              text-blue-500
-              font-bold
+              text-gray-800
             "
 
           >
 
-            ⚡
+            {steps}
+
+            <span
+
+              className="
+                ml-1
+
+                text-[10px]
+                font-bold
+
+                text-gray-300
+              "
+
+            >
+
+              / {stepLimit}
+
+            </span>
 
           </div>
 
@@ -311,15 +265,15 @@ export default function StepPanel({
 
 
       {/* =========================
-          步数进度条
+          进度条
           ========================= */}
 
       <div
 
         className="
-          mt-4
+          mt-3.5
 
-          h-1.5
+          h-[4px]
 
           rounded-full
 
@@ -357,7 +311,7 @@ export default function StepPanel({
 
 
       {/* =========================
-          当前阶段目标
+          阶段目标
           ========================= */}
 
       {
@@ -367,26 +321,24 @@ export default function StepPanel({
         <div
 
           className="
-            mt-3
+            mt-2.5
 
             flex
             items-center
             justify-between
 
-            text-xs
+            text-[10px]
           "
 
         >
 
           <span
-
             className="
-              text-gray-400
+              text-gray-300
             "
-
           >
 
-            阶段目标 {checkpointRequiredScore}
+            目标 {checkpointRequiredScore}
 
           </span>
 
@@ -406,18 +358,16 @@ export default function StepPanel({
 
             >
 
-              ✓ 已完成
+              ✓ 完成
 
             </span>
 
             :
 
             <span
-
               className="
-                text-gray-500
+                text-gray-400
               "
-
             >
 
               还差
@@ -425,8 +375,9 @@ export default function StepPanel({
               <span
 
                 className="
-                  mx-1
-                  font-bold
+                  ml-1
+
+                  font-black
                   text-amber-500
                 "
 
@@ -447,7 +398,7 @@ export default function StepPanel({
 
 
       {/* =========================
-          阶段结算提示
+          阶段结算
           ========================= */}
 
       {
@@ -458,7 +409,7 @@ export default function StepPanel({
         <div
 
           className="
-            mt-3
+            mt-2.5
 
             rounded-xl
 
@@ -469,8 +420,9 @@ export default function StepPanel({
 
             text-center
 
-            text-xs
+            text-[10px]
             font-semibold
+
             text-blue-500
 
             checkpoint-flash
