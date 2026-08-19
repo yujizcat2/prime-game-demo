@@ -65,9 +65,6 @@ function App() {
     setRemovingId(id);
 
 
-    // 先播放离场动画
-    // 再真正执行游戏逻辑
-
     window.setTimeout(
       () => {
 
@@ -339,7 +336,7 @@ function App() {
         <div
 
           className="
-            pt-16
+            pt-18
           "
 
         >
@@ -354,14 +351,7 @@ function App() {
             className="
               game-board
 
-              rounded-[38px]
-
-              bg-white
-
-              border
-              border-white
-
-              shadow-[0_16px_50px_rgba(15,23,42,0.08)]
+              rounded-[32px]
 
               px-4
               py-7

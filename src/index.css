@@ -94,8 +94,7 @@ button {
 
 /* =========================
    棋盘卡片尺寸
-   接近正方形
-   轻微卡牌感
+   正方形
    ========================= */
 
 .number-slot,
@@ -105,7 +104,7 @@ button {
     84px;
 
   height:
-    90px;
+    84px;
 
 }
 
@@ -113,6 +112,7 @@ button {
 
 /* =========================
    手机竖屏
+   正方形紧密卡片
    ========================= */
 
 @media (
@@ -126,7 +126,7 @@ button {
       64px;
 
     height:
-      70px;
+      64px;
 
     border-radius:
       18px;
@@ -168,7 +168,7 @@ button {
       76px;
 
     height:
-      82px;
+      76px;
 
     border-radius:
       19px;
@@ -1424,74 +1424,6 @@ button {
     transform:
       translate(38px, 18px)
       scale(1.15);
-
-  }
-
-}
-
-
-
-/* =========================
-   手机竖屏
-   ========================= */
-
-@media (
-  max-width: 560px
-) {
-
-  .number-slot,
-  .number-card {
-
-    width:
-      62px;
-
-    height:
-      82px;
-
-    border-radius:
-      18px;
-
-  }
-
-
-  .game-action-button {
-
-    height:
-      56px;
-
-    border-radius:
-      17px;
-
-    font-size:
-      12px;
-
-  }
-
-}
-
-
-
-/* =========================
-   中等屏幕
-   ========================= */
-
-@media (
-  min-width: 561px
-) and (
-  max-width: 720px
-) {
-
-  .number-slot,
-  .number-card {
-
-    width:
-      72px;
-
-    height:
-      92px;
-
-    border-radius:
-      18px;
 
   }
 
