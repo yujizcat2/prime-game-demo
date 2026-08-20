@@ -1,6 +1,7 @@
 .board-status {
 
   width:
+
     100%;
 
 }
@@ -8,27 +9,35 @@
 
 
 /* =========================
+
    环境标题
+
    ========================= */
 
 .board-status-header {
 
   margin-left:
+
     4px;
 
   margin-bottom:
+
     8px;
 
   font-size:
+
     10px;
 
   font-weight:
+
     700;
 
   letter-spacing:
+
     0.16em;
 
   color:
+
     #aeb4be;
 
 }
@@ -36,21 +45,27 @@
 
 
 /* =========================
+
    属性列表
+
    ========================= */
 
 .board-status-list {
 
   display:
+
     flex;
 
   align-items:
+
     center;
 
   gap:
+
     8px;
 
   flex-wrap:
+
     wrap;
 
 }
@@ -58,58 +73,89 @@
 
 
 /* =========================
+
    单个环境属性
+
    ========================= */
 
 .board-status-item {
 
   width:
+
     62px;
 
   height:
+
     62px;
 
   border-radius:
+
     16px;
 
   background:
+
     rgba(
+
       255,
+
       255,
+
       255,
+
       0.82
+
     );
 
   border:
+
     1px solid
+
     rgba(
+
       15,
+
       23,
+
       42,
+
       0.045
+
     );
 
   box-shadow:
+
     0
+
     4px
+
     12px
+
     rgba(
+
       15,
+
       23,
+
       42,
+
       0.035
+
     );
 
   display:
+
     flex;
 
   flex-direction:
+
     column;
 
   align-items:
+
     center;
 
   justify-content:
+
     center;
 
 }
@@ -117,18 +163,23 @@
 
 
 /* =========================
+
    属性名称
+
    ========================= */
 
 .board-status-label {
 
   font-size:
+
     10px;
 
   font-weight:
+
     700;
 
   color:
+
     #a3aab5;
 
 }
@@ -136,38 +187,51 @@
 
 
 /* =========================
+
    属性值
+
    ========================= */
 
 .board-status-value {
 
   margin-top:
+
     4px;
 
   font-size:
+
     20px;
 
   font-weight:
+
     900;
 
   line-height:
+
     1;
 
   letter-spacing:
+
     -0.03em;
 
   color:
+
     #1f2937;
 
 }
 
+
+
 /* =========================
+
    质态方块
+
    ========================= */
 
 .board-status-state-item {
 
   width:
+
     72px;
 
 }
@@ -175,27 +239,589 @@
 
 
 /* =========================
+
    质态文字
+
    ========================= */
 
 .board-status-state {
 
   margin-top:
+
     4px;
 
   font-size:
+
     15px;
 
   font-weight:
+
     900;
 
   line-height:
+
     1;
 
   letter-spacing:
+
     0.02em;
 
   color:
+
     #1f2937;
+
+}
+
+
+
+/* =========================
+
+   活性
+
+   ========================= */
+
+.board-status-activity-wrapper {
+
+  position:
+
+    relative;
+
+}
+
+
+
+/* =========================
+
+   活性按钮
+
+   ========================= */
+
+.board-status-activity-item {
+
+  padding:
+
+    0;
+
+  font-family:
+
+    inherit;
+
+  cursor:
+
+    pointer;
+
+  appearance:
+
+    none;
+
+  -webkit-tap-highlight-color:
+
+    transparent;
+
+  transition:
+
+    transform 0.15s ease,
+
+    box-shadow 0.15s ease,
+
+    background 0.15s ease;
+
+}
+
+
+
+.board-status-activity-item:active {
+
+  transform:
+
+    scale(0.96);
+
+}
+
+
+
+/* =========================
+
+   活性标题
+
+   ========================= */
+
+.board-status-activity-label {
+
+  display:
+
+    flex;
+
+  align-items:
+
+    center;
+
+  gap:
+
+    3px;
+
+}
+
+
+
+/* =========================
+
+   小提示图标
+
+   ========================= */
+
+.board-status-info-icon {
+
+  width:
+
+    12px;
+
+  height:
+
+    12px;
+
+  border-radius:
+
+    50%;
+
+  display:
+
+    inline-flex;
+
+  align-items:
+
+    center;
+
+  justify-content:
+
+    center;
+
+  font-size:
+
+    8px;
+
+  font-weight:
+
+    900;
+
+  line-height:
+
+    1;
+
+  color:
+
+    #9ca3af;
+
+  border:
+
+    1px solid
+
+    rgba(
+
+      156,
+
+      163,
+
+      175,
+
+      0.45
+
+    );
+
+}
+
+
+
+/* =========================
+
+   活性数字
+
+   ========================= */
+
+.board-status-activity-value {
+
+  font-size:
+
+    18px;
+
+}
+
+
+
+/* =========================
+
+   活性详情浮层
+
+   ========================= */
+
+.board-status-activity-detail {
+
+  position:
+
+    absolute;
+
+  top:
+
+    calc(100% + 10px);
+
+  right:
+
+    0;
+
+  z-index:
+
+    50;
+
+  width:
+
+    190px;
+
+  padding:
+
+    14px;
+
+  border-radius:
+
+    16px;
+
+  background:
+
+    rgba(
+
+      255,
+
+      255,
+
+      255,
+
+      0.97
+
+    );
+
+  border:
+
+    1px solid
+
+    rgba(
+
+      15,
+
+      23,
+
+      42,
+
+      0.06
+
+    );
+
+  box-shadow:
+
+    0
+
+    12px
+
+    32px
+
+    rgba(
+
+      15,
+
+      23,
+
+      42,
+
+      0.12
+
+    );
+
+  backdrop-filter:
+
+    blur(12px);
+
+  -webkit-backdrop-filter:
+
+    blur(12px);
+
+}
+
+
+
+/* =========================
+
+   详情顶部
+
+   ========================= */
+
+.activity-detail-header {
+
+  display:
+
+    flex;
+
+  align-items:
+
+    center;
+
+  justify-content:
+
+    space-between;
+
+}
+
+
+
+.activity-detail-title {
+
+  font-size:
+
+    12px;
+
+  font-weight:
+
+    800;
+
+  color:
+
+    #6b7280;
+
+}
+
+
+
+.activity-detail-percent {
+
+  font-size:
+
+    20px;
+
+  font-weight:
+
+    900;
+
+  color:
+
+    #1f2937;
+
+}
+
+
+
+/* =========================
+
+   总动作
+
+   ========================= */
+
+.activity-detail-main {
+
+  margin-top:
+
+    10px;
+
+  display:
+
+    flex;
+
+  align-items:
+
+    baseline;
+
+  gap:
+
+    4px;
+
+  font-size:
+
+    13px;
+
+  font-weight:
+
+    700;
+
+  color:
+
+    #6b7280;
+
+}
+
+
+
+.activity-detail-legal {
+
+  font-size:
+
+    18px;
+
+  font-weight:
+
+    900;
+
+  color:
+
+    #1f2937;
+
+}
+
+
+
+.activity-detail-divider {
+
+  color:
+
+    #c1c6cf;
+
+}
+
+
+
+.activity-detail-text {
+
+  margin-left:
+
+    3px;
+
+  font-size:
+
+    11px;
+
+  color:
+
+    #9ca3af;
+
+}
+
+
+
+/* =========================
+
+   分隔线
+
+   ========================= */
+
+.activity-detail-separator {
+
+  height:
+
+    1px;
+
+  margin:
+
+    11px 0;
+
+  background:
+
+    rgba(
+
+      15,
+
+      23,
+
+      42,
+
+      0.06
+
+    );
+
+}
+
+
+
+/* =========================
+
+   各类动作
+
+   ========================= */
+
+.activity-detail-list {
+
+  display:
+
+    flex;
+
+  flex-direction:
+
+    column;
+
+  gap:
+
+    8px;
+
+}
+
+
+
+.activity-detail-row {
+
+  display:
+
+    flex;
+
+  align-items:
+
+    center;
+
+  justify-content:
+
+    space-between;
+
+  font-size:
+
+    11px;
+
+  font-weight:
+
+    700;
+
+  color:
+
+    #8b929d;
+
+}
+
+
+
+.activity-detail-row strong {
+
+  font-size:
+
+    12px;
+
+  font-weight:
+
+    900;
+
+  color:
+
+    #374151;
+
+}
+
+
+
+/* =========================
+
+   手机适配
+
+   ========================= */
+
+@media (
+
+  max-width:
+
+    480px
+
+) {
+
+  .board-status-activity-detail {
+
+    right:
+
+      -4px;
+
+    width:
+
+      180px;
+
+  }
 
 }

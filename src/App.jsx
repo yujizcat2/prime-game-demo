@@ -16,6 +16,10 @@ import TestLab from "./components/TestLab";
 
 import useGame from "./hooks/useGame";
 
+import {
+  getActivityStatus
+} from "./game/activityStatus";
+
 
 function App() {
 
@@ -135,6 +139,19 @@ function App() {
     );
 
   }
+
+
+
+
+
+  // =========================
+  // 活性状态
+  // =========================
+
+  const activityStatus =
+    getActivityStatus(
+      game.numbers
+    );
 
 
 
@@ -390,6 +407,46 @@ function App() {
 
             primeState={
               game.primeState
+            }
+
+
+            activity={
+              activityStatus.activity
+            }
+
+            activityLegal={
+              activityStatus.legal
+            }
+
+            activityTotal={
+              activityStatus.total
+            }
+
+
+            activityCombineLegal={
+              activityStatus.combineLegal
+            }
+
+            activityCombineTotal={
+              activityStatus.combineTotal
+            }
+
+
+            activityReduceLegal={
+              activityStatus.reduceLegal
+            }
+
+            activityReduceTotal={
+              activityStatus.reduceTotal
+            }
+
+
+            activityRemoveLegal={
+              activityStatus.removeLegal
+            }
+
+            activityRemoveTotal={
+              activityStatus.removeTotal
             }
 
           />
