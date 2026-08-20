@@ -150,7 +150,8 @@ function App() {
 
   const activityStatus =
     getActivityStatus(
-      game.numbers
+      game.numbers,
+      game.primeDensity
     );
 
 
