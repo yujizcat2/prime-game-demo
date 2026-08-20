@@ -26,20 +26,15 @@ export default function BoardStatus({
 
   activityTotal = 0,
 
-
   activityCombineLegal = 0,
 
   activityCombineTotal = 0,
 
+  activityCombinePrimeLegal = 0,
 
   activityReduceLegal = 0,
 
   activityReduceTotal = 0,
-
-
-  activityRemoveLegal = 0,
-
-  activityRemoveTotal = 0,
 
 }) {
 
@@ -68,8 +63,7 @@ export default function BoardStatus({
 
 
   // =========================
-  // 点击活性区域外
-  // 自动关闭详情
+  // 点击外部关闭
   // =========================
 
   useEffect(
@@ -81,21 +75,21 @@ export default function BoardStatus({
       ) {
 
 
-        if (
+        if(
           !showActivityDetail
-        ) {
+        ){
 
           return;
 
         }
 
 
-        if (
+        if(
           activityRef.current &&
           !activityRef.current.contains(
             event.target
           )
-        ) {
+        ){
 
           setShowActivityDetail(
             false
@@ -130,6 +124,55 @@ export default function BoardStatus({
       showActivityDetail
     ]
   );
+
+
+
+  // =========================
+  // 活性文字状态
+  // =========================
+
+  function getActivityText() {
+
+
+    if(
+      activity >= 70
+    ){
+
+      return "非常活跃";
+
+    }
+
+
+    if(
+      activity >= 45
+    ){
+
+      return "比较活跃";
+
+    }
+
+
+    if(
+      activity >= 25
+    ){
+
+      return "略显安静";
+
+    }
+
+
+    if(
+      activity > 0
+    ){
+
+      return "接近沉寂";
+
+    }
+
+
+    return "已经沉寂";
+
+  }
 
 
 
@@ -315,10 +358,6 @@ export default function BoardStatus({
           >
 
 
-            {/* =====================
-                活性标题
-                ===================== */}
-
             <div
               className="
                 board-status-label
@@ -342,10 +381,6 @@ export default function BoardStatus({
             </div>
 
 
-
-            {/* =====================
-                活性百分比
-                ===================== */}
 
             <div
               className="
@@ -379,7 +414,7 @@ export default function BoardStatus({
 
 
                 {/* =====================
-                    详情标题
+                    顶部
                     ===================== */}
 
                 <div
@@ -395,7 +430,7 @@ export default function BoardStatus({
                     "
                   >
 
-                    活性
+                    当前活性
 
                   </div>
 
@@ -417,62 +452,29 @@ export default function BoardStatus({
 
 
                 {/* =====================
-                    总动作
+                    状态说明
                     ===================== */}
 
                 <div
                   className="
-                    activity-detail-main
+                    activity-detail-status
                   "
                 >
 
+                  {getActivityText()}
 
-                  <span
-                    className="
-                      activity-detail-legal
-                    "
-                  >
-
-                    {activityLegal}
-
-                  </span>
+                </div>
 
 
 
-                  <span
-                    className="
-                      activity-detail-divider
-                    "
-                  >
+                <div
+                  className="
+                    activity-detail-description
+                  "
+                >
 
-                    /
-
-                  </span>
-
-
-
-                  <span
-                    className="
-                      activity-detail-total
-                    "
-                  >
-
-                    {activityTotal}
-
-                  </span>
-
-
-
-                  <span
-                    className="
-                      activity-detail-text
-                    "
-                  >
-
-                    种动作可执行
-
-                  </span>
-
+                  活性越高，
+                  当前局面可继续变化的空间越大。
 
                 </div>
 
@@ -491,127 +493,123 @@ export default function BoardStatus({
 
 
                 {/* =====================
-                    动作分类
+                    可行动作
                     ===================== */}
 
                 <div
                   className="
-                    activity-detail-list
+                    activity-detail-row
+                    activity-detail-row-main
                   "
                 >
 
 
-                  {/* ===================
-                      合成
-                      =================== */}
+                  <span>
 
-                  <div
-                    className="
-                      activity-detail-row
-                    "
-                  >
+                    可行动作
+
+                  </span>
 
 
-                    <span>
+                  <span>
 
-                      合成
+                    <strong>
 
-                    </span>
+                      {activityLegal}
 
+                    </strong>
 
-                    <span>
+                    {" / "}
 
-                      <strong>
+                    {activityTotal}
 
-                        {activityCombineLegal}
-
-                      </strong>
-
-                      {" / "}
-
-                      {activityCombineTotal}
-
-                    </span>
-
-
-                  </div>
-
-
-
-                  {/* ===================
-                      约分
-                      =================== */}
-
-                  <div
-                    className="
-                      activity-detail-row
-                    "
-                  >
-
-
-                    <span>
-
-                      约分
-
-                    </span>
-
-
-                    <span>
-
-                      <strong>
-
-                        {activityReduceLegal}
-
-                      </strong>
-
-                      {" / "}
-
-                      {activityReduceTotal}
-
-                    </span>
-
-
-                  </div>
-
-
-
-                  {/* ===================
-                      消除
-                      =================== */}
-
-                  <div
-                    className="
-                      activity-detail-row
-                    "
-                  >
-
-
-                    <span>
-
-                      消除
-
-                    </span>
-
-
-                    <span>
-
-                      <strong>
-
-                        {activityRemoveLegal}
-
-                      </strong>
-
-                      {" / "}
-
-                      {activityRemoveTotal}
-
-                    </span>
-
-
-                  </div>
+                  </span>
 
 
                 </div>
+
+
+
+                {/* =====================
+                    合成
+                    ===================== */}
+
+                <div
+                  className="
+                    activity-detail-row
+                  "
+                >
+
+
+                  <span>
+
+                    可以合成
+
+                  </span>
+
+
+                  <span>
+
+                    {activityCombineLegal}
+
+                  </span>
+
+
+                </div>
+
+
+
+                {/* =====================
+                    约分
+                    ===================== */}
+
+                <div
+                  className="
+                    activity-detail-row
+                  "
+                >
+
+
+                  <span>
+
+                    可以约分
+
+                  </span>
+
+
+                  <span>
+
+                    {activityReduceLegal}
+
+                  </span>
+
+
+                </div>
+
+
+
+                {/* =====================
+                    质数提示
+                    ===================== */}
+
+                {
+
+                  activityCombinePrimeLegal > 0 && (
+
+                    <div
+                      className="
+                        activity-detail-note
+                      "
+                    >
+
+                      有部分合成会生成质数，
+                      后续变化空间相对较小。
+
+                    </div>
+
+                  )
+
+                }
 
 
               </div>

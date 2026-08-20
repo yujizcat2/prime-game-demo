@@ -410,9 +410,26 @@ function App() {
             }
 
 
+            // =======================
+            // 核心活性
+            // =======================
+
             activity={
               activityStatus.activity
             }
+
+            activityScore={
+              activityStatus.activityScore
+            }
+
+            activityMax={
+              activityStatus.activityMax
+            }
+
+
+            // =======================
+            // 动作数量
+            // =======================
 
             activityLegal={
               activityStatus.legal
@@ -423,6 +440,10 @@ function App() {
             }
 
 
+            // =======================
+            // 合成
+            // =======================
+
             activityCombineLegal={
               activityStatus.combineLegal
             }
@@ -431,6 +452,18 @@ function App() {
               activityStatus.combineTotal
             }
 
+            activityCombinePrimeLegal={
+              activityStatus.combinePrimeLegal
+            }
+
+            activityCombineNormalLegal={
+              activityStatus.combineNormalLegal
+            }
+
+
+            // =======================
+            // 约分
+            // =======================
 
             activityReduceLegal={
               activityStatus.reduceLegal
@@ -438,15 +471,6 @@ function App() {
 
             activityReduceTotal={
               activityStatus.reduceTotal
-            }
-
-
-            activityRemoveLegal={
-              activityStatus.removeLegal
-            }
-
-            activityRemoveTotal={
-              activityStatus.removeTotal
             }
 
           />

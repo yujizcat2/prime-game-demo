@@ -95,51 +95,32 @@
   background:
 
     rgba(
-
       255,
-
       255,
-
       255,
-
       0.82
-
     );
 
   border:
 
     1px solid
-
     rgba(
-
       15,
-
       23,
-
       42,
-
       0.045
-
     );
 
   box-shadow:
 
     0
-
     4px
-
     12px
-
     rgba(
-
       15,
-
       23,
-
       42,
-
       0.035
-
     );
 
   display:
@@ -224,7 +205,7 @@
 
 /* =========================
 
-   质态方块
+   质态
 
    ========================= */
 
@@ -237,12 +218,6 @@
 }
 
 
-
-/* =========================
-
-   质态文字
-
-   ========================= */
 
 .board-status-state {
 
@@ -276,7 +251,7 @@
 
 /* =========================
 
-   活性
+   活性区域
 
    ========================= */
 
@@ -330,6 +305,21 @@
 
 
 
+.board-status-activity-item:hover {
+
+  background:
+
+    rgba(
+      255,
+      255,
+      255,
+      0.96
+    );
+
+}
+
+
+
 .board-status-activity-item:active {
 
   transform:
@@ -366,7 +356,7 @@
 
 /* =========================
 
-   小提示图标
+   信息小图标
 
    ========================= */
 
@@ -415,17 +405,11 @@
   border:
 
     1px solid
-
     rgba(
-
       156,
-
       163,
-
       175,
-
-      0.45
-
+      0.42
     );
 
 }
@@ -474,73 +458,54 @@
 
   width:
 
-    190px;
+    210px;
 
   padding:
 
-    14px;
+    15px;
 
   border-radius:
 
-    16px;
+    18px;
 
   background:
 
     rgba(
-
       255,
-
       255,
-
       255,
-
-      0.97
-
+      0.98
     );
 
   border:
 
     1px solid
-
     rgba(
-
       15,
-
       23,
-
       42,
-
       0.06
-
     );
 
   box-shadow:
 
     0
-
-    12px
-
-    32px
-
+    14px
+    36px
     rgba(
-
       15,
-
       23,
-
       42,
-
       0.12
-
     );
 
   backdrop-filter:
 
-    blur(12px);
+    blur(14px);
 
   -webkit-backdrop-filter:
 
-    blur(12px);
+    blur(14px);
 
 }
 
@@ -574,7 +539,7 @@
 
   font-size:
 
-    12px;
+    11px;
 
   font-weight:
 
@@ -582,7 +547,7 @@
 
   color:
 
-    #6b7280;
+    #9ca3af;
 
 }
 
@@ -592,11 +557,15 @@
 
   font-size:
 
-    20px;
+    22px;
 
   font-weight:
 
     900;
+
+  line-height:
+
+    1;
 
   color:
 
@@ -608,49 +577,19 @@
 
 /* =========================
 
-   总动作
+   活性状态
 
    ========================= */
 
-.activity-detail-main {
+.activity-detail-status {
 
   margin-top:
 
-    10px;
-
-  display:
-
-    flex;
-
-  align-items:
-
-    baseline;
-
-  gap:
-
-    4px;
+    8px;
 
   font-size:
 
-    13px;
-
-  font-weight:
-
-    700;
-
-  color:
-
-    #6b7280;
-
-}
-
-
-
-.activity-detail-legal {
-
-  font-size:
-
-    18px;
+    14px;
 
   font-weight:
 
@@ -658,35 +597,39 @@
 
   color:
 
-    #1f2937;
+    #4b5563;
 
 }
 
 
 
-.activity-detail-divider {
+/* =========================
 
-  color:
+   活性说明
 
-    #c1c6cf;
+   ========================= */
 
-}
+.activity-detail-description {
 
+  margin-top:
 
-
-.activity-detail-text {
-
-  margin-left:
-
-    3px;
+    5px;
 
   font-size:
 
-    11px;
+    10px;
+
+  line-height:
+
+    1.55;
+
+  font-weight:
+
+    600;
 
   color:
 
-    #9ca3af;
+    #a0a6b0;
 
 }
 
@@ -706,20 +649,15 @@
 
   margin:
 
-    11px 0;
+    12px 0;
 
   background:
 
     rgba(
-
       15,
-
       23,
-
       42,
-
       0.06
-
     );
 
 }
@@ -728,29 +666,15 @@
 
 /* =========================
 
-   各类动作
+   信息行
 
    ========================= */
 
-.activity-detail-list {
-
-  display:
-
-    flex;
-
-  flex-direction:
-
-    column;
-
-  gap:
-
-    8px;
-
-}
-
-
-
 .activity-detail-row {
+
+  min-height:
+
+    25px;
 
   display:
 
@@ -774,17 +698,51 @@
 
   color:
 
-    #8b929d;
+    #8f96a1;
 
 }
 
 
 
-.activity-detail-row strong {
+.activity-detail-row span:last-child {
+
+  font-weight:
+
+    800;
+
+  color:
+
+    #606874;
+
+}
+
+
+
+/* =========================
+
+   主要动作行
+
+   ========================= */
+
+.activity-detail-row-main {
+
+  margin-bottom:
+
+    3px;
+
+  color:
+
+    #6b7280;
+
+}
+
+
+
+.activity-detail-row-main strong {
 
   font-size:
 
-    12px;
+    14px;
 
   font-weight:
 
@@ -800,27 +758,73 @@
 
 /* =========================
 
-   手机适配
+   额外提示
+
+   ========================= */
+
+.activity-detail-note {
+
+  margin-top:
+
+    10px;
+
+  padding:
+
+    8px 10px;
+
+  border-radius:
+
+    11px;
+
+  background:
+
+    rgba(
+      15,
+      23,
+      42,
+      0.03
+    );
+
+  font-size:
+
+    10px;
+
+  font-weight:
+
+    600;
+
+  line-height:
+
+    1.55;
+
+  color:
+
+    #9ca3af;
+
+}
+
+
+
+/* =========================
+
+   手机
 
    ========================= */
 
 @media (
-
   max-width:
-
     480px
-
 ) {
 
   .board-status-activity-detail {
 
+    width:
+
+      200px;
+
     right:
 
       -4px;
-
-    width:
-
-      180px;
 
   }
 
