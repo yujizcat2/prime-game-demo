@@ -14,6 +14,12 @@ import {
 } from "../game/rules";
 
 import {
+  getPrimeEnergy,
+  getPrimeDensity,
+  getPrimeState
+} from "../game/primeStatus";
+
+import {
   createGameState,
 
   combineNumbers as engineCombineNumbers,
@@ -132,6 +138,44 @@ export default function useGame(){
   const checkpointPending =
     gameState?.checkpointPending
     ?? false;
+
+
+
+
+
+  // ==========================================================
+  // 当前棋盘质数状态
+  //
+  // 质能：
+  // 当前棋盘所有质数的数值之和
+  //
+  // 质密：
+  // 当前棋盘质数的数量
+  //
+  // 质态：
+  // 根据质能 + 质密
+  // 生成当前棋盘的文字环境状态
+  //
+  // numbers变化后会自动重新计算
+  // ==========================================================
+
+  const primeEnergy =
+    getPrimeEnergy(
+      numbers
+    );
+
+
+  const primeDensity =
+    getPrimeDensity(
+      numbers
+    );
+
+
+  const primeState =
+    getPrimeState(
+      primeEnergy,
+      primeDensity
+    );
 
 
 
@@ -430,8 +474,6 @@ export default function useGame(){
   // ==========================================================
   // 当前选择数字
   //
-  // 这里非常重要：
-  //
   // numbers.filter 会按照棋盘中的顺序返回
   // 而不是按照玩家点击的顺序返回
   //
@@ -541,11 +583,6 @@ export default function useGame(){
 
     // ========================================================
     // 是否可以约分
-    //
-    // 现在canReduce接收完整节点
-    //
-    // 规则：
-    // animal相同 && gcd > 1
     // ========================================================
 
     const reduceAllowed =
@@ -562,12 +599,6 @@ export default function useGame(){
 
       // ======================================================
       // 合成预览
-      //
-      // 不再只是返回数字
-      //
-      // 现在同时返回：
-      // value
-      // animal
       // ======================================================
 
       combine:
@@ -987,6 +1018,19 @@ export default function useGame(){
 
 
     score,
+
+
+
+    // ========================================================
+    // 棋盘质数状态
+    // ========================================================
+
+    primeEnergy,
+
+    primeDensity,
+
+    primeState,
+
 
 
     steps,

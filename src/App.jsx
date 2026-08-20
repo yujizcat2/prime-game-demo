@@ -8,6 +8,8 @@ import ActionButtons from "./components/ActionButtons";
 import ActionHintPanel from "./components/ActionHintPanel";
 import CollectionPanel from "./components/CollectionPanel";
 import StepPanel from "./components/StepPanel";
+import Discovery from "./components/Discovery";
+import BoardStatus from "./components/BoardStatus";
 import GameOver from "./components/GameOver";
 
 import TestLab from "./components/TestLab";
@@ -260,40 +262,75 @@ function App() {
 
 
         {/* =========================
-            HUD
+            顶部状态
             ========================= */}
 
-        <StepPanel
+        <div
 
-          steps={
-            game.steps
-          }
+          className="
+            grid
+            grid-cols-[2fr_1fr]
 
-          stepLimit={
-            game.stepLimit
-          }
+            gap-3
 
-          score={
-            game.score
-          }
+            items-stretch
+          "
 
-          gameOver={
-            game.gameOver
-          }
+        >
 
-          checkpointPending={
-            game.checkpointPending
-          }
 
-          checkpointRequiredScore={
-            game.checkpointRequiredScore
-          }
+          {/* =========================
+              当前局进度
+              ========================= */}
 
-          checkpointNumber={
-            game.checkpointNumber
-          }
+          <StepPanel
 
-        />
+            steps={
+              game.steps
+            }
+
+            stepLimit={
+              game.stepLimit
+            }
+
+            score={
+              game.score
+            }
+
+            gameOver={
+              game.gameOver
+            }
+
+            checkpointPending={
+              game.checkpointPending
+            }
+
+            checkpointRequiredScore={
+              game.checkpointRequiredScore
+            }
+
+            checkpointNumber={
+              game.checkpointNumber
+            }
+
+          />
+
+
+
+          {/* =========================
+              本局发现 / 探索度
+              ========================= */}
+
+          <Discovery
+
+            collection={
+              game.collection
+            }
+
+          />
+
+
+        </div>
 
 
 
@@ -330,13 +367,47 @@ function App() {
 
 
         {/* =========================
+            棋盘状态 / 环境属性
+            ========================= */}
+
+        <div
+
+          className="
+            mt-4
+          "
+
+        >
+
+          <BoardStatus
+
+            primeEnergy={
+              game.primeEnergy
+            }
+
+            primeDensity={
+              game.primeDensity
+            }
+
+            primeState={
+              game.primeState
+            }
+
+          />
+
+        </div>
+
+
+
+
+
+        {/* =========================
             主棋盘外层间距
             ========================= */}
 
         <div
 
           className="
-            pt-18
+            pt-8
           "
 
         >

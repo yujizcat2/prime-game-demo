@@ -1,0 +1,128 @@
+.discovery-panel {
+
+  height: 100%;
+
+  border-radius:
+    24px;
+
+  background:
+    white;
+
+  border:
+    1px solid white;
+
+  box-shadow:
+    0 8px 28px
+    rgba(
+      15,
+      23,
+      42,
+      0.045
+    );
+
+  padding:
+    14px 16px;
+
+}
+
+
+
+.discovery-label {
+
+  font-size:
+    9px;
+
+  font-weight:
+    700;
+
+  letter-spacing:
+    0.16em;
+
+  color:
+    #d1d5db;
+
+}
+
+
+
+.discovery-main {
+
+  display:
+    flex;
+
+  align-items:
+    baseline;
+
+  gap:
+    6px;
+
+  margin-top:
+    4px;
+
+}
+
+
+
+.discovery-value {
+
+  font-size:
+    24px;
+
+  line-height:
+    1;
+
+  font-weight:
+    900;
+
+  color:
+    #1f2937;
+
+}
+
+
+
+.discovery-unit {
+
+  font-size:
+    10px;
+
+  font-weight:
+    700;
+
+  color:
+    #9ca3af;
+
+}
+
+
+
+.discovery-line {
+
+  height:
+    4px;
+
+  margin-top:
+    14px;
+
+  border-radius:
+    999px;
+
+  background:
+    #f3f4f6;
+
+}
+
+
+
+.discovery-footer {
+
+  margin-top:
+    10px;
+
+  font-size:
+    10px;
+
+  color:
+    #d1d5db;
+
+}

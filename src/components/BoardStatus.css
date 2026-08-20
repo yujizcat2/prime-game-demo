@@ -1,0 +1,201 @@
+.board-status {
+
+  width:
+    100%;
+
+}
+
+
+
+/* =========================
+   环境标题
+   ========================= */
+
+.board-status-header {
+
+  margin-left:
+    4px;
+
+  margin-bottom:
+    8px;
+
+  font-size:
+    10px;
+
+  font-weight:
+    700;
+
+  letter-spacing:
+    0.16em;
+
+  color:
+    #aeb4be;
+
+}
+
+
+
+/* =========================
+   属性列表
+   ========================= */
+
+.board-status-list {
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  gap:
+    8px;
+
+  flex-wrap:
+    wrap;
+
+}
+
+
+
+/* =========================
+   单个环境属性
+   ========================= */
+
+.board-status-item {
+
+  width:
+    62px;
+
+  height:
+    62px;
+
+  border-radius:
+    16px;
+
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      0.82
+    );
+
+  border:
+    1px solid
+    rgba(
+      15,
+      23,
+      42,
+      0.045
+    );
+
+  box-shadow:
+    0
+    4px
+    12px
+    rgba(
+      15,
+      23,
+      42,
+      0.035
+    );
+
+  display:
+    flex;
+
+  flex-direction:
+    column;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+}
+
+
+
+/* =========================
+   属性名称
+   ========================= */
+
+.board-status-label {
+
+  font-size:
+    10px;
+
+  font-weight:
+    700;
+
+  color:
+    #a3aab5;
+
+}
+
+
+
+/* =========================
+   属性值
+   ========================= */
+
+.board-status-value {
+
+  margin-top:
+    4px;
+
+  font-size:
+    20px;
+
+  font-weight:
+    900;
+
+  line-height:
+    1;
+
+  letter-spacing:
+    -0.03em;
+
+  color:
+    #1f2937;
+
+}
+
+/* =========================
+   质态方块
+   ========================= */
+
+.board-status-state-item {
+
+  width:
+    72px;
+
+}
+
+
+
+/* =========================
+   质态文字
+   ========================= */
+
+.board-status-state {
+
+  margin-top:
+    4px;
+
+  font-size:
+    15px;
+
+  font-weight:
+    900;
+
+  line-height:
+    1;
+
+  letter-spacing:
+    0.02em;
+
+  color:
+    #1f2937;
+
+}

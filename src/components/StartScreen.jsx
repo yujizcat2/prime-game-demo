@@ -70,6 +70,75 @@ export default function StartScreen({
 
 
 
+  function quickStart() {
+
+
+    const pool = [
+
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+
+    ];
+
+
+    const shuffled = [
+
+      ...pool
+
+    ];
+
+
+    for (
+      let i = shuffled.length - 1;
+      i > 0;
+      i--
+    ) {
+
+
+      const j =
+        Math.floor(
+          Math.random() * (i + 1)
+        );
+
+
+      [
+
+        shuffled[i],
+
+        shuffled[j]
+
+      ] = [
+
+        shuffled[j],
+
+        shuffled[i]
+
+      ];
+
+    }
+
+
+    const randomNumbers =
+      shuffled.slice(
+        0,
+        4
+      );
+
+
+    onStart(
+      randomNumbers
+    );
+
+  }
+
+
+
   return (
 
     <div
@@ -212,6 +281,26 @@ export default function StartScreen({
         >
 
           开始探索
+
+        </button>
+
+
+
+        <button
+
+          type="button"
+
+          onClick={
+            quickStart
+          }
+
+          className="
+            quick-start-btn
+          "
+
+        >
+
+          🎲 快速开始
 
         </button>
 
