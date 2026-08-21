@@ -77,6 +77,30 @@ export default function NumberCard({
 
 
   // =========================
+  // 1 的直接来源
+  //
+  // 新版来源系统：
+  //
+  // 6 → 1
+  //
+  // item.origin.parent.value = 6
+  //
+  // 主界面只显示直接上一步，
+  // 完整历史仍然去收藏界面查看。
+  // =========================
+
+  const onePreviousValue =
+
+    isOne &&
+    item.origin?.type === "reduce"
+
+      ? item.origin.parent?.value ?? null
+
+      : null;
+
+
+
+  // =========================
   // 选中时数字颜色
   // =========================
 
@@ -669,6 +693,11 @@ export default function NumberCard({
 
         {/* =========================
             合成来源
+
+            【当前使用】
+
+            例如：
+            6 + 8
             ========================= */}
 
         {
@@ -734,14 +763,26 @@ export default function NumberCard({
 
 
         {/* =========================
-            1 的来源
+            数字1的直接来源
+
+            【新版 origin 系统】
+
+            例如：
+
+            6 → 1
+
+            主界面显示：
+
+            ← 6
+
+            这里只显示直接上一步。
+            完整历史在收藏界面查看。
             ========================= */}
 
         {
 
           isOne &&
-          item.reduceFrom !== null &&
-          item.reduceFrom !== undefined &&
+          onePreviousValue !== null &&
 
           <div
 
@@ -749,7 +790,11 @@ export default function NumberCard({
               absolute
 
               bottom-2
-              right-2
+              inset-x-0
+
+              flex
+              items-center
+              justify-center
 
               text-[8px]
               font-bold
@@ -765,7 +810,16 @@ export default function NumberCard({
 
           >
 
-            {item.reduceFrom}
+            <span
+              className="
+                mr-1
+                opacity-60
+              "
+            >
+              ←
+            </span>
+
+            {onePreviousValue}
 
           </div>
 

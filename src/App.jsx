@@ -297,10 +297,6 @@ function App() {
         >
 
 
-          {/* =========================
-              当前局进度
-              ========================= */}
-
           <StepPanel
 
             steps={
@@ -334,10 +330,6 @@ function App() {
           />
 
 
-
-          {/* =========================
-              本局发现 / 探索度
-              ========================= */}
 
           <Discovery
 
@@ -385,7 +377,7 @@ function App() {
 
 
         {/* =========================
-            棋盘状态 / 环境属性
+            棋盘状态
             ========================= */}
 
         <div
@@ -410,11 +402,6 @@ function App() {
               game.primeState
             }
 
-
-            // =======================
-            // 核心活性
-            // =======================
-
             activity={
               activityStatus.activity
             }
@@ -427,11 +414,6 @@ function App() {
               activityStatus.activityMax
             }
 
-
-            // =======================
-            // 动作数量
-            // =======================
-
             activityLegal={
               activityStatus.legal
             }
@@ -439,11 +421,6 @@ function App() {
             activityTotal={
               activityStatus.total
             }
-
-
-            // =======================
-            // 合成
-            // =======================
 
             activityCombineLegal={
               activityStatus.combineLegal
@@ -460,11 +437,6 @@ function App() {
             activityCombineNormalLegal={
               activityStatus.combineNormalLegal
             }
-
-
-            // =======================
-            // 约分
-            // =======================
 
             activityReduceLegal={
               activityStatus.reduceLegal
@@ -483,7 +455,7 @@ function App() {
 
 
         {/* =========================
-            主棋盘外层间距
+            主棋盘
             ========================= */}
 
         <div
@@ -493,11 +465,6 @@ function App() {
           "
 
         >
-
-
-          {/* =========================
-              主棋盘
-              ========================= */}
 
           <div
 
@@ -611,6 +578,14 @@ function App() {
 
           collection={
             game.collection
+          }
+
+          collectionPaths={
+            game.collectionPaths
+          }
+
+          latestCollection={
+            game.latestCollection
           }
 
         />
