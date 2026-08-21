@@ -2,6 +2,25 @@ import {
   getActionStatus
 } from "../game/actionStatus";
 
+import {
+  getIngredientName
+} from "../game/ingredientCatalog";
+
+import {
+  combineAnimal
+} from "../game/rules";
+
+import {
+  getEmptyText,
+  getSingleText,
+  getWaterText,
+  getCombineText,
+  getReduceText,
+  getCombineAndReduceText,
+  getCombineBlockedText,
+  getBlockedButReducibleText
+} from "../game/kitchenText";
+
 
 export default function ActionHintPanel({
 
@@ -25,42 +44,202 @@ export default function ActionHintPanel({
 
 
   let message =
-    "选择两个数字";
+    getEmptyText();
 
 
 
   // ==========================================================
-  // 选中1
+  // animal -> 料理类型
+  //
+  // cat -> 素类
+  // dog -> 荤类
+  // ==========================================================
+
+  function getTypeFromAnimal(
+    animal
+  ) {
+
+
+    if (
+      animal === "cat"
+    ) {
+
+      return "veg";
+
+    }
+
+
+    if (
+      animal === "dog"
+    ) {
+
+      return "meat";
+
+    }
+
+
+    return "veg";
+
+  }
+
+
+
+  // ==========================================================
+  // 获取某个节点对应的料理名称
+  // ==========================================================
+
+  function getItemName(
+    item
+  ) {
+
+
+    if (
+      !item
+    ) {
+
+      return null;
+
+    }
+
+
+    return getIngredientName(
+
+      item.value,
+
+      getTypeFromAnimal(
+        item.animal
+      )
+
+    );
+
+  }
+
+
+
+  // ==========================================================
+  // 选中水
   // ==========================================================
 
   if(
     status.type === "one"
   ){
 
+
+    const waterItem =
+
+      numbers.find(
+
+        item =>
+          item.id === selected[0]
+
+      )
+
+      ??
+
+      status.item;
+
+
+
+    const ingredientType =
+
+      getTypeFromAnimal(
+
+        waterItem?.animal
+
+      );
+
+
+
+    // ========================================================
+    // 水的直接来源
+    // ========================================================
+
+    const previousValue =
+
+      waterItem?.origin?.type === "reduce"
+
+        ? waterItem.origin.parent?.value ?? null
+
+        : waterItem?.reduceFrom ?? null;
+
+
+
+    const previousIngredientName =
+
+      previousValue !== null
+
+        ? getIngredientName(
+
+            previousValue,
+
+            ingredientType
+
+          )
+
+        : null;
+
+
+
     message =
-      "消除它，获得奖励";
+
+      getWaterText(
+
+        previousIngredientName
+
+      );
 
   }
 
 
 
   // ==========================================================
-  // 只选一个普通数字
+  // 只选择一种普通食材
   // ==========================================================
 
   else if(
     status.type === "single"
   ){
 
+
+    const selectedItem =
+
+      status.item
+
+      ??
+
+      numbers.find(
+
+        item =>
+          item.id === selected[0]
+
+      );
+
+
+
+    const selectedName =
+
+      getItemName(
+
+        selectedItem
+
+      );
+
+
+
     message =
-      "再选一个数字";
+
+      getSingleText(
+
+        selectedName
+
+      );
 
   }
 
 
 
   // ==========================================================
-  // 选择两个数字
+  // 选择两种食材
   // ==========================================================
 
   else if(
@@ -79,7 +258,155 @@ export default function ActionHintPanel({
 
 
     // ========================================================
-    // 两个都可以
+    // 按玩家选择顺序获取两个节点
+    // ========================================================
+
+    const firstItem =
+
+      numbers.find(
+
+        item =>
+          item.id === selected[0]
+
+      );
+
+
+    const secondItem =
+
+      numbers.find(
+
+        item =>
+          item.id === selected[1]
+
+      );
+
+
+
+    // ========================================================
+    // 当前两个食材名称
+    // ========================================================
+
+    const firstName =
+
+      getItemName(
+
+        firstItem
+
+      );
+
+
+    const secondName =
+
+      getItemName(
+
+        secondItem
+
+      );
+
+
+
+    // ========================================================
+    // 料理结果 animal
+    //
+    // 直接复用真实游戏规则
+    // ========================================================
+
+    const resultAnimal =
+
+      firstItem &&
+      secondItem
+
+        ? combineAnimal(
+
+            firstItem,
+
+            secondItem
+
+          )
+
+        : firstItem?.animal ?? null;
+
+
+
+    const resultType =
+
+      getTypeFromAnimal(
+
+        resultAnimal
+
+      );
+
+
+
+    // ========================================================
+    // 料理结果名称
+    // ========================================================
+
+    const combineResultName =
+
+      combine?.result !== null &&
+      combine?.result !== undefined
+
+        ? getIngredientName(
+
+            combine.result,
+
+            resultType
+
+          )
+
+        : null;
+
+
+
+    // ========================================================
+    // 处理后的两个结果名称
+    //
+    // actionStatus 已经计算好了结果
+    // ========================================================
+
+    const firstReduceResultName =
+
+      reduce.allowed &&
+      reduce.firstResult !== null &&
+      firstItem
+
+        ? getIngredientName(
+
+            reduce.firstResult,
+
+            getTypeFromAnimal(
+              firstItem.animal
+            )
+
+          )
+
+        : null;
+
+
+
+    const secondReduceResultName =
+
+      reduce.allowed &&
+      reduce.secondResult !== null &&
+      secondItem
+
+        ? getIngredientName(
+
+            reduce.secondResult,
+
+            getTypeFromAnimal(
+              secondItem.animal
+            )
+
+          )
+
+        : null;
+
+
+
+    // ========================================================
+    // 可以料理 + 可以处理
     // ========================================================
 
     if(
@@ -87,15 +414,30 @@ export default function ActionHintPanel({
       reduce.allowed
     ){
 
+
       message =
-        `可以合成 ${combine.result}，也可以一起变小`;
+
+        getCombineAndReduceText({
+
+          firstName,
+
+          secondName,
+
+          combineResultName,
+
+          firstReduceResultName,
+
+          secondReduceResultName
+
+        });
 
     }
 
 
 
     // ========================================================
-    // 可以合成，但不能约分
+    // 可以料理
+    // 不能处理
     // ========================================================
 
     else if(
@@ -103,39 +445,87 @@ export default function ActionHintPanel({
       !reduce.allowed
     ){
 
+
       message =
-        `可以合成 ${combine.result}，但不能一起变小`;
+
+        getCombineText({
+
+          firstName,
+
+          secondName,
+
+          resultName:
+            combineResultName
+
+        });
 
     }
 
 
 
     // ========================================================
-    // 合成失败
-    //
-    // 无论能不能约分，
-    // 都优先显示“为什么不能合成”
+    // 不能料理
+    // 可以处理
     // ========================================================
 
     else if(
-      !combine.allowed
+      !combine.allowed &&
+      reduce.allowed
     ){
 
+
+      const blockedText =
+
+        getCombineBlockedText({
+
+          reason:
+            combine.reason,
+
+          firstName,
+
+          secondName
+
+        });
+
+
+
       message =
-        combine.reason;
+
+        getBlockedButReducibleText({
+
+          blockedText,
+
+          firstResultName:
+            firstReduceResultName,
+
+          secondResultName:
+            secondReduceResultName
+
+        });
 
     }
 
 
 
     // ========================================================
-    // 兜底
+    // 两种操作都不可以
     // ========================================================
 
     else{
 
+
       message =
-        "这两个数字现在不能这样操作";
+
+        getCombineBlockedText({
+
+          reason:
+            combine.reason,
+
+          firstName,
+
+          secondName
+
+        });
 
     }
 
@@ -151,7 +541,7 @@ export default function ActionHintPanel({
         relative
 
         w-full
-        h-12
+        min-h-12
 
         flex
         items-center
@@ -167,6 +557,7 @@ export default function ActionHintPanel({
         shadow-[0_4px_14px_rgba(15,23,42,0.035)]
 
         px-4
+        py-2
 
         overflow-hidden
       "
@@ -251,14 +642,14 @@ export default function ActionHintPanel({
       <div
 
         className="
-          max-w-[68%]
-
-          truncate
+          max-w-[72%]
 
           text-center
 
           text-[13px]
           font-medium
+
+          leading-snug
 
           text-gray-500
 

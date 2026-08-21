@@ -2,6 +2,10 @@ import {
   isPrime
 } from "../game/prime";
 
+import {
+  getIngredientName
+} from "../game/ingredientCatalog";
+
 
 export default function NumberCard({
 
@@ -77,16 +81,92 @@ export default function NumberCard({
 
 
   // =========================
+  // 料理类型映射
+  //
+  // 暂时保留底层 cat / dog
+  //
+  // cat -> 素类
+  // dog -> 荤类
+  // =========================
+
+  const ingredientType =
+
+    isCat
+
+      ? "veg"
+
+      : isDog
+
+      ? "meat"
+
+      : "veg";
+
+
+
+  // =========================
+  // 当前食材名称
+  // =========================
+
+  const ingredientName =
+    getIngredientName(
+      value,
+      ingredientType
+    );
+
+
+
+  // =========================
+  // 约分后食材名称
+  // =========================
+
+  const reduceIngredientName =
+
+    isReducing
+
+      ? getIngredientName(
+          reducePreview,
+          ingredientType
+        )
+
+      : null;
+
+
+
+  // =========================
+  // 合成来源食材名称
+  //
+  // 当前版本 parents 只保存数字，
+  // 没有保存当时父节点的 animal。
+  //
+  // 因此暂时按照当前卡片类型
+  // 映射两个父食材。
+  // =========================
+
+  const parentIngredientNames =
+
+    Array.isArray(
+      item.parents
+    ) &&
+    item.parents.length >= 2
+
+      ? [
+          getIngredientName(
+            item.parents[0],
+            ingredientType
+          ),
+
+          getIngredientName(
+            item.parents[1],
+            ingredientType
+          ),
+        ]
+
+      : null;
+
+
+
+  // =========================
   // 1 的直接来源
-  //
-  // 新版来源系统：
-  //
-  // 6 → 1
-  //
-  // item.origin.parent.value = 6
-  //
-  // 主界面只显示直接上一步，
-  // 完整历史仍然去收藏界面查看。
   // =========================
 
   const onePreviousValue =
@@ -101,10 +181,27 @@ export default function NumberCard({
 
 
   // =========================
-  // 选中时数字颜色
+  // 1 的来源食材名称
   // =========================
 
-  const selectedNumberColor =
+  const onePreviousIngredientName =
+
+    onePreviousValue !== null
+
+      ? getIngredientName(
+          onePreviousValue,
+          ingredientType
+        )
+
+      : null;
+
+
+
+  // =========================
+  // 选中时文字颜色
+  // =========================
+
+  const selectedTextColor =
 
     isOne
 
@@ -112,33 +209,33 @@ export default function NumberCard({
 
       : isCat
 
-      ? "text-orange-300"
+      ? "text-emerald-300"
 
       : isDog
 
-      ? "text-teal-300"
+      ? "text-orange-300"
 
       : "text-blue-300";
 
 
 
   // =========================
-  // 约分新数字颜色
+  // 约分预览颜色
   // =========================
 
-  const reduceNumberColor =
+  const reduceTextColor =
 
     isOne
 
-      ? "text-rose-300"
+      ? "text-rose-400"
 
       : isCat
 
-      ? "text-orange-400"
+      ? "text-emerald-500"
 
       : isDog
 
-      ? "text-teal-400"
+      ? "text-orange-500"
 
       : "text-blue-400";
 
@@ -234,7 +331,7 @@ export default function NumberCard({
 
             z-20
 
-            rounded-[18px]
+            rounded-[20px]
 
             pointer-events-none
 
@@ -326,7 +423,7 @@ export default function NumberCard({
           items-center
           justify-center
 
-          rounded-[18px]
+          rounded-[20px]
 
           overflow-hidden
 
@@ -415,11 +512,11 @@ export default function NumberCard({
             ?
 
             `
-              bg-orange-50
-              text-gray-800
+              bg-emerald-50
+              text-emerald-950
 
               border
-              border-orange-100
+              border-emerald-100
 
               shadow-[0_6px_18px_rgba(15,23,42,0.045)]
             `
@@ -432,11 +529,11 @@ export default function NumberCard({
             ?
 
             `
-              bg-teal-50
-              text-gray-800
+              bg-orange-50
+              text-orange-950
 
               border
-              border-teal-100
+              border-orange-100
 
               shadow-[0_6px_18px_rgba(15,23,42,0.045)]
             `
@@ -472,6 +569,56 @@ export default function NumberCard({
 
 
         {/* =========================
+            左上角数字
+            ========================= */}
+
+        <div
+
+          className={`
+            absolute
+
+            top-2.5
+            left-3
+
+            z-10
+
+            text-[14px]
+            sm:text-[15px]
+
+            font-black
+
+            tracking-[-0.03em]
+
+            ${
+              selected
+
+                ? selectedTextColor
+
+                : isOne
+
+                ? "text-rose-500"
+
+                : isCat
+
+                ? "text-emerald-600"
+
+                : isDog
+
+                ? "text-orange-600"
+
+                : "text-gray-500"
+            }
+          `}
+
+        >
+
+          {value}
+
+        </div>
+
+
+
+        {/* =========================
             质数标记
             ========================= */}
 
@@ -485,8 +632,8 @@ export default function NumberCard({
             className={`
               absolute
 
-              top-2.5
-              left-2.5
+              top-3
+              left-9
 
               w-1.5
               h-1.5
@@ -496,11 +643,11 @@ export default function NumberCard({
               ${
                 isCat
 
-                  ? "bg-orange-300"
+                  ? "bg-emerald-400"
 
                   : isDog
 
-                  ? "bg-teal-300"
+                  ? "bg-orange-400"
 
                   : "bg-blue-300"
               }
@@ -526,10 +673,10 @@ export default function NumberCard({
             className={`
               absolute
 
-              top-2
-              right-2
+              top-2.5
+              right-3
 
-              text-[9px]
+              text-[10px]
 
               ${
                 selected
@@ -563,10 +710,10 @@ export default function NumberCard({
             className={`
               absolute
 
-              top-2
-              right-2
+              top-2.5
+              right-3
 
-              text-[9px]
+              text-[10px]
 
               ${
                 selected
@@ -588,7 +735,7 @@ export default function NumberCard({
 
 
         {/* =========================
-            主数字区域
+            食材名称主体
             ========================= */}
 
         <div
@@ -600,6 +747,8 @@ export default function NumberCard({
             flex
             items-center
             justify-center
+
+            px-2
           "
 
         >
@@ -607,23 +756,25 @@ export default function NumberCard({
 
 
           {/* =========================
-              原数字
+              当前食材
               ========================= */}
 
           <span
 
             className={`
-              text-[29px]
-              sm:text-[32px]
+              text-[18px]
+              sm:text-[20px]
 
               font-black
+
+              whitespace-nowrap
 
               tracking-[-0.04em]
 
               ${
                 selected
 
-                  ? selectedNumberColor
+                  ? selectedTextColor
 
                   : ""
               }
@@ -639,14 +790,14 @@ export default function NumberCard({
 
           >
 
-            {value}
+            {ingredientName}
 
           </span>
 
 
 
           {/* =========================
-              约分后的新数字
+              约分后的食材
               ========================= */}
 
           {
@@ -654,7 +805,7 @@ export default function NumberCard({
             isReducing &&
             !removing &&
 
-            <span
+            <div
 
               className={`
                 absolute
@@ -663,26 +814,49 @@ export default function NumberCard({
                 z-10
 
                 flex
+                flex-col
                 items-center
                 justify-center
 
-                text-[29px]
-                sm:text-[32px]
-
-                font-black
-
-                tracking-[-0.04em]
-
-                ${reduceNumberColor}
+                ${reduceTextColor}
 
                 reduce-preview
               `}
 
             >
 
-              {reducePreview}
+              <span
+                className="
+                  text-[18px]
+                  sm:text-[20px]
 
-            </span>
+                  font-black
+
+                  whitespace-nowrap
+
+                  tracking-[-0.04em]
+                "
+              >
+                {reduceIngredientName}
+              </span>
+
+
+              <span
+                className="
+                  mt-0.5
+
+                  text-[11px]
+                  sm:text-[12px]
+
+                  font-bold
+
+                  opacity-70
+                "
+              >
+                {reducePreview}
+              </span>
+
+            </div>
 
           }
 
@@ -692,34 +866,33 @@ export default function NumberCard({
 
 
         {/* =========================
-            合成来源
-
-            【当前使用】
-
-            例如：
-            6 + 8
+            合成来源食材
             ========================= */}
 
         {
 
-          Array.isArray(
-            item.parents
-          ) &&
-          item.parents.length >= 2 &&
+          parentIngredientNames &&
 
           <div
 
             className={`
               absolute
 
-              bottom-2
+              bottom-2.5
               inset-x-0
 
               flex
+              items-center
               justify-center
 
+              px-1
+
               text-[8px]
+              sm:text-[9px]
+
               font-semibold
+
+              whitespace-nowrap
 
               ${
                 selected
@@ -730,13 +903,13 @@ export default function NumberCard({
 
                   isCat
 
-                  ? "text-orange-300"
+                  ? "text-emerald-400"
 
                   :
 
                   isDog
 
-                  ? "text-teal-300"
+                  ? "text-orange-400"
 
                   : "text-gray-300"
               }
@@ -744,17 +917,28 @@ export default function NumberCard({
 
           >
 
-            {item.parents[0]}
+            <span>
+              {
+                parentIngredientNames[0]
+              }
+            </span>
+
 
             <span
               className="
                 mx-1
+                opacity-60
               "
             >
               +
             </span>
 
-            {item.parents[1]}
+
+            <span>
+              {
+                parentIngredientNames[1]
+              }
+            </span>
 
           </div>
 
@@ -763,20 +947,7 @@ export default function NumberCard({
 
 
         {/* =========================
-            数字1的直接来源
-
-            【新版 origin 系统】
-
-            例如：
-
-            6 → 1
-
-            主界面显示：
-
-            ← 6
-
-            这里只显示直接上一步。
-            完整历史在收藏界面查看。
+            水的直接来源
             ========================= */}
 
         {
@@ -789,15 +960,21 @@ export default function NumberCard({
             className={`
               absolute
 
-              bottom-2
+              bottom-2.5
               inset-x-0
 
               flex
               items-center
               justify-center
 
+              px-1
+
               text-[8px]
+              sm:text-[9px]
+
               font-bold
+
+              whitespace-nowrap
 
               ${
                 selected
@@ -819,7 +996,9 @@ export default function NumberCard({
               ←
             </span>
 
-            {onePreviousValue}
+            <span>
+              {onePreviousIngredientName}
+            </span>
 
           </div>
 

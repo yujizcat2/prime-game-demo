@@ -4,6 +4,10 @@ import { gcd } from "../utils/math";
 
 import { SCORE_CONFIG } from "../game/scoreConfig";
 
+import {
+  getIngredientName
+} from "../game/ingredientCatalog";
+
 
 export default function NumberList({
 
@@ -130,8 +134,8 @@ export default function NumberList({
 
         justify-center
 
-        gap-x-1
-        gap-y-3
+        gap-x-1.5
+        gap-y-3.5
       "
 
     >
@@ -179,6 +183,42 @@ export default function NumberList({
                 combineAnimal === "dog";
 
 
+              // =========================
+              // 料理类型
+              //
+              // cat -> 素类
+              // dog -> 荤类
+              // =========================
+
+              const ingredientType =
+
+                isCat
+
+                  ? "veg"
+
+                  : isDog
+
+                  ? "meat"
+
+                  : "veg";
+
+
+              // =========================
+              // 即将生成的食材名称
+              // =========================
+
+              const ingredientName =
+
+                getIngredientName(
+
+                  combineValue,
+
+                  ingredientType
+
+                );
+
+
+
               return (
 
                 <div
@@ -196,7 +236,7 @@ export default function NumberList({
                     items-center
                     justify-center
 
-                    rounded-[18px]
+                    rounded-[20px]
 
                     border
                     border-dashed
@@ -207,17 +247,17 @@ export default function NumberList({
                       isCat
 
                         ? `
-                          border-orange-300/70
-                          bg-orange-50/35
-                          text-orange-500
+                          border-emerald-300/70
+                          bg-emerald-50/40
+                          text-emerald-600
                         `
 
                         : isDog
 
                         ? `
-                          border-teal-300/70
-                          bg-teal-50/35
-                          text-teal-500
+                          border-orange-300/70
+                          bg-orange-50/40
+                          text-orange-600
                         `
 
                         : `
@@ -233,24 +273,59 @@ export default function NumberList({
 
 
                   {/* =====================
-                      即将生成的数字
+                      左上角数字
                       ===================== */}
 
                   <span
 
                     className="
-                      text-[29px]
+                      absolute
+
+                      top-2.5
+                      left-3
+
+                      text-[14px]
+                      sm:text-[15px]
 
                       font-black
 
                       tracking-tight
 
-                      opacity-75
+                      opacity-70
                     "
 
                   >
 
                     {combineValue}
+
+                  </span>
+
+
+
+                  {/* =====================
+                      即将生成的食材
+                      ===================== */}
+
+                  <span
+
+                    className="
+                      px-2
+
+                      text-[17px]
+                      sm:text-[19px]
+
+                      font-black
+
+                      whitespace-nowrap
+
+                      tracking-[-0.04em]
+
+                      opacity-80
+                    "
+
+                  >
+
+                    {ingredientName}
 
                   </span>
 
@@ -265,7 +340,8 @@ export default function NumberList({
                     className="
                       absolute
 
-                      bottom-1.5
+                      bottom-2
+
                       left-1/2
 
                       -translate-x-1/2
@@ -276,7 +352,7 @@ export default function NumberList({
 
                       tracking-[0.14em]
 
-                      opacity-45
+                      opacity-40
                     "
 
                   >
@@ -465,7 +541,7 @@ export default function NumberList({
                 className="
                   number-slot
 
-                  rounded-[18px]
+                  rounded-[20px]
 
                   border
                   border-dashed

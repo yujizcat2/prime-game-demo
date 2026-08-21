@@ -101,7 +101,10 @@ export default function ActionButtons({
       >
 
 
-        {/* 合成 */}
+        {/* =========================
+            搭配
+            原：合成
+            ========================= */}
 
         <button
 
@@ -120,68 +123,6 @@ export default function ActionButtons({
 
             ${
               canCombine
-
-                ?
-
-                `
-                  bg-blue-500
-                  text-white
-
-                  shadow-[0_8px_22px_rgba(59,130,246,0.19)]
-
-                  hover:bg-blue-600
-                `
-
-                :
-
-                `
-                  bg-white
-                  text-gray-300
-
-                  border
-                  border-gray-100
-                `
-            }
-          `}
-
-        >
-
-          <span
-            className="
-              text-[20px]
-              leading-none
-            "
-          >
-            ＋
-          </span>
-
-          <span>
-            合成
-          </span>
-
-        </button>
-
-
-
-        {/* 约分 */}
-
-        <button
-
-          onClick={
-            canReduce
-              ? onReduce
-              : undefined
-          }
-
-          disabled={
-            !canReduce
-          }
-
-          className={`
-            game-action-button
-
-            ${
-              canReduce
 
                 ?
 
@@ -210,6 +151,71 @@ export default function ActionButtons({
 
           <span
             className="
+              text-[20px]
+              leading-none
+            "
+          >
+            ＋
+          </span>
+
+          <span>
+            搭配
+          </span>
+
+        </button>
+
+
+
+        {/* =========================
+            处理
+            原：约分
+            ========================= */}
+
+        <button
+
+          onClick={
+            canReduce
+              ? onReduce
+              : undefined
+          }
+
+          disabled={
+            !canReduce
+          }
+
+          className={`
+            game-action-button
+
+            ${
+              canReduce
+
+                ?
+
+                `
+                  bg-emerald-500
+                  text-white
+
+                  shadow-[0_8px_22px_rgba(16,185,129,0.18)]
+
+                  hover:bg-emerald-600
+                `
+
+                :
+
+                `
+                  bg-white
+                  text-gray-300
+
+                  border
+                  border-gray-100
+                `
+            }
+          `}
+
+        >
+
+          <span
+            className="
               text-[18px]
               leading-none
             "
@@ -218,14 +224,17 @@ export default function ActionButtons({
           </span>
 
           <span>
-            约分
+            处理
           </span>
 
         </button>
 
 
 
-        {/* 消除 */}
+        {/* =========================
+            收取水
+            原：消除 1
+            ========================= */}
 
         <button
 
@@ -259,12 +268,12 @@ export default function ActionButtons({
                 ?
 
                 `
-                  bg-amber-400
+                  bg-sky-400
                   text-white
 
-                  shadow-[0_8px_22px_rgba(245,158,11,0.20)]
+                  shadow-[0_8px_22px_rgba(56,189,248,0.20)]
 
-                  hover:bg-amber-500
+                  hover:bg-sky-500
 
                   remove-ready
                 `
@@ -288,11 +297,11 @@ export default function ActionButtons({
               text-[15px]
             "
           >
-            ✦
+            ◇
           </span>
 
           <span>
-            消除
+            收取水
           </span>
 
         </button>
@@ -324,7 +333,7 @@ export default function ActionButtons({
 
         >
 
-          数字槽已满 · 先进行约分
+          操作台已满 · 先处理食材
 
         </div>
 
