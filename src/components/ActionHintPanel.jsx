@@ -3,12 +3,20 @@ import {
 } from "../game/actionStatus";
 
 import {
-  getIngredientName
-} from "../game/ingredientCatalog";
+  combineFoodType
+} from "../game/rules";
 
 import {
-  combineAnimal
-} from "../game/rules";
+  getMeatName
+} from "../data/food/meatData";
+
+import {
+  getVegetableName
+} from "../data/food/vegetableData";
+
+import {
+  getDessertName
+} from "../data/food/dessertData";
 
 import {
   getEmptyText,
@@ -20,6 +28,76 @@ import {
   getCombineBlockedText,
   getBlockedButReducibleText
 } from "../game/kitchenText";
+
+
+
+
+
+// ============================================================
+// 根据料理类型获取名称
+// ============================================================
+
+function getFoodName(
+  value,
+  foodType
+) {
+
+
+  if(
+    value === null ||
+    value === undefined
+  ){
+
+    return null;
+
+  }
+
+
+
+  if(
+    foodType === "meat"
+  ){
+
+    return getMeatName(
+      value
+    );
+
+  }
+
+
+
+  if(
+    foodType === "vegetable"
+  ){
+
+    return getVegetableName(
+      value
+    );
+
+  }
+
+
+
+  if(
+    foodType === "dessert"
+  ){
+
+    return getDessertName(
+      value
+    );
+
+  }
+
+
+
+  return String(
+    value
+  );
+
+}
+
+
+
 
 
 export default function ActionHintPanel({
@@ -48,40 +126,6 @@ export default function ActionHintPanel({
 
 
 
-  // ==========================================================
-  // animal -> 料理类型
-  //
-  // cat -> 素类
-  // dog -> 荤类
-  // ==========================================================
-
-  function getTypeFromAnimal(
-    animal
-  ) {
-
-
-    if (
-      animal === "cat"
-    ) {
-
-      return "veg";
-
-    }
-
-
-    if (
-      animal === "dog"
-    ) {
-
-      return "meat";
-
-    }
-
-
-    return "veg";
-
-  }
-
 
 
   // ==========================================================
@@ -93,22 +137,21 @@ export default function ActionHintPanel({
   ) {
 
 
-    if (
+    if(
       !item
-    ) {
+    ){
 
       return null;
 
     }
 
 
-    return getIngredientName(
+
+    return getFoodName(
 
       item.value,
 
-      getTypeFromAnimal(
-        item.animal
-      )
+      item.foodType
 
     );
 
@@ -116,8 +159,10 @@ export default function ActionHintPanel({
 
 
 
+
+
   // ==========================================================
-  // 选中水
+  // 选中1
   // ==========================================================
 
   if(
@@ -125,7 +170,7 @@ export default function ActionHintPanel({
   ){
 
 
-    const waterItem =
+    const oneItem =
 
       numbers.find(
 
@@ -140,39 +185,59 @@ export default function ActionHintPanel({
 
 
 
-    const ingredientType =
-
-      getTypeFromAnimal(
-
-        waterItem?.animal
-
-      );
-
-
-
     // ========================================================
-    // 水的直接来源
+    // 1的直接来源
     // ========================================================
+
+    const previousRecord =
+
+      oneItem?.origin?.type === "reduce"
+
+        ? oneItem.origin.parent
+
+        : null;
+
+
 
     const previousValue =
 
-      waterItem?.origin?.type === "reduce"
-
-        ? waterItem.origin.parent?.value ?? null
-
-        : waterItem?.reduceFrom ?? null;
+      previousRecord?.value
+      ?? null;
 
 
 
-    const previousIngredientName =
+    // ========================================================
+    // 来源料理类型
+    //
+    // 优先读取来源节点当时的foodType。
+    //
+    // 如果旧origin中还没存foodType，
+    // 再退回当前1节点的foodType。
+    // ========================================================
+
+    const previousFoodType =
+
+      previousRecord?.foodType
+
+      ??
+
+      oneItem?.foodType
+
+      ??
+
+      null;
+
+
+
+    const previousFoodName =
 
       previousValue !== null
 
-        ? getIngredientName(
+        ? getFoodName(
 
             previousValue,
 
-            ingredientType
+            previousFoodType
 
           )
 
@@ -184,7 +249,7 @@ export default function ActionHintPanel({
 
       getWaterText(
 
-        previousIngredientName
+        previousFoodName
 
       );
 
@@ -192,8 +257,10 @@ export default function ActionHintPanel({
 
 
 
+
+
   // ==========================================================
-  // 只选择一种普通食材
+  // 只选择一个普通料理
   // ==========================================================
 
   else if(
@@ -238,8 +305,10 @@ export default function ActionHintPanel({
 
 
 
+
+
   // ==========================================================
-  // 选择两种食材
+  // 选择两个料理
   // ==========================================================
 
   else if(
@@ -258,65 +327,68 @@ export default function ActionHintPanel({
 
 
     // ========================================================
-    // 按玩家选择顺序获取两个节点
+    // 根据主菜盘实际位置获取两个节点
+    //
+    // 这里不能使用玩家点击顺序决定前后。
     // ========================================================
 
-    const firstItem =
+    const selectedItems =
 
-      numbers.find(
+      numbers.filter(
 
         item =>
-          item.id === selected[0]
+          selected.includes(
+            item.id
+          )
 
       );
+
+
+
+    const firstItem =
+      selectedItems[0] ?? null;
 
 
     const secondItem =
-
-      numbers.find(
-
-        item =>
-          item.id === selected[1]
-
-      );
+      selectedItems[1] ?? null;
 
 
 
     // ========================================================
-    // 当前两个食材名称
+    // 当前两个料理名称
     // ========================================================
 
     const firstName =
 
       getItemName(
-
         firstItem
-
       );
 
 
     const secondName =
 
       getItemName(
-
         secondItem
-
       );
 
 
 
+
+
     // ========================================================
-    // 料理结果 animal
+    // 合成结果类型
     //
-    // 直接复用真实游戏规则
+    // 直接复用真正游戏规则。
+    //
+    // firstItem就是主菜盘更靠前的节点。
     // ========================================================
 
-    const resultAnimal =
+    const resultFoodType =
 
       firstItem &&
       secondItem
 
-        ? combineAnimal(
+        ? combineFoodType(
 
             firstItem,
 
@@ -324,22 +396,14 @@ export default function ActionHintPanel({
 
           )
 
-        : firstItem?.animal ?? null;
+        : firstItem?.foodType ?? null;
 
 
-
-    const resultType =
-
-      getTypeFromAnimal(
-
-        resultAnimal
-
-      );
 
 
 
     // ========================================================
-    // 料理结果名称
+    // 合成结果名称
     // ========================================================
 
     const combineResultName =
@@ -347,11 +411,11 @@ export default function ActionHintPanel({
       combine?.result !== null &&
       combine?.result !== undefined
 
-        ? getIngredientName(
+        ? getFoodName(
 
             combine.result,
 
-            resultType
+            resultFoodType
 
           )
 
@@ -359,10 +423,12 @@ export default function ActionHintPanel({
 
 
 
+
+
     // ========================================================
-    // 处理后的两个结果名称
+    // 约分后的第一个结果名称
     //
-    // actionStatus 已经计算好了结果
+    // 约分不改变料理类型。
     // ========================================================
 
     const firstReduceResultName =
@@ -371,19 +437,23 @@ export default function ActionHintPanel({
       reduce.firstResult !== null &&
       firstItem
 
-        ? getIngredientName(
+        ? getFoodName(
 
             reduce.firstResult,
 
-            getTypeFromAnimal(
-              firstItem.animal
-            )
+            firstItem.foodType
 
           )
 
         : null;
 
 
+
+
+
+    // ========================================================
+    // 约分后的第二个结果名称
+    // ========================================================
 
     const secondReduceResultName =
 
@@ -391,13 +461,11 @@ export default function ActionHintPanel({
       reduce.secondResult !== null &&
       secondItem
 
-        ? getIngredientName(
+        ? getFoodName(
 
             reduce.secondResult,
 
-            getTypeFromAnimal(
-              secondItem.animal
-            )
+            secondItem.foodType
 
           )
 
@@ -405,8 +473,10 @@ export default function ActionHintPanel({
 
 
 
+
+
     // ========================================================
-    // 可以料理 + 可以处理
+    // 可以合成 + 可以约分
     // ========================================================
 
     if(
@@ -435,9 +505,11 @@ export default function ActionHintPanel({
 
 
 
+
+
     // ========================================================
-    // 可以料理
-    // 不能处理
+    // 可以合成
+    // 不能约分
     // ========================================================
 
     else if(
@@ -463,9 +535,11 @@ export default function ActionHintPanel({
 
 
 
+
+
     // ========================================================
-    // 不能料理
-    // 可以处理
+    // 不能合成
+    // 可以约分
     // ========================================================
 
     else if(
@@ -507,6 +581,8 @@ export default function ActionHintPanel({
 
 
 
+
+
     // ========================================================
     // 两种操作都不可以
     // ========================================================
@@ -530,6 +606,8 @@ export default function ActionHintPanel({
     }
 
   }
+
+
 
 
 

@@ -1,12 +1,94 @@
 import NumberCard from "./NumberCard";
 
-import { gcd } from "../utils/math";
-
-import { SCORE_CONFIG } from "../game/scoreConfig";
+import {
+  gcd
+} from "../utils/math";
 
 import {
-  getIngredientName
-} from "../game/ingredientCatalog";
+  SCORE_CONFIG
+} from "../game/scoreConfig";
+
+import {
+  getMeatName
+} from "../data/food/meatData";
+
+import {
+  getVegetableName
+} from "../data/food/vegetableData";
+
+import {
+  getDessertName
+} from "../data/food/dessertData";
+
+
+
+
+
+// ============================================================
+// 根据料理类型获取名称
+// ============================================================
+
+function getFoodName(
+  value,
+  foodType
+) {
+
+
+  if(
+    value === null ||
+    value === undefined
+  ){
+
+    return null;
+
+  }
+
+
+
+  if(
+    foodType === "meat"
+  ){
+
+    return getMeatName(
+      value
+    );
+
+  }
+
+
+
+  if(
+    foodType === "vegetable"
+  ){
+
+    return getVegetableName(
+      value
+    );
+
+  }
+
+
+
+  if(
+    foodType === "dessert"
+  ){
+
+    return getDessertName(
+      value
+    );
+
+  }
+
+
+
+  return String(
+    value
+  );
+
+}
+
+
+
 
 
 export default function NumberList({
@@ -26,9 +108,9 @@ export default function NumberList({
 }) {
 
 
-  // =========================
-  // 固定 10 个位置
-  // =========================
+  // ==========================================================
+  // 固定10个主菜盘位置
+  // ==========================================================
 
   const slots =
     Array.from({
@@ -39,16 +121,19 @@ export default function NumberList({
 
 
 
-  // =========================
+
+
+  // ==========================================================
   // 约分预览
-  // =========================
+  // ==========================================================
 
   const reducePreviewMap = {};
 
 
-  if (
+
+  if(
     selected.length === 2
-  ) {
+  ){
 
 
     const firstItem =
@@ -71,10 +156,11 @@ export default function NumberList({
       );
 
 
-    if (
+
+    if(
       firstItem &&
       secondItem
-    ) {
+    ){
 
 
       const divisor =
@@ -88,14 +174,10 @@ export default function NumberList({
         );
 
 
-      // =========================
-      // 只要 gcd > 1
-      // 就显示约分预览
-      // =========================
 
-      if (
+      if(
         divisor > 1
-      ) {
+      ){
 
 
         reducePreviewMap[
@@ -104,6 +186,7 @@ export default function NumberList({
 
           firstItem.value /
           divisor;
+
 
 
         reducePreviewMap[
@@ -152,11 +235,20 @@ export default function NumberList({
 
 
 
-            // =========================
-            // 潜在合成位置
-            // =========================
 
-            if (
+
+            // ==================================================
+            // 潜在三拼位置
+            //
+            // 当玩家选择两道料理后：
+            //
+            // A + B = C
+            //
+            // C不是“A和B做出来的菜”，
+            // 而是与A、B形成三拼关系的第三道料理。
+            // ==================================================
+
+            if(
 
               !item &&
 
@@ -164,56 +256,42 @@ export default function NumberList({
 
               index === numbers.length
 
-            ) {
+            ){
 
 
               const combineValue =
                 preview.combine.value;
 
 
-              const combineAnimal =
-                preview.combine.animal;
+              const foodType =
+                preview.combine.foodType;
 
 
-              const isCat =
-                combineAnimal === "cat";
+
+              const isMeat =
+                foodType === "meat";
 
 
-              const isDog =
-                combineAnimal === "dog";
+              const isVegetable =
+                foodType === "vegetable";
 
 
-              // =========================
-              // 料理类型
-              //
-              // cat -> 素类
-              // dog -> 荤类
-              // =========================
-
-              const ingredientType =
-
-                isCat
-
-                  ? "veg"
-
-                  : isDog
-
-                  ? "meat"
-
-                  : "veg";
+              const isDessert =
+                foodType === "dessert";
 
 
-              // =========================
-              // 即将生成的食材名称
-              // =========================
 
-              const ingredientName =
+              // =================================================
+              // 三拼中的第三道料理名称
+              // =================================================
 
-                getIngredientName(
+              const foodName =
+
+                getFoodName(
 
                   combineValue,
 
-                  ingredientType
+                  foodType
 
                 );
 
@@ -244,7 +322,7 @@ export default function NumberList({
                     combine-preview-slot
 
                     ${
-                      isCat
+                      isVegetable
 
                         ? `
                           border-emerald-300/70
@@ -252,7 +330,7 @@ export default function NumberList({
                           text-emerald-600
                         `
 
-                        : isDog
+                        : isMeat
 
                         ? `
                           border-orange-300/70
@@ -260,10 +338,18 @@ export default function NumberList({
                           text-orange-600
                         `
 
+                        : isDessert
+
+                        ? `
+                          border-violet-300/70
+                          bg-violet-50/40
+                          text-violet-600
+                        `
+
                         : `
-                          border-blue-300/70
-                          bg-blue-50/35
-                          text-blue-500
+                          border-gray-300/70
+                          bg-gray-50/40
+                          text-gray-500
                         `
                     }
                   `}
@@ -272,9 +358,9 @@ export default function NumberList({
 
 
 
-                  {/* =====================
+                  {/* ===========================================
                       左上角数字
-                      ===================== */}
+                      =========================================== */}
 
                   <span
 
@@ -302,9 +388,11 @@ export default function NumberList({
 
 
 
-                  {/* =====================
-                      即将生成的食材
-                      ===================== */}
+
+
+                  {/* ===========================================
+                      三拼第三道料理
+                      =========================================== */}
 
                   <span
 
@@ -325,15 +413,17 @@ export default function NumberList({
 
                   >
 
-                    {ingredientName}
+                    {foodName}
 
                   </span>
 
 
 
-                  {/* =====================
-                      NEW 标记
-                      ===================== */}
+
+
+                  {/* ===========================================
+                      三拼标记
+                      =========================================== */}
 
                   <span
 
@@ -346,18 +436,18 @@ export default function NumberList({
 
                       -translate-x-1/2
 
-                      text-[7px]
+                      text-[8px]
 
                       font-bold
 
                       tracking-[0.14em]
 
-                      opacity-40
+                      opacity-45
                     "
 
                   >
 
-                    NEW
+                    三拼
 
                   </span>
 
@@ -372,16 +462,18 @@ export default function NumberList({
 
 
 
-            // =========================
-            // 正常数字
-            // =========================
+            // ==================================================
+            // 正常料理
+            // ==================================================
 
-            if (item) {
+            if(
+              item
+            ){
 
 
-              // =========================
+              // =================================================
               // 是否已经成功发现过
-              // =========================
+              // =================================================
 
               const discovered =
 
@@ -393,46 +485,63 @@ export default function NumberList({
 
 
 
-              // =========================
-              // 是否是新发现的 1
-              // =========================
+              // =================================================
+              // 1的直接前身
+              // =================================================
+
+              const reduceFrom =
+
+                item.value === 1 &&
+                item.origin?.type === "reduce"
+
+                  ? (
+                      item.origin
+                        .parent
+                        ?.value
+                      ?? null
+                    )
+
+                  : null;
+
+
+
+              // =================================================
+              // 是否为新发现的1
+              // =================================================
 
               const isNewDiscovery =
 
                 item.value === 1 &&
 
-                item.reduceFrom !== null &&
+                reduceFrom !== null &&
 
                 !collection.includes(
-                  item.reduceFrom
+                  reduceFrom
                 );
 
 
 
-              // =========================
-              // 即将获得的积分
-              // =========================
+              // =================================================
+              // 即将获得积分
+              // =================================================
 
               let scorePreview =
                 null;
 
 
-              if (
+
+              if(
 
                 item.value === 1 &&
 
-                item.reduceFrom !== null
+                reduceFrom !== null
 
-              ) {
+              ){
 
 
-                // =========================
-                // 新发现
-                // =========================
-
-                if (
+                if(
                   isNewDiscovery
-                ) {
+                ){
 
 
                   scorePreview =
@@ -449,11 +558,7 @@ export default function NumberList({
                 }
 
 
-                // =========================
-                // 重复发现
-                // =========================
-
-                else {
+                else{
 
 
                   scorePreview =
@@ -526,9 +631,9 @@ export default function NumberList({
 
 
 
-            // =========================
+            // ==================================================
             // 空位置
-            // =========================
+            // ==================================================
 
             return (
 

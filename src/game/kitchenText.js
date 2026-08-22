@@ -8,7 +8,7 @@
 // - 合成判断
 // - 约分判断
 // - 数值计算
-// - animal 规则
+// - foodType 规则
 // ============================================================
 
 
@@ -19,64 +19,86 @@
 
 export function getEmptyText() {
 
-  return "选择两种食材";
+  return "选择两道料理";
 
 }
 
 
 
+
+
 // ============================================================
-// 只选择一个普通食材
+// 只选择一道料理
 // ============================================================
 
 export function getSingleText(
   name
 ) {
 
-  if (
+  if(
     !name
-  ) {
+  ){
 
-    return "再选一种食材";
+    return "再选一道料理";
 
   }
 
 
   return (
-    `已选择「${name}」，再选一种食材`
+    `已选择「${name}」，再选一道料理`
   );
 
 }
 
 
 
+
+
 // ============================================================
-// 获得水
+// 获得1
+//
+// 当前料理世界里：
+// 数字1暂时表现为“原汁”
+//
+// 后续如果决定换成其他名称，
+// 只需要修改这里的文字层。
 // ============================================================
 
 export function getWaterText(
   sourceName
 ) {
 
-  if (
+  if(
     sourceName
-  ) {
+  ){
 
     return (
-      `从「${sourceName}」中获得了水`
+      `从「${sourceName}」中处理出了原汁`
     );
 
   }
 
 
-  return "获得了水";
+  return "处理出了原汁";
 
 }
 
 
 
+
+
 // ============================================================
-// 可以料理
+// 可以组成三拼
+//
+// 数学：
+//
+// A + B = C
+//
+// 料理世界：
+//
+// A、B、C形成一个固定三拼关系。
+//
+// C不是A和B“制作出来”的。
 // ============================================================
 
 export function getCombineText({
@@ -89,29 +111,37 @@ export function getCombineText({
 
 }) {
 
-  if (
+  if(
     firstName &&
     secondName &&
     resultName
-  ) {
+  ){
 
     return (
-      `「${firstName}」＋「${secondName}」可用于料理「${resultName}」`
+      `「${firstName}」＋「${secondName}」可与「${resultName}」组成三拼`
     );
 
   }
 
 
   return (
-    "这两种食材可以搭配料理"
+    "这两道料理可以组成一组三拼"
   );
 
 }
 
 
 
+
+
 // ============================================================
 // 可以处理
+//
+// 数学底层：约分
+//
+// 料理世界：
+// 两道料理一起处理，
+// 分别得到新的料理状态。
 // ============================================================
 
 export function getReduceText({
@@ -126,30 +156,32 @@ export function getReduceText({
 
 }) {
 
-  if (
+  if(
     firstName &&
     secondName &&
     firstResultName &&
     secondResultName
-  ) {
+  ){
 
     return (
-      `「${firstName}」＋「${secondName}」可以处理成「${firstResultName}」和「${secondResultName}」`
+      `「${firstName}」与「${secondName}」可处理为「${firstResultName}」和「${secondResultName}」`
     );
 
   }
 
 
   return (
-    "这两种食材可以一起处理"
+    "这两道料理可以一起处理"
   );
 
 }
 
 
 
+
+
 // ============================================================
-// 既可以料理，也可以处理
+// 既可以组成三拼，也可以处理
 // ============================================================
 
 export function getCombineAndReduceText({
@@ -166,31 +198,33 @@ export function getCombineAndReduceText({
 
 }) {
 
-  if (
+  if(
     firstName &&
     secondName &&
     combineResultName &&
     firstReduceResultName &&
     secondReduceResultName
-  ) {
+  ){
 
     return (
-      `「${firstName}」＋「${secondName}」可用于料理「${combineResultName}」，也可以处理成「${firstReduceResultName}」和「${secondReduceResultName}」`
+      `可与「${combineResultName}」组成三拼，或处理为「${firstReduceResultName}」和「${secondReduceResultName}」`
     );
 
   }
 
 
   return (
-    "这两种食材可以料理，也可以一起处理"
+    "可以组成三拼，也可以一起处理"
   );
 
 }
 
 
 
+
+
 // ============================================================
-// 料理失败原因
+// 三拼失败原因
 //
 // 这里直接接收 actionStatus.js
 // 当前返回的 reason。
@@ -208,94 +242,102 @@ export function getCombineBlockedText({
 
 
   // ==========================================================
-  // 操作台已满
+  // 主菜盘已满
   // ==========================================================
 
-  if (
+  if(
     reason ===
     "没有空位，放不下新的数字"
-  ) {
+  ){
 
     return (
-      "操作台已经放满了，先处理一些食材"
+      "主菜盘已经放满了，先处理一些料理"
     );
 
   }
 
 
 
+
+
   // ==========================================================
-  // 和自己的来源再次搭配
+  // 不能再和自己的直接来源组成新的三拼
   // ==========================================================
 
-  if (
+  if(
     reason ===
     "它不能再和组成自己的数字合成"
-  ) {
+  ){
 
-    if (
+    if(
       firstName &&
       secondName
-    ) {
+    ){
 
       return (
-        `「${firstName}」和「${secondName}」已有直接料理关系，不能再次搭配`
+        `「${firstName}」和「${secondName}」已有直接拼盘关系`
       );
 
     }
 
 
     return (
-      "这两种食材已有直接料理关系，不能再次搭配"
+      "这两道料理已有直接拼盘关系"
     );
 
   }
 
 
 
+
+
   // ==========================================================
-  // 已经搭配过
+  // 这两个数字已经合成过
   // ==========================================================
 
-  if (
+  if(
     reason ===
     "这两个数字已经合成过一次"
-  ) {
+  ){
 
-    if (
+    if(
       firstName &&
       secondName
-    ) {
+    ){
 
       return (
-        `「${firstName}」＋「${secondName}」这份搭配已经做过了`
+        `「${firstName}」和「${secondName}」的三拼已经搭配过了`
       );
 
     }
 
 
     return (
-      "这份搭配已经做过了"
+      "这组三拼已经搭配过了"
     );
 
   }
 
 
 
+
+
   // ==========================================================
-  // 水不能参与普通料理
+  // 原汁不能参与普通料理
   // ==========================================================
 
-  if (
+  if(
     reason ===
     "1只能直接消除"
-  ) {
+  ){
 
     return (
-      "水不能参与普通料理"
+      "原汁不能参与三拼"
     );
 
   }
+
+
 
 
 
@@ -303,28 +345,30 @@ export function getCombineBlockedText({
   // 普通规则限制
   // ==========================================================
 
-  if (
+  if(
     reason ===
     "这两个数字现在不能合成"
-  ) {
+  ){
 
-    if (
+    if(
       firstName &&
       secondName
-    ) {
+    ){
 
       return (
-        `「${firstName}」＋「${secondName}」目前不适合继续搭配`
+        `「${firstName}」和「${secondName}」目前无法组成三拼`
       );
 
     }
 
 
     return (
-      "这两种食材目前不适合继续搭配"
+      "这两道料理目前无法组成三拼"
     );
 
   }
+
+
 
 
 
@@ -332,28 +376,30 @@ export function getCombineBlockedText({
   // 兜底
   // ==========================================================
 
-  if (
+  if(
     firstName &&
     secondName
-  ) {
+  ){
 
     return (
-      `「${firstName}」＋「${secondName}」目前不能继续搭配`
+      `「${firstName}」和「${secondName}」目前没有可用的三拼`
     );
 
   }
 
 
   return (
-    "这两种食材目前不能继续搭配"
+    "这两道料理目前没有可用的三拼"
   );
 
 }
 
 
 
+
+
 // ============================================================
-// 不能料理，但还能处理
+// 不能组成三拼，但还能处理
 // ============================================================
 
 export function getBlockedButReducibleText({
@@ -367,22 +413,22 @@ export function getBlockedButReducibleText({
 }) {
 
 
-  if (
+  if(
     blockedText &&
     firstResultName &&
     secondResultName
-  ) {
+  ){
 
     return (
-      `${blockedText}，但可以处理成「${firstResultName}」和「${secondResultName}」`
+      `${blockedText}，但可以处理为「${firstResultName}」和「${secondResultName}」`
     );
 
   }
 
 
-  if (
+  if(
     blockedText
-  ) {
+  ){
 
     return blockedText;
 
@@ -390,7 +436,7 @@ export function getBlockedButReducibleText({
 
 
   return (
-    "不能继续搭配，但可以一起处理"
+    "不能组成三拼，但可以一起处理"
   );
 
 }

@@ -301,7 +301,7 @@ export default function ActionButtons({
           </span>
 
           <span>
-            收取水
+            获取调料
           </span>
 
         </button>

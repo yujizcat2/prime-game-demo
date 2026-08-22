@@ -3,8 +3,90 @@ import {
 } from "../game/prime";
 
 import {
-  getIngredientName
-} from "../game/ingredientCatalog";
+  getMeatName
+} from "../data/food/meatData";
+
+import {
+  getVegetableName
+} from "../data/food/vegetableData";
+
+import {
+  getDessertName
+} from "../data/food/dessertData";
+
+import {
+  getSeasoningName
+} from "../data/food/seasoningData";
+
+
+
+
+
+// ============================================================
+// 根据料理类型获取名称
+// ============================================================
+
+function getFoodName(
+  value,
+  foodType
+) {
+
+
+  if(
+    value === null ||
+    value === undefined
+  ){
+
+    return null;
+
+  }
+
+
+
+  if(
+    foodType === "meat"
+  ){
+
+    return getMeatName(
+      value
+    );
+
+  }
+
+
+
+  if(
+    foodType === "vegetable"
+  ){
+
+    return getVegetableName(
+      value
+    );
+
+  }
+
+
+
+  if(
+    foodType === "dessert"
+  ){
+
+    return getDessertName(
+      value
+    );
+
+  }
+
+
+
+  return String(
+    value
+  );
+
+}
+
+
+
 
 
 export default function NumberCard({
@@ -28,16 +110,21 @@ export default function NumberCard({
 }) {
 
 
-  // =========================
+  // ==========================================================
   // 安全保护
-  // =========================
+  // ==========================================================
 
-  if (
+  if(
+
     !item ||
+
     typeof item !== "object" ||
+
     item.value === undefined ||
+
     item.value === null
-  ) {
+
+  ){
 
     return null;
 
@@ -45,24 +132,33 @@ export default function NumberCard({
 
 
 
-  // =========================
+
+
+  // ==========================================================
   // 基础属性
-  // =========================
+  // ==========================================================
 
   const value =
     item.value;
 
 
-  const animal =
-    item.animal ?? null;
+
+  const foodType =
+    item.foodType ?? null;
 
 
-  const isCat =
-    animal === "cat";
+
+  const isMeat =
+    foodType === "meat";
 
 
-  const isDog =
-    animal === "dog";
+  const isVegetable =
+    foodType === "vegetable";
+
+
+  const isDessert =
+    foodType === "dessert";
+
 
 
   const isOne =
@@ -80,164 +176,257 @@ export default function NumberCard({
 
 
 
-  // =========================
-  // 料理类型映射
-  //
-  // 暂时保留底层 cat / dog
-  //
-  // cat -> 素类
-  // dog -> 荤类
-  // =========================
-
-  const ingredientType =
-
-    isCat
-
-      ? "veg"
-
-      : isDog
-
-      ? "meat"
-
-      : "veg";
 
 
+  // ==========================================================
+  // 当前料理名称
+  // ==========================================================
 
-  // =========================
-  // 当前食材名称
-  // =========================
+  const foodName =
 
-  const ingredientName =
-    getIngredientName(
+    getFoodName(
       value,
-      ingredientType
+      foodType
     );
 
 
 
-  // =========================
-  // 约分后食材名称
-  // =========================
-
-  const reduceIngredientName =
-
-    isReducing
-
-      ? getIngredientName(
-          reducePreview,
-          ingredientType
-        )
-
-      : null;
 
 
-
-  // =========================
-  // 合成来源食材名称
+  // ==========================================================
+  // 约分后的料理名称
   //
-  // 当前版本 parents 只保存数字，
-  // 没有保存当时父节点的 animal。
+  // 约分不改变foodType。
   //
-  // 因此暂时按照当前卡片类型
-  // 映射两个父食材。
-  // =========================
+  // 如果结果是1，
+  // UI会直接显示“调料”。
+  // ==========================================================
 
-  const parentIngredientNames =
+  const reduceFoodName =
+
+    isReducing &&
+    reducePreview !== 1
+
+      ?
+
+      getFoodName(
+        reducePreview,
+        foodType
+      )
+
+      :
+
+      null;
+
+
+
+
+
+  // ==========================================================
+  // 合成来源料理名称
+  //
+  // 必须读取parentFoods。
+  //
+  // 例如：
+  //
+  // 3素 + 6荤 → 9素
+  //
+  // 正确显示：
+  //
+  // 土豆 + 鸡猪烧
+  // ==========================================================
+
+  const parentFoodNames =
 
     Array.isArray(
-      item.parents
+      item.parentFoods
     ) &&
-    item.parents.length >= 2
+    item.parentFoods.length >= 2
 
-      ? [
-          getIngredientName(
-            item.parents[0],
-            ingredientType
-          ),
+      ?
 
-          getIngredientName(
-            item.parents[1],
-            ingredientType
-          ),
-        ]
+      item.parentFoods.map(
 
-      : null;
+        parent => {
 
 
+          if(
+            !parent ||
+            parent.value === undefined ||
+            parent.value === null
+          ){
 
-  // =========================
-  // 1 的直接来源
-  // =========================
+            return null;
 
-  const onePreviousValue =
+          }
+
+
+
+          return getFoodName(
+
+            parent.value,
+
+            parent.foodType
+
+          );
+
+        }
+
+      )
+
+      :
+
+      null;
+
+
+
+
+
+  // ==========================================================
+  // 1的直接来源记录
+  //
+  // 例如：
+  //
+  // 7 → 1
+  //
+  // parent.value = 7
+  // ==========================================================
+
+  const onePreviousRecord =
 
     isOne &&
     item.origin?.type === "reduce"
 
-      ? item.origin.parent?.value ?? null
+      ?
 
-      : null;
+      item.origin.parent
+
+      :
+
+      null;
 
 
 
-  // =========================
-  // 1 的来源食材名称
-  // =========================
 
-  const onePreviousIngredientName =
+
+  // ==========================================================
+  // 变成1之前的数字
+  // ==========================================================
+
+  const onePreviousValue =
+
+    onePreviousRecord?.value
+    ?? null;
+
+
+
+
+
+  // ==========================================================
+  // 对应调料名称
+  //
+  // 例如：
+  //
+  // 7  → 醋
+  // 13 → 黑胡椒
+  // 31 → 孜然
+  // ==========================================================
+
+  const seasoningName =
 
     onePreviousValue !== null
 
-      ? getIngredientName(
-          onePreviousValue,
-          ingredientType
-        )
+      ?
 
-      : null;
+      getSeasoningName(
+        onePreviousValue
+      )
+
+      :
+
+      null;
 
 
 
-  // =========================
+
+
+  // ==========================================================
+  // 主菜类型文字
+  // ==========================================================
+
+  const typeLabel =
+
+    isMeat
+
+      ? "荤"
+
+      : isVegetable
+
+      ? "素"
+
+      : isDessert
+
+      ? "甜食"
+
+      : "";
+
+
+
+
+
+  // ==========================================================
   // 选中时文字颜色
-  // =========================
+  // ==========================================================
 
   const selectedTextColor =
 
     isOne
 
-      ? "text-rose-300"
+      ? "text-cyan-300"
 
-      : isCat
+      : isVegetable
 
       ? "text-emerald-300"
 
-      : isDog
+      : isMeat
 
       ? "text-orange-300"
 
-      : "text-blue-300";
+      : isDessert
+
+      ? "text-violet-300"
+
+      : "text-gray-300";
 
 
 
-  // =========================
+
+
+  // ==========================================================
   // 约分预览颜色
-  // =========================
+  // ==========================================================
 
   const reduceTextColor =
 
-    isOne
+    reducePreview === 1
 
-      ? "text-rose-400"
+      ? "text-cyan-500"
 
-      : isCat
+      : isVegetable
 
       ? "text-emerald-500"
 
-      : isDog
+      : isMeat
 
       ? "text-orange-500"
 
-      : "text-blue-400";
+      : isDessert
+
+      ? "text-violet-500"
+
+      : "text-gray-500";
+
+
 
 
 
@@ -261,9 +450,9 @@ export default function NumberCard({
 
 
 
-      {/* =========================
+      {/* ======================================================
           积分提示
-          ========================= */}
+          ====================================================== */}
 
       {
 
@@ -299,7 +488,7 @@ export default function NumberCard({
             ${
               isNewDiscovery
 
-                ? "text-amber-500"
+                ? "text-cyan-500"
 
                 : "text-gray-500"
             }
@@ -315,9 +504,11 @@ export default function NumberCard({
 
 
 
-      {/* =========================
+
+
+      {/* ======================================================
           消除闪光
-          ========================= */}
+          ====================================================== */}
 
       {
 
@@ -344,9 +535,11 @@ export default function NumberCard({
 
 
 
-      {/* =========================
+
+
+      {/* ======================================================
           消除粒子
-          ========================= */}
+          ====================================================== */}
 
       {
 
@@ -396,6 +589,8 @@ export default function NumberCard({
         </>
 
       }
+
+
 
 
 
@@ -476,13 +671,13 @@ export default function NumberCard({
             ?
 
             `
-              bg-rose-100
-              text-rose-700
+              bg-cyan-100
+              text-cyan-800
 
               border
-              border-rose-200
+              border-cyan-200
 
-              shadow-[0_8px_22px_rgba(244,63,94,0.14)]
+              shadow-[0_8px_22px_rgba(6,182,212,0.14)]
 
               new-one-card
             `
@@ -495,19 +690,19 @@ export default function NumberCard({
             ?
 
             `
-              bg-rose-50
-              text-rose-600
+              bg-cyan-50
+              text-cyan-700
 
               border
-              border-rose-100
+              border-cyan-100
 
-              shadow-[0_6px_18px_rgba(244,63,94,0.06)]
+              shadow-[0_6px_18px_rgba(6,182,212,0.07)]
             `
 
 
             :
 
-            isCat
+            isVegetable
 
             ?
 
@@ -524,7 +719,7 @@ export default function NumberCard({
 
             :
 
-            isDog
+            isMeat
 
             ?
 
@@ -536,6 +731,23 @@ export default function NumberCard({
               border-orange-100
 
               shadow-[0_6px_18px_rgba(15,23,42,0.045)]
+            `
+
+
+            :
+
+            isDessert
+
+            ?
+
+            `
+              bg-violet-50
+              text-violet-950
+
+              border
+              border-violet-100
+
+              shadow-[0_6px_18px_rgba(15,23,42,0.05)]
             `
 
 
@@ -568,9 +780,11 @@ export default function NumberCard({
 
 
 
-        {/* =========================
+
+
+        {/* ====================================================
             左上角数字
-            ========================= */}
+            ==================================================== */}
 
         <div
 
@@ -596,15 +810,19 @@ export default function NumberCard({
 
                 : isOne
 
-                ? "text-rose-500"
+                ? "text-cyan-600"
 
-                : isCat
+                : isVegetable
 
                 ? "text-emerald-600"
 
-                : isDog
+                : isMeat
 
                 ? "text-orange-600"
+
+                : isDessert
+
+                ? "text-violet-600"
 
                 : "text-gray-500"
             }
@@ -618,9 +836,11 @@ export default function NumberCard({
 
 
 
-        {/* =========================
+
+
+        {/* ====================================================
             质数标记
-            ========================= */}
+            ==================================================== */}
 
         {
 
@@ -641,15 +861,19 @@ export default function NumberCard({
               rounded-full
 
               ${
-                isCat
+                isVegetable
 
                   ? "bg-emerald-400"
 
-                  : isDog
+                  : isMeat
 
                   ? "bg-orange-400"
 
-                  : "bg-blue-300"
+                  : isDessert
+
+                  ? "bg-violet-400"
+
+                  : "bg-gray-300"
               }
             `}
 
@@ -659,9 +883,11 @@ export default function NumberCard({
 
 
 
-        {/* =========================
+
+
+        {/* ====================================================
             已发现标记
-            ========================= */}
+            ==================================================== */}
 
         {
 
@@ -697,9 +923,11 @@ export default function NumberCard({
 
 
 
-        {/* =========================
-            数字 1 标记
-            ========================= */}
+
+
+        {/* ====================================================
+            调料标记
+            ==================================================== */}
 
         {
 
@@ -718,9 +946,9 @@ export default function NumberCard({
               ${
                 selected
 
-                  ? "text-rose-300"
+                  ? "text-cyan-300"
 
-                  : "text-rose-400"
+                  : "text-cyan-400"
               }
             `}
 
@@ -734,9 +962,11 @@ export default function NumberCard({
 
 
 
-        {/* =========================
-            食材名称主体
-            ========================= */}
+
+
+        {/* ====================================================
+            主体
+            ==================================================== */}
 
         <div
 
@@ -755,9 +985,9 @@ export default function NumberCard({
 
 
 
-          {/* =========================
-              当前食材
-              ========================= */}
+          {/* ==================================================
+              当前料理 / 调料
+              ================================================== */}
 
           <span
 
@@ -790,15 +1020,23 @@ export default function NumberCard({
 
           >
 
-            {ingredientName}
+            {
+              isOne
+
+                ? seasoningName ?? "调料"
+
+                : foodName
+            }
 
           </span>
 
 
 
-          {/* =========================
-              约分后的食材
-              ========================= */}
+
+
+          {/* ==================================================
+              约分后的预览
+              ================================================== */}
 
           {
 
@@ -826,6 +1064,7 @@ export default function NumberCard({
             >
 
               <span
+
                 className="
                   text-[18px]
                   sm:text-[20px]
@@ -836,12 +1075,22 @@ export default function NumberCard({
 
                   tracking-[-0.04em]
                 "
+
               >
-                {reduceIngredientName}
+
+                {
+                  reducePreview === 1
+
+                    ? seasoningName ?? "调料"
+
+                    : reduceFoodName
+                }
+
               </span>
 
 
               <span
+
                 className="
                   mt-0.5
 
@@ -852,8 +1101,11 @@ export default function NumberCard({
 
                   opacity-70
                 "
+
               >
+
                 {reducePreview}
+
               </span>
 
             </div>
@@ -865,13 +1117,75 @@ export default function NumberCard({
 
 
 
-        {/* =========================
-            合成来源食材
-            ========================= */}
+
+
+        {/* ====================================================
+            当前料理类型
+            ==================================================== */}
 
         {
 
-          parentIngredientNames &&
+          !isOne &&
+          !parentFoodNames &&
+
+          <div
+
+            className={`
+              absolute
+
+              bottom-2.5
+              left-1/2
+
+              -translate-x-1/2
+
+              text-[8px]
+
+              font-bold
+
+              tracking-[0.12em]
+
+              ${
+                selected
+
+                  ? "text-slate-400"
+
+                  : isVegetable
+
+                  ? "text-emerald-400"
+
+                  : isMeat
+
+                  ? "text-orange-400"
+
+                  : isDessert
+
+                  ? "text-violet-400"
+
+                  : "text-gray-300"
+              }
+            `}
+
+          >
+
+            {typeLabel}
+
+          </div>
+
+        }
+
+
+
+
+
+        {/* ====================================================
+            合成来源料理
+            ==================================================== */}
+
+        {
+
+          parentFoodNames &&
+          parentFoodNames[0] &&
+          parentFoodNames[1] &&
 
           <div
 
@@ -899,17 +1213,17 @@ export default function NumberCard({
 
                   ? "text-slate-400"
 
-                  :
-
-                  isCat
+                  : isVegetable
 
                   ? "text-emerald-400"
 
-                  :
-
-                  isDog
+                  : isMeat
 
                   ? "text-orange-400"
+
+                  : isDessert
+
+                  ? "text-violet-400"
 
                   : "text-gray-300"
               }
@@ -918,26 +1232,26 @@ export default function NumberCard({
           >
 
             <span>
-              {
-                parentIngredientNames[0]
-              }
+              {parentFoodNames[0]}
             </span>
 
 
             <span
+
               className="
                 mx-1
                 opacity-60
               "
+
             >
+
               +
+
             </span>
 
 
             <span>
-              {
-                parentIngredientNames[1]
-              }
+              {parentFoodNames[1]}
             </span>
 
           </div>
@@ -946,14 +1260,25 @@ export default function NumberCard({
 
 
 
-        {/* =========================
-            水的直接来源
-            ========================= */}
+
+
+        {/* ====================================================
+            调料来源
+            //
+            // 例如：
+            //
+            // 7 → 1
+            //
+            // 显示：
+            //
+            // 醋 · 7
+            ==================================================== */}
 
         {
 
           isOne &&
           onePreviousValue !== null &&
+          seasoningName &&
 
           <div
 
@@ -979,25 +1304,41 @@ export default function NumberCard({
               ${
                 selected
 
-                  ? "text-rose-300/80"
+                  ? "text-cyan-300/90"
 
-                  : "text-rose-400"
+                  : "text-cyan-600"
               }
             `}
 
           >
 
-            <span
-              className="
-                mr-1
-                opacity-60
-              "
-            >
-              ←
+            <span>
+              {seasoningName}
             </span>
 
-            <span>
-              {onePreviousIngredientName}
+
+            <span
+
+              className="
+                mx-1
+                opacity-50
+              "
+
+            >
+
+              ·
+
+            </span>
+
+
+            <span
+              className="
+                font-black
+              "
+            >
+
+              {onePreviousValue}
+
             </span>
 
           </div>

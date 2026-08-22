@@ -4,6 +4,7 @@ import {
 
 import StartScreen from "./components/StartScreen";
 import NumberList from "./components/NumberList";
+import SeasoningTray from "./components/SeasoningTray";
 import ActionButtons from "./components/ActionButtons";
 import ActionHintPanel from "./components/ActionHintPanel";
 import CollectionPanel from "./components/CollectionPanel";
@@ -509,6 +510,48 @@ function App() {
 
           </div>
 
+
+        </div>
+
+
+
+
+
+        {/* =========================
+            调料盘
+            ========================= */}
+
+        <div
+
+          className="
+            mt-5
+
+            rounded-[26px]
+
+            bg-white/70
+
+            px-4
+            py-4
+
+            shadow-[0_6px_20px_rgba(15,23,42,0.035)]
+
+            border
+            border-white
+          "
+
+        >
+
+          <SeasoningTray
+
+            seasoningTray={
+              game.seasoningTray
+            }
+
+              numbers={
+              game.numbers
+            }
+
+          />
 
         </div>
 

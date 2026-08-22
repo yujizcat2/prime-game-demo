@@ -10,7 +10,7 @@ import {
   canReduce,
   canCombine,
   combineValue,
-  combineAnimal
+  combineFoodType
 } from "../game/rules";
 
 import {
@@ -115,8 +115,24 @@ export default function useGame(){
     gameState?.numbers ?? [];
 
 
+
+  // ==========================================================
+  // 调料盘
+  //
+  // 最多5格。
+  //
+  // 当前调料暂时只展示，
+  // 不允许使用。
+  // ==========================================================
+
+  const seasoningTray =
+    gameState?.seasoningTray ?? [];
+
+
+
   const collection =
     gameState?.collection ?? [];
+
 
 
   // ==========================================================
@@ -127,30 +143,25 @@ export default function useGame(){
     gameState?.collectionPaths ?? {};
 
 
+
   // ==========================================================
   // 完整来源树
   //
-  // 【当前UI暂时不用】
-  // 【保留】
+  // 当前UI暂时不用。
   // ==========================================================
 
   const collectionOrigins =
     gameState?.collectionOrigins ?? {};
 
 
+
   // ==========================================================
   // 最新一次收藏
-  //
-  // 例如：
-  //
-  // {
-  //   value: 7,
-  //   index: 3
-  // }
   // ==========================================================
 
   const latestCollection =
     gameState?.latestCollection ?? null;
+
 
 
   const score =
@@ -452,6 +463,17 @@ export default function useGame(){
 
   // ==========================================================
   // 当前选择数字
+  //
+  // 注意：
+  //
+  // numbers.filter 会按照主菜盘实际顺序返回。
+  //
+  // 所以：
+  //
+  // list[0] = front
+  // list[1] = back
+  //
+  // 不受玩家点击顺序影响。
   // ==========================================================
 
   function getSelectedNumbers(){
@@ -494,18 +516,22 @@ export default function useGame(){
 
 
 
-    const a =
+    // ========================================================
+    // 当前list已经按主菜盘位置排序
+    // ========================================================
+
+    const front =
       list[0];
 
 
-    const b =
+    const back =
       list[1];
 
 
 
     if(
-      a.value === 1 ||
-      b.value === 1
+      front.value === 1 ||
+      back.value === 1
     ){
 
       return null;
@@ -517,8 +543,8 @@ export default function useGame(){
     const divisor =
 
       gcd(
-        a.value,
-        b.value
+        front.value,
+        back.value
       );
 
 
@@ -526,8 +552,8 @@ export default function useGame(){
     const combineAllowed =
 
       canCombine(
-        a,
-        b,
+        front,
+        back,
         numbers
       );
 
@@ -536,8 +562,8 @@ export default function useGame(){
     const reduceAllowed =
 
       canReduce(
-        a,
-        b
+        front,
+        back
       );
 
 
@@ -556,16 +582,16 @@ export default function useGame(){
           value:
 
             combineValue(
-              a.value,
-              b.value
+              front.value,
+              back.value
             ),
 
 
-          animal:
+          foodType:
 
-            combineAnimal(
-              a,
-              b
+            combineFoodType(
+              front,
+              back
             )
 
         }
@@ -584,10 +610,10 @@ export default function useGame(){
 
         [
 
-          a.value /
+          front.value /
           divisor,
 
-          b.value /
+          back.value /
           divisor
 
         ]
@@ -770,6 +796,12 @@ export default function useGame(){
 
   // ==========================================================
   // 消除1
+  //
+  // Engine会自动完成：
+  //
+  // 收藏
+  // +
+  // 对应编号调料进入调料盘
   // ==========================================================
 
   function removeOne(
@@ -917,7 +949,18 @@ export default function useGame(){
   return {
 
 
+    // ========================================================
+    // 主菜盘
+    // ========================================================
+
     numbers,
+
+
+    // ========================================================
+    // 调料盘
+    // ========================================================
+
+    seasoningTray,
 
 
     selected,
@@ -935,24 +978,11 @@ export default function useGame(){
     collection,
 
 
-    // ========================================================
-    // 当前收藏UI使用
-    // ========================================================
-
     collectionPaths,
 
 
-    // ========================================================
-    // 当前UI暂时不用
-    // 完整来源树仍然保留
-    // ========================================================
-
     collectionOrigins,
 
-
-    // ========================================================
-    // 最新收藏
-    // ========================================================
 
     latestCollection,
 
