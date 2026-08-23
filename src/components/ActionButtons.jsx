@@ -2,6 +2,8 @@ import {
   GAME_CONFIG
 } from "../game/config";
 
+import "./ActionButtons.css";
+
 
 export default function ActionButtons({
 
@@ -28,6 +30,7 @@ export default function ActionButtons({
     removingId !== null;
 
 
+
   const canCombine =
 
     !gameOver &&
@@ -42,6 +45,7 @@ export default function ActionButtons({
       GAME_CONFIG.MAX_NUMBERS;
 
 
+
   const canReduce =
 
     !gameOver &&
@@ -51,6 +55,7 @@ export default function ActionButtons({
     selected.length === 2 &&
 
     !!preview?.reduce;
+
 
 
   const selectedNumber =
@@ -71,6 +76,7 @@ export default function ActionButtons({
       null;
 
 
+
   const canRemoveOne =
 
     !gameOver &&
@@ -85,28 +91,28 @@ export default function ActionButtons({
 
   return (
 
-    <div>
+    <div
+      className="
+        action-controls
+      "
+    >
 
 
       <div
-
         className="
-          grid
-          grid-cols-3
-
-          gap-2.5
-          sm:gap-3
+          action-controls-list
         "
-
       >
+
 
 
         {/* =========================
             搭配
-            原：合成
             ========================= */}
 
         <button
+
+          type="button"
 
           onClick={
             canCombine
@@ -119,59 +125,62 @@ export default function ActionButtons({
           }
 
           className={`
-            game-action-button
+            action-node
+            action-node-combine
 
             ${
               canCombine
-
-                ?
-
-                `
-                  bg-orange-500
-                  text-white
-
-                  shadow-[0_8px_22px_rgba(249,115,22,0.18)]
-
-                  hover:bg-orange-600
-                `
-
-                :
-
-                `
-                  bg-white
-                  text-gray-300
-
-                  border
-                  border-gray-100
-                `
+                ? "is-active"
+                : "is-disabled"
             }
           `}
 
         >
 
+
           <span
             className="
-              text-[20px]
-              leading-none
+              action-node-core
             "
           >
-            ＋
+
+            <span
+              className="
+                action-node-icon
+              "
+            >
+
+              ＋
+
+            </span>
+
           </span>
 
-          <span>
+
+          <span
+            className="
+              action-node-label
+            "
+          >
+
             搭配
+
           </span>
+
 
         </button>
 
 
 
+
+
         {/* =========================
             处理
-            原：约分
             ========================= */}
 
         <button
+
+          type="button"
 
           onClick={
             canReduce
@@ -184,59 +193,62 @@ export default function ActionButtons({
           }
 
           className={`
-            game-action-button
+            action-node
+            action-node-reduce
 
             ${
               canReduce
-
-                ?
-
-                `
-                  bg-emerald-500
-                  text-white
-
-                  shadow-[0_8px_22px_rgba(16,185,129,0.18)]
-
-                  hover:bg-emerald-600
-                `
-
-                :
-
-                `
-                  bg-white
-                  text-gray-300
-
-                  border
-                  border-gray-100
-                `
+                ? "is-active"
+                : "is-disabled"
             }
           `}
 
         >
 
+
           <span
             className="
-              text-[18px]
-              leading-none
+              action-node-core
             "
           >
-            ↓
+
+            <span
+              className="
+                action-node-icon
+              "
+            >
+
+              ↓
+
+            </span>
+
           </span>
 
-          <span>
+
+          <span
+            className="
+              action-node-label
+            "
+          >
+
             处理
+
           </span>
+
 
         </button>
 
 
 
+
+
         {/* =========================
-            收取水
-            原：消除 1
+            获取调料
             ========================= */}
 
         <button
+
+          type="button"
 
           onClick={
 
@@ -260,49 +272,50 @@ export default function ActionButtons({
           }
 
           className={`
-            game-action-button
+            action-node
+            action-node-seasoning
 
             ${
               canRemoveOne
-
-                ?
-
-                `
-                  bg-sky-400
-                  text-white
-
-                  shadow-[0_8px_22px_rgba(56,189,248,0.20)]
-
-                  hover:bg-sky-500
-
-                  remove-ready
-                `
-
-                :
-
-                `
-                  bg-white
-                  text-gray-300
-
-                  border
-                  border-gray-100
-                `
+                ? "is-active"
+                : "is-disabled"
             }
           `}
 
         >
 
+
           <span
             className="
-              text-[15px]
+              action-node-core
             "
           >
-            ◇
+
+            <span
+              className="
+                action-node-icon
+                action-node-icon-small
+              "
+            >
+
+              ◇
+
+            </span>
+
           </span>
 
-          <span>
+
+          <span
+            className="
+              action-node-label
+              action-node-label-small
+            "
+          >
+
             获取调料
+
           </span>
+
 
         </button>
 
@@ -311,31 +324,30 @@ export default function ActionButtons({
 
 
 
+
+
+      {/* =========================
+          满格提示
+          ========================= */}
+
       {
 
         numbers.length >=
-        GAME_CONFIG.MAX_NUMBERS &&
+        GAME_CONFIG.MAX_NUMBERS && (
 
-        <div
+          <div
+            className="
+              action-capacity-warning
+            "
+          >
 
-          className="
-            mt-3
+            操作台已满
+            <br />
+            先处理食材
 
-            text-center
+          </div>
 
-            text-[11px]
-            font-semibold
-
-            text-rose-400
-
-            capacity-warning
-          "
-
-        >
-
-          操作台已满 · 先处理食材
-
-        </div>
+        )
 
       }
 

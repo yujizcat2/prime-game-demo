@@ -11,11 +11,6 @@ import {
 } from "./scoreConfig";
 
 import {
-  CHECKPOINT_CONFIG,
-  getRequiredScore
-} from "./checkpointConfig";
-
-import {
   FOOD_TYPES,
   combineValue,
   combineFoodType,
@@ -89,10 +84,6 @@ export function createGameState(
 
         // ====================================================
         // 料理类型
-        //
-        // meat
-        // vegetable
-        // dessert
         // ====================================================
 
         foodType:
@@ -106,10 +97,6 @@ export function createGameState(
 
         // ====================================================
         // 合成父母限制
-        //
-        // 这里只保存数字。
-        //
-        // rules.js中的父母限制继续依赖这个结构。
         // ====================================================
 
         parents:
@@ -118,14 +105,6 @@ export function createGameState(
 
         // ====================================================
         // UI显示来源料理
-        //
-        // 专门保存：
-        //
-        // value
-        // foodType
-        //
-        // 避免荤+素以后，
-        // 父来源全部错误显示成结果系别。
         // ====================================================
 
         parentFoods:
@@ -134,8 +113,6 @@ export function createGameState(
 
         // ====================================================
         // 完整数字来源
-        //
-        // 开局节点没有来源。
         // ====================================================
 
         origin:
@@ -156,15 +133,6 @@ export function createGameState(
 
     // ========================================================
     // 调料盘
-    //
-    // 每项：
-    //
-    // {
-    //   id,
-    //   value
-    // }
-    //
-    // value对应seasoningData.js。
     // ========================================================
 
     seasoningTray: [],
@@ -172,9 +140,6 @@ export function createGameState(
 
     // ========================================================
     // 调料唯一ID
-    //
-    // 同编号调料允许重复出现，
-    // 所以React key不能直接用value。
     // ========================================================
 
     nextSeasoningId:
@@ -183,8 +148,6 @@ export function createGameState(
 
     // ========================================================
     // 收藏数字种类
-    //
-    // 同一个数字只保存一次。
     // ========================================================
 
     collection: [],
@@ -212,22 +175,35 @@ export function createGameState(
       null,
 
 
+    // ========================================================
+    // 分数
+    //
+    // 后续UI换皮为：
+    // 金钱 / 营业额
+    // ========================================================
+
     score:
       0,
 
+
+    // ========================================================
+    // 步数
+    //
+    // 不再有上限。
+    //
+    // 后续UI换皮为时间。
+    // 每次合成 / 约分消耗1个时间单位。
+    // ========================================================
 
     steps:
       0,
 
 
-    stepLimit:
-      GAME_CONFIG
-        .START_STEP_LIMIT,
-
-
-    checkpointPending:
-      false,
-
+    // ========================================================
+    // 游戏结束
+    //
+    // 这里不再因为steps达到上限结束。
+    // ========================================================
 
     gameOver:
       false,
@@ -267,114 +243,16 @@ export function hasOne(
 
 
 // ============================================================
-// 当前 checkpoint 编号
-// ============================================================
-
-export function getCheckpointNumber(
-  state
-) {
-
-
-  return Math.floor(
-
-    state.stepLimit /
-
-    CHECKPOINT_CONFIG
-      .STEP_INTERVAL
-
-  );
-
-}
-
-
-
-
-
-// ============================================================
-// 当前 checkpoint 要求积分
-// ============================================================
-
-export function getCheckpointRequiredScore(
-  state
-) {
-
-
-  return getRequiredScore(
-    state.stepLimit
-  );
-
-}
-
-
-
-
-
-// ============================================================
-// checkpoint结算
-// ============================================================
-
-export function resolveCheckpoint(
-  state
-) {
-
-
-  const requiredScore =
-
-    getRequiredScore(
-      state.stepLimit
-    );
-
-
-
-  if(
-    state.score >=
-    requiredScore
-  ){
-
-
-    return {
-
-      ...state,
-
-      stepLimit:
-
-        state.stepLimit +
-
-        CHECKPOINT_CONFIG
-          .STEP_INTERVAL,
-
-      checkpointPending:
-        false,
-
-      gameOver:
-        false
-
-    };
-
-  }
-
-
-
-  return {
-
-    ...state,
-
-    checkpointPending:
-      false,
-
-    gameOver:
-      true
-
-  };
-
-}
-
-
-
-
-
-// ============================================================
-// 消耗一步
+// 消耗一个时间单位
+//
+// 原逻辑：
+// step达到stepLimit后进入checkpoint。
+//
+// 新逻辑：
+// 只累加steps。
+// 没有stepLimit。
+// 没有checkpoint。
+// 没有因为时间结束Game Over。
 // ============================================================
 
 export function consumeStep(
@@ -382,67 +260,18 @@ export function consumeStep(
 ) {
 
 
-  const nextStep =
-
-    state.steps +
-
-    GAME_CONFIG
-      .STEP_COST;
-
-
-
-  let nextState = {
+  return {
 
     ...state,
 
     steps:
-      nextStep
+
+      state.steps +
+
+      GAME_CONFIG
+        .STEP_COST
 
   };
-
-
-
-  if(
-    nextStep <
-    state.stepLimit
-  ){
-
-
-    return nextState;
-
-  }
-
-
-
-  // ==========================================================
-  // 到checkpoint但还有1
-  //
-  // 先把1处理完。
-  // ==========================================================
-
-  if(
-    hasOne(
-      nextState.numbers
-    )
-  ){
-
-
-    return {
-
-      ...nextState,
-
-      checkpointPending:
-        true
-
-    };
-
-  }
-
-
-
-  return resolveCheckpoint(
-    nextState
-  );
 
 }
 
@@ -561,18 +390,10 @@ export function getOrderedPair(
 // ============================================================
 // 向调料盘加入调料
 //
-// 最大5格。
+// 最大3格。
 //
 // 新调料永远进入末尾。
-// 满5格后：
-//
-// [A,B,C,D,E] + F
-//
-// →
-//
-// [B,C,D,E,F]
-//
-// 最前面的自动倒掉。
+// 满3格后自动移除最前面的调料。
 // ============================================================
 
 export function addSeasoningToTray(
@@ -688,8 +509,7 @@ export function combineNumbers(
 
 
   if(
-    state.gameOver ||
-    state.checkpointPending
+    state.gameOver
   ){
 
     return state;
@@ -752,7 +572,7 @@ export function combineNumbers(
 
 
   // ==========================================================
-  // 先根据主盘位置确定front / back
+  // 根据主盘位置确定front / back
   // ==========================================================
 
   const orderedPair =
@@ -826,10 +646,7 @@ export function combineNumbers(
 
 
     // ========================================================
-    // 合成限制继续使用
-    //
-    // 这里只保存数字。
-    // 不要改为对象结构。
+    // 合成父母限制
     // ========================================================
 
     parents: [
@@ -843,28 +660,6 @@ export function combineNumbers(
 
     // ========================================================
     // UI专用来源料理
-    //
-    // 保存父料理当时真实的：
-    //
-    // value
-    // foodType
-    //
-    // 顺序使用主盘front/back。
-    //
-    // 例如：
-    //
-    // 荤6 + 素8 → 荤14
-    //
-    // parentFoods仍然是：
-    //
-    // [
-    //   { value:6, foodType:"meat" },
-    //   { value:8, foodType:"vegetable" }
-    // ]
-    //
-    // NumberCard即可正确显示：
-    //
-    // 鸡猪烧 + 小白菜
     // ========================================================
 
     parentFoods: [
@@ -931,6 +726,10 @@ export function combineNumbers(
 
 
 
+  // ==========================================================
+  // 消耗一个时间单位
+  // ==========================================================
+
   nextState =
     consumeStep(
       nextState
@@ -968,8 +767,7 @@ export function reduceNumbers(
 
 
   if(
-    state.gameOver ||
-    state.checkpointPending
+    state.gameOver
   ){
 
     return state;
@@ -1092,10 +890,6 @@ export function reduceNumbers(
             value:
               a2,
 
-            // ==================================================
-            // 约分后不再属于原合成父母关系
-            // ==================================================
-
             parents:
               null,
 
@@ -1157,6 +951,10 @@ export function reduceNumbers(
 
 
 
+  // ==========================================================
+  // 消耗一个时间单位
+  // ==========================================================
+
   nextState =
     consumeStep(
       nextState
@@ -1182,12 +980,12 @@ export function reduceNumbers(
 // 4. 保存主路径
 // 5. 更新最新收藏
 // 6. 获得一个n号调料
-// 7. 调料进入5格调料盘
+// 7. 调料进入调料盘
 //
-// 重复发现同一个n：
+// 注意：
 //
-// 收藏种类不会重复增加，
-// 但依然会获得一个新的n号调料。
+// 消除1目前不增加steps。
+// 即：获得调料本身不额外消耗时间。
 // ============================================================
 
 export function removeOne(
@@ -1227,13 +1025,6 @@ export function removeOne(
 
   // ==========================================================
   // 找到1的直接前身
-  //
-  // 例如：
-  //
-  // 7 → 1
-  //
-  // previousRecord = 7对应的完整节点记录
-  // discoveredValue = 7
   // ==========================================================
 
   const previousRecord =
@@ -1261,28 +1052,13 @@ export function removeOne(
     state.collection;
 
 
-
-  // ==========================================================
-  // 完整来源树
-  // ==========================================================
-
   let nextCollectionOrigins =
     state.collectionOrigins ?? {};
 
 
-
-  // ==========================================================
-  // UI主路径
-  // ==========================================================
-
   let nextCollectionPaths =
     state.collectionPaths ?? {};
 
-
-
-  // ==========================================================
-  // 最新收藏
-  // ==========================================================
 
   let nextLatestCollection =
     state.latestCollection ?? null;
@@ -1495,10 +1271,6 @@ export function removeOne(
 
   // ==========================================================
   // 获得对应编号调料
-  //
-  // 每次有效的1都生成调料。
-  //
-  // 即使是重复收藏也一样。
   // ==========================================================
 
   if(
@@ -1514,29 +1286,6 @@ export function removeOne(
 
         discoveredValue
 
-      );
-
-  }
-
-
-
-  // ==========================================================
-  // checkpoint期间
-  //
-  // 删除最后一个1后正式结算。
-  // ==========================================================
-
-  if(
-    state.checkpointPending &&
-    !hasOne(
-      nextNumbers
-    )
-  ){
-
-
-    nextState =
-      resolveCheckpoint(
-        nextState
       );
 
   }
@@ -1564,7 +1313,6 @@ export function getLegalCombineActions(
 
   if(
     state.gameOver ||
-    state.checkpointPending ||
     state.numbers.length >=
       GAME_CONFIG.MAX_NUMBERS
   ){
@@ -1649,8 +1397,7 @@ export function getLegalReduceActions(
 
 
   if(
-    state.gameOver ||
-    state.checkpointPending
+    state.gameOver
   ){
 
     return [];
@@ -1731,6 +1478,16 @@ export function getLegalRemoveActions(
 ) {
 
 
+  if(
+    state.gameOver
+  ){
+
+    return [];
+
+  }
+
+
+
   return state.numbers
 
     .filter(
@@ -1774,19 +1531,6 @@ export function getLegalActions(
   ){
 
     return [];
-
-  }
-
-
-
-  if(
-    state.checkpointPending
-  ){
-
-
-    return getLegalRemoveActions(
-      state
-    );
 
   }
 

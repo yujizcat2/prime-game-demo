@@ -1,51 +1,18 @@
 export default function StepPanel({
 
-  steps,
+  steps = 0,
 
-  stepLimit,
-
-  score,
-
-  gameOver,
-
-  checkpointPending,
-
-  checkpointRequiredScore,
-
-  checkpointNumber
+  score = 0
 
 }) {
 
 
-  const progress =
+  // =========================
+  // 12小时制时间
+  // =========================
 
-    Math.min(
-
-      (steps / stepLimit) * 100,
-
-      100
-
-    );
-
-
-  const scoreReached =
-
-    checkpointRequiredScore > 0
-
-      ? score >= checkpointRequiredScore
-
-      : false;
-
-
-  const remainingScore =
-
-    Math.max(
-
-      checkpointRequiredScore - score,
-
-      0
-
-    );
+  const displayHour =
+    steps % 12;
 
 
 
@@ -76,7 +43,7 @@ export default function StepPanel({
 
         className="
           grid
-          grid-cols-3
+          grid-cols-2
 
           items-center
         "
@@ -84,166 +51,209 @@ export default function StepPanel({
       >
 
 
-        {/* 积分 */}
+        {/* =========================
+            金钱
+            ========================= */}
 
         <div
 
           className="
             text-left
+
             pl-1
+            pr-4
           "
 
         >
+
 
           <div
 
             className="
               text-[9px]
+
               font-bold
 
-              tracking-[0.16em]
+              tracking-[0.18em]
 
               text-gray-300
             "
 
           >
 
-            SCORE
+            MONEY
 
           </div>
+
 
 
           <div
 
             className="
-              mt-0.5
+              mt-1
 
-              text-[21px]
-              font-black
+              flex
+              items-baseline
 
-              leading-none
-
-              text-gray-800
-
-              score-value
+              gap-1
             "
 
           >
 
-            {score}
+
+            <span
+
+              className="
+                text-[13px]
+
+                font-black
+
+                text-emerald-500
+              "
+
+            >
+
+              ¥
+
+            </span>
+
+
+
+            <span
+
+              className="
+                score-value
+
+                text-[24px]
+
+                font-black
+
+                leading-none
+
+                tracking-[-0.045em]
+
+                text-gray-800
+              "
+
+            >
+
+              {score}
+
+            </span>
+
 
           </div>
 
-        </div>
 
-
-
-        {/* 阶段 */}
-
-        <div
-
-          className="
-            text-center
-
-            border-x
-            border-gray-100
-          "
-
-        >
 
           <div
 
             className="
-              text-[9px]
-              font-bold
+              mt-1.5
 
-              tracking-[0.16em]
+              text-[9px]
+
+              font-semibold
+
+              tracking-[0.04em]
 
               text-gray-300
             "
 
           >
 
-            STAGE
+            当前营业额
 
           </div>
 
-
-          <div
-
-            className="
-              mt-0.5
-
-              text-[19px]
-              font-black
-
-              leading-none
-
-              text-gray-700
-            "
-
-          >
-
-            {checkpointNumber}
-
-          </div>
 
         </div>
 
 
 
-        {/* 步数 */}
+
+
+        {/* =========================
+            时间
+            ========================= */}
 
         <div
 
           className="
             text-right
+
+            pl-4
             pr-1
+
+            border-l
+            border-gray-100
           "
 
         >
+
 
           <div
 
             className="
               text-[9px]
+
               font-bold
 
-              tracking-[0.16em]
+              tracking-[0.18em]
 
               text-gray-300
             "
 
           >
 
-            STEP
+            TIME
 
           </div>
+
 
 
           <div
 
             className="
-              mt-0.5
+              mt-1
 
-              text-[19px]
-              font-black
+              flex
+              items-baseline
+              justify-end
 
-              leading-none
-
-              text-gray-800
+              gap-1
             "
 
           >
 
-            {steps}
 
             <span
 
               className="
-                ml-1
+                text-[24px]
 
+                font-black
+
+                leading-none
+
+                tracking-[-0.045em]
+
+                text-gray-800
+              "
+
+            >
+
+              {displayHour}
+
+            </span>
+
+
+
+            <span
+
+              className="
                 text-[10px]
+
                 font-bold
 
                 text-gray-300
@@ -251,190 +261,40 @@ export default function StepPanel({
 
             >
 
-              / {stepLimit}
+              / 12
 
             </span>
+
 
           </div>
 
-        </div>
 
 
-      </div>
+          <div
 
-
-
-      {/* =========================
-          进度条
-          ========================= */}
-
-      <div
-
-        className="
-          mt-3.5
-
-          h-[4px]
-
-          rounded-full
-
-          bg-gray-100
-
-          overflow-hidden
-        "
-
-      >
-
-        <div
-
-          className="
-            h-full
-
-            rounded-full
-
-            bg-blue-500
-
-            transition-all
-            duration-500
-            ease-out
-          "
-
-          style={{
-
-            width: `${progress}%`
-
-          }}
-
-        />
-
-      </div>
-
-
-
-      {/* =========================
-          阶段目标
-          ========================= */}
-
-      {
-
-        checkpointRequiredScore > 0 &&
-
-        <div
-
-          className="
-            mt-2.5
-
-            flex
-            items-center
-            justify-between
-
-            text-[10px]
-          "
-
-        >
-
-          <span
             className="
+              mt-1.5
+
+              text-[9px]
+
+              font-semibold
+
+              tracking-[0.04em]
+
               text-gray-300
             "
+
           >
 
-            目标 {checkpointRequiredScore}
+            营业时间
 
-          </span>
+          </div>
 
-
-          {
-
-            scoreReached
-
-            ?
-
-            <span
-
-              className="
-                font-bold
-                text-emerald-500
-              "
-
-            >
-
-              ✓ 完成
-
-            </span>
-
-            :
-
-            <span
-              className="
-                text-gray-400
-              "
-            >
-
-              还差
-
-              <span
-
-                className="
-                  ml-1
-
-                  font-black
-                  text-amber-500
-                "
-
-              >
-
-                {remainingScore}
-
-              </span>
-
-            </span>
-
-          }
 
         </div>
 
-      }
 
-
-
-      {/* =========================
-          阶段结算
-          ========================= */}
-
-      {
-
-        checkpointPending &&
-        !gameOver &&
-
-        <div
-
-          className="
-            mt-2.5
-
-            rounded-xl
-
-            bg-blue-50
-
-            px-3
-            py-2
-
-            text-center
-
-            text-[10px]
-            font-semibold
-
-            text-blue-500
-
-            checkpoint-flash
-          "
-
-        >
-
-          阶段结算 · 先处理当前的 1
-
-        </div>
-
-      }
+      </div>
 
 
     </div>

@@ -24,10 +24,6 @@ import "./NumberCard.css";
 
 
 
-// ============================================================
-// 根据料理类型获取名称
-// ============================================================
-
 function getFoodName(
   value,
   foodType
@@ -44,7 +40,6 @@ function getFoodName(
   }
 
 
-
   if(
     foodType === "meat"
   ){
@@ -54,7 +49,6 @@ function getFoodName(
     );
 
   }
-
 
 
   if(
@@ -68,7 +62,6 @@ function getFoodName(
   }
 
 
-
   if(
     foodType === "dessert"
   ){
@@ -78,7 +71,6 @@ function getFoodName(
     );
 
   }
-
 
 
   return String(
@@ -97,6 +89,10 @@ export default function NumberCard({
 
   selected = false,
 
+  reduceCandidate = false,
+
+  displayMode = "food",
+
   onClick,
 
   reducePreview = null,
@@ -111,10 +107,6 @@ export default function NumberCard({
 
 }) {
 
-
-  // ==========================================================
-  // 安全保护
-  // ==========================================================
 
   if(
 
@@ -133,12 +125,6 @@ export default function NumberCard({
   }
 
 
-
-
-
-  // ==========================================================
-  // 基础属性
-  // ==========================================================
 
   const value =
     item.value;
@@ -175,11 +161,17 @@ export default function NumberCard({
 
 
 
+  const showReduceCandidate =
+
+    reduceCandidate &&
+
+    !selected &&
+
+    !removing &&
+
+    !isReducing;
 
 
-  // ==========================================================
-  // 当前料理名称
-  // ==========================================================
 
   const foodName =
 
@@ -189,12 +181,6 @@ export default function NumberCard({
     );
 
 
-
-
-
-  // ==========================================================
-  // 约分后的料理名称
-  // ==========================================================
 
   const reduceFoodName =
 
@@ -213,12 +199,6 @@ export default function NumberCard({
       null;
 
 
-
-
-
-  // ==========================================================
-  // 合成来源料理
-  // ==========================================================
 
   const parentFoodNames =
 
@@ -249,7 +229,6 @@ export default function NumberCard({
           }
 
 
-
           return getFoodName(
 
             parent.value,
@@ -267,12 +246,6 @@ export default function NumberCard({
       null;
 
 
-
-
-
-  // ==========================================================
-  // 1的直接来源
-  // ==========================================================
 
   const onePreviousRecord =
 
@@ -295,12 +268,6 @@ export default function NumberCard({
 
 
 
-
-
-  // ==========================================================
-  // 调料名称
-  // ==========================================================
-
   const seasoningName =
 
     onePreviousValue !== null
@@ -316,12 +283,6 @@ export default function NumberCard({
       null;
 
 
-
-
-
-  // ==========================================================
-  // 类型标签
-  // ==========================================================
 
   const typeLabel =
 
@@ -340,12 +301,6 @@ export default function NumberCard({
       : "";
 
 
-
-
-
-  // ==========================================================
-  // 卡片类型 class
-  // ==========================================================
 
   const typeClass =
 
@@ -366,6 +321,16 @@ export default function NumberCard({
       ? "food-card--dessert"
 
       : "food-card--default";
+
+
+
+  const modeClass =
+
+    displayMode === "number"
+
+      ? "food-card--number-mode"
+
+      : "food-card--food-mode";
 
 
 
@@ -390,10 +355,6 @@ export default function NumberCard({
     >
 
 
-
-      {/* ======================================================
-          积分预览
-          ====================================================== */}
 
       {
 
@@ -435,10 +396,6 @@ export default function NumberCard({
 
 
 
-      {/* ======================================================
-          消除闪光
-          ====================================================== */}
-
       {
 
         removing &&
@@ -446,63 +403,6 @@ export default function NumberCard({
         <div
           className="food-card-remove-flash"
         />
-
-      }
-
-
-
-
-
-      {/* ======================================================
-          消除粒子
-          ====================================================== */}
-
-      {
-
-        removing &&
-
-        <>
-
-          <span
-            className="
-              food-card-particle
-              food-card-particle--1
-            "
-          >
-            ✦
-          </span>
-
-
-          <span
-            className="
-              food-card-particle
-              food-card-particle--2
-            "
-          >
-            ✦
-          </span>
-
-
-          <span
-            className="
-              food-card-particle
-              food-card-particle--3
-            "
-          >
-            ✦
-          </span>
-
-
-          <span
-            className="
-              food-card-particle
-              food-card-particle--4
-            "
-          >
-            ✦
-          </span>
-
-        </>
 
       }
 
@@ -528,6 +428,8 @@ export default function NumberCard({
           food-card
 
           ${typeClass}
+
+          ${modeClass}
 
           ${
             selected &&
@@ -569,9 +471,20 @@ export default function NumberCard({
 
 
 
-        {/* ====================================================
-            顶部微光
-            ==================================================== */}
+        {
+
+          selected &&
+          !removing &&
+
+          <div
+            className="
+              food-card-selected-ring
+            "
+          />
+
+        }
+
+
 
         <div
           className="food-card-highlight"
@@ -579,14 +492,20 @@ export default function NumberCard({
 
 
 
-
-
-        {/* ====================================================
-            左上角数字
-            ==================================================== */}
-
         <div
-          className="food-card-number"
+
+          className={`
+            food-card-number
+
+            ${
+              showReduceCandidate
+
+                ? "food-card-number--reduce-candidate"
+
+                : ""
+            }
+          `}
+
         >
 
           {value}
@@ -594,12 +513,6 @@ export default function NumberCard({
         </div>
 
 
-
-
-
-        {/* ====================================================
-            质数标记
-            ==================================================== */}
 
         {
 
@@ -613,12 +526,6 @@ export default function NumberCard({
         }
 
 
-
-
-
-        {/* ====================================================
-            已发现标记
-            ==================================================== */}
 
         {
 
@@ -637,12 +544,6 @@ export default function NumberCard({
 
 
 
-
-
-        {/* ====================================================
-            调料标记
-            ==================================================== */}
-
         {
 
           isOne &&
@@ -658,12 +559,6 @@ export default function NumberCard({
         }
 
 
-
-
-
-        {/* ====================================================
-            主菜名
-            ==================================================== */}
 
         <div
           className="food-card-main"
@@ -699,23 +594,21 @@ export default function NumberCard({
 
 
 
-
-
-        {/* ====================================================
-            约分预览
-            ==================================================== */}
-
         {
 
           isReducing &&
           !removing &&
 
           <div
-            className="food-card-reduce-preview"
+            className="
+              food-card-reduce-preview
+            "
           >
 
             <span
-              className="food-card-reduce-name"
+              className="
+                food-card-reduce-name
+              "
             >
 
               {
@@ -730,7 +623,9 @@ export default function NumberCard({
 
 
             <span
-              className="food-card-reduce-number"
+              className="
+                food-card-reduce-number
+              "
             >
 
               {reducePreview}
@@ -743,19 +638,15 @@ export default function NumberCard({
 
 
 
-
-
-        {/* ====================================================
-            普通料理类型
-            ==================================================== */}
-
         {
 
           !isOne &&
           !parentFoodNames &&
 
           <div
-            className="food-card-meta"
+            className="
+              food-card-meta
+            "
           >
 
             {typeLabel}
@@ -766,12 +657,6 @@ export default function NumberCard({
 
 
 
-
-
-        {/* ====================================================
-            合成来源
-            ==================================================== */}
-
         {
 
           parentFoodNames &&
@@ -779,7 +664,9 @@ export default function NumberCard({
           parentFoodNames[1] &&
 
           <div
-            className="food-card-origin"
+            className="
+              food-card-origin
+            "
           >
 
             <span>
@@ -788,7 +675,9 @@ export default function NumberCard({
 
 
             <span
-              className="food-card-origin-plus"
+              className="
+                food-card-origin-plus
+              "
             >
               +
             </span>
@@ -804,12 +693,6 @@ export default function NumberCard({
 
 
 
-
-
-        {/* ====================================================
-            调料来源
-            ==================================================== */}
-
         {
 
           isOne &&
@@ -817,7 +700,9 @@ export default function NumberCard({
           seasoningName &&
 
           <div
-            className="food-card-origin"
+            className="
+              food-card-origin
+            "
           >
 
             <span>
@@ -826,7 +711,9 @@ export default function NumberCard({
 
 
             <span
-              className="food-card-origin-plus"
+              className="
+                food-card-origin-plus
+              "
             >
               ·
             </span>

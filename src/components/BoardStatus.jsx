@@ -185,244 +185,132 @@ export default function BoardStatus({
     >
 
 
-      {/* =========================
-          标题
-          ========================= */}
-
       <div
+
+        ref={
+          activityRef
+        }
+
         className="
-          board-status-header
+          board-status-activity-wrapper
         "
-      >
 
-        环境
-
-      </div>
-
-
-
-      {/* =========================
-          环境属性
-          ========================= */}
-
-      <div
-        className="
-          board-status-list
-        "
       >
 
 
         {/* =========================
-            质能
+            外部只显示活性
             ========================= */}
 
-        <div
+        <button
+
+          type="button"
+
           className="
-            board-status-item
+            board-status-activity-card
           "
-        >
 
-          <div
-            className="
-              board-status-label
-            "
-          >
+          onClick={() =>
 
-            质能
+            setShowActivityDetail(
 
-          </div>
+              current =>
+                !current
 
+            )
 
-          <div
-            className="
-              board-status-value
-            "
-          >
-
-            {primeEnergy}
-
-          </div>
-
-        </div>
-
-
-
-        {/* =========================
-            质密
-            ========================= */}
-
-        <div
-          className="
-            board-status-item
-          "
-        >
-
-          <div
-            className="
-              board-status-label
-            "
-          >
-
-            质密
-
-          </div>
-
-
-          <div
-            className="
-              board-status-value
-            "
-          >
-
-            {primeDensity}
-
-          </div>
-
-        </div>
-
-
-
-        {/* =========================
-            质态
-            ========================= */}
-
-        <div
-          className="
-            board-status-item
-            board-status-state-item
-          "
-        >
-
-          <div
-            className="
-              board-status-label
-            "
-          >
-
-            质态
-
-          </div>
-
-
-          <div
-            className="
-              board-status-state
-            "
-          >
-
-            {primeState}
-
-          </div>
-
-        </div>
-
-
-
-        {/* =========================
-            活性
-            ========================= */}
-
-        <div
-
-          ref={
-            activityRef
           }
 
-          className="
-            board-status-activity-wrapper
-          "
-
         >
 
 
-          <button
-
-            type="button"
-
+          <div
             className="
-              board-status-item
-              board-status-activity-item
+              board-status-activity-top
             "
-
-            onClick={() =>
-
-              setShowActivityDetail(
-
-                current =>
-                  !current
-
-              )
-
-            }
-
           >
 
 
-            <div
+            <span
               className="
-                board-status-label
                 board-status-activity-label
               "
             >
 
               活性
 
-
-              <span
-                className="
-                  board-status-info-icon
-                "
-              >
-
-                i
-
-              </span>
-
-            </div>
+            </span>
 
 
-
-            <div
+            <span
               className="
-                board-status-value
-                board-status-activity-value
+                board-status-arrow
               "
             >
 
-              {activity}%
+              ›
 
-            </div>
-
-
-          </button>
+            </span>
 
 
+          </div>
 
-          {/* =========================
-              活性详情
-              ========================= */}
 
-          {
 
-            showActivityDetail && (
+          <div
+            className="
+              board-status-activity-value
+            "
+          >
+
+            {activity}%
+
+          </div>
+
+
+
+          <div
+            className="
+              board-status-activity-caption
+            "
+          >
+
+            {getActivityText()}
+
+          </div>
+
+
+        </button>
+
+
+
+        {/* =========================
+            活性详情
+            ========================= */}
+
+        {
+
+          showActivityDetail && (
+
+            <div
+              className="
+                board-status-activity-detail
+              "
+            >
+
+
+              {/* =====================
+                  顶部
+                  ===================== */}
 
               <div
                 className="
-                  board-status-activity-detail
+                  activity-detail-header
                 "
               >
 
 
-                {/* =====================
-                    顶部
-                    ===================== */}
-
-                <div
-                  className="
-                    activity-detail-header
-                  "
-                >
-
+                <div>
 
                   <div
                     className="
@@ -430,196 +318,282 @@ export default function BoardStatus({
                     "
                   >
 
-                    当前活性
+                    当前环境
 
                   </div>
-
 
 
                   <div
                     className="
-                      activity-detail-percent
+                      activity-detail-status
                     "
                   >
 
-                    {activity}%
+                    {getActivityText()}
 
                   </div>
 
-
                 </div>
 
 
 
-                {/* =====================
-                    状态说明
-                    ===================== */}
-
                 <div
                   className="
-                    activity-detail-status
+                    activity-detail-percent
                   "
                 >
 
-                  {getActivityText()}
+                  {activity}%
 
                 </div>
-
-
-
-                <div
-                  className="
-                    activity-detail-description
-                  "
-                >
-
-                  活性越高，
-                  当前局面可继续变化的空间越大。
-
-                </div>
-
-
-
-                {/* =====================
-                    分隔线
-                    ===================== */}
-
-                <div
-                  className="
-                    activity-detail-separator
-                  "
-                />
-
-
-
-                {/* =====================
-                    可行动作
-                    ===================== */}
-
-                <div
-                  className="
-                    activity-detail-row
-                    activity-detail-row-main
-                  "
-                >
-
-
-                  <span>
-
-                    可行动作
-
-                  </span>
-
-
-                  <span>
-
-                    <strong>
-
-                      {activityLegal}
-
-                    </strong>
-
-                    {" / "}
-
-                    {activityTotal}
-
-                  </span>
-
-
-                </div>
-
-
-
-                {/* =====================
-                    合成
-                    ===================== */}
-
-                <div
-                  className="
-                    activity-detail-row
-                  "
-                >
-
-
-                  <span>
-
-                    可以合成
-
-                  </span>
-
-
-                  <span>
-
-                    {activityCombineLegal}
-
-                  </span>
-
-
-                </div>
-
-
-
-                {/* =====================
-                    约分
-                    ===================== */}
-
-                <div
-                  className="
-                    activity-detail-row
-                  "
-                >
-
-
-                  <span>
-
-                    可以约分
-
-                  </span>
-
-
-                  <span>
-
-                    {activityReduceLegal}
-
-                  </span>
-
-
-                </div>
-
-
-
-                {/* =====================
-                    质数提示
-                    ===================== */}
-
-                {
-
-                  activityCombinePrimeLegal > 0 && (
-
-                    <div
-                      className="
-                        activity-detail-note
-                      "
-                    >
-
-                      有部分合成会生成质数，
-                      后续变化空间相对较小。
-
-                    </div>
-
-                  )
-
-                }
 
 
               </div>
 
-            )
-
-          }
 
 
-        </div>
+              <div
+                className="
+                  activity-detail-description
+                "
+              >
+
+                活性表示当前局面还能产生多少有效变化。
+
+              </div>
+
+
+
+              {/* =====================
+                  基础环境参数
+                  ===================== */}
+
+              <div
+                className="
+                  activity-detail-separator
+                "
+              />
+
+
+              <div
+                className="
+                  activity-detail-section-title
+                "
+              >
+
+                环境参数
+
+              </div>
+
+
+
+              <div
+                className="
+                  activity-detail-row
+                "
+              >
+
+
+                <span>
+                  质能
+                </span>
+
+
+                <span>
+                  {primeEnergy}
+                </span>
+
+
+              </div>
+
+
+
+              <div
+                className="
+                  activity-detail-row
+                "
+              >
+
+
+                <span>
+                  质密
+                </span>
+
+
+                <span>
+                  {primeDensity}
+                </span>
+
+
+              </div>
+
+
+
+              <div
+                className="
+                  activity-detail-row
+                "
+              >
+
+
+                <span>
+                  质态
+                </span>
+
+
+                <span>
+                  {primeState}
+                </span>
+
+
+              </div>
+
+
+
+              {/* =====================
+                  动作空间
+                  ===================== */}
+
+              <div
+                className="
+                  activity-detail-separator
+                "
+              />
+
+
+              <div
+                className="
+                  activity-detail-section-title
+                "
+              >
+
+                动作空间
+
+              </div>
+
+
+
+              <div
+                className="
+                  activity-detail-row
+                  activity-detail-row-main
+                "
+              >
+
+
+                <span>
+
+                  可行动作
+
+                </span>
+
+
+                <span>
+
+                  <strong>
+
+                    {activityLegal}
+
+                  </strong>
+
+                  {" / "}
+
+                  {activityTotal}
+
+                </span>
+
+
+              </div>
+
+
+
+              <div
+                className="
+                  activity-detail-row
+                "
+              >
+
+
+                <span>
+
+                  可以搭配
+
+                </span>
+
+
+                <span>
+
+                  {activityCombineLegal}
+
+                  {" / "}
+
+                  {activityCombineTotal}
+
+                </span>
+
+
+              </div>
+
+
+
+              <div
+                className="
+                  activity-detail-row
+                "
+              >
+
+
+                <span>
+
+                  可以处理
+
+                </span>
+
+
+                <span>
+
+                  {activityReduceLegal}
+
+                  {" / "}
+
+                  {activityReduceTotal}
+
+                </span>
+
+
+              </div>
+
+
+
+              {/* =====================
+                  额外提示
+                  ===================== */}
+
+              {
+
+                activityCombinePrimeLegal > 0 && (
+
+                  <div
+                    className="
+                      activity-detail-note
+                    "
+                  >
+
+                    当前有部分搭配会生成质数，
+                    后续变化空间可能进一步收紧。
+
+                  </div>
+
+                )
+
+              }
+
+
+            </div>
+
+          )
+
+        }
 
 
       </div>

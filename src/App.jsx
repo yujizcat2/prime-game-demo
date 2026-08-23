@@ -2,6 +2,8 @@ import {
   useState
 } from "react";
 
+import "./App.css";
+
 import StartScreen from "./components/StartScreen";
 import NumberList from "./components/NumberList";
 import SeasoningTray from "./components/SeasoningTray";
@@ -12,8 +14,6 @@ import StepPanel from "./components/StepPanel";
 import Discovery from "./components/Discovery";
 import BoardStatus from "./components/BoardStatus";
 import GameOver from "./components/GameOver";
-
-import TestLab from "./components/TestLab";
 
 import useGame from "./hooks/useGame";
 
@@ -31,19 +31,24 @@ function App() {
 
 
   // =========================
-  // 页面
+  // 卡片显示模式
+  //
+  // food
+  // 菜名大 / 数字小
+  //
+  // number
+  // 数字大 / 菜名小
   // =========================
 
   const [
-    page,
-    setPage
-  ] = useState("game");
+    cardDisplayMode,
+    setCardDisplayMode
+  ] = useState("food");
 
 
 
   // =========================
   // 正在消除的数字
-  // 仅用于动画
   // =========================
 
   const [
@@ -90,22 +95,21 @@ function App() {
 
 
   // =========================
-  // 测试实验室
+  // 切换卡片显示模式
   // =========================
 
-  if (
-    page === "test"
-  ) {
+  function toggleCardDisplayMode() {
 
-    return (
 
-      <TestLab
+    setCardDisplayMode(
 
-        onBack={() =>
-          setPage("game")
-        }
+      current =>
 
-      />
+        current === "food"
+
+          ? "number"
+
+          : "food"
 
     );
 
@@ -129,10 +133,6 @@ function App() {
 
         onStart={
           game.startGame
-        }
-
-        onOpenTest={() =>
-          setPage("test")
         }
 
       />
@@ -162,119 +162,83 @@ function App() {
   return (
 
     <div
-
       className="
-        min-h-screen
-
-        bg-[#f3f5f8]
-
-        px-4
-        pt-6
-        pb-14
+        game-page
       "
-
     >
 
 
       <div
-
         className="
-          w-full
-          max-w-xl
-          mx-auto
+          game-shell
         "
-
       >
 
 
 
         {/* =========================
-            标题
+            顶部标题
             ========================= */}
 
-        <div
-
+        <header
           className="
-            flex
-            items-center
-            justify-between
-
-            px-2
-            mb-5
+            game-header
           "
-
         >
 
 
           <div>
 
-            <h1
 
+            <div
               className="
-                text-2xl
-                font-black
-
-                tracking-tight
-
-                text-gray-800
+                game-header-kicker
               "
-
             >
 
-              PRIME GAME
+              PRIME KITCHEN
+
+            </div>
+
+
+            <h1
+              className="
+                game-header-title
+              "
+            >
+
+              料理迷宫
 
             </h1>
 
-
-            <div
-
-              className="
-                text-[11px]
-
-                tracking-[0.24em]
-
-                text-gray-400
-
-                mt-0.5
-              "
-
-            >
-
-              NUMBER LABYRINTH
-
-            </div>
 
           </div>
 
 
 
           <div
-
             className="
-              w-11
-              h-11
-
-              rounded-2xl
-
-              bg-white
-
-              shadow-sm
-
-              flex
-              items-center
-              justify-center
-
-              text-gray-400
+              game-header-status
             "
-
           >
 
-            ✦
+            <span>
+
+              LABYRINTH
+
+            </span>
+
+
+            <span
+              className="
+                game-header-dot
+              "
+            />
 
           </div>
 
 
-        </div>
+        </header>
 
 
 
@@ -284,17 +248,10 @@ function App() {
             顶部状态
             ========================= */}
 
-        <div
-
+        <section
           className="
-            grid
-            grid-cols-[2fr_1fr]
-
-            gap-3
-
-            items-stretch
+            game-top-status
           "
-
         >
 
 
@@ -304,28 +261,8 @@ function App() {
               game.steps
             }
 
-            stepLimit={
-              game.stepLimit
-            }
-
             score={
               game.score
-            }
-
-            gameOver={
-              game.gameOver
-            }
-
-            checkpointPending={
-              game.checkpointPending
-            }
-
-            checkpointRequiredScore={
-              game.checkpointRequiredScore
-            }
-
-            checkpointNumber={
-              game.checkpointNumber
             }
 
           />
@@ -341,146 +278,30 @@ function App() {
           />
 
 
-        </div>
+        </section>
 
 
 
 
 
         {/* =========================
-            动作提示
+            Tips + 活性
             ========================= */}
 
-        <div
-
+        <section
           className="
-            mt-3
+            game-info-row
           "
-
         >
 
-          <ActionHintPanel
-
-            numbers={
-              game.numbers
-            }
-
-            selected={
-              game.selected
-            }
-
-          />
-
-        </div>
-
-
-
-
-
-        {/* =========================
-            棋盘状态
-            ========================= */}
-
-        <div
-
-          className="
-            mt-4
-          "
-
-        >
-
-          <BoardStatus
-
-            primeEnergy={
-              game.primeEnergy
-            }
-
-            primeDensity={
-              game.primeDensity
-            }
-
-            primeState={
-              game.primeState
-            }
-
-            activity={
-              activityStatus.activity
-            }
-
-            activityScore={
-              activityStatus.activityScore
-            }
-
-            activityMax={
-              activityStatus.activityMax
-            }
-
-            activityLegal={
-              activityStatus.legal
-            }
-
-            activityTotal={
-              activityStatus.total
-            }
-
-            activityCombineLegal={
-              activityStatus.combineLegal
-            }
-
-            activityCombineTotal={
-              activityStatus.combineTotal
-            }
-
-            activityCombinePrimeLegal={
-              activityStatus.combinePrimeLegal
-            }
-
-            activityCombineNormalLegal={
-              activityStatus.combineNormalLegal
-            }
-
-            activityReduceLegal={
-              activityStatus.reduceLegal
-            }
-
-            activityReduceTotal={
-              activityStatus.reduceTotal
-            }
-
-          />
-
-        </div>
-
-
-
-
-
-        {/* =========================
-            主棋盘
-            ========================= */}
-
-        <div
-
-          className="
-            pt-8
-          "
-
-        >
 
           <div
-
             className="
-              game-board
-
-              rounded-[32px]
-
-              px-4
-              py-7
+              game-info-item
             "
-
           >
 
-            <NumberList
+            <ActionHintPanel
 
               numbers={
                 game.numbers
@@ -490,20 +311,74 @@ function App() {
                 game.selected
               }
 
-              preview={
-                game.preview
+            />
+
+          </div>
+
+
+
+          <div
+            className="
+              game-info-item
+            "
+          >
+
+            <BoardStatus
+
+              primeEnergy={
+                game.primeEnergy
               }
 
-              onSelect={
-                game.selectNumber
+              primeDensity={
+                game.primeDensity
               }
 
-              collection={
-                game.collection
+              primeState={
+                game.primeState
               }
 
-              removingId={
-                removingId
+              activity={
+                activityStatus.activity
+              }
+
+              activityScore={
+                activityStatus.activityScore
+              }
+
+              activityMax={
+                activityStatus.activityMax
+              }
+
+              activityLegal={
+                activityStatus.legal
+              }
+
+              activityTotal={
+                activityStatus.total
+              }
+
+              activityCombineLegal={
+                activityStatus.combineLegal
+              }
+
+              activityCombineTotal={
+                activityStatus.combineTotal
+              }
+
+              activityCombinePrimeLegal={
+                activityStatus.combinePrimeLegal
+              }
+
+              activityCombineNormalLegal={
+                activityStatus.combineNormalLegal
+              }
+
+              activityReduceLegal={
+                activityStatus.reduceLegal
+              }
+
+              activityReduceTotal={
+                activityStatus.reduceTotal
               }
 
             />
@@ -511,111 +386,305 @@ function App() {
           </div>
 
 
-        </div>
+        </section>
 
 
 
 
 
         {/* =========================
-            调料盘
+            主菜台
             ========================= */}
 
-        <div
-
+        <section
           className="
-            mt-5
-
-            rounded-[26px]
-
-            bg-white/70
-
-            px-4
-            py-4
-
-            shadow-[0_6px_20px_rgba(15,23,42,0.035)]
-
-            border
-            border-white
+            game-board-section
           "
-
         >
 
-          <SeasoningTray
 
-            seasoningTray={
-              game.seasoningTray
-            }
+          <div
+            className="
+              game-section-header
+              game-board-section-header
+            "
+          >
+
+
+            <div
+              className="
+                game-section-title
+              "
+            >
+
+              主菜台
+
+            </div>
+
+
+
+            <div
+              className="
+                game-section-line
+              "
+            />
+
+
+
+            {/* =====================
+                卡片模式切换
+                ===================== */}
+
+            <button
+
+              type="button"
+
+              className="
+                game-card-mode-toggle
+              "
+
+              onClick={
+                toggleCardDisplayMode
+              }
+
+              aria-label="切换主菜卡显示模式"
+
+            >
+
+
+              <span
+                className="
+                  game-card-mode-toggle-label
+                "
+              >
+
+                {
+                  cardDisplayMode === "food"
+
+                    ? "料理"
+
+                    : "数字"
+                }
+
+              </span>
+
+
+              <span
+                className="
+                  game-card-mode-toggle-icon
+                "
+              >
+
+                ⇄
+
+              </span>
+
+
+            </button>
+
+
+
+            <div
+              className="
+                game-section-count
+              "
+            >
+
+              {game.numbers.length}
+              {" / "}
+              10
+
+            </div>
+
+
+          </div>
+
+
+
+
+
+          {/* =========================
+              主菜盘 + 操作
+              ========================= */}
+
+          <div
+            className="
+              game-board-control-row
+            "
+          >
+
+
+            <div
+              className="
+                game-board
+              "
+            >
+
+              <NumberList
+
+                numbers={
+                  game.numbers
+                }
+
+                selected={
+                  game.selected
+                }
+
+                preview={
+                  game.preview
+                }
+
+                onSelect={
+                  game.selectNumber
+                }
+
+                collection={
+                  game.collection
+                }
+
+                removingId={
+                  removingId
+                }
+
+                displayMode={
+                  cardDisplayMode
+                }
+
+              />
+
+            </div>
+
+
+
+            <div
+              className="
+                game-board-actions
+              "
+            >
+
+              <ActionButtons
+
+                numbers={
+                  game.numbers
+                }
+
+                selected={
+                  game.selected
+                }
+
+                preview={
+                  game.preview
+                }
+
+                onCombine={
+                  game.combineNumbers
+                }
+
+                onReduce={
+                  game.reduceNumbers
+                }
+
+                onRemoveOne={
+                  handleRemoveOne
+                }
+
+                gameOver={
+                  game.gameOver
+                }
+
+                removingId={
+                  removingId
+                }
+
+              />
+
+            </div>
+
+
+          </div>
+
+
+        </section>
+
+
+
+
+
+        {/* =========================
+            调料区
+            ========================= */}
+
+        <section
+          className="
+            game-seasoning-section
+          "
+        >
+
+
+          <div
+            className="
+              game-section-header
+              game-seasoning-section-header
+            "
+          >
+
+
+            <div
+              className="
+                game-section-title
+              "
+            >
+
+              调料
+
+            </div>
+
+
+            <div
+              className="
+                game-section-line
+              "
+            />
+
+
+          </div>
+
+
+
+          <div
+            className="
+              game-seasoning-area
+            "
+          >
+
+            <SeasoningTray
+
+              seasoningTray={
+                game.seasoningTray
+              }
 
               numbers={
-              game.numbers
-            }
+                game.numbers
+              }
 
-          />
+            />
 
-        </div>
-
-
+          </div>
 
 
+        </section>
 
-        {/* =========================
-            操作按钮
-            ========================= */}
+
+
+
 
         <div
-
           className="
-            mt-6
+            game-collection-divider
           "
-
-        >
-
-          <ActionButtons
-
-            numbers={
-              game.numbers
-            }
-
-            selected={
-              game.selected
-            }
-
-            preview={
-              game.preview
-            }
-
-            onCombine={
-              game.combineNumbers
-            }
-
-            onReduce={
-              game.reduceNumbers
-            }
-
-            onRemoveOne={
-              handleRemoveOne
-            }
-
-            gameOver={
-              game.gameOver
-            }
-
-            removingId={
-              removingId
-            }
-
-          />
-
-        </div>
+        />
 
 
-
-
-
-        {/* =========================
-            收藏 / 发现记录
-            ========================= */}
 
         <CollectionPanel
 
@@ -652,10 +721,6 @@ function App() {
 
           steps={
             game.steps
-          }
-
-          stepLimit={
-            game.stepLimit
           }
 
           score={

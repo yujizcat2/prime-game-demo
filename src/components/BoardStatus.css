@@ -1,108 +1,57 @@
 .board-status {
 
   width:
+    100%;
 
+  height:
     100%;
 
 }
 
 
 
-/* =========================
-
-   环境标题
-
-   ========================= */
-
-.board-status-header {
-
-  margin-left:
-
-    4px;
-
-  margin-bottom:
-
-    8px;
-
-  font-size:
-
-    10px;
-
-  font-weight:
-
-    700;
-
-  letter-spacing:
-
-    0.16em;
-
-  color:
-
-    #aeb4be;
-
-}
-
 
 
 /* =========================
-
-   属性列表
-
+   活性区域
    ========================= */
 
-.board-status-list {
+.board-status-activity-wrapper {
 
-  display:
-
-    flex;
-
-  align-items:
-
-    center;
-
-  gap:
-
-    8px;
-
-  flex-wrap:
-
-    wrap;
-
-}
-
-
-
-/* =========================
-
-   单个环境属性
-
-   ========================= */
-
-.board-status-item {
+  position:
+    relative;
 
   width:
-
-    62px;
+    100%;
 
   height:
+    100%;
 
-    62px;
+}
 
-  border-radius:
 
-    16px;
 
-  background:
 
-    rgba(
-      255,
-      255,
-      255,
-      0.82
-    );
+
+/* =========================
+   活性卡片
+   ========================= */
+
+.board-status-activity-card {
+
+  width:
+    100%;
+
+  height:
+    100%;
+
+  min-height:
+    74px;
+
+  padding:
+    12px 14px;
 
   border:
-
     1px solid
     rgba(
       15,
@@ -111,11 +60,21 @@
       0.045
     );
 
-  box-shadow:
+  border-radius:
+    20px;
 
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      0.82
+    );
+
+  box-shadow:
     0
     4px
-    12px
+    14px
     rgba(
       15,
       23,
@@ -123,192 +82,35 @@
       0.035
     );
 
-  display:
-
-    flex;
-
-  flex-direction:
-
-    column;
-
-  align-items:
-
-    center;
-
-  justify-content:
-
-    center;
-
-}
-
-
-
-/* =========================
-
-   属性名称
-
-   ========================= */
-
-.board-status-label {
-
-  font-size:
-
-    10px;
-
-  font-weight:
-
-    700;
-
-  color:
-
-    #a3aab5;
-
-}
-
-
-
-/* =========================
-
-   属性值
-
-   ========================= */
-
-.board-status-value {
-
-  margin-top:
-
-    4px;
-
-  font-size:
-
-    20px;
-
-  font-weight:
-
-    900;
-
-  line-height:
-
-    1;
-
-  letter-spacing:
-
-    -0.03em;
-
-  color:
-
-    #1f2937;
-
-}
-
-
-
-/* =========================
-
-   质态
-
-   ========================= */
-
-.board-status-state-item {
-
-  width:
-
-    72px;
-
-}
-
-
-
-.board-status-state {
-
-  margin-top:
-
-    4px;
-
-  font-size:
-
-    15px;
-
-  font-weight:
-
-    900;
-
-  line-height:
-
-    1;
-
-  letter-spacing:
-
-    0.02em;
-
-  color:
-
-    #1f2937;
-
-}
-
-
-
-/* =========================
-
-   活性区域
-
-   ========================= */
-
-.board-status-activity-wrapper {
-
-  position:
-
-    relative;
-
-}
-
-
-
-/* =========================
-
-   活性按钮
-
-   ========================= */
-
-.board-status-activity-item {
-
-  padding:
-
-    0;
-
   font-family:
-
     inherit;
 
-  cursor:
+  text-align:
+    left;
 
+  cursor:
     pointer;
 
   appearance:
-
     none;
 
   -webkit-tap-highlight-color:
-
     transparent;
 
   transition:
-
     transform 0.15s ease,
-
-    box-shadow 0.15s ease,
-
-    background 0.15s ease;
+    background 0.15s ease,
+    box-shadow 0.15s ease;
 
 }
 
 
 
-.board-status-activity-item:hover {
+
+
+.board-status-activity-card:hover {
 
   background:
-
     rgba(
       255,
       255,
@@ -316,160 +118,173 @@
       0.96
     );
 
-}
-
-
-
-.board-status-activity-item:active {
-
-  transform:
-
-    scale(0.96);
-
-}
-
-
-
-/* =========================
-
-   活性标题
-
-   ========================= */
-
-.board-status-activity-label {
-
-  display:
-
-    flex;
-
-  align-items:
-
-    center;
-
-  gap:
-
-    3px;
-
-}
-
-
-
-/* =========================
-
-   信息小图标
-
-   ========================= */
-
-.board-status-info-icon {
-
-  width:
-
-    12px;
-
-  height:
-
-    12px;
-
-  border-radius:
-
-    50%;
-
-  display:
-
-    inline-flex;
-
-  align-items:
-
-    center;
-
-  justify-content:
-
-    center;
-
-  font-size:
-
-    8px;
-
-  font-weight:
-
-    900;
-
-  line-height:
-
-    1;
-
-  color:
-
-    #9ca3af;
-
-  border:
-
-    1px solid
+  box-shadow:
+    0
+    7px
+    18px
     rgba(
-      156,
-      163,
-      175,
-      0.42
+      15,
+      23,
+      42,
+      0.05
     );
 
 }
 
 
 
-/* =========================
 
-   活性数字
 
-   ========================= */
+.board-status-activity-card:active {
 
-.board-status-activity-value {
-
-  font-size:
-
-    18px;
+  transform:
+    scale(0.975);
 
 }
 
 
 
+
+
 /* =========================
+   顶部
+   ========================= */
 
+.board-status-activity-top {
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    space-between;
+
+}
+
+
+
+
+
+.board-status-activity-label {
+
+  font-size:
+    10px;
+
+  font-weight:
+    800;
+
+  letter-spacing:
+    0.08em;
+
+  color:
+    #a3aab5;
+
+}
+
+
+
+
+
+.board-status-arrow {
+
+  font-size:
+    17px;
+
+  font-weight:
+    700;
+
+  line-height:
+    1;
+
+  color:
+    #c1c6ce;
+
+}
+
+
+
+
+
+/* =========================
+   活性数值
+   ========================= */
+
+.board-status-activity-value {
+
+  margin-top:
+    7px;
+
+  font-size:
+    24px;
+
+  font-weight:
+    900;
+
+  line-height:
+    1;
+
+  letter-spacing:
+    -0.04em;
+
+  color:
+    #1f2937;
+
+}
+
+
+
+
+
+.board-status-activity-caption {
+
+  margin-top:
+    6px;
+
+  font-size:
+    10px;
+
+  font-weight:
+    700;
+
+  color:
+    #a0a6b0;
+
+}
+
+
+
+
+
+/* =========================
    活性详情浮层
-
    ========================= */
 
 .board-status-activity-detail {
 
   position:
-
     absolute;
 
   top:
-
     calc(100% + 10px);
 
   right:
-
     0;
 
   z-index:
-
     50;
 
   width:
-
-    210px;
+    240px;
 
   padding:
-
-    15px;
+    16px;
 
   border-radius:
-
-    18px;
+    20px;
 
   background:
-
     rgba(
       255,
       255,
@@ -478,7 +293,6 @@
     );
 
   border:
-
     1px solid
     rgba(
       15,
@@ -488,171 +302,159 @@
     );
 
   box-shadow:
-
     0
-    14px
-    36px
+    16px
+    38px
     rgba(
       15,
       23,
       42,
-      0.12
+      0.13
     );
 
   backdrop-filter:
-
     blur(14px);
 
   -webkit-backdrop-filter:
-
     blur(14px);
 
 }
 
 
 
+
+
 /* =========================
-
    详情顶部
-
    ========================= */
 
 .activity-detail-header {
 
   display:
-
     flex;
 
   align-items:
-
-    center;
+    flex-start;
 
   justify-content:
-
     space-between;
 
+  gap:
+    14px;
+
 }
+
+
 
 
 
 .activity-detail-title {
 
   font-size:
-
-    11px;
+    10px;
 
   font-weight:
-
     800;
 
-  color:
+  letter-spacing:
+    0.08em;
 
-    #9ca3af;
+  color:
+    #a2a8b1;
 
 }
+
+
 
 
 
 .activity-detail-percent {
 
   font-size:
-
-    22px;
+    24px;
 
   font-weight:
-
     900;
 
   line-height:
-
     1;
 
-  color:
+  letter-spacing:
+    -0.04em;
 
+  color:
     #1f2937;
 
 }
 
 
 
+
+
 /* =========================
-
    活性状态
-
    ========================= */
 
 .activity-detail-status {
 
   margin-top:
-
-    8px;
+    5px;
 
   font-size:
-
     14px;
 
   font-weight:
-
     900;
 
   color:
-
     #4b5563;
 
 }
 
 
 
+
+
 /* =========================
-
    活性说明
-
    ========================= */
 
 .activity-detail-description {
 
   margin-top:
-
-    5px;
+    8px;
 
   font-size:
-
     10px;
 
   line-height:
-
-    1.55;
+    1.6;
 
   font-weight:
-
     600;
 
   color:
-
     #a0a6b0;
 
 }
 
 
 
+
+
 /* =========================
-
    分隔线
-
    ========================= */
 
 .activity-detail-separator {
 
   height:
-
     1px;
 
   margin:
-
-    12px 0;
+    13px 0 11px;
 
   background:
-
     rgba(
       15,
       23,
@@ -664,120 +466,139 @@
 
 
 
+
+
 /* =========================
+   小节标题
+   ========================= */
 
+.activity-detail-section-title {
+
+  margin-bottom:
+    5px;
+
+  font-size:
+    9px;
+
+  font-weight:
+    800;
+
+  letter-spacing:
+    0.09em;
+
+  color:
+    #b0b5bd;
+
+}
+
+
+
+
+
+/* =========================
    信息行
-
    ========================= */
 
 .activity-detail-row {
 
   min-height:
-
-    25px;
+    27px;
 
   display:
-
     flex;
 
   align-items:
-
     center;
 
   justify-content:
-
     space-between;
 
-  font-size:
+  gap:
+    12px;
 
+  font-size:
     11px;
 
   font-weight:
-
     700;
 
   color:
-
     #8f96a1;
 
 }
 
 
 
+
+
 .activity-detail-row span:last-child {
 
-  font-weight:
+  flex-shrink:
+    0;
 
+  font-weight:
     800;
 
   color:
-
     #606874;
 
 }
 
 
 
+
+
 /* =========================
-
    主要动作行
-
    ========================= */
 
 .activity-detail-row-main {
 
   margin-bottom:
-
-    3px;
+    2px;
 
   color:
-
     #6b7280;
 
 }
 
 
 
+
+
 .activity-detail-row-main strong {
 
   font-size:
-
     14px;
 
   font-weight:
-
     900;
 
   color:
-
     #374151;
 
 }
 
 
 
+
+
 /* =========================
-
    额外提示
-
    ========================= */
 
 .activity-detail-note {
 
   margin-top:
-
-    10px;
-
-  padding:
-
-    8px 10px;
-
-  border-radius:
-
     11px;
 
-  background:
+  padding:
+    9px 10px;
 
+  border-radius:
+    12px;
+
+  background:
     rgba(
       15,
       23,
@@ -786,45 +607,65 @@
     );
 
   font-size:
-
     10px;
 
   font-weight:
-
     600;
 
   line-height:
-
     1.55;
 
   color:
-
     #9ca3af;
 
 }
 
 
 
+
+
 /* =========================
-
    手机
-
    ========================= */
 
 @media (
+
   max-width:
     480px
+
 ) {
+
+  .board-status-activity-card {
+
+    min-height:
+      72px;
+
+    padding:
+      11px 12px;
+
+  }
+
+
+
+  .board-status-activity-value {
+
+    font-size:
+      22px;
+
+  }
+
+
 
   .board-status-activity-detail {
 
     width:
-
-      200px;
+      min(
+        238px,
+        calc(100vw - 32px)
+      );
 
     right:
-
-      -4px;
+      -2px;
 
   }
 

@@ -26,11 +26,7 @@ import {
 
   reduceNumbers as engineReduceNumbers,
 
-  removeOne as engineRemoveOne,
-
-  getCheckpointRequiredScore,
-
-  getCheckpointNumber
+  removeOne as engineRemoveOne
 
 } from "../game/gameEngine";
 
@@ -119,8 +115,6 @@ export default function useGame(){
   // ==========================================================
   // 调料盘
   //
-  // 最多5格。
-  //
   // 当前调料暂时只展示，
   // 不允许使用。
   // ==========================================================
@@ -164,25 +158,33 @@ export default function useGame(){
 
 
 
+  // ==========================================================
+  // 分数
+  //
+  // 后续UI换皮为金钱。
+  // ==========================================================
+
   const score =
     gameState?.score ?? 0;
 
+
+
+  // ==========================================================
+  // 时间
+  //
+  // 底层暂时继续叫steps。
+  //
+  // 不再存在stepLimit。
+  // steps可以无限增长。
+  // ==========================================================
 
   const steps =
     gameState?.steps ?? 0;
 
 
-  const stepLimit =
-    gameState?.stepLimit ?? 0;
-
 
   const gameOver =
     gameState?.gameOver ?? false;
-
-
-  const checkpointPending =
-    gameState?.checkpointPending
-    ?? false;
 
 
 
@@ -255,50 +257,6 @@ export default function useGame(){
 
 
 
-    // ========================================================
-    // checkpoint期间
-    // ========================================================
-
-    if(
-      checkpointPending
-    ){
-
-
-      if(
-        target.value !== 1
-      ){
-
-        return;
-
-      }
-
-
-
-      if(
-        selected.includes(id)
-      ){
-
-
-        setSelected([]);
-
-
-        return;
-
-      }
-
-
-
-      setSelected([
-        id
-      ]);
-
-
-      return;
-
-    }
-
-
-
 
 
     // ========================================================
@@ -333,6 +291,8 @@ export default function useGame(){
 
     // ========================================================
     // 已经选择1
+    //
+    // 1只能单独选择。
     // ========================================================
 
     if(
@@ -464,11 +424,7 @@ export default function useGame(){
   // ==========================================================
   // 当前选择数字
   //
-  // 注意：
-  //
-  // numbers.filter 会按照主菜盘实际顺序返回。
-  //
-  // 所以：
+  // numbers.filter会按照主菜盘实际顺序返回。
   //
   // list[0] = front
   // list[1] = back
@@ -639,8 +595,7 @@ export default function useGame(){
 
     if(
       !gameState ||
-      gameOver ||
-      checkpointPending
+      gameOver
     ){
 
       return;
@@ -721,8 +676,7 @@ export default function useGame(){
 
     if(
       !gameState ||
-      gameOver ||
-      checkpointPending
+      gameOver
     ){
 
       return;
@@ -905,44 +859,6 @@ export default function useGame(){
 
 
   // ==========================================================
-  // checkpoint
-  // ==========================================================
-
-  const checkpointRequiredScore =
-
-    gameState
-
-      ?
-
-      getCheckpointRequiredScore(
-        gameState
-      )
-
-      :
-
-      0;
-
-
-
-  const checkpointNumber =
-
-    gameState
-
-      ?
-
-      getCheckpointNumber(
-        gameState
-      )
-
-      :
-
-      0;
-
-
-
-
-
-  // ==========================================================
   // 对外提供
   // ==========================================================
 
@@ -987,8 +903,21 @@ export default function useGame(){
     latestCollection,
 
 
+    // ========================================================
+    // 营业数据
+    //
+    // score 后续显示为金钱
+    // steps 后续显示为时间
+    // ========================================================
+
     score,
 
+    steps,
+
+
+    // ========================================================
+    // 环境
+    // ========================================================
 
     primeEnergy,
 
@@ -997,21 +926,16 @@ export default function useGame(){
     primeState,
 
 
-    steps,
-
-
-    stepLimit,
-
+    // ========================================================
+    // 状态
+    // ========================================================
 
     gameOver,
 
 
-    checkpointPending,
-
-    checkpointRequiredScore,
-
-    checkpointNumber,
-
+    // ========================================================
+    // 操作
+    // ========================================================
 
     startGame,
 

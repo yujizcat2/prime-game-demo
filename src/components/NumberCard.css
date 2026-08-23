@@ -1,6 +1,6 @@
 /* ============================================================
    NumberCard
-   料理签牌 / 游戏卡牌风格
+   料理迷宫 · 料理签牌
    ============================================================ */
 
 
@@ -9,70 +9,40 @@
    ============================================================ */
 
 .food-card-wrapper {
-
-  position:
-    relative;
-
-  width:
-    88px;
-
-  height:
-    94px;
-
+  position: relative;
+  width: 88px;
+  height: 94px;
 }
 
-
 .food-card-wrapper--enter {
-
   animation:
     foodCardEnter
     .34s
     cubic-bezier(.2,.82,.28,1.18);
-
 }
 
-
 @keyframes foodCardEnter {
-
   0% {
-
-    opacity:
-      0;
-
+    opacity: 0;
     transform:
       translateY(10px)
       scale(.82);
-
   }
 
-
   72% {
-
-    opacity:
-      1;
-
+    opacity: 1;
     transform:
       translateY(-2px)
       scale(1.035);
-
   }
 
-
   100% {
-
-    opacity:
-      1;
-
+    opacity: 1;
     transform:
       translateY(0)
       scale(1);
-
   }
-
 }
-
-
-
 
 
 /* ============================================================
@@ -80,80 +50,50 @@
    ============================================================ */
 
 .food-card {
+  position: relative;
 
-  position:
-    relative;
+  display: block;
 
-  display:
-    block;
+  width: 88px;
+  height: 94px;
 
-  width:
-    88px;
+  padding: 0;
 
-  height:
-    94px;
+  overflow: hidden;
 
-  padding:
-    0;
+  border: 0;
+  border-radius: 16px;
 
-  overflow:
-    hidden;
+  cursor: pointer;
 
-  border:
-    0;
-
-  border-radius:
-    16px;
-
-  cursor:
-    pointer;
-
-  user-select:
-    none;
-
-  -webkit-tap-highlight-color:
-    transparent;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
 
   transform:
     translateY(0)
-    rotate(0deg)
     scale(1);
 
-  transform-origin:
-    50% 80%;
+  transform-origin: 50% 80%;
 
   transition:
-    transform .18s
-      cubic-bezier(.2,.8,.3,1),
+    transform .18s cubic-bezier(.2,.8,.3,1),
     box-shadow .18s ease,
     filter .18s ease,
     background .18s ease,
     color .18s ease;
-
 }
-
 
 .food-card:focus {
-
-  outline:
-    none;
-
+  outline: none;
 }
-
 
 .food-card:focus-visible {
-
   outline:
     2px solid
-    rgba(100,116,139,.28);
+    rgba(59,130,246,.35);
 
-  outline-offset:
-    3px;
-
+  outline-offset: 3px;
 }
-
-
-
 
 
 /* ============================================================
@@ -161,33 +101,21 @@
    ============================================================ */
 
 .food-card::before {
+  content: "";
 
-  content:
-    "";
+  position: absolute;
+  inset: 4px;
 
-  position:
-    absolute;
-
-  inset:
-    4px;
-
-  z-index:
-    1;
+  z-index: 1;
 
   border:
     1px solid
     rgba(15,23,42,.055);
 
-  border-radius:
-    12px;
+  border-radius: 12px;
 
-  pointer-events:
-    none;
-
+  pointer-events: none;
 }
-
-
-
 
 
 /* ============================================================
@@ -195,35 +123,20 @@
    ============================================================ */
 
 .food-card::after {
+  content: "";
 
-  content:
-    "";
+  position: absolute;
 
-  position:
-    absolute;
+  top: 0;
+  left: 0;
+  right: 0;
 
-  top:
-    0;
+  height: 7px;
 
-  left:
-    0;
+  z-index: 2;
 
-  right:
-    0;
-
-  height:
-    7px;
-
-  z-index:
-    2;
-
-  pointer-events:
-    none;
-
+  pointer-events: none;
 }
-
-
-
 
 
 /* ============================================================
@@ -231,12 +144,9 @@
    ============================================================ */
 
 .food-card--meat {
-
-  color:
-    #71351f;
+  color: #71351f;
 
   background:
-
     linear-gradient(
       165deg,
       #fffdf9 0%,
@@ -245,23 +155,13 @@
     );
 
   box-shadow:
-    0 3px 0
-      #ead5c3,
-    0 8px 17px
-      rgba(91,53,31,.10);
-
+    0 3px 0 #ead5c3,
+    0 8px 17px rgba(91,53,31,.10);
 }
-
 
 .food-card--meat::after {
-
-  background:
-    #d98b61;
-
+  background: #d98b61;
 }
-
-
-
 
 
 /* ============================================================
@@ -269,12 +169,9 @@
    ============================================================ */
 
 .food-card--vegetable {
-
-  color:
-    #285b3c;
+  color: #285b3c;
 
   background:
-
     linear-gradient(
       165deg,
       #fcfffb 0%,
@@ -283,23 +180,13 @@
     );
 
   box-shadow:
-    0 3px 0
-      #cadfc9,
-    0 8px 17px
-      rgba(40,91,60,.10);
-
+    0 3px 0 #cadfc9,
+    0 8px 17px rgba(40,91,60,.10);
 }
-
 
 .food-card--vegetable::after {
-
-  background:
-    #72aa79;
-
+  background: #72aa79;
 }
-
-
-
 
 
 /* ============================================================
@@ -307,12 +194,9 @@
    ============================================================ */
 
 .food-card--dessert {
-
-  color:
-    #674778;
+  color: #674778;
 
   background:
-
     linear-gradient(
       165deg,
       #fffdfd 0%,
@@ -321,23 +205,13 @@
     );
 
   box-shadow:
-    0 3px 0
-      #dac9df,
-    0 8px 17px
-      rgba(103,71,120,.10);
-
+    0 3px 0 #dac9df,
+    0 8px 17px rgba(103,71,120,.10);
 }
-
 
 .food-card--dessert::after {
-
-  background:
-    #ad83b7;
-
+  background: #ad83b7;
 }
-
-
-
 
 
 /* ============================================================
@@ -345,12 +219,9 @@
    ============================================================ */
 
 .food-card--seasoning {
-
-  color:
-    #276273;
+  color: #276273;
 
   background:
-
     linear-gradient(
       165deg,
       #fcffff 0%,
@@ -359,23 +230,13 @@
     );
 
   box-shadow:
-    0 3px 0
-      #c5dcdf,
-    0 8px 17px
-      rgba(39,98,115,.11);
-
+    0 3px 0 #c5dcdf,
+    0 8px 17px rgba(39,98,115,.11);
 }
-
 
 .food-card--seasoning::after {
-
-  background:
-    #63a9b6;
-
+  background: #63a9b6;
 }
-
-
-
 
 
 /* ============================================================
@@ -383,12 +244,9 @@
    ============================================================ */
 
 .food-card--default {
-
-  color:
-    #475569;
+  color: #475569;
 
   background:
-
     linear-gradient(
       165deg,
       #ffffff 0%,
@@ -397,23 +255,37 @@
     );
 
   box-shadow:
-    0 3px 0
-      #d7dde4,
-    0 8px 17px
-      rgba(15,23,42,.09);
-
+    0 3px 0 #d7dde4,
+    0 8px 17px rgba(15,23,42,.09);
 }
-
 
 .food-card--default::after {
-
-  background:
-    #94a3b8;
-
+  background: #94a3b8;
 }
 
 
+/* ============================================================
+   固定选中边框
+   ============================================================ */
 
+.food-card-selected-ring {
+  position: absolute;
+  inset: 2px;
+
+  z-index: 25;
+
+  border:
+    3px solid
+    rgba(37,99,235,.92);
+
+  border-radius: 14px;
+
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.72),
+    inset 0 0 8px rgba(59,130,246,.08);
+
+  pointer-events: none;
+}
 
 
 /* ============================================================
@@ -421,27 +293,17 @@
    ============================================================ */
 
 .food-card-highlight {
+  position: absolute;
 
-  position:
-    absolute;
+  top: 10px;
+  left: 10px;
+  right: 10px;
 
-  top:
-    10px;
+  height: 1px;
 
-  left:
-    10px;
-
-  right:
-    10px;
-
-  height:
-    1px;
-
-  z-index:
-    2;
+  z-index: 2;
 
   background:
-
     linear-gradient(
       90deg,
       transparent,
@@ -449,13 +311,8 @@
       transparent
     );
 
-  pointer-events:
-    none;
-
+  pointer-events: none;
 }
-
-
-
 
 
 /* ============================================================
@@ -463,63 +320,94 @@
    ============================================================ */
 
 .food-card-number {
+  position: absolute;
 
-  position:
-    absolute;
+  top: 11px;
+  left: 8px;
 
-  top:
-    13px;
+  z-index: 6;
 
-  left:
-    9px;
+  min-width: 28px;
+  height: 27px;
 
-  z-index:
-    6;
+  padding: 0 6px;
 
-  min-width:
-    21px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
-  height:
-    21px;
-
-  padding:
-    0 5px;
-
-  display:
-    flex;
-
-  align-items:
-    center;
-
-  justify-content:
-    center;
-
-  border-radius:
-    7px;
+  border-radius: 8px;
 
   background:
-    rgba(255,255,255,.72);
+    rgba(255,255,255,.8);
 
   box-shadow:
-    0 1px 3px
-    rgba(15,23,42,.08);
+    0 1px 4px
+    rgba(15,23,42,.10);
 
-  font-size:
-    10px;
+  font-size: 15px;
+  line-height: 1;
 
-  line-height:
-    1;
+  font-weight: 900;
 
-  font-weight:
-    900;
-
-  letter-spacing:
-    -.03em;
-
+  letter-spacing: -.03em;
 }
 
 
+/* ============================================================
+   潜在可约分提示
+   ============================================================ */
 
+.food-card-number--reduce-candidate {
+  color: #1d4ed8;
+
+  background:
+    linear-gradient(
+      135deg,
+      #ffffff 0%,
+      #eef5ff 28%,
+      #d7e7ff 63%,
+      #9cc5ff 100%
+    );
+
+  box-shadow:
+    0 1px 4px rgba(15,23,42,.07),
+    0 0 0 1px rgba(59,130,246,.32),
+    0 4px 10px rgba(59,130,246,.16);
+
+  animation:
+    foodCardCandidateNumber
+    1.35s
+    ease-in-out
+    infinite;
+}
+
+@keyframes foodCardCandidateNumber {
+  0%,
+  100% {
+    color: #2563eb;
+
+    filter: brightness(1);
+
+    box-shadow:
+      0 1px 4px rgba(15,23,42,.07),
+      0 0 0 1px rgba(59,130,246,.24),
+      0 3px 8px rgba(59,130,246,.11);
+  }
+
+  50% {
+    color: #1d4ed8;
+
+    filter:
+      brightness(1.08)
+      saturate(1.10);
+
+    box-shadow:
+      0 1px 4px rgba(15,23,42,.06),
+      0 0 0 2px rgba(59,130,246,.36),
+      0 5px 13px rgba(59,130,246,.21);
+  }
+}
 
 
 /* ============================================================
@@ -527,38 +415,22 @@
    ============================================================ */
 
 .food-card-prime {
+  position: absolute;
 
-  position:
-    absolute;
+  top: 21px;
+  left: 41px;
 
-  top:
-    19px;
+  z-index: 6;
 
-  left:
-    35px;
+  width: 5px;
+  height: 5px;
 
-  z-index:
-    6;
+  border-radius: 50%;
 
-  width:
-    5px;
+  background: currentColor;
 
-  height:
-    5px;
-
-  border-radius:
-    50%;
-
-  background:
-    currentColor;
-
-  opacity:
-    .32;
-
+  opacity: .34;
 }
-
-
-
 
 
 /* ============================================================
@@ -566,35 +438,20 @@
    ============================================================ */
 
 .food-card-discovered {
+  position: absolute;
 
-  position:
-    absolute;
+  top: 15px;
+  right: 10px;
 
-  top:
-    15px;
+  z-index: 6;
 
-  right:
-    10px;
+  font-size: 10px;
+  line-height: 1;
 
-  z-index:
-    6;
+  color: #c28a2c;
 
-  font-size:
-    10px;
-
-  line-height:
-    1;
-
-  color:
-    #c28a2c;
-
-  opacity:
-    .78;
-
+  opacity: .78;
 }
-
-
-
 
 
 /* ============================================================
@@ -602,41 +459,22 @@
    ============================================================ */
 
 .food-card-main {
+  position: absolute;
 
-  position:
-    absolute;
+  top: 33px;
+  left: 5px;
+  right: 5px;
+  bottom: 21px;
 
-  top:
-    30px;
+  z-index: 4;
 
-  left:
-    5px;
+  display: flex;
 
-  right:
-    5px;
+  align-items: center;
+  justify-content: center;
 
-  bottom:
-    17px;
-
-  z-index:
-    4;
-
-  display:
-    flex;
-
-  align-items:
-    center;
-
-  justify-content:
-    center;
-
-  pointer-events:
-    none;
-
+  pointer-events: none;
 }
-
-
-
 
 
 /* ============================================================
@@ -644,36 +482,23 @@
    ============================================================ */
 
 .food-card-name {
+  max-width: 100%;
 
-  max-width:
-    100%;
+  font-size: 22px;
+  line-height: 1;
 
-  font-size:
-    22px;
+  font-weight: 900;
 
-  line-height:
-    1;
+  letter-spacing: -.075em;
 
-  font-weight:
-    900;
+  white-space: nowrap;
 
-  letter-spacing:
-    -.075em;
-
-  white-space:
-    nowrap;
-
-  text-align:
-    center;
+  text-align: center;
 
   text-shadow:
     0 1px 0
     rgba(255,255,255,.7);
-
 }
-
-
-
 
 
 /* ============================================================
@@ -681,138 +506,84 @@
    ============================================================ */
 
 .food-card-meta {
+  position: absolute;
 
-  position:
-    absolute;
+  left: 50%;
+  bottom: 7px;
 
-  left:
-    50%;
-
-  bottom:
-    8px;
-
-  z-index:
-    5;
+  z-index: 5;
 
   transform:
     translateX(-50%);
 
-  font-size:
-    7px;
+  font-size: 10px;
+  line-height: 1;
 
-  line-height:
-    1;
+  font-weight: 900;
 
-  font-weight:
-    800;
+  letter-spacing: .10em;
 
-  letter-spacing:
-    .22em;
-
-  opacity:
-    .42;
-
+  opacity: .64;
 }
-
-
-
 
 
 /* ============================================================
-   来源
+   合成来源
    ============================================================ */
 
 .food-card-origin {
+  position: absolute;
 
-  position:
-    absolute;
+  left: 4px;
+  right: 4px;
+  bottom: 6px;
 
-  left:
-    5px;
+  z-index: 5;
 
-  right:
-    5px;
+  min-width: 0;
 
-  bottom:
-    7px;
+  display: flex;
 
-  z-index:
-    5;
+  align-items: center;
+  justify-content: center;
 
-  min-width:
-    0;
+  overflow: hidden;
 
-  display:
-    flex;
+  font-size: 10px;
+  line-height: 1;
 
-  align-items:
-    center;
+  font-weight: 800;
 
-  justify-content:
-    center;
+  letter-spacing: -.04em;
 
-  overflow:
-    hidden;
+  white-space: nowrap;
 
-  font-size:
-    7px;
-
-  line-height:
-    1;
-
-  font-weight:
-    700;
-
-  letter-spacing:
-    -.03em;
-
-  white-space:
-    nowrap;
-
-  opacity:
-    .48;
-
+  opacity: .64;
 }
-
 
 .food-card-origin-plus {
+  margin: 0 3px;
 
-  margin:
-    0 3px;
+  font-weight: 900;
 
-  opacity:
-    .55;
-
+  opacity: .78;
 }
-
-
-
 
 
 /* ============================================================
    Hover
    ============================================================ */
 
-@media (
-  hover: hover
-) {
-
+@media (hover: hover) {
   .food-card:not(:disabled):hover {
-
     transform:
-      translateY(-5px)
-      rotate(-1deg)
-      scale(1.025);
+      translateY(-4px)
+      scale(1.02);
 
     filter:
       brightness(1.015);
-
   }
-
 }
-
-
-
 
 
 /* ============================================================
@@ -820,40 +591,57 @@
    ============================================================ */
 
 .food-card:not(:disabled):active {
-
   transform:
     translateY(1px)
     scale(.965);
-
 }
-
-
-
 
 
 /* ============================================================
-   选中基础状态
-   抽起 + 稍微增强饱和度
+   选中
    ============================================================ */
 
 .food-card--selected {
-
-  z-index:
-    10;
-
-  transform:
-    translateY(-10px)
-    rotate(-1.5deg)
-    scale(1.065);
+  z-index: 20;
 
   filter:
-    saturate(1.08)
-    brightness(1.015);
+    saturate(1.12)
+    brightness(1.025);
 
+  animation:
+    foodCardSelectedFloat
+    1.8s
+    ease-in-out
+    infinite;
 }
 
+@keyframes foodCardSelectedFloat {
+  0%,
+  100% {
+    transform:
+      translateY(-10px)
+      scale(1.07);
+  }
 
+  50% {
+    transform:
+      translateY(-13px)
+      scale(1.075);
+  }
+}
 
+.food-card--selected::after {
+  height: 9px;
+}
+
+.food-card--selected .food-card-number {
+  background:
+    rgba(255,255,255,.96);
+
+  box-shadow:
+    0 2px 7px
+    rgba(15,23,42,.13);
+}
 
 
 /* ============================================================
@@ -861,34 +649,20 @@
    ============================================================ */
 
 .food-card--meat.food-card--selected {
-
-  color:
-    #642814;
+  color: #642814;
 
   background:
-
     linear-gradient(
       165deg,
       #fffaf5 0%,
-      #ffefe3 58%,
-      #f6dfcf 100%
+      #ffede0 58%,
+      #f4dccb 100%
     );
 
   box-shadow:
-
-    inset 0 0 0 2px
-      rgba(196,105,66,.38),
-
-    0 4px 0
-      #ddbda8,
-
-    0 20px 28px
-      rgba(113,53,31,.18);
-
+    0 8px 0 rgba(221,189,168,.65),
+    0 22px 32px rgba(113,53,31,.22);
 }
-
-
-
 
 
 /* ============================================================
@@ -896,34 +670,20 @@
    ============================================================ */
 
 .food-card--vegetable.food-card--selected {
-
-  color:
-    #194b2e;
+  color: #194b2e;
 
   background:
-
     linear-gradient(
       165deg,
       #f8fff8 0%,
-      #e9f7e9 58%,
-      #d9ead8 100%
+      #e7f6e7 58%,
+      #d6e8d5 100%
     );
 
   box-shadow:
-
-    inset 0 0 0 2px
-      rgba(77,143,87,.38),
-
-    0 4px 0
-      #b9d5ba,
-
-    0 20px 28px
-      rgba(40,91,60,.18);
-
+    0 8px 0 rgba(185,213,186,.65),
+    0 22px 32px rgba(40,91,60,.21);
 }
-
-
-
 
 
 /* ============================================================
@@ -931,34 +691,20 @@
    ============================================================ */
 
 .food-card--dessert.food-card--selected {
-
-  color:
-    #583567;
+  color: #583567;
 
   background:
-
     linear-gradient(
       165deg,
       #fffaff 0%,
-      #f5eafa 58%,
-      #e7d7ec 100%
+      #f4e8f8 58%,
+      #e4d3ea 100%
     );
 
   box-shadow:
-
-    inset 0 0 0 2px
-      rgba(151,103,164,.36),
-
-    0 4px 0
-      #d0b9d6,
-
-    0 20px 28px
-      rgba(103,71,120,.18);
-
+    0 8px 0 rgba(208,185,214,.65),
+    0 22px 32px rgba(103,71,120,.21);
 }
-
-
-
 
 
 /* ============================================================
@@ -966,34 +712,20 @@
    ============================================================ */
 
 .food-card--seasoning.food-card--selected {
-
-  color:
-    #18586a;
+  color: #18586a;
 
   background:
-
     linear-gradient(
       165deg,
       #f8feff 0%,
-      #e5f6f8 58%,
-      #d2e9ec 100%
+      #e3f5f7 58%,
+      #cee7ea 100%
     );
 
   box-shadow:
-
-    inset 0 0 0 2px
-      rgba(62,151,168,.38),
-
-    0 4px 0
-      #afd1d6,
-
-    0 20px 28px
-      rgba(39,98,115,.19);
-
+    0 8px 0 rgba(175,209,214,.65),
+    0 22px 32px rgba(39,98,115,.22);
 }
-
-
-
 
 
 /* ============================================================
@@ -1001,49 +733,18 @@
    ============================================================ */
 
 .food-card--default.food-card--selected {
-
   background:
-
     linear-gradient(
       165deg,
       #ffffff 0%,
-      #f1f5f9 58%,
-      #e3e9ef 100%
+      #f0f4f8 58%,
+      #e1e7ed 100%
     );
 
   box-shadow:
-
-    inset 0 0 0 2px
-      rgba(100,116,139,.30),
-
-    0 4px 0
-      #cbd5df,
-
-    0 20px 28px
-      rgba(15,23,42,.17);
-
+    0 8px 0 rgba(203,213,223,.65),
+    0 22px 32px rgba(15,23,42,.19);
 }
-
-
-
-
-
-/* ============================================================
-   偶数位置选中时向另一边倾斜
-   ============================================================ */
-
-.food-card-wrapper:nth-child(even)
-.food-card--selected {
-
-  transform:
-    translateY(-10px)
-    rotate(1.5deg)
-    scale(1.065);
-
-}
-
-
-
 
 
 /* ============================================================
@@ -1051,41 +752,64 @@
    ============================================================ */
 
 .food-card--reducing {
-
   animation:
     foodCardReducePulse
     2.6s
     ease-in-out
     infinite;
-
 }
 
-
 @keyframes foodCardReducePulse {
-
   0%,
   24%,
   76%,
   100% {
-
     filter:
       brightness(1);
-
   }
-
 
   43%,
   58% {
-
     filter:
       brightness(1.045);
-
   }
-
 }
 
 
+/* ============================================================
+   选中 + 约分
+   ============================================================ */
 
+.food-card--selected.food-card--reducing {
+  animation:
+    foodCardSelectedFloat
+    1.8s
+    ease-in-out
+    infinite,
+
+    foodCardSelectedReducePulse
+    2.6s
+    ease-in-out
+    infinite;
+}
+
+@keyframes foodCardSelectedReducePulse {
+  0%,
+  24%,
+  76%,
+  100% {
+    filter:
+      saturate(1.12)
+      brightness(1.025);
+  }
+
+  43%,
+  58% {
+    filter:
+      saturate(1.14)
+      brightness(1.065);
+  }
+}
 
 
 /* ============================================================
@@ -1093,9 +817,67 @@
    ============================================================ */
 
 .food-card-name--reducing {
-
   animation:
     foodCardOriginalCycle
+    2.6s
+    ease-in-out
+    infinite;
+}
+
+@keyframes foodCardOriginalCycle {
+  0%,
+  18% {
+    opacity: 1;
+
+    transform:
+      scale(1);
+  }
+
+  29% {
+    opacity: .25;
+
+    transform:
+      scale(.94);
+  }
+
+  36%,
+  59% {
+    opacity: .13;
+
+    transform:
+      scale(.9);
+  }
+
+  69% {
+    opacity: .6;
+
+    transform:
+      scale(.96);
+  }
+
+  78%,
+  100% {
+    opacity: 1;
+
+    transform:
+      scale(1);
+  }
+}
+
+
+/* ============================================================
+   数字模式
+   原数字约分淡出
+
+   与原菜名的淡出节奏保持一致，
+   避免和新的约分数字重叠
+   ============================================================ */
+
+.food-card--number-mode.food-card--reducing
+.food-card-number {
+
+  animation:
+    foodCardOriginalNumberCycle
     2.6s
     ease-in-out
     infinite;
@@ -1103,7 +885,7 @@
 }
 
 
-@keyframes foodCardOriginalCycle {
+@keyframes foodCardOriginalNumberCycle {
 
   0%,
   18% {
@@ -1112,6 +894,7 @@
       1;
 
     transform:
+      translateX(-50%)
       scale(1);
 
   }
@@ -1120,9 +903,10 @@
   29% {
 
     opacity:
-      .25;
+      .22;
 
     transform:
+      translateX(-50%)
       scale(.94);
 
   }
@@ -1132,10 +916,11 @@
   59% {
 
     opacity:
-      .13;
+      .08;
 
     transform:
-      scale(.9);
+      translateX(-50%)
+      scale(.90);
 
   }
 
@@ -1143,9 +928,10 @@
   69% {
 
     opacity:
-      .6;
+      .50;
 
     transform:
+      translateX(-50%)
       scale(.96);
 
   }
@@ -1158,6 +944,7 @@
       1;
 
     transform:
+      translateX(-50%)
       scale(1);
 
   }
@@ -1165,176 +952,108 @@
 }
 
 
-
-
-
 /* ============================================================
    约分结果
+   默认料理模式：
+   菜名大 / 数字小
    ============================================================ */
 
 .food-card-reduce-preview {
+  position: absolute;
 
-  position:
-    absolute;
+  inset: 0;
 
-  inset:
-    0;
+  z-index: 9;
 
-  z-index:
-    9;
+  display: flex;
 
-  display:
-    flex;
+  flex-direction: column;
 
-  flex-direction:
-    column;
+  align-items: center;
+  justify-content: center;
 
-  align-items:
-    center;
+  padding-top: 7px;
 
-  justify-content:
-    center;
+  opacity: 0;
 
-  padding-top:
-    7px;
-
-  opacity:
-    0;
-
-  pointer-events:
-    none;
+  pointer-events: none;
 
   animation:
     foodCardReducePreview
     2.6s
     cubic-bezier(.22,.75,.28,1)
     infinite;
-
 }
-
 
 .food-card-reduce-name {
+  font-size: 22px;
+  line-height: 1;
 
-  font-size:
-    22px;
+  font-weight: 900;
 
-  line-height:
-    1;
+  white-space: nowrap;
 
-  font-weight:
-    900;
-
-  white-space:
-    nowrap;
-
-  letter-spacing:
-    -.075em;
-
+  letter-spacing: -.075em;
 }
-
 
 .food-card-reduce-number {
+  margin-top: 6px;
 
-  margin-top:
-    6px;
+  padding: 3px 6px;
 
-  padding:
-    2px 5px;
-
-  border-radius:
-    5px;
+  border-radius: 5px;
 
   background:
-    rgba(255,255,255,.7);
+    rgba(255,255,255,.75);
 
-  font-size:
-    8px;
+  font-size: 11px;
+  line-height: 1;
 
-  line-height:
-    1;
+  font-weight: 900;
 
-  font-weight:
-    900;
-
-  opacity:
-    .65;
-
+  opacity: .74;
 }
 
-
 @keyframes foodCardReducePreview {
-
   0%,
   26% {
-
-    opacity:
-      0;
+    opacity: 0;
 
     transform:
       translateY(5px)
       scale(.74);
-
-    filter:
-      blur(1.5px);
-
   }
 
-
   36% {
-
-    opacity:
-      .7;
+    opacity: .7;
 
     transform:
       translateY(-1px)
       scale(.9);
-
-    filter:
-      blur(.5px);
-
   }
-
 
   44%,
   57% {
-
-    opacity:
-      1;
+    opacity: 1;
 
     transform:
       translateY(-5px)
       scale(1.08);
-
-    filter:
-      blur(0);
-
   }
 
-
   67% {
-
-    opacity:
-      0;
+    opacity: 0;
 
     transform:
       translateY(-12px)
       scale(1.03);
-
   }
-
 
   68%,
   100% {
-
-    opacity:
-      0;
-
+    opacity: 0;
   }
-
 }
-
-
-
 
 
 /* ============================================================
@@ -1342,46 +1061,27 @@
    ============================================================ */
 
 .food-card--new-seasoning {
-
   animation:
     newSeasoningBreath
     1.55s
     ease-in-out
     infinite;
-
 }
-
 
 @keyframes newSeasoningBreath {
-
   0%,
   100% {
-
     box-shadow:
-      0 3px 0
-      #c5dcdf,
-
-      0 8px 17px
-      rgba(39,98,115,.11);
-
+      0 3px 0 #c5dcdf,
+      0 8px 17px rgba(39,98,115,.11);
   }
-
 
   50% {
-
     box-shadow:
-      0 3px 0
-      #b7d8dc,
-
-      0 13px 27px
-      rgba(39,155,180,.22);
-
+      0 3px 0 #b7d8dc,
+      0 13px 27px rgba(39,155,180,.22);
   }
-
 }
-
-
-
 
 
 /* ============================================================
@@ -1389,92 +1089,58 @@
    ============================================================ */
 
 .food-card-score {
+  position: absolute;
 
-  position:
-    absolute;
+  z-index: 50;
 
-  z-index:
-    50;
-
-  top:
-    -29px;
-
-  left:
-    50%;
+  top: -29px;
+  left: 50%;
 
   transform:
     translateX(-50%);
 
-  font-size:
-    14px;
+  font-size: 14px;
+  line-height: 1;
 
-  line-height:
-    1;
+  font-weight: 900;
 
-  font-weight:
-    900;
+  color: #64748b;
 
-  color:
-    #64748b;
+  white-space: nowrap;
 
-  white-space:
-    nowrap;
-
-  pointer-events:
-    none;
-
+  pointer-events: none;
 }
-
 
 .food-card-score--new {
-
-  color:
-    #0891b2;
-
+  color: #0891b2;
 }
 
-
 .food-card-score--preview {
-
   animation:
     foodCardScorePreview
     1.55s
     ease-in-out
     infinite;
-
 }
 
-
 @keyframes foodCardScorePreview {
-
   0%,
   100% {
-
-    opacity:
-      .5;
+    opacity: .5;
 
     transform:
       translateX(-50%)
       translateY(2px);
-
   }
 
-
   50% {
-
-    opacity:
-      1;
+    opacity: 1;
 
     transform:
       translateX(-50%)
       translateY(-4px);
-
   }
-
 }
-
-
-
 
 
 /* ============================================================
@@ -1482,76 +1148,46 @@
    ============================================================ */
 
 .food-card-wrapper--removing {
+  position: relative;
 
-  position:
-    relative;
-
-  z-index:
-    30;
-
+  z-index: 30;
 }
 
-
 .food-card--remove {
-
-  pointer-events:
-    none;
+  pointer-events: none;
 
   animation:
     foodCardRemove
     .32s
     cubic-bezier(.4,0,.7,.2)
     forwards;
-
 }
 
-
 @keyframes foodCardRemove {
-
   0% {
-
-    opacity:
-      1;
+    opacity: 1;
 
     transform:
       translateY(-7px)
       scale(1.06);
-
   }
 
-
   35% {
-
-    opacity:
-      1;
+    opacity: 1;
 
     transform:
       translateY(-10px)
-      rotate(2deg)
       scale(1.14);
-
-    filter:
-      brightness(1.15);
-
   }
 
-
   100% {
-
-    opacity:
-      0;
+    opacity: 0;
 
     transform:
       translateY(-22px)
-      rotate(-5deg)
       scale(.38);
-
   }
-
 }
-
-
-
 
 
 /* ============================================================
@@ -1559,38 +1195,23 @@
    ============================================================ */
 
 .food-card-remove-flash {
+  position: absolute;
 
-  position:
-    absolute;
+  inset: 0;
 
-  inset:
-    0;
+  z-index: 40;
 
-  z-index:
-    40;
+  border-radius: 16px;
 
-  border-radius:
-    16px;
-
-  pointer-events:
-    none;
+  pointer-events: none;
 
   background:
-
     radial-gradient(
       circle,
-
-      rgba(255,255,255,.97)
-      0%,
-
-      rgba(103,232,249,.48)
-      30%,
-
-      rgba(34,211,238,.12)
-      56%,
-
-      transparent
-      73%
+      rgba(255,255,255,.97) 0%,
+      rgba(103,232,249,.48) 30%,
+      rgba(34,211,238,.12) 56%,
+      transparent 73%
     );
 
   animation:
@@ -1598,48 +1219,30 @@
     .32s
     ease-out
     forwards;
-
 }
 
-
 @keyframes foodCardRemoveFlash {
-
   0% {
-
-    opacity:
-      0;
+    opacity: 0;
 
     transform:
       scale(.5);
-
   }
 
-
   40% {
-
-    opacity:
-      1;
+    opacity: 1;
 
     transform:
       scale(1.18);
-
   }
 
-
   100% {
-
-    opacity:
-      0;
+    opacity: 0;
 
     transform:
       scale(1.65);
-
   }
-
 }
-
-
-
 
 
 /* ============================================================
@@ -1647,60 +1250,41 @@
    ============================================================ */
 
 .food-card-score--fly {
-
   animation:
     foodCardScoreFly
     .45s
     ease-out
     forwards;
-
 }
 
-
 @keyframes foodCardScoreFly {
-
   0% {
-
-    opacity:
-      1;
+    opacity: 1;
 
     transform:
       translateX(-50%)
       translateY(0)
       scale(1);
-
   }
 
-
   45% {
-
-    opacity:
-      1;
+    opacity: 1;
 
     transform:
       translateX(-50%)
       translateY(-11px)
       scale(1.16);
-
   }
 
-
   100% {
-
-    opacity:
-      0;
+    opacity: 0;
 
     transform:
       translateX(-50%)
       translateY(-30px)
       scale(.94);
-
   }
-
 }
-
-
-
 
 
 /* ============================================================
@@ -1708,403 +1292,602 @@
    ============================================================ */
 
 .food-card-particle {
+  position: absolute;
 
-  position:
-    absolute;
+  z-index: 50;
 
-  z-index:
-    50;
+  top: 50%;
+  left: 50%;
 
-  top:
-    50%;
+  font-size: 10px;
 
-  left:
-    50%;
+  color: #22d3ee;
 
-  font-size:
-    10px;
+  pointer-events: none;
 
-  color:
-    #22d3ee;
-
-  pointer-events:
-    none;
-
-  opacity:
-    0;
-
+  opacity: 0;
 }
 
-
 .food-card-particle--1 {
-
   animation:
     foodParticle1
     .36s
     ease-out
     forwards;
-
 }
 
-
 .food-card-particle--2 {
-
   animation:
     foodParticle2
     .38s
     ease-out
     forwards;
-
 }
 
-
 .food-card-particle--3 {
-
   animation:
     foodParticle3
     .34s
     ease-out
     forwards;
-
 }
 
-
 .food-card-particle--4 {
-
   animation:
     foodParticle4
     .40s
     ease-out
     forwards;
-
 }
 
-
 @keyframes foodParticle1 {
-
   0% {
-
-    opacity:
-      0;
+    opacity: 0;
 
     transform:
       translate(-50%,-50%)
       scale(.4);
-
   }
-
 
   25% {
-
-    opacity:
-      1;
-
+    opacity: 1;
   }
 
-
   100% {
-
-    opacity:
-      0;
+    opacity: 0;
 
     transform:
       translate(-38px,-36px)
       scale(1.2);
-
   }
-
 }
 
-
 @keyframes foodParticle2 {
-
   0% {
-
-    opacity:
-      0;
+    opacity: 0;
 
     transform:
       translate(-50%,-50%)
       scale(.4);
-
   }
-
 
   25% {
-
-    opacity:
-      1;
-
+    opacity: 1;
   }
 
-
   100% {
-
-    opacity:
-      0;
+    opacity: 0;
 
     transform:
       translate(28px,-39px)
       scale(1);
-
   }
-
 }
 
-
 @keyframes foodParticle3 {
-
   0% {
-
-    opacity:
-      0;
+    opacity: 0;
 
     transform:
       translate(-50%,-50%)
       scale(.4);
-
   }
-
 
   25% {
-
-    opacity:
-      1;
-
+    opacity: 1;
   }
 
-
   100% {
-
-    opacity:
-      0;
+    opacity: 0;
 
     transform:
       translate(-34px,26px)
       scale(.8);
-
   }
-
 }
 
-
 @keyframes foodParticle4 {
-
   0% {
-
-    opacity:
-      0;
+    opacity: 0;
 
     transform:
       translate(-50%,-50%)
       scale(.4);
-
   }
-
 
   25% {
-
-    opacity:
-      1;
-
+    opacity: 1;
   }
 
-
   100% {
-
-    opacity:
-      0;
+    opacity: 0;
 
     transform:
       translate(38px,18px)
       scale(1.15);
-
   }
-
 }
 
 
+/* ============================================================
+   显示模式切换
+   ============================================================ */
 
+
+/* ============================================================
+   料理模式
+   ============================================================ */
+
+.food-card--food-mode .food-card-number {
+  transition:
+    top .2s ease,
+    left .2s ease,
+    transform .2s ease,
+    font-size .2s ease,
+    width .2s ease,
+    height .2s ease,
+    background .2s ease,
+    box-shadow .2s ease,
+    color .2s ease;
+}
+
+.food-card--food-mode .food-card-main {
+  transition:
+    top .2s ease,
+    bottom .2s ease;
+}
+
+.food-card--food-mode .food-card-name {
+  transition:
+    font-size .2s ease,
+    opacity .2s ease,
+    transform .2s ease;
+}
+
+
+/* ============================================================
+   数字模式
+   数字大 / 菜名小
+   ============================================================ */
+
+.food-card--number-mode .food-card-number {
+  top: 17px;
+  left: 50%;
+
+  min-width: 0;
+
+  width: auto;
+  height: auto;
+
+  padding: 0;
+
+  transform:
+    translateX(-50%);
+
+  border-radius: 0;
+
+  background: transparent;
+
+  box-shadow: none;
+
+  font-size: 32px;
+  line-height: 1;
+
+  font-weight: 950;
+
+  letter-spacing: -.06em;
+}
+
+.food-card--number-mode .food-card-main {
+  top: auto;
+
+  bottom: 18px;
+
+  height: 18px;
+}
+
+.food-card--number-mode .food-card-name {
+  font-size: 13px;
+  line-height: 1;
+
+  font-weight: 800;
+
+  letter-spacing: -.03em;
+
+  opacity: .74;
+}
+
+
+/* ============================================================
+   数字模式 · 质数点
+   ============================================================ */
+
+.food-card--number-mode .food-card-prime {
+  top: 17px;
+
+  left: auto;
+  right: 12px;
+}
+
+
+/* ============================================================
+   数字模式 · 已发现
+   ============================================================ */
+
+.food-card--number-mode .food-card-discovered {
+  top: 12px;
+  right: 10px;
+}
+
+
+/* ============================================================
+   数字模式 · 可约分候选
+   ============================================================ */
+
+.food-card--number-mode
+.food-card-number--reduce-candidate {
+  color: #2563eb;
+
+  background: transparent;
+
+  box-shadow: none;
+
+  text-shadow:
+    0 0 9px
+    rgba(59,130,246,.20);
+
+  animation:
+    foodCardCandidateBigNumber
+    1.35s
+    ease-in-out
+    infinite;
+}
+
+@keyframes foodCardCandidateBigNumber {
+  0%,
+  100% {
+    color: #3b82f6;
+
+    transform:
+      translateX(-50%)
+      scale(1);
+
+    text-shadow:
+      0 0 5px
+      rgba(59,130,246,.10);
+  }
+
+  50% {
+    color: #1d4ed8;
+
+    transform:
+      translateX(-50%)
+      scale(1.07);
+
+    text-shadow:
+      0 0 10px
+      rgba(59,130,246,.24);
+  }
+}
+
+
+/* ============================================================
+   数字模式 · 约分预览
+
+   这里是本次修复的核心：
+   约分结果继续保持
+   数字大 / 菜名小
+   ============================================================ */
+
+.food-card--number-mode
+.food-card-reduce-preview {
+  padding-top: 0;
+
+  flex-direction:
+    column-reverse;
+
+  align-items: center;
+  justify-content: center;
+
+  animation:
+    foodCardNumberReducePreview
+    2.6s
+    cubic-bezier(.22,.75,.28,1)
+    infinite;
+}
+
+
+/* 约分后的数字 */
+
+.food-card--number-mode
+.food-card-reduce-number {
+  margin: 0;
+
+  padding: 0;
+
+  border-radius: 0;
+
+  background: transparent;
+
+  box-shadow: none;
+
+  font-size: 32px;
+  line-height: 1;
+
+  font-weight: 950;
+
+  letter-spacing: -.06em;
+
+  opacity: 1;
+}
+
+
+/* 约分后的菜名 */
+
+.food-card--number-mode
+.food-card-reduce-name {
+  margin-top: 8px;
+
+  font-size: 13px;
+  line-height: 1;
+
+  font-weight: 800;
+
+  letter-spacing: -.03em;
+
+  opacity: .72;
+}
+
+
+/* 数字模式约分动画 */
+
+@keyframes foodCardNumberReducePreview {
+  0%,
+  26% {
+    opacity: 0;
+
+    transform:
+      translateY(5px)
+      scale(.78);
+  }
+
+  36% {
+    opacity: .7;
+
+    transform:
+      translateY(-1px)
+      scale(.92);
+  }
+
+  44%,
+  57% {
+    opacity: 1;
+
+    transform:
+      translateY(-4px)
+      scale(1.06);
+  }
+
+  67% {
+    opacity: 0;
+
+    transform:
+      translateY(-11px)
+      scale(1.02);
+  }
+
+  68%,
+  100% {
+    opacity: 0;
+  }
+}
+
+
+/* ============================================================
+   数字模式 · 来源
+   ============================================================ */
+
+.food-card--number-mode
+.food-card-origin {
+  font-size: 8px;
+
+  opacity: .56;
+}
 
 
 /* ============================================================
    手机
    ============================================================ */
 
-@media (
-  max-width: 560px
-) {
+@media (max-width: 560px) {
 
   .food-card-wrapper,
   .food-card {
-
-    width:
-      65px;
-
-    height:
-      70px;
-
+    width: 65px;
+    height: 70px;
   }
-
 
   .food-card {
-
-    border-radius:
-      13px;
-
+    border-radius: 13px;
   }
-
 
   .food-card::before {
+    inset: 3px;
 
-    inset:
-      3px;
-
-    border-radius:
-      10px;
-
+    border-radius: 10px;
   }
-
 
   .food-card::after {
-
-    height:
-      5px;
-
+    height: 5px;
   }
 
+  .food-card-selected-ring {
+    inset: 2px;
+
+    border-width: 2px;
+
+    border-radius: 11px;
+  }
 
   .food-card-number {
+    top: 7px;
+    left: 5px;
 
-    top:
-      10px;
+    min-width: 24px;
+    height: 23px;
 
-    left:
-      7px;
+    padding: 0 5px;
 
-    min-width:
-      17px;
+    border-radius: 6px;
 
-    height:
-      17px;
-
-    padding:
-      0 4px;
-
-    border-radius:
-      5px;
-
-    font-size:
-      8px;
-
+    font-size: 14px;
   }
-
 
   .food-card-prime {
+    top: 14px;
+    left: 33px;
 
-    top:
-      15px;
-
-    left:
-      28px;
-
-    width:
-      3px;
-
-    height:
-      3px;
-
+    width: 4px;
+    height: 4px;
   }
-
 
   .food-card-discovered {
+    top: 10px;
+    right: 7px;
 
-    top:
-      11px;
-
-    right:
-      7px;
-
-    font-size:
-      7px;
-
+    font-size: 8px;
   }
-
 
   .food-card-main {
-
-    top:
-      24px;
-
-    bottom:
-      13px;
-
+    top: 24px;
+    bottom: 16px;
   }
-
 
   .food-card-name,
   .food-card-reduce-name {
-
-    font-size:
-      17px;
-
+    font-size: 17px;
   }
-
 
   .food-card-meta {
+    bottom: 5px;
 
-    bottom:
-      6px;
-
-    font-size:
-      5px;
-
+    font-size: 9px;
   }
-
 
   .food-card-origin {
+    left: 3px;
+    right: 3px;
+    bottom: 4px;
 
-    bottom:
-      5px;
-
-    font-size:
-      5.5px;
-
+    font-size: 8px;
   }
 
+  .food-card-origin-plus {
+    margin: 0 2px;
+  }
+
+  .food-card-reduce-number {
+    margin-top: 4px;
+
+    padding: 2px 5px;
+
+    font-size: 9px;
+  }
 
   .food-card-remove-flash {
+    border-radius: 13px;
+  }
 
-    border-radius:
-      13px;
-
+  .food-card--selected::after {
+    height: 7px;
   }
 
 
-  .food-card--selected {
+  /* =========================
+     手机 · 数字模式
+     ========================= */
 
-    transform:
-      translateY(-7px)
-      rotate(-1deg)
-      scale(1.055);
+  .food-card--number-mode
+  .food-card-number {
+    top: 12px;
 
+    font-size: 25px;
+  }
+
+  .food-card--number-mode
+  .food-card-main {
+    top: auto;
+
+    bottom: 13px;
+
+    height: 15px;
+  }
+
+  .food-card--number-mode
+  .food-card-name {
+    font-size: 11px;
+  }
+
+  .food-card--number-mode
+  .food-card-prime {
+    top: 12px;
+
+    left: auto;
+    right: 8px;
+  }
+
+  .food-card--number-mode
+  .food-card-discovered {
+    top: 8px;
+    right: 7px;
+  }
+
+  .food-card--number-mode
+  .food-card-origin {
+    font-size: 7px;
   }
 
 
-  .food-card-wrapper:nth-child(even)
-  .food-card--selected {
+  /* =========================
+     手机 · 数字模式约分
+     ========================= */
 
-    transform:
-      translateY(-7px)
-      rotate(1deg)
-      scale(1.055);
+  .food-card--number-mode
+  .food-card-reduce-number {
+    margin: 0;
 
+    padding: 0;
+
+    font-size: 25px;
   }
 
+  .food-card--number-mode
+  .food-card-reduce-name {
+    margin-top: 6px;
+
+    font-size: 11px;
+  }
 }
-
-
-
 
 
 /* ============================================================
@@ -2119,28 +1902,98 @@
 
   .food-card-wrapper,
   .food-card {
-
-    width:
-      78px;
-
-    height:
-      84px;
-
+    width: 78px;
+    height: 84px;
   }
 
+  .food-card-selected-ring {
+    inset: 2px;
+
+    border-radius: 13px;
+  }
+
+  .food-card-number {
+    top: 10px;
+    left: 7px;
+
+    min-width: 26px;
+    height: 25px;
+
+    padding: 0 5px;
+
+    font-size: 14px;
+  }
+
+  .food-card-prime {
+    left: 37px;
+  }
+
+  .food-card-main {
+    top: 30px;
+    bottom: 19px;
+  }
 
   .food-card-name,
   .food-card-reduce-name {
-
-    font-size:
-      20px;
-
+    font-size: 20px;
   }
 
+  .food-card-meta {
+    font-size: 9px;
+  }
+
+  .food-card-origin {
+    left: 4px;
+    right: 4px;
+    bottom: 5px;
+
+    font-size: 9px;
+  }
+
+  .food-card-reduce-number {
+    font-size: 10px;
+  }
+
+
+  /* =========================
+     中等屏幕 · 数字模式
+     ========================= */
+
+  .food-card--number-mode
+  .food-card-number {
+    top: 15px;
+
+    font-size: 29px;
+  }
+
+  .food-card--number-mode
+  .food-card-main {
+    top: auto;
+
+    bottom: 16px;
+  }
+
+  .food-card--number-mode
+  .food-card-name {
+    font-size: 12px;
+  }
+
+  .food-card--number-mode
+  .food-card-reduce-number {
+    margin: 0;
+
+    padding: 0;
+
+    font-size: 29px;
+  }
+
+  .food-card--number-mode
+  .food-card-reduce-name {
+    margin-top: 7px;
+
+    font-size: 12px;
+  }
 }
-
-
-
 
 
 /* ============================================================
@@ -2156,8 +2009,8 @@
   .food-card-name,
   .food-card-reduce-preview,
   .food-card-score,
-  .food-card-particle {
-
+  .food-card-particle,
+  .food-card-number--reduce-candidate {
     animation-duration:
       .01ms !important;
 
@@ -2166,7 +2019,5 @@
 
     transition-duration:
       .01ms !important;
-
   }
-
 }

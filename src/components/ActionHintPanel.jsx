@@ -208,11 +208,6 @@ export default function ActionHintPanel({
 
     // ========================================================
     // 来源料理类型
-    //
-    // 优先读取来源节点当时的foodType。
-    //
-    // 如果旧origin中还没存foodType，
-    // 再退回当前1节点的foodType。
     // ========================================================
 
     const previousFoodType =
@@ -326,12 +321,6 @@ export default function ActionHintPanel({
 
 
 
-    // ========================================================
-    // 根据主菜盘实际位置获取两个节点
-    //
-    // 这里不能使用玩家点击顺序决定前后。
-    // ========================================================
-
     const selectedItems =
 
       numbers.filter(
@@ -354,10 +343,6 @@ export default function ActionHintPanel({
 
 
 
-    // ========================================================
-    // 当前两个料理名称
-    // ========================================================
-
     const firstName =
 
       getItemName(
@@ -374,14 +359,6 @@ export default function ActionHintPanel({
 
 
 
-
-    // ========================================================
-    // 合成结果类型
-    //
-    // 直接复用真正游戏规则。
-    //
-    // firstItem就是主菜盘更靠前的节点。
-    // ========================================================
 
     const resultFoodType =
 
@@ -402,10 +379,6 @@ export default function ActionHintPanel({
 
 
 
-    // ========================================================
-    // 合成结果名称
-    // ========================================================
-
     const combineResultName =
 
       combine?.result !== null &&
@@ -424,12 +397,6 @@ export default function ActionHintPanel({
 
 
 
-
-    // ========================================================
-    // 约分后的第一个结果名称
-    //
-    // 约分不改变料理类型。
-    // ========================================================
 
     const firstReduceResultName =
 
@@ -451,10 +418,6 @@ export default function ActionHintPanel({
 
 
 
-    // ========================================================
-    // 约分后的第二个结果名称
-    // ========================================================
-
     const secondReduceResultName =
 
       reduce.allowed &&
@@ -474,10 +437,6 @@ export default function ActionHintPanel({
 
 
 
-
-    // ========================================================
-    // 可以合成 + 可以约分
-    // ========================================================
 
     if(
       combine.allowed &&
@@ -507,11 +466,6 @@ export default function ActionHintPanel({
 
 
 
-    // ========================================================
-    // 可以合成
-    // 不能约分
-    // ========================================================
-
     else if(
       combine.allowed &&
       !reduce.allowed
@@ -536,11 +490,6 @@ export default function ActionHintPanel({
 
 
 
-
-    // ========================================================
-    // 不能合成
-    // 可以约分
-    // ========================================================
 
     else if(
       !combine.allowed &&
@@ -583,10 +532,6 @@ export default function ActionHintPanel({
 
 
 
-    // ========================================================
-    // 两种操作都不可以
-    // ========================================================
-
     else{
 
 
@@ -619,13 +564,14 @@ export default function ActionHintPanel({
         relative
 
         w-full
-        min-h-12
+        h-full
+        min-h-0
 
         flex
         items-center
         justify-center
 
-        rounded-2xl
+        rounded-[20px]
 
         bg-white
 
@@ -635,7 +581,7 @@ export default function ActionHintPanel({
         shadow-[0_4px_14px_rgba(15,23,42,0.035)]
 
         px-4
-        py-2
+        py-2.5
 
         overflow-hidden
       "
@@ -720,14 +666,14 @@ export default function ActionHintPanel({
       <div
 
         className="
-          max-w-[72%]
+          max-w-[68%]
 
           text-center
 
           text-[13px]
           font-medium
 
-          leading-snug
+          leading-[1.45]
 
           text-gray-500
 

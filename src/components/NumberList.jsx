@@ -24,10 +24,6 @@ import {
 
 
 
-// ============================================================
-// 根据料理类型获取名称
-// ============================================================
-
 function getFoodName(
   value,
   foodType
@@ -44,7 +40,6 @@ function getFoodName(
   }
 
 
-
   if(
     foodType === "meat"
   ){
@@ -54,7 +49,6 @@ function getFoodName(
     );
 
   }
-
 
 
   if(
@@ -68,7 +62,6 @@ function getFoodName(
   }
 
 
-
   if(
     foodType === "dessert"
   ){
@@ -78,7 +71,6 @@ function getFoodName(
     );
 
   }
-
 
 
   return String(
@@ -105,12 +97,10 @@ export default function NumberList({
 
   removingId = null,
 
+  displayMode = "food",
+
 }) {
 
-
-  // ==========================================================
-  // 固定10个主菜盘位置
-  // ==========================================================
 
   const slots =
     Array.from({
@@ -118,6 +108,82 @@ export default function NumberList({
       length: 10
 
     });
+
+
+
+
+
+  // ==========================================================
+  // 单选时潜在约分候选
+  // ==========================================================
+
+  const reduceCandidateIds =
+    new Set();
+
+
+
+  if(
+    selected.length === 1
+  ){
+
+
+    const selectedItem =
+
+      numbers.find(
+
+        item =>
+          item.id === selected[0]
+
+      );
+
+
+
+    if(
+      selectedItem
+    ){
+
+
+      numbers.forEach(
+        item => {
+
+
+          if(
+            item.id === selectedItem.id
+          ){
+
+            return;
+
+          }
+
+
+          const divisor =
+
+            gcd(
+
+              selectedItem.value,
+
+              item.value
+
+            );
+
+
+          if(
+            divisor > 1
+          ){
+
+            reduceCandidateIds.add(
+              item.id
+            );
+
+          }
+
+
+        }
+      );
+
+    }
+
+  }
 
 
 
@@ -188,7 +254,6 @@ export default function NumberList({
           divisor;
 
 
-
         reducePreviewMap[
           secondItem.id
         ] =
@@ -241,7 +306,7 @@ export default function NumberList({
 
 
             // ==================================================
-            // 潜在三拼位置
+            // 合成预览位置
             // ==================================================
 
             if(
@@ -263,7 +328,6 @@ export default function NumberList({
                 preview.combine.foodType;
 
 
-
               const isMeat =
                 foodType === "meat";
 
@@ -274,7 +338,6 @@ export default function NumberList({
 
               const isDessert =
                 foodType === "dessert";
-
 
 
               const foodName =
@@ -351,11 +414,6 @@ export default function NumberList({
                 >
 
 
-
-                  {/* ===========================================
-                      数字
-                      =========================================== */}
-
                   <span
 
                     className="
@@ -367,8 +425,6 @@ export default function NumberList({
                       text-[11px]
 
                       font-black
-
-                      tracking-tight
 
                       opacity-50
 
@@ -384,12 +440,6 @@ export default function NumberList({
                   </span>
 
 
-
-
-
-                  {/* ===========================================
-                      菜名
-                      =========================================== */}
 
                   <span
 
@@ -418,12 +468,6 @@ export default function NumberList({
 
 
 
-
-
-                  {/* ===========================================
-                      三拼
-                      =========================================== */}
-
                   <span
 
                     className="
@@ -442,9 +486,6 @@ export default function NumberList({
                       tracking-[0.16em]
 
                       opacity-35
-
-                      max-[560px]:bottom-[5px]
-                      max-[560px]:text-[6px]
                     "
 
                   >
@@ -463,10 +504,6 @@ export default function NumberList({
 
 
 
-
-            // ==================================================
-            // 正常料理
-            // ==================================================
 
             if(
               item
@@ -558,8 +595,6 @@ export default function NumberList({
 
 
 
-
-
               return (
 
                 <NumberCard
@@ -576,6 +611,16 @@ export default function NumberList({
                     selected.includes(
                       item.id
                     )
+                  }
+
+                  reduceCandidate={
+                    reduceCandidateIds.has(
+                      item.id
+                    )
+                  }
+
+                  displayMode={
+                    displayMode
                   }
 
                   onClick={() =>
@@ -616,10 +661,6 @@ export default function NumberList({
 
 
 
-
-            // ==================================================
-            // 空位置
-            // ==================================================
 
             return (
 
