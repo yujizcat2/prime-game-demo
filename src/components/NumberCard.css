@@ -1,0 +1,2172 @@
+/* ============================================================
+   NumberCard
+   料理签牌 / 游戏卡牌风格
+   ============================================================ */
+
+
+/* ============================================================
+   Wrapper
+   ============================================================ */
+
+.food-card-wrapper {
+
+  position:
+    relative;
+
+  width:
+    88px;
+
+  height:
+    94px;
+
+}
+
+
+.food-card-wrapper--enter {
+
+  animation:
+    foodCardEnter
+    .34s
+    cubic-bezier(.2,.82,.28,1.18);
+
+}
+
+
+@keyframes foodCardEnter {
+
+  0% {
+
+    opacity:
+      0;
+
+    transform:
+      translateY(10px)
+      scale(.82);
+
+  }
+
+
+  72% {
+
+    opacity:
+      1;
+
+    transform:
+      translateY(-2px)
+      scale(1.035);
+
+  }
+
+
+  100% {
+
+    opacity:
+      1;
+
+    transform:
+      translateY(0)
+      scale(1);
+
+  }
+
+}
+
+
+
+
+
+/* ============================================================
+   卡片本体
+   ============================================================ */
+
+.food-card {
+
+  position:
+    relative;
+
+  display:
+    block;
+
+  width:
+    88px;
+
+  height:
+    94px;
+
+  padding:
+    0;
+
+  overflow:
+    hidden;
+
+  border:
+    0;
+
+  border-radius:
+    16px;
+
+  cursor:
+    pointer;
+
+  user-select:
+    none;
+
+  -webkit-tap-highlight-color:
+    transparent;
+
+  transform:
+    translateY(0)
+    rotate(0deg)
+    scale(1);
+
+  transform-origin:
+    50% 80%;
+
+  transition:
+    transform .18s
+      cubic-bezier(.2,.8,.3,1),
+    box-shadow .18s ease,
+    filter .18s ease,
+    background .18s ease,
+    color .18s ease;
+
+}
+
+
+.food-card:focus {
+
+  outline:
+    none;
+
+}
+
+
+.food-card:focus-visible {
+
+  outline:
+    2px solid
+    rgba(100,116,139,.28);
+
+  outline-offset:
+    3px;
+
+}
+
+
+
+
+
+/* ============================================================
+   内围细线
+   ============================================================ */
+
+.food-card::before {
+
+  content:
+    "";
+
+  position:
+    absolute;
+
+  inset:
+    4px;
+
+  z-index:
+    1;
+
+  border:
+    1px solid
+    rgba(15,23,42,.055);
+
+  border-radius:
+    12px;
+
+  pointer-events:
+    none;
+
+}
+
+
+
+
+
+/* ============================================================
+   顶部系别带
+   ============================================================ */
+
+.food-card::after {
+
+  content:
+    "";
+
+  position:
+    absolute;
+
+  top:
+    0;
+
+  left:
+    0;
+
+  right:
+    0;
+
+  height:
+    7px;
+
+  z-index:
+    2;
+
+  pointer-events:
+    none;
+
+}
+
+
+
+
+
+/* ============================================================
+   荤
+   ============================================================ */
+
+.food-card--meat {
+
+  color:
+    #71351f;
+
+  background:
+
+    linear-gradient(
+      165deg,
+      #fffdf9 0%,
+      #fff8f0 58%,
+      #f9eee2 100%
+    );
+
+  box-shadow:
+    0 3px 0
+      #ead5c3,
+    0 8px 17px
+      rgba(91,53,31,.10);
+
+}
+
+
+.food-card--meat::after {
+
+  background:
+    #d98b61;
+
+}
+
+
+
+
+
+/* ============================================================
+   素
+   ============================================================ */
+
+.food-card--vegetable {
+
+  color:
+    #285b3c;
+
+  background:
+
+    linear-gradient(
+      165deg,
+      #fcfffb 0%,
+      #f3faf2 58%,
+      #e6f1e5 100%
+    );
+
+  box-shadow:
+    0 3px 0
+      #cadfc9,
+    0 8px 17px
+      rgba(40,91,60,.10);
+
+}
+
+
+.food-card--vegetable::after {
+
+  background:
+    #72aa79;
+
+}
+
+
+
+
+
+/* ============================================================
+   甜
+   ============================================================ */
+
+.food-card--dessert {
+
+  color:
+    #674778;
+
+  background:
+
+    linear-gradient(
+      165deg,
+      #fffdfd 0%,
+      #faf4fb 58%,
+      #eee3f1 100%
+    );
+
+  box-shadow:
+    0 3px 0
+      #dac9df,
+    0 8px 17px
+      rgba(103,71,120,.10);
+
+}
+
+
+.food-card--dessert::after {
+
+  background:
+    #ad83b7;
+
+}
+
+
+
+
+
+/* ============================================================
+   调料
+   ============================================================ */
+
+.food-card--seasoning {
+
+  color:
+    #276273;
+
+  background:
+
+    linear-gradient(
+      165deg,
+      #fcffff 0%,
+      #f1fafb 58%,
+      #dfedef 100%
+    );
+
+  box-shadow:
+    0 3px 0
+      #c5dcdf,
+    0 8px 17px
+      rgba(39,98,115,.11);
+
+}
+
+
+.food-card--seasoning::after {
+
+  background:
+    #63a9b6;
+
+}
+
+
+
+
+
+/* ============================================================
+   默认
+   ============================================================ */
+
+.food-card--default {
+
+  color:
+    #475569;
+
+  background:
+
+    linear-gradient(
+      165deg,
+      #ffffff 0%,
+      #f8fafc 58%,
+      #edf1f5 100%
+    );
+
+  box-shadow:
+    0 3px 0
+      #d7dde4,
+    0 8px 17px
+      rgba(15,23,42,.09);
+
+}
+
+
+.food-card--default::after {
+
+  background:
+    #94a3b8;
+
+}
+
+
+
+
+
+/* ============================================================
+   顶部高光
+   ============================================================ */
+
+.food-card-highlight {
+
+  position:
+    absolute;
+
+  top:
+    10px;
+
+  left:
+    10px;
+
+  right:
+    10px;
+
+  height:
+    1px;
+
+  z-index:
+    2;
+
+  background:
+
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(255,255,255,.9),
+      transparent
+    );
+
+  pointer-events:
+    none;
+
+}
+
+
+
+
+
+/* ============================================================
+   数字徽章
+   ============================================================ */
+
+.food-card-number {
+
+  position:
+    absolute;
+
+  top:
+    13px;
+
+  left:
+    9px;
+
+  z-index:
+    6;
+
+  min-width:
+    21px;
+
+  height:
+    21px;
+
+  padding:
+    0 5px;
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  border-radius:
+    7px;
+
+  background:
+    rgba(255,255,255,.72);
+
+  box-shadow:
+    0 1px 3px
+    rgba(15,23,42,.08);
+
+  font-size:
+    10px;
+
+  line-height:
+    1;
+
+  font-weight:
+    900;
+
+  letter-spacing:
+    -.03em;
+
+}
+
+
+
+
+
+/* ============================================================
+   质数标记
+   ============================================================ */
+
+.food-card-prime {
+
+  position:
+    absolute;
+
+  top:
+    19px;
+
+  left:
+    35px;
+
+  z-index:
+    6;
+
+  width:
+    5px;
+
+  height:
+    5px;
+
+  border-radius:
+    50%;
+
+  background:
+    currentColor;
+
+  opacity:
+    .32;
+
+}
+
+
+
+
+
+/* ============================================================
+   已发现
+   ============================================================ */
+
+.food-card-discovered {
+
+  position:
+    absolute;
+
+  top:
+    15px;
+
+  right:
+    10px;
+
+  z-index:
+    6;
+
+  font-size:
+    10px;
+
+  line-height:
+    1;
+
+  color:
+    #c28a2c;
+
+  opacity:
+    .78;
+
+}
+
+
+
+
+
+/* ============================================================
+   主料理区域
+   ============================================================ */
+
+.food-card-main {
+
+  position:
+    absolute;
+
+  top:
+    30px;
+
+  left:
+    5px;
+
+  right:
+    5px;
+
+  bottom:
+    17px;
+
+  z-index:
+    4;
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  pointer-events:
+    none;
+
+}
+
+
+
+
+
+/* ============================================================
+   菜名
+   ============================================================ */
+
+.food-card-name {
+
+  max-width:
+    100%;
+
+  font-size:
+    22px;
+
+  line-height:
+    1;
+
+  font-weight:
+    900;
+
+  letter-spacing:
+    -.075em;
+
+  white-space:
+    nowrap;
+
+  text-align:
+    center;
+
+  text-shadow:
+    0 1px 0
+    rgba(255,255,255,.7);
+
+}
+
+
+
+
+
+/* ============================================================
+   底部类型
+   ============================================================ */
+
+.food-card-meta {
+
+  position:
+    absolute;
+
+  left:
+    50%;
+
+  bottom:
+    8px;
+
+  z-index:
+    5;
+
+  transform:
+    translateX(-50%);
+
+  font-size:
+    7px;
+
+  line-height:
+    1;
+
+  font-weight:
+    800;
+
+  letter-spacing:
+    .22em;
+
+  opacity:
+    .42;
+
+}
+
+
+
+
+
+/* ============================================================
+   来源
+   ============================================================ */
+
+.food-card-origin {
+
+  position:
+    absolute;
+
+  left:
+    5px;
+
+  right:
+    5px;
+
+  bottom:
+    7px;
+
+  z-index:
+    5;
+
+  min-width:
+    0;
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  overflow:
+    hidden;
+
+  font-size:
+    7px;
+
+  line-height:
+    1;
+
+  font-weight:
+    700;
+
+  letter-spacing:
+    -.03em;
+
+  white-space:
+    nowrap;
+
+  opacity:
+    .48;
+
+}
+
+
+.food-card-origin-plus {
+
+  margin:
+    0 3px;
+
+  opacity:
+    .55;
+
+}
+
+
+
+
+
+/* ============================================================
+   Hover
+   ============================================================ */
+
+@media (
+  hover: hover
+) {
+
+  .food-card:not(:disabled):hover {
+
+    transform:
+      translateY(-5px)
+      rotate(-1deg)
+      scale(1.025);
+
+    filter:
+      brightness(1.015);
+
+  }
+
+}
+
+
+
+
+
+/* ============================================================
+   按下
+   ============================================================ */
+
+.food-card:not(:disabled):active {
+
+  transform:
+    translateY(1px)
+    scale(.965);
+
+}
+
+
+
+
+
+/* ============================================================
+   选中基础状态
+   抽起 + 稍微增强饱和度
+   ============================================================ */
+
+.food-card--selected {
+
+  z-index:
+    10;
+
+  transform:
+    translateY(-10px)
+    rotate(-1.5deg)
+    scale(1.065);
+
+  filter:
+    saturate(1.08)
+    brightness(1.015);
+
+}
+
+
+
+
+
+/* ============================================================
+   荤 · 选中
+   ============================================================ */
+
+.food-card--meat.food-card--selected {
+
+  color:
+    #642814;
+
+  background:
+
+    linear-gradient(
+      165deg,
+      #fffaf5 0%,
+      #ffefe3 58%,
+      #f6dfcf 100%
+    );
+
+  box-shadow:
+
+    inset 0 0 0 2px
+      rgba(196,105,66,.38),
+
+    0 4px 0
+      #ddbda8,
+
+    0 20px 28px
+      rgba(113,53,31,.18);
+
+}
+
+
+
+
+
+/* ============================================================
+   素 · 选中
+   ============================================================ */
+
+.food-card--vegetable.food-card--selected {
+
+  color:
+    #194b2e;
+
+  background:
+
+    linear-gradient(
+      165deg,
+      #f8fff8 0%,
+      #e9f7e9 58%,
+      #d9ead8 100%
+    );
+
+  box-shadow:
+
+    inset 0 0 0 2px
+      rgba(77,143,87,.38),
+
+    0 4px 0
+      #b9d5ba,
+
+    0 20px 28px
+      rgba(40,91,60,.18);
+
+}
+
+
+
+
+
+/* ============================================================
+   甜 · 选中
+   ============================================================ */
+
+.food-card--dessert.food-card--selected {
+
+  color:
+    #583567;
+
+  background:
+
+    linear-gradient(
+      165deg,
+      #fffaff 0%,
+      #f5eafa 58%,
+      #e7d7ec 100%
+    );
+
+  box-shadow:
+
+    inset 0 0 0 2px
+      rgba(151,103,164,.36),
+
+    0 4px 0
+      #d0b9d6,
+
+    0 20px 28px
+      rgba(103,71,120,.18);
+
+}
+
+
+
+
+
+/* ============================================================
+   调料 · 选中
+   ============================================================ */
+
+.food-card--seasoning.food-card--selected {
+
+  color:
+    #18586a;
+
+  background:
+
+    linear-gradient(
+      165deg,
+      #f8feff 0%,
+      #e5f6f8 58%,
+      #d2e9ec 100%
+    );
+
+  box-shadow:
+
+    inset 0 0 0 2px
+      rgba(62,151,168,.38),
+
+    0 4px 0
+      #afd1d6,
+
+    0 20px 28px
+      rgba(39,98,115,.19);
+
+}
+
+
+
+
+
+/* ============================================================
+   默认 · 选中
+   ============================================================ */
+
+.food-card--default.food-card--selected {
+
+  background:
+
+    linear-gradient(
+      165deg,
+      #ffffff 0%,
+      #f1f5f9 58%,
+      #e3e9ef 100%
+    );
+
+  box-shadow:
+
+    inset 0 0 0 2px
+      rgba(100,116,139,.30),
+
+    0 4px 0
+      #cbd5df,
+
+    0 20px 28px
+      rgba(15,23,42,.17);
+
+}
+
+
+
+
+
+/* ============================================================
+   偶数位置选中时向另一边倾斜
+   ============================================================ */
+
+.food-card-wrapper:nth-child(even)
+.food-card--selected {
+
+  transform:
+    translateY(-10px)
+    rotate(1.5deg)
+    scale(1.065);
+
+}
+
+
+
+
+
+/* ============================================================
+   约分状态
+   ============================================================ */
+
+.food-card--reducing {
+
+  animation:
+    foodCardReducePulse
+    2.6s
+    ease-in-out
+    infinite;
+
+}
+
+
+@keyframes foodCardReducePulse {
+
+  0%,
+  24%,
+  76%,
+  100% {
+
+    filter:
+      brightness(1);
+
+  }
+
+
+  43%,
+  58% {
+
+    filter:
+      brightness(1.045);
+
+  }
+
+}
+
+
+
+
+
+/* ============================================================
+   原料理约分淡出
+   ============================================================ */
+
+.food-card-name--reducing {
+
+  animation:
+    foodCardOriginalCycle
+    2.6s
+    ease-in-out
+    infinite;
+
+}
+
+
+@keyframes foodCardOriginalCycle {
+
+  0%,
+  18% {
+
+    opacity:
+      1;
+
+    transform:
+      scale(1);
+
+  }
+
+
+  29% {
+
+    opacity:
+      .25;
+
+    transform:
+      scale(.94);
+
+  }
+
+
+  36%,
+  59% {
+
+    opacity:
+      .13;
+
+    transform:
+      scale(.9);
+
+  }
+
+
+  69% {
+
+    opacity:
+      .6;
+
+    transform:
+      scale(.96);
+
+  }
+
+
+  78%,
+  100% {
+
+    opacity:
+      1;
+
+    transform:
+      scale(1);
+
+  }
+
+}
+
+
+
+
+
+/* ============================================================
+   约分结果
+   ============================================================ */
+
+.food-card-reduce-preview {
+
+  position:
+    absolute;
+
+  inset:
+    0;
+
+  z-index:
+    9;
+
+  display:
+    flex;
+
+  flex-direction:
+    column;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  padding-top:
+    7px;
+
+  opacity:
+    0;
+
+  pointer-events:
+    none;
+
+  animation:
+    foodCardReducePreview
+    2.6s
+    cubic-bezier(.22,.75,.28,1)
+    infinite;
+
+}
+
+
+.food-card-reduce-name {
+
+  font-size:
+    22px;
+
+  line-height:
+    1;
+
+  font-weight:
+    900;
+
+  white-space:
+    nowrap;
+
+  letter-spacing:
+    -.075em;
+
+}
+
+
+.food-card-reduce-number {
+
+  margin-top:
+    6px;
+
+  padding:
+    2px 5px;
+
+  border-radius:
+    5px;
+
+  background:
+    rgba(255,255,255,.7);
+
+  font-size:
+    8px;
+
+  line-height:
+    1;
+
+  font-weight:
+    900;
+
+  opacity:
+    .65;
+
+}
+
+
+@keyframes foodCardReducePreview {
+
+  0%,
+  26% {
+
+    opacity:
+      0;
+
+    transform:
+      translateY(5px)
+      scale(.74);
+
+    filter:
+      blur(1.5px);
+
+  }
+
+
+  36% {
+
+    opacity:
+      .7;
+
+    transform:
+      translateY(-1px)
+      scale(.9);
+
+    filter:
+      blur(.5px);
+
+  }
+
+
+  44%,
+  57% {
+
+    opacity:
+      1;
+
+    transform:
+      translateY(-5px)
+      scale(1.08);
+
+    filter:
+      blur(0);
+
+  }
+
+
+  67% {
+
+    opacity:
+      0;
+
+    transform:
+      translateY(-12px)
+      scale(1.03);
+
+  }
+
+
+  68%,
+  100% {
+
+    opacity:
+      0;
+
+  }
+
+}
+
+
+
+
+
+/* ============================================================
+   新调料
+   ============================================================ */
+
+.food-card--new-seasoning {
+
+  animation:
+    newSeasoningBreath
+    1.55s
+    ease-in-out
+    infinite;
+
+}
+
+
+@keyframes newSeasoningBreath {
+
+  0%,
+  100% {
+
+    box-shadow:
+      0 3px 0
+      #c5dcdf,
+
+      0 8px 17px
+      rgba(39,98,115,.11);
+
+  }
+
+
+  50% {
+
+    box-shadow:
+      0 3px 0
+      #b7d8dc,
+
+      0 13px 27px
+      rgba(39,155,180,.22);
+
+  }
+
+}
+
+
+
+
+
+/* ============================================================
+   积分
+   ============================================================ */
+
+.food-card-score {
+
+  position:
+    absolute;
+
+  z-index:
+    50;
+
+  top:
+    -29px;
+
+  left:
+    50%;
+
+  transform:
+    translateX(-50%);
+
+  font-size:
+    14px;
+
+  line-height:
+    1;
+
+  font-weight:
+    900;
+
+  color:
+    #64748b;
+
+  white-space:
+    nowrap;
+
+  pointer-events:
+    none;
+
+}
+
+
+.food-card-score--new {
+
+  color:
+    #0891b2;
+
+}
+
+
+.food-card-score--preview {
+
+  animation:
+    foodCardScorePreview
+    1.55s
+    ease-in-out
+    infinite;
+
+}
+
+
+@keyframes foodCardScorePreview {
+
+  0%,
+  100% {
+
+    opacity:
+      .5;
+
+    transform:
+      translateX(-50%)
+      translateY(2px);
+
+  }
+
+
+  50% {
+
+    opacity:
+      1;
+
+    transform:
+      translateX(-50%)
+      translateY(-4px);
+
+  }
+
+}
+
+
+
+
+
+/* ============================================================
+   消除
+   ============================================================ */
+
+.food-card-wrapper--removing {
+
+  position:
+    relative;
+
+  z-index:
+    30;
+
+}
+
+
+.food-card--remove {
+
+  pointer-events:
+    none;
+
+  animation:
+    foodCardRemove
+    .32s
+    cubic-bezier(.4,0,.7,.2)
+    forwards;
+
+}
+
+
+@keyframes foodCardRemove {
+
+  0% {
+
+    opacity:
+      1;
+
+    transform:
+      translateY(-7px)
+      scale(1.06);
+
+  }
+
+
+  35% {
+
+    opacity:
+      1;
+
+    transform:
+      translateY(-10px)
+      rotate(2deg)
+      scale(1.14);
+
+    filter:
+      brightness(1.15);
+
+  }
+
+
+  100% {
+
+    opacity:
+      0;
+
+    transform:
+      translateY(-22px)
+      rotate(-5deg)
+      scale(.38);
+
+  }
+
+}
+
+
+
+
+
+/* ============================================================
+   消除闪光
+   ============================================================ */
+
+.food-card-remove-flash {
+
+  position:
+    absolute;
+
+  inset:
+    0;
+
+  z-index:
+    40;
+
+  border-radius:
+    16px;
+
+  pointer-events:
+    none;
+
+  background:
+
+    radial-gradient(
+      circle,
+
+      rgba(255,255,255,.97)
+      0%,
+
+      rgba(103,232,249,.48)
+      30%,
+
+      rgba(34,211,238,.12)
+      56%,
+
+      transparent
+      73%
+    );
+
+  animation:
+    foodCardRemoveFlash
+    .32s
+    ease-out
+    forwards;
+
+}
+
+
+@keyframes foodCardRemoveFlash {
+
+  0% {
+
+    opacity:
+      0;
+
+    transform:
+      scale(.5);
+
+  }
+
+
+  40% {
+
+    opacity:
+      1;
+
+    transform:
+      scale(1.18);
+
+  }
+
+
+  100% {
+
+    opacity:
+      0;
+
+    transform:
+      scale(1.65);
+
+  }
+
+}
+
+
+
+
+
+/* ============================================================
+   得分飞出
+   ============================================================ */
+
+.food-card-score--fly {
+
+  animation:
+    foodCardScoreFly
+    .45s
+    ease-out
+    forwards;
+
+}
+
+
+@keyframes foodCardScoreFly {
+
+  0% {
+
+    opacity:
+      1;
+
+    transform:
+      translateX(-50%)
+      translateY(0)
+      scale(1);
+
+  }
+
+
+  45% {
+
+    opacity:
+      1;
+
+    transform:
+      translateX(-50%)
+      translateY(-11px)
+      scale(1.16);
+
+  }
+
+
+  100% {
+
+    opacity:
+      0;
+
+    transform:
+      translateX(-50%)
+      translateY(-30px)
+      scale(.94);
+
+  }
+
+}
+
+
+
+
+
+/* ============================================================
+   消除粒子
+   ============================================================ */
+
+.food-card-particle {
+
+  position:
+    absolute;
+
+  z-index:
+    50;
+
+  top:
+    50%;
+
+  left:
+    50%;
+
+  font-size:
+    10px;
+
+  color:
+    #22d3ee;
+
+  pointer-events:
+    none;
+
+  opacity:
+    0;
+
+}
+
+
+.food-card-particle--1 {
+
+  animation:
+    foodParticle1
+    .36s
+    ease-out
+    forwards;
+
+}
+
+
+.food-card-particle--2 {
+
+  animation:
+    foodParticle2
+    .38s
+    ease-out
+    forwards;
+
+}
+
+
+.food-card-particle--3 {
+
+  animation:
+    foodParticle3
+    .34s
+    ease-out
+    forwards;
+
+}
+
+
+.food-card-particle--4 {
+
+  animation:
+    foodParticle4
+    .40s
+    ease-out
+    forwards;
+
+}
+
+
+@keyframes foodParticle1 {
+
+  0% {
+
+    opacity:
+      0;
+
+    transform:
+      translate(-50%,-50%)
+      scale(.4);
+
+  }
+
+
+  25% {
+
+    opacity:
+      1;
+
+  }
+
+
+  100% {
+
+    opacity:
+      0;
+
+    transform:
+      translate(-38px,-36px)
+      scale(1.2);
+
+  }
+
+}
+
+
+@keyframes foodParticle2 {
+
+  0% {
+
+    opacity:
+      0;
+
+    transform:
+      translate(-50%,-50%)
+      scale(.4);
+
+  }
+
+
+  25% {
+
+    opacity:
+      1;
+
+  }
+
+
+  100% {
+
+    opacity:
+      0;
+
+    transform:
+      translate(28px,-39px)
+      scale(1);
+
+  }
+
+}
+
+
+@keyframes foodParticle3 {
+
+  0% {
+
+    opacity:
+      0;
+
+    transform:
+      translate(-50%,-50%)
+      scale(.4);
+
+  }
+
+
+  25% {
+
+    opacity:
+      1;
+
+  }
+
+
+  100% {
+
+    opacity:
+      0;
+
+    transform:
+      translate(-34px,26px)
+      scale(.8);
+
+  }
+
+}
+
+
+@keyframes foodParticle4 {
+
+  0% {
+
+    opacity:
+      0;
+
+    transform:
+      translate(-50%,-50%)
+      scale(.4);
+
+  }
+
+
+  25% {
+
+    opacity:
+      1;
+
+  }
+
+
+  100% {
+
+    opacity:
+      0;
+
+    transform:
+      translate(38px,18px)
+      scale(1.15);
+
+  }
+
+}
+
+
+
+
+
+/* ============================================================
+   手机
+   ============================================================ */
+
+@media (
+  max-width: 560px
+) {
+
+  .food-card-wrapper,
+  .food-card {
+
+    width:
+      65px;
+
+    height:
+      70px;
+
+  }
+
+
+  .food-card {
+
+    border-radius:
+      13px;
+
+  }
+
+
+  .food-card::before {
+
+    inset:
+      3px;
+
+    border-radius:
+      10px;
+
+  }
+
+
+  .food-card::after {
+
+    height:
+      5px;
+
+  }
+
+
+  .food-card-number {
+
+    top:
+      10px;
+
+    left:
+      7px;
+
+    min-width:
+      17px;
+
+    height:
+      17px;
+
+    padding:
+      0 4px;
+
+    border-radius:
+      5px;
+
+    font-size:
+      8px;
+
+  }
+
+
+  .food-card-prime {
+
+    top:
+      15px;
+
+    left:
+      28px;
+
+    width:
+      3px;
+
+    height:
+      3px;
+
+  }
+
+
+  .food-card-discovered {
+
+    top:
+      11px;
+
+    right:
+      7px;
+
+    font-size:
+      7px;
+
+  }
+
+
+  .food-card-main {
+
+    top:
+      24px;
+
+    bottom:
+      13px;
+
+  }
+
+
+  .food-card-name,
+  .food-card-reduce-name {
+
+    font-size:
+      17px;
+
+  }
+
+
+  .food-card-meta {
+
+    bottom:
+      6px;
+
+    font-size:
+      5px;
+
+  }
+
+
+  .food-card-origin {
+
+    bottom:
+      5px;
+
+    font-size:
+      5.5px;
+
+  }
+
+
+  .food-card-remove-flash {
+
+    border-radius:
+      13px;
+
+  }
+
+
+  .food-card--selected {
+
+    transform:
+      translateY(-7px)
+      rotate(-1deg)
+      scale(1.055);
+
+  }
+
+
+  .food-card-wrapper:nth-child(even)
+  .food-card--selected {
+
+    transform:
+      translateY(-7px)
+      rotate(1deg)
+      scale(1.055);
+
+  }
+
+}
+
+
+
+
+
+/* ============================================================
+   中等屏幕
+   ============================================================ */
+
+@media (
+  min-width: 561px
+) and (
+  max-width: 720px
+) {
+
+  .food-card-wrapper,
+  .food-card {
+
+    width:
+      78px;
+
+    height:
+      84px;
+
+  }
+
+
+  .food-card-name,
+  .food-card-reduce-name {
+
+    font-size:
+      20px;
+
+  }
+
+}
+
+
+
+
+
+/* ============================================================
+   减少动画
+   ============================================================ */
+
+@media (
+  prefers-reduced-motion: reduce
+) {
+
+  .food-card,
+  .food-card-wrapper,
+  .food-card-name,
+  .food-card-reduce-preview,
+  .food-card-score,
+  .food-card-particle {
+
+    animation-duration:
+      .01ms !important;
+
+    animation-iteration-count:
+      1 !important;
+
+    transition-duration:
+      .01ms !important;
+
+  }
+
+}

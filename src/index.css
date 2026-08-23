@@ -1,11 +1,21 @@
 @import "tailwindcss";
 
 
+/* ============================================================
+   全局变量
+   ============================================================ */
+
 :root {
 
-  --text: #6b7280;
-  --text-h: #111827;
-  --bg: #f4f6f9;
+  --text:
+    #6b7280;
+
+  --text-h:
+    #111827;
+
+  --bg:
+    #f4f6f9;
+
 
   --sans:
     system-ui,
@@ -14,29 +24,43 @@
     "Segoe UI",
     sans-serif;
 
+
   font-family:
     var(--sans);
+
 
   color:
     var(--text);
 
+
   background:
     var(--bg);
+
 
   font-synthesis:
     none;
 
+
   text-rendering:
     optimizeLegibility;
 
+
   -webkit-font-smoothing:
     antialiased;
+
 
   -moz-osx-font-smoothing:
     grayscale;
 
 }
 
+
+
+
+
+/* ============================================================
+   基础重置
+   ============================================================ */
 
 * {
 
@@ -65,7 +89,7 @@ body {
     320px;
 
   background:
-    #f4f6f9;
+    var(--bg);
 
 }
 
@@ -79,111 +103,17 @@ button {
 
 
 
-/* =========================
+
+
+/* ============================================================
    主棋盘
-   ========================= */
+   ============================================================ */
 
 .game-board {
 
   background:
     #ffffff;
 
-}
-
-
-
-/* =========================
-   棋盘卡片尺寸
-   正方形
-   ========================= */
-
-.number-slot,
-.number-card {
-
-  width:
-    84px;
-
-  height:
-    84px;
-
-}
-
-
-
-/* =========================
-   手机竖屏
-   正方形紧密卡片
-   ========================= */
-
-@media (
-  max-width: 560px
-) {
-
-  .number-slot,
-  .number-card {
-
-    width:
-      64px;
-
-    height:
-      64px;
-
-    border-radius:
-      18px;
-
-  }
-
-
-  .game-action-button {
-
-    height:
-      56px;
-
-    border-radius:
-      17px;
-
-    font-size:
-      12px;
-
-  }
-
-}
-
-
-
-/* =========================
-   中等屏幕
-   ========================= */
-
-@media (
-  min-width: 561px
-) and (
-  max-width: 720px
-) {
-
-  .number-slot,
-  .number-card {
-
-    width:
-      76px;
-
-    height:
-      76px;
-
-    border-radius:
-      19px;
-
-  }
-
-}
-
-
-
-/* =========================
-   主棋盘首次进入
-   ========================= */
-
-.game-board {
 
   animation:
     gameBoardEnter
@@ -200,6 +130,7 @@ button {
     opacity:
       0;
 
+
     transform:
       translateY(7px)
       scale(.985);
@@ -212,6 +143,7 @@ button {
     opacity:
       1;
 
+
     transform:
       translateY(0)
       scale(1);
@@ -222,69 +154,102 @@ button {
 
 
 
-/* =========================
-   新数字生成
-   ========================= */
-
-.number-card-enter {
-
-  animation:
-    numberCardEnter
-    .30s
-    cubic-bezier(.2,.82,.28,1.18);
-
-}
 
 
-@keyframes numberCardEnter {
+/* ============================================================
+   主菜盘空槽 / 三拼槽尺寸
+   NumberCard 真正卡片尺寸已经移入 NumberCard.css
+   ============================================================ */
 
-  0% {
+.number-slot {
 
-    opacity:
-      0;
+  width:
+    88px;
 
-    transform:
-      scale(.76)
-      translateY(7px);
-
-  }
-
-
-  70% {
-
-    opacity:
-      1;
-
-    transform:
-      scale(1.045)
-      translateY(-1px);
-
-  }
-
-
-  100% {
-
-    opacity:
-      1;
-
-    transform:
-      scale(1)
-      translateY(0);
-
-  }
+  height:
+    88px;
 
 }
 
 
 
-/* =========================
-   合成预览
-   ========================= */
+
+
+/* ============================================================
+   手机竖屏
+   ============================================================ */
+
+@media (
+  max-width: 560px
+) {
+
+  .number-slot {
+
+    width:
+      65px;
+
+    height:
+      65px;
+
+  }
+
+
+  .game-action-button {
+
+    height:
+      56px;
+
+
+    border-radius:
+      17px;
+
+
+    font-size:
+      12px;
+
+  }
+
+}
+
+
+
+
+
+/* ============================================================
+   中等屏幕
+   ============================================================ */
+
+@media (
+  min-width: 561px
+) and (
+  max-width: 720px
+) {
+
+  .number-slot {
+
+    width:
+      78px;
+
+    height:
+      78px;
+
+  }
+
+}
+
+
+
+
+
+/* ============================================================
+   三拼预览
+   ============================================================ */
 
 .combine-preview-slot {
 
   box-shadow:
     none;
+
 
   animation:
     combinePreviewFloat
@@ -303,6 +268,7 @@ button {
     opacity:
       .58;
 
+
     transform:
       translateY(2px)
       scale(.96);
@@ -315,6 +281,7 @@ button {
     opacity:
       .88;
 
+
     transform:
       translateY(-2px)
       scale(1.02);
@@ -325,9 +292,11 @@ button {
 
 
 
-/* =========================
-   Preview 出现
-   ========================= */
+
+
+/* ============================================================
+   通用 Preview 出现
+   ============================================================ */
 
 .preview-enter {
 
@@ -346,6 +315,7 @@ button {
     opacity:
       0;
 
+
     transform:
       translateY(3px)
       scale(.98);
@@ -358,6 +328,7 @@ button {
     opacity:
       1;
 
+
     transform:
       translateY(0)
       scale(1);
@@ -368,372 +339,45 @@ button {
 
 
 
-/* =========================
-   约分卡片轻微变化
-   ========================= */
 
-.reduce-card {
 
-  animation:
-    reduceCardSoftPulse
-    2.6s
-    ease-in-out
-    infinite;
-
-}
-
-
-
-/* =========================
-   原数字
-   ========================= */
-
-.reduce-original {
-
-  animation:
-    reduceOriginalCycle
-    2.6s
-    ease-in-out
-    infinite;
-
-}
-
-
-@keyframes reduceOriginalCycle {
-
-  0%,
-  18% {
-
-    opacity:
-      1;
-
-    transform:
-      scale(1);
-
-  }
-
-
-  28% {
-
-    opacity:
-      .28;
-
-    transform:
-      scale(.94);
-
-  }
-
-
-  35%,
-  58% {
-
-    opacity:
-      .20;
-
-    transform:
-      scale(.92);
-
-  }
-
-
-  68% {
-
-    opacity:
-      .65;
-
-    transform:
-      scale(.97);
-
-  }
-
-
-  76%,
-  100% {
-
-    opacity:
-      1;
-
-    transform:
-      scale(1);
-
-  }
-
-}
-
-
-
-/* =========================
-   新数字
-   ========================= */
-
-.reduce-preview {
-
-  opacity:
-    0;
-
-  z-index:
-    10;
-
-  animation:
-    reducePreviewCycle
-    2.6s
-    cubic-bezier(.22,.75,.28,1)
-    infinite;
-
-}
-
-
-@keyframes reducePreviewCycle {
-
-  0%,
-  26% {
-
-    opacity:
-      0;
-
-    transform:
-      translateY(4px)
-      scale(.72);
-
-    filter:
-      blur(1.5px);
-
-  }
-
-
-  35% {
-
-    opacity:
-      .65;
-
-    transform:
-      translateY(-2px)
-      scale(.90);
-
-    filter:
-      blur(.6px);
-
-  }
-
-
-  43% {
-
-    opacity:
-      1;
-
-    transform:
-      translateY(-7px)
-      scale(1.12);
-
-    filter:
-      blur(0);
-
-  }
-
-
-  43%,
-  56% {
-
-    opacity:
-      1;
-
-    transform:
-      translateY(-7px)
-      scale(1.12);
-
-    filter:
-      blur(0);
-
-  }
-
-
-  66% {
-
-    opacity:
-      0;
-
-    transform:
-      translateY(-12px)
-      scale(1.04);
-
-    filter:
-      blur(.8px);
-
-  }
-
-
-  67%,
-  100% {
-
-    opacity:
-      0;
-
-    transform:
-      translateY(-12px)
-      scale(1);
-
-  }
-
-}
-
-
-
-/* =========================
-   卡片轻亮度变化
-   ========================= */
-
-@keyframes reduceCardSoftPulse {
-
-  0%,
-  25%,
-  75%,
-  100% {
-
-    filter:
-      brightness(1);
-
-  }
-
-
-  42%,
-  56% {
-
-    filter:
-      brightness(1.035);
-
-  }
-
-}
-
-
-
-/* =========================
-   新发现 1
-   ========================= */
-
-.new-one-card {
-
-  animation:
-    newOneBreath
-    1.5s
-    ease-in-out
-    infinite;
-
-}
-
-
-@keyframes newOneBreath {
-
-  0%,
-  100% {
-
-    box-shadow:
-      0 6px 18px
-      rgba(245,158,11,.10);
-
-  }
-
-
-  50% {
-
-    box-shadow:
-      0 10px 26px
-      rgba(245,158,11,.24);
-
-  }
-
-}
-
-
-
-/* =========================
-   即将获得积分
-   ========================= */
-
-.new-score-preview {
-
-  transform:
-    translateX(-50%);
-
-  animation:
-    newScorePreview
-    1.55s
-    ease-in-out
-    infinite;
-
-}
-
-
-@keyframes newScorePreview {
-
-  0% {
-
-    opacity:
-      .5;
-
-    transform:
-      translateX(-50%)
-      translateY(2px);
-
-  }
-
-
-  50% {
-
-    opacity:
-      1;
-
-    transform:
-      translateX(-50%)
-      translateY(-3px);
-
-  }
-
-
-  100% {
-
-    opacity:
-      .5;
-
-    transform:
-      translateX(-50%)
-      translateY(2px);
-
-  }
-
-}
-
-
-
-/* =========================
+/* ============================================================
    操作按钮
-   ========================= */
+   ============================================================ */
 
 .game-action-button {
 
   height:
     62px;
 
+
   border-radius:
     20px;
+
 
   display:
     flex;
 
+
   align-items:
     center;
+
 
   justify-content:
     center;
 
+
   gap:
     6px;
+
 
   font-size:
     13px;
 
+
   font-weight:
     800;
+
 
   transition:
     transform .14s ease,
@@ -769,9 +413,11 @@ button {
 
 
 
-/* =========================
+
+
+/* ============================================================
    消除准备
-   ========================= */
+   ============================================================ */
 
 .remove-ready {
 
@@ -806,9 +452,11 @@ button {
 
 
 
-/* =========================
+
+
+/* ============================================================
    收藏新元素
-   ========================= */
+   ============================================================ */
 
 .collection-item {
 
@@ -827,6 +475,7 @@ button {
     opacity:
       0;
 
+
     transform:
       scale(.78)
       translateY(3px);
@@ -839,6 +488,7 @@ button {
     opacity:
       1;
 
+
     transform:
       scale(1)
       translateY(0);
@@ -849,9 +499,11 @@ button {
 
 
 
-/* =========================
+
+
+/* ============================================================
    阶段提示
-   ========================= */
+   ============================================================ */
 
 .checkpoint-flash {
 
@@ -886,9 +538,11 @@ button {
 
 
 
-/* =========================
-   容量满
-   ========================= */
+
+
+/* ============================================================
+   容量警告
+   ============================================================ */
 
 .capacity-warning {
 
@@ -907,6 +561,7 @@ button {
     opacity:
       0;
 
+
     transform:
       translateY(-3px);
 
@@ -918,6 +573,7 @@ button {
     opacity:
       1;
 
+
     transform:
       translateY(0);
 
@@ -927,9 +583,11 @@ button {
 
 
 
-/* =========================
-   Game Over
-   ========================= */
+
+
+/* ============================================================
+   Game Over 背景
+   ============================================================ */
 
 .game-over-backdrop {
 
@@ -937,16 +595,6 @@ button {
     gameOverBackdrop
     .25s
     ease-out;
-
-}
-
-
-.game-over-card {
-
-  animation:
-    gameOverCard
-    .32s
-    cubic-bezier(.2,.8,.3,1.1);
 
 }
 
@@ -971,12 +619,30 @@ button {
 }
 
 
+
+
+
+/* ============================================================
+   Game Over 卡片
+   ============================================================ */
+
+.game-over-card {
+
+  animation:
+    gameOverCard
+    .32s
+    cubic-bezier(.2,.8,.3,1.1);
+
+}
+
+
 @keyframes gameOverCard {
 
   from {
 
     opacity:
       0;
+
 
     transform:
       translateY(10px)
@@ -990,6 +656,7 @@ button {
     opacity:
       1;
 
+
     transform:
       translateY(0)
       scale(1);
@@ -1000,440 +667,11 @@ button {
 
 
 
-/* =========================
-   消除
-   ========================= */
 
-.removing-card-wrapper {
 
-  position:
-    relative;
-
-  z-index:
-    30;
-
-}
-
-
-.remove-card {
-
-  pointer-events:
-    none;
-
-  animation:
-    removeCardExit
-    .30s
-    cubic-bezier(.4,0,.7,.2)
-    forwards;
-
-}
-
-
-@keyframes removeCardExit {
-
-  0% {
-
-    opacity:
-      1;
-
-    transform:
-      scale(1.045)
-      translateY(-4px);
-
-  }
-
-
-  35% {
-
-    opacity:
-      1;
-
-    transform:
-      scale(1.13)
-      translateY(-6px);
-
-    filter:
-      brightness(1.15);
-
-  }
-
-
-  100% {
-
-    opacity:
-      0;
-
-    transform:
-      scale(.40)
-      translateY(-18px);
-
-  }
-
-}
-
-
-
-/* =========================
-   消除闪光
-   ========================= */
-
-.remove-flash {
-
-  background:
-
-    radial-gradient(
-
-      circle,
-
-      rgba(255,255,255,.95)
-      0%,
-
-      rgba(251,191,36,.52)
-      30%,
-
-      rgba(245,158,11,.12)
-      56%,
-
-      transparent
-      72%
-
-    );
-
-
-  animation:
-    removeFlash
-    .30s
-    ease-out
-    forwards;
-
-}
-
-
-@keyframes removeFlash {
-
-  0% {
-
-    opacity:
-      0;
-
-    transform:
-      scale(.5);
-
-  }
-
-
-  40% {
-
-    opacity:
-      1;
-
-    transform:
-      scale(1.2);
-
-  }
-
-
-  100% {
-
-    opacity:
-      0;
-
-    transform:
-      scale(1.65);
-
-  }
-
-}
-
-
-
-/* =========================
-   得分飞出
-   ========================= */
-
-.remove-score-fly {
-
-  transform:
-    translateX(-50%);
-
-  animation:
-    removeScoreFly
-    .45s
-    ease-out
-    forwards;
-
-}
-
-
-@keyframes removeScoreFly {
-
-  0% {
-
-    opacity:
-      1;
-
-    transform:
-      translateX(-50%)
-      translateY(0)
-      scale(1);
-
-  }
-
-
-  45% {
-
-    opacity:
-      1;
-
-    transform:
-      translateX(-50%)
-      translateY(-10px)
-      scale(1.15);
-
-  }
-
-
-  100% {
-
-    opacity:
-      0;
-
-    transform:
-      translateX(-50%)
-      translateY(-28px)
-      scale(.95);
-
-  }
-
-}
-
-
-
-/* =========================
-   消除粒子
-   ========================= */
-
-.remove-particle {
-
-  position:
-    absolute;
-
-  z-index:
-    40;
-
-  left:
-    50%;
-
-  top:
-    50%;
-
-  color:
-    #f59e0b;
-
-  font-size:
-    11px;
-
-  pointer-events:
-    none;
-
-  opacity:
-    0;
-
-}
-
-
-.remove-particle-1 {
-
-  animation:
-    particle1
-    .36s
-    ease-out
-    forwards;
-
-}
-
-
-.remove-particle-2 {
-
-  animation:
-    particle2
-    .38s
-    ease-out
-    forwards;
-
-}
-
-
-.remove-particle-3 {
-
-  animation:
-    particle3
-    .34s
-    ease-out
-    forwards;
-
-}
-
-
-.remove-particle-4 {
-
-  animation:
-    particle4
-    .40s
-    ease-out
-    forwards;
-
-}
-
-
-@keyframes particle1 {
-
-  0% {
-
-    opacity:
-      0;
-
-    transform:
-      translate(-50%, -50%)
-      scale(.4);
-
-  }
-
-
-  25% {
-
-    opacity:
-      1;
-
-  }
-
-
-  100% {
-
-    opacity:
-      0;
-
-    transform:
-      translate(-38px, -36px)
-      scale(1.2);
-
-  }
-
-}
-
-
-@keyframes particle2 {
-
-  0% {
-
-    opacity:
-      0;
-
-    transform:
-      translate(-50%, -50%)
-      scale(.4);
-
-  }
-
-
-  25% {
-
-    opacity:
-      1;
-
-  }
-
-
-  100% {
-
-    opacity:
-      0;
-
-    transform:
-      translate(28px, -39px)
-      scale(1);
-
-  }
-
-}
-
-
-@keyframes particle3 {
-
-  0% {
-
-    opacity:
-      0;
-
-    transform:
-      translate(-50%, -50%)
-      scale(.4);
-
-  }
-
-
-  25% {
-
-    opacity:
-      1;
-
-  }
-
-
-  100% {
-
-    opacity:
-      0;
-
-    transform:
-      translate(-34px, 26px)
-      scale(.8);
-
-  }
-
-}
-
-
-@keyframes particle4 {
-
-  0% {
-
-    opacity:
-      0;
-
-    transform:
-      translate(-50%, -50%)
-      scale(.4);
-
-  }
-
-
-  25% {
-
-    opacity:
-      1;
-
-  }
-
-
-  100% {
-
-    opacity:
-      0;
-
-    transform:
-      translate(38px, 18px)
-      scale(1.15);
-
-  }
-
-}
-
-
-
-/* =========================
+/* ============================================================
    系统减少动画
-   ========================= */
+   ============================================================ */
 
 @media (
   prefers-reduced-motion: reduce
@@ -1446,8 +684,10 @@ button {
     animation-duration:
       .01ms !important;
 
+
     animation-iteration-count:
       1 !important;
+
 
     transition-duration:
       .01ms !important;

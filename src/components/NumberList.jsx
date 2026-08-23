@@ -217,8 +217,11 @@ export default function NumberList({
 
         justify-center
 
-        gap-x-1.5
-        gap-y-3.5
+        gap-x-2
+        gap-y-4
+
+        max-[560px]:gap-x-1.5
+        max-[560px]:gap-y-3
       "
 
     >
@@ -239,13 +242,6 @@ export default function NumberList({
 
             // ==================================================
             // 潜在三拼位置
-            //
-            // 当玩家选择两道料理后：
-            //
-            // A + B = C
-            //
-            // C不是“A和B做出来的菜”，
-            // 而是与A、B形成三拼关系的第三道料理。
             // ==================================================
 
             if(
@@ -281,10 +277,6 @@ export default function NumberList({
 
 
 
-              // =================================================
-              // 三拼中的第三道料理名称
-              // =================================================
-
               const foodName =
 
                 getFoodName(
@@ -314,7 +306,9 @@ export default function NumberList({
                     items-center
                     justify-center
 
-                    rounded-[20px]
+                    rounded-[23px]
+
+                    overflow-hidden
 
                     border
                     border-dashed
@@ -325,30 +319,30 @@ export default function NumberList({
                       isVegetable
 
                         ? `
-                          border-emerald-300/70
-                          bg-emerald-50/40
-                          text-emerald-600
+                          border-emerald-300/65
+                          bg-emerald-50/35
+                          text-emerald-700
                         `
 
                         : isMeat
 
                         ? `
-                          border-orange-300/70
-                          bg-orange-50/40
-                          text-orange-600
+                          border-orange-300/65
+                          bg-orange-50/35
+                          text-orange-700
                         `
 
                         : isDessert
 
                         ? `
-                          border-violet-300/70
-                          bg-violet-50/40
-                          text-violet-600
+                          border-violet-300/65
+                          bg-violet-50/35
+                          text-violet-700
                         `
 
                         : `
-                          border-gray-300/70
-                          bg-gray-50/40
+                          border-gray-300/65
+                          bg-gray-50/35
                           text-gray-500
                         `
                     }
@@ -359,7 +353,7 @@ export default function NumberList({
 
 
                   {/* ===========================================
-                      左上角数字
+                      数字
                       =========================================== */}
 
                   <span
@@ -367,17 +361,20 @@ export default function NumberList({
                     className="
                       absolute
 
-                      top-2.5
-                      left-3
+                      top-[9px]
+                      left-[11px]
 
-                      text-[14px]
-                      sm:text-[15px]
+                      text-[11px]
 
                       font-black
 
                       tracking-tight
 
-                      opacity-70
+                      opacity-50
+
+                      max-[560px]:top-[7px]
+                      max-[560px]:left-[8px]
+                      max-[560px]:text-[9px]
                     "
 
                   >
@@ -391,24 +388,26 @@ export default function NumberList({
 
 
                   {/* ===========================================
-                      三拼第三道料理
+                      菜名
                       =========================================== */}
 
                   <span
 
                     className="
-                      px-2
+                      px-1
 
-                      text-[17px]
-                      sm:text-[19px]
+                      text-[21px]
 
                       font-black
 
                       whitespace-nowrap
 
-                      tracking-[-0.04em]
+                      tracking-[-0.06em]
 
-                      opacity-80
+                      opacity-75
+
+                      max-[720px]:text-[19px]
+                      max-[560px]:text-[17px]
                     "
 
                   >
@@ -422,7 +421,7 @@ export default function NumberList({
 
 
                   {/* ===========================================
-                      三拼标记
+                      三拼
                       =========================================== */}
 
                   <span
@@ -430,19 +429,22 @@ export default function NumberList({
                     className="
                       absolute
 
-                      bottom-2
+                      bottom-[7px]
 
                       left-1/2
 
                       -translate-x-1/2
 
-                      text-[8px]
+                      text-[7px]
 
                       font-bold
 
-                      tracking-[0.14em]
+                      tracking-[0.16em]
 
-                      opacity-45
+                      opacity-35
+
+                      max-[560px]:bottom-[5px]
+                      max-[560px]:text-[6px]
                     "
 
                   >
@@ -471,10 +473,6 @@ export default function NumberList({
             ){
 
 
-              // =================================================
-              // 是否已经成功发现过
-              // =================================================
-
               const discovered =
 
                 item.value !== 1 &&
@@ -484,10 +482,6 @@ export default function NumberList({
                 );
 
 
-
-              // =================================================
-              // 1的直接前身
-              // =================================================
 
               const reduceFrom =
 
@@ -505,10 +499,6 @@ export default function NumberList({
 
 
 
-              // =================================================
-              // 是否为新发现的1
-              // =================================================
-
               const isNewDiscovery =
 
                 item.value === 1 &&
@@ -520,10 +510,6 @@ export default function NumberList({
                 );
 
 
-
-              // =================================================
-              // 即将获得积分
-              // =================================================
 
               let scorePreview =
                 null;
@@ -646,13 +632,15 @@ export default function NumberList({
                 className="
                   number-slot
 
-                  rounded-[20px]
+                  rounded-[23px]
 
                   border
                   border-dashed
-                  border-gray-200
+                  border-slate-200/80
 
-                  bg-gray-50/70
+                  bg-slate-50/45
+
+                  max-[560px]:rounded-[18px]
                 "
 
               />
