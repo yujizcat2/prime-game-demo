@@ -199,7 +199,7 @@ export default function BoardStatus({
 
 
         {/* =========================
-            外部只显示活性
+            外部状态
             ========================= */}
 
         <button
@@ -237,7 +237,7 @@ export default function BoardStatus({
               "
             >
 
-              活性
+              {getActivityText()}
 
             </span>
 
@@ -264,18 +264,6 @@ export default function BoardStatus({
           >
 
             {activity}%
-
-          </div>
-
-
-
-          <div
-            className="
-              board-status-activity-caption
-            "
-          >
-
-            {getActivityText()}
 
           </div>
 

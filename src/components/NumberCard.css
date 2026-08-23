@@ -2021,3 +2021,287 @@
       .01ms !important;
   }
 }
+
+/* ============================================================
+   合成预览卡
+   点击即可完成搭配
+   ============================================================ */
+
+.combine-preview-card {
+
+  position:
+    relative;
+
+  padding:
+    0;
+
+  border:
+    2px dashed
+    rgba(96,112,104,.30);
+
+  cursor:
+    pointer;
+
+  font-family:
+    inherit;
+
+  background:
+    rgba(255,255,255,.40);
+
+  box-shadow:
+    inset 0 0 0 1px
+    rgba(255,255,255,.50),
+
+    0 4px 14px
+    rgba(15,23,42,.035);
+
+  -webkit-tap-highlight-color:
+    transparent;
+
+  animation:
+    combinePreviewBreath
+    1.55s
+    ease-in-out
+    infinite;
+
+  transition:
+    transform .16s ease,
+    border-color .16s ease,
+    background .16s ease,
+    box-shadow .16s ease;
+
+}
+
+
+/* 荤 */
+
+.combine-preview-card--meat {
+
+  color:
+    #985739;
+
+  border-color:
+    rgba(217,139,97,.62);
+
+  background:
+    rgba(255,248,241,.72);
+
+}
+
+
+/* 素 */
+
+.combine-preview-card--vegetable {
+
+  color:
+    #477456;
+
+  border-color:
+    rgba(114,170,121,.62);
+
+  background:
+    rgba(244,250,243,.74);
+
+}
+
+
+/* 甜 */
+
+.combine-preview-card--dessert {
+
+  color:
+    #735284;
+
+  border-color:
+    rgba(173,131,183,.60);
+
+  background:
+    rgba(250,244,251,.74);
+
+}
+
+
+/* 默认 */
+
+.combine-preview-card--default {
+
+  color:
+    #64748b;
+
+  border-color:
+    rgba(100,116,139,.48);
+
+}
+
+
+/* ============================================================
+   点击搭配文字
+   ============================================================ */
+
+.combine-preview-action {
+
+  position:
+    absolute;
+
+  left:
+    50%;
+
+  bottom:
+    6px;
+
+  transform:
+    translateX(-50%);
+
+  padding:
+    3px 6px;
+
+  border-radius:
+    999px;
+
+  background:
+    rgba(255,255,255,.72);
+
+  font-size:
+    8px;
+
+  line-height:
+    1;
+
+  font-weight:
+    900;
+
+  letter-spacing:
+    .04em;
+
+  white-space:
+    nowrap;
+
+  opacity:
+    .78;
+
+}
+
+
+/* ============================================================
+   呼吸提示
+   ============================================================ */
+
+@keyframes combinePreviewBreath {
+
+  0%,
+  100% {
+
+    transform:
+      translateY(0)
+      scale(1);
+
+    filter:
+      brightness(1);
+
+  }
+
+
+  50% {
+
+    transform:
+      translateY(-2px)
+      scale(1.018);
+
+    filter:
+      brightness(1.035);
+
+  }
+
+}
+
+
+/* ============================================================
+   Hover
+   ============================================================ */
+
+@media (
+  hover:
+    hover
+) {
+
+  .combine-preview-card:hover {
+
+    transform:
+      translateY(-4px)
+      scale(1.035);
+
+    border-width:
+      2px;
+
+    box-shadow:
+      inset 0 0 0 1px
+      rgba(255,255,255,.72),
+
+      0 8px 18px
+      rgba(15,23,42,.07);
+
+  }
+
+}
+
+
+/* ============================================================
+   点击
+   ============================================================ */
+
+.combine-preview-card:active {
+
+  transform:
+    translateY(1px)
+    scale(.94);
+
+}
+
+
+/* ============================================================
+   Focus
+   ============================================================ */
+
+.combine-preview-card:focus {
+
+  outline:
+    none;
+
+}
+
+
+.combine-preview-card:focus-visible {
+
+  outline:
+    2px solid
+    rgba(59,130,246,.30);
+
+  outline-offset:
+    3px;
+
+}
+
+
+/* ============================================================
+   手机
+   ============================================================ */
+
+@media (
+  max-width:
+    560px
+) {
+
+  .combine-preview-action {
+
+    bottom:
+      4px;
+
+    padding:
+      2px 5px;
+
+    font-size:
+      7px;
+
+  }
+
+}

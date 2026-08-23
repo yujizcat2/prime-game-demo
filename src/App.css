@@ -1,4 +1,10 @@
 /* ============================================================
+   App
+   料理迷宫 · 主界面
+   ============================================================ */
+
+
+/* ============================================================
    页面基础
    ============================================================ */
 
@@ -11,7 +17,7 @@
     #f3f4f1;
 
   padding:
-    20px 16px 64px;
+    16px 16px 60px;
 
 }
 
@@ -52,7 +58,7 @@
     0 4px;
 
   margin-bottom:
-    20px;
+    14px;
 
 }
 
@@ -60,19 +66,22 @@
 .game-header-kicker {
 
   margin-bottom:
-    4px;
+    3px;
 
   font-size:
-    10px;
+    9px;
 
   font-weight:
     700;
 
+  line-height:
+    1;
+
   letter-spacing:
-    .24em;
+    .23em;
 
   color:
-    #9ca3af;
+    #a1a7af;
 
 }
 
@@ -83,7 +92,7 @@
     0;
 
   font-size:
-    26px;
+    25px;
 
   font-weight:
     900;
@@ -92,7 +101,7 @@
     1;
 
   letter-spacing:
-    -.04em;
+    -.045em;
 
   color:
     #1f2937;
@@ -109,19 +118,25 @@
     center;
 
   gap:
-    8px;
+    7px;
+
+  padding-bottom:
+    1px;
 
   font-size:
-    10px;
+    9px;
 
   font-weight:
     700;
+
+  line-height:
+    1;
 
   letter-spacing:
     .12em;
 
   color:
-    #9ca3af;
+    #a5abb2;
 
 }
 
@@ -129,10 +144,10 @@
 .game-header-dot {
 
   width:
-    8px;
+    7px;
 
   height:
-    8px;
+    7px;
 
   border-radius:
     50%;
@@ -148,6 +163,7 @@
 
 /* ============================================================
    顶部状态
+   金钱 / 时间 + 发现
    ============================================================ */
 
 .game-top-status {
@@ -159,7 +175,20 @@
     2fr 1fr;
 
   gap:
-    12px;
+    9px;
+
+  align-items:
+    stretch;
+
+}
+
+
+/* 压缩顶部状态卡整体 */
+
+.game-top-status > * {
+
+  min-height:
+    0;
 
 }
 
@@ -177,13 +206,16 @@
     grid;
 
   grid-template-columns:
-    minmax(0,1fr) 118px;
+    minmax(0,1fr) 112px;
 
   gap:
-    12px;
+    9px;
 
   margin-top:
-    12px;
+    8px;
+
+  align-items:
+    stretch;
 
 }
 
@@ -194,7 +226,7 @@
     0;
 
   height:
-    88px;
+    70px;
 
 }
 
@@ -203,7 +235,7 @@
 
 
 /* ============================================================
-   区域标题
+   普通区域标题
    ============================================================ */
 
 .game-section-header {
@@ -231,11 +263,14 @@
   font-weight:
     800;
 
+  line-height:
+    1;
+
   letter-spacing:
-    .18em;
+    .17em;
 
   color:
-    #9ca3af;
+    #969da6;
 
 }
 
@@ -252,7 +287,12 @@
     10px;
 
   background:
-    rgba(156,163,175,.25);
+    rgba(
+      156,
+      163,
+      175,
+      .23
+    );
 
 }
 
@@ -268,8 +308,14 @@
   font-weight:
     700;
 
+  line-height:
+    1;
+
+  white-space:
+    nowrap;
+
   color:
-    #c1c5cb;
+    #b5bbc2;
 
 }
 
@@ -278,16 +324,158 @@
 
 
 /* ============================================================
-   卡片模式切换
+   主菜台
    ============================================================ */
 
-.game-card-mode-toggle {
+.game-board-section {
 
-  flex-shrink:
-    0;
+  margin-top:
+    22px;
+
+}
+
+
+
+
+
+/* ============================================================
+   主菜台工具栏
+   ============================================================ */
+
+.game-board-toolbar {
+
+  width:
+    100%;
 
   min-height:
-    26px;
+    30px;
+
+  margin-bottom:
+    13px;
+
+  display:
+    grid;
+
+  grid-template-columns:
+    auto 1fr auto;
+
+  align-items:
+    center;
+
+  gap:
+    9px;
+
+}
+
+
+
+
+
+/* ============================================================
+   工具栏左侧
+   ============================================================ */
+
+.game-board-toolbar-left {
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  min-width:
+    0;
+
+}
+
+
+
+
+
+/* ============================================================
+   工具栏中间
+   目前只放处理按钮
+   ============================================================ */
+
+.game-board-toolbar-actions {
+
+  min-width:
+    0;
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    flex-start;
+
+}
+
+
+
+
+
+/* ============================================================
+   工具栏右侧
+   ============================================================ */
+
+.game-board-toolbar-right {
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    flex-end;
+
+  gap:
+    7px;
+
+  min-width:
+    0;
+
+}
+
+
+
+
+
+/* ============================================================
+   Action Toolbar
+   ============================================================ */
+
+.action-toolbar {
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    flex-start;
+
+}
+
+
+
+
+
+/* ============================================================
+   单个处理按钮
+   ============================================================ */
+
+.action-toolbar-button {
+
+  height:
+    27px;
+
+  min-width:
+    52px;
 
   padding:
     0 9px;
@@ -302,24 +490,268 @@
     center;
 
   gap:
-    5px;
+    4px;
 
   border:
     1px solid
-    rgba(100,116,139,.10);
+    rgba(
+      15,
+      23,
+      42,
+      .045
+    );
 
   border-radius:
-    999px;
+    9px;
 
   background:
-    rgba(255,255,255,.54);
+    rgba(
+      255,
+      255,
+      255,
+      .5
+    );
 
-  box-shadow:
-    inset 0 1px 0
-    rgba(255,255,255,.80);
+  font-family:
+    inherit;
+
+  cursor:
+    pointer;
+
+  -webkit-tap-highlight-color:
+    transparent;
+
+  transition:
+    transform .14s ease,
+    background .14s ease,
+    border-color .14s ease,
+    color .14s ease,
+    box-shadow .14s ease;
+
+}
+
+
+
+
+
+/* ============================================================
+   Action图标
+   ============================================================ */
+
+.action-toolbar-icon {
+
+  font-size:
+    11px;
+
+  line-height:
+    1;
+
+  font-weight:
+    900;
+
+}
+
+
+
+
+
+/* ============================================================
+   Action文字
+   ============================================================ */
+
+.action-toolbar-label {
+
+  font-size:
+    9px;
+
+  line-height:
+    1;
+
+  font-weight:
+    800;
+
+  letter-spacing:
+    .02em;
+
+  white-space:
+    nowrap;
+
+}
+
+
+
+
+
+/* ============================================================
+   处理不可用
+   ============================================================ */
+
+.action-toolbar-button--disabled {
 
   color:
-    #7c8593;
+    #c6cbd1;
+
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      .33
+    );
+
+  border-color:
+    rgba(
+      15,
+      23,
+      42,
+      .03
+    );
+
+  box-shadow:
+    none;
+
+  cursor:
+    default;
+
+}
+
+
+
+
+
+/* ============================================================
+   处理可用
+   ============================================================ */
+
+.action-toolbar-button--reduce-active {
+
+  color:
+    #327154;
+
+  background:
+    #eff8f2;
+
+  border-color:
+    rgba(
+      82,
+      145,
+      105,
+      .22
+    );
+
+  box-shadow:
+    0 3px 9px
+    rgba(
+      82,
+      145,
+      105,
+      .09
+    );
+
+}
+
+
+
+
+
+/* ============================================================
+   Action Hover
+   ============================================================ */
+
+@media (
+  hover:
+    hover
+) {
+
+  .action-toolbar-button:not(:disabled):hover {
+
+    transform:
+      translateY(-1px);
+
+  }
+
+}
+
+
+
+
+
+/* ============================================================
+   Action按下
+   ============================================================ */
+
+.action-toolbar-button:not(:disabled):active {
+
+  transform:
+    scale(.95);
+
+}
+
+
+
+
+
+/* ============================================================
+   卡片显示模式切换
+   ============================================================ */
+
+.game-card-mode-toggle {
+
+  flex-shrink:
+    0;
+
+  min-height:
+    27px;
+
+  padding:
+    0 8px;
+
+  display:
+    inline-flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  gap:
+    4px;
+
+  border:
+    1px solid
+    rgba(
+      100,
+      116,
+      139,
+      .09
+    );
+
+  border-radius:
+    9px;
+
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      .5
+    );
+
+  box-shadow:
+    inset
+    0
+    1px
+    0
+    rgba(
+      255,
+      255,
+      255,
+      .78
+    );
+
+  color:
+    #7d8692;
 
   font-family:
     inherit;
@@ -354,8 +786,11 @@
   font-weight:
     800;
 
+  line-height:
+    1;
+
   letter-spacing:
-    .08em;
+    .04em;
 
 }
 
@@ -363,13 +798,13 @@
 .game-card-mode-toggle-icon {
 
   font-size:
-    11px;
+    10px;
 
   line-height:
     1;
 
   color:
-    #a3aab4;
+    #a5abb3;
 
 }
 
@@ -378,76 +813,68 @@
 
 
 /* ============================================================
-   主菜台
+   主菜盘
+   核心区域拉长
    ============================================================ */
-
-.game-board-section {
-
-  margin-top:
-    30px;
-
-}
-
-
-.game-board-section-header {
-
-  margin-bottom:
-    12px;
-
-}
-
-
-
-
-
-/* ============================================================
-   主菜盘 + 操作
-   ============================================================ */
-
-.game-board-control-row {
-
-  display:
-    grid;
-
-  grid-template-columns:
-    minmax(0,1fr) 68px;
-
-  gap:
-    6px;
-
-  align-items:
-    center;
-
-}
-
 
 .game-board {
 
   position:
     relative;
 
+  width:
+    100%;
+
   min-width:
     0;
 
+  min-height:
+    248px;
+
   padding:
-    28px 16px 26px;
-
-  border-radius:
-    30px;
-
-  background:
-    rgba(255,255,255,.42);
+    35px 16px 35px;
 
   border:
     1px solid
-    rgba(15,23,42,.035);
+    rgba(
+      15,
+      23,
+      42,
+      .035
+    );
+
+  border-radius:
+    31px;
+
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      .43
+    );
 
   box-shadow:
-    inset 0 1px 0
-    rgba(255,255,255,.72);
+    inset
+    0
+    1px
+    0
+    rgba(
+      255,
+      255,
+      255,
+      .76
+    );
 
 }
 
+
+
+
+
+/* ============================================================
+   主菜盘顶部小把手
+   ============================================================ */
 
 .game-board::before {
 
@@ -458,13 +885,13 @@
     absolute;
 
   top:
-    12px;
+    13px;
 
   left:
     50%;
 
   width:
-    36px;
+    38px;
 
   height:
     3px;
@@ -473,7 +900,7 @@
     999px;
 
   background:
-    #e5e7eb;
+    #e3e6e3;
 
   transform:
     translateX(-50%);
@@ -481,19 +908,45 @@
 }
 
 
-.game-board-actions {
 
-  min-width:
-    0;
 
-  display:
-    flex;
 
-  align-items:
-    center;
+/* ============================================================
+   主菜盘底部微弱环境光
+   ============================================================ */
 
-  justify-content:
-    center;
+.game-board::after {
+
+  content:
+    "";
+
+  position:
+    absolute;
+
+  left:
+    12%;
+
+  right:
+    12%;
+
+  bottom:
+    13px;
+
+  height:
+    28px;
+
+  border-radius:
+    50%;
+
+  background:
+    radial-gradient(
+      ellipse,
+      rgba(99,126,107,.035),
+      transparent 72%
+    );
+
+  pointer-events:
+    none;
 
 }
 
@@ -508,7 +961,7 @@
 .game-seasoning-section {
 
   margin-top:
-    28px;
+    24px;
 
 }
 
@@ -516,7 +969,7 @@
 .game-seasoning-section-header {
 
   margin-bottom:
-    12px;
+    10px;
 
 }
 
@@ -530,7 +983,7 @@
     0;
 
   padding:
-    2px 0;
+    1px 0;
 
 }
 
@@ -551,10 +1004,15 @@
     1px;
 
   margin-top:
-    32px;
+    28px;
 
   background:
-    rgba(156,163,175,.22);
+    rgba(
+      156,
+      163,
+      175,
+      .20
+    );
 
 }
 
@@ -567,21 +1025,35 @@
    ============================================================ */
 
 @media (
-  max-width: 480px
+  max-width:
+    480px
 ) {
 
   .game-page {
 
     padding:
-      18px 14px 56px;
+      13px 12px 50px;
 
   }
 
 
+
+  /* =========================
+     顶部标题压缩
+     ========================= */
+
   .game-header {
 
     margin-bottom:
-      18px;
+      11px;
+
+  }
+
+
+  .game-header-kicker {
+
+    font-size:
+      8px;
 
   }
 
@@ -589,26 +1061,62 @@
   .game-header-title {
 
     font-size:
-      24px;
+      23px;
 
   }
 
+
+  .game-header-status {
+
+    font-size:
+      8px;
+
+  }
+
+
+  .game-header-dot {
+
+    width:
+      6px;
+
+    height:
+      6px;
+
+  }
+
+
+
+
+
+  /* =========================
+     顶部状态
+     ========================= */
 
   .game-top-status {
 
     gap:
-      10px;
+      8px;
 
   }
 
 
+
+
+
+  /* =========================
+     Tips + 活性压缩
+     ========================= */
+
   .game-info-row {
 
     grid-template-columns:
-      minmax(0,1fr) 112px;
+      minmax(0,1fr) 104px;
+
+    margin-top:
+      7px;
 
     gap:
-      10px;
+      8px;
 
   }
 
@@ -616,48 +1124,126 @@
   .game-info-item {
 
     height:
-      86px;
+      65px;
 
   }
 
+
+
+
+
+  /* =========================
+     主菜台
+     ========================= */
 
   .game-board-section {
 
     margin-top:
-      26px;
+      19px;
 
   }
 
 
-  .game-board-control-row {
 
-    grid-template-columns:
-      minmax(0,1fr) 60px;
+
+
+  /* =========================
+     工具栏
+     ========================= */
+
+  .game-board-toolbar {
+
+    min-height:
+      28px;
+
+    margin-bottom:
+      11px;
 
     gap:
-      4px;
+      6px;
 
   }
 
 
-  .game-board {
+  .game-board-toolbar-actions {
+
+    justify-content:
+      flex-start;
+
+  }
+
+
+  .game-board-toolbar-right {
+
+    gap:
+      5px;
+
+  }
+
+
+
+
+
+  /* =========================
+     处理按钮
+     ========================= */
+
+  .action-toolbar-button {
+
+    min-width:
+      46px;
+
+    height:
+      25px;
 
     padding:
-      26px 12px 24px;
+      0 6px;
+
+    gap:
+      3px;
 
     border-radius:
-      26px;
+      8px;
 
   }
 
+
+  .action-toolbar-icon {
+
+    font-size:
+      10px;
+
+  }
+
+
+  .action-toolbar-label {
+
+    font-size:
+      8px;
+
+  }
+
+
+
+
+
+  /* =========================
+     模式切换
+     ========================= */
 
   .game-card-mode-toggle {
 
     min-height:
-      24px;
+      25px;
 
     padding:
-      0 7px;
+      0 6px;
+
+    border-radius:
+      8px;
+
+    gap:
+      3px;
 
   }
 
@@ -670,10 +1256,10 @@
   }
 
 
-  .game-seasoning-section {
+  .game-card-mode-toggle-icon {
 
-    margin-top:
-      24px;
+    font-size:
+      9px;
 
   }
 
@@ -686,6 +1272,69 @@
 
   }
 
+
+
+
+
+  /* =========================
+     手机主菜盘拉长
+     ========================= */
+
+  .game-board {
+
+    min-height:
+      215px;
+
+    padding:
+      32px 10px 31px;
+
+    border-radius:
+      27px;
+
+  }
+
+
+  .game-board::before {
+
+    top:
+      12px;
+
+    width:
+      34px;
+
+  }
+
+
+
+
+
+  /* =========================
+     调料
+     ========================= */
+
+  .game-seasoning-section {
+
+    margin-top:
+      21px;
+
+  }
+
+
+  .game-seasoning-section-header {
+
+    margin-bottom:
+      9px;
+
+  }
+
+
+  .game-collection-divider {
+
+    margin-top:
+      25px;
+
+  }
+
 }
 
 
@@ -693,28 +1342,209 @@
 
 
 /* ============================================================
-   宽屏
+   极窄手机
    ============================================================ */
 
 @media (
-  min-width: 640px
+  max-width:
+    390px
 ) {
 
-  .game-info-row {
+  .game-page {
 
-    grid-template-columns:
-      minmax(0,1fr) 140px;
+    padding-left:
+      10px;
+
+    padding-right:
+      10px;
 
   }
 
 
-  .game-board-control-row {
+  .game-board-toolbar {
 
     grid-template-columns:
-      minmax(0,1fr) 72px;
+      auto 1fr auto;
 
     gap:
+      5px;
+
+  }
+
+
+  .action-toolbar-button {
+
+    min-width:
+      42px;
+
+    padding:
+      0 5px;
+
+  }
+
+
+  .game-card-mode-toggle {
+
+    padding:
+      0 5px;
+
+  }
+
+
+  .game-section-count {
+
+    font-size:
       8px;
+
+  }
+
+
+  .game-board {
+
+    min-height:
+      208px;
+
+    padding-left:
+      8px;
+
+    padding-right:
+      8px;
+
+  }
+
+}
+
+
+
+
+
+/* ============================================================
+   中等及以上屏幕
+   ============================================================ */
+
+@media (
+  min-width:
+    640px
+) {
+
+  .game-page {
+
+    padding-top:
+      18px;
+
+  }
+
+
+  .game-info-row {
+
+    grid-template-columns:
+      minmax(0,1fr) 126px;
+
+  }
+
+
+  .game-info-item {
+
+    height:
+      72px;
+
+  }
+
+
+  .game-board {
+
+    min-height:
+      270px;
+
+    padding-top:
+      38px;
+
+    padding-bottom:
+      38px;
+
+  }
+
+
+  .action-toolbar-button {
+
+    min-width:
+      54px;
+
+  }
+
+}
+
+
+
+
+
+/* ============================================================
+   矮屏设备
+   ============================================================ */
+
+@media (
+  max-height:
+    700px
+) {
+
+  .game-page {
+
+    padding-top:
+      10px;
+
+  }
+
+
+  .game-header {
+
+    margin-bottom:
+      9px;
+
+  }
+
+
+  .game-info-row {
+
+    margin-top:
+      6px;
+
+  }
+
+
+  .game-info-item {
+
+    height:
+      62px;
+
+  }
+
+
+  .game-board-section {
+
+    margin-top:
+      16px;
+
+  }
+
+
+  .game-board {
+
+    min-height:
+      195px;
+
+    padding-top:
+      29px;
+
+    padding-bottom:
+      27px;
+
+  }
+
+
+  .game-seasoning-section {
+
+    margin-top:
+      18px;
 
   }
 

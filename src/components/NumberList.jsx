@@ -85,13 +85,17 @@ function getFoodName(
 
 export default function NumberList({
 
-  numbers,
+  numbers = [],
 
-  selected,
+  selected = [],
 
   onSelect,
 
-  preview,
+  onCombine,
+
+  onRemoveOne,
+
+  preview = null,
 
   collection = [],
 
@@ -103,6 +107,7 @@ export default function NumberList({
 
 
   const slots =
+
     Array.from({
 
       length: 10
@@ -111,10 +116,37 @@ export default function NumberList({
 
 
 
+  const selectedIds =
+
+    Array.isArray(
+      selected
+    )
+
+      ? selected
+
+      : [];
+
+
+
+  const selectedItems =
+
+    numbers.filter(
+
+      item =>
+
+        selectedIds.includes(
+          item.id
+        )
+
+    );
+
+
+
 
 
   // ==========================================================
-  // 单选时潜在约分候选
+  // 单选后：
+  // 可以潜在约分的数字
   // ==========================================================
 
   const reduceCandidateIds =
@@ -123,65 +155,51 @@ export default function NumberList({
 
 
   if(
-    selected.length === 1
+    selectedItems.length === 1
   ){
 
 
     const selectedItem =
-
-      numbers.find(
-
-        item =>
-          item.id === selected[0]
-
-      );
+      selectedItems[0];
 
 
-
-    if(
-      selectedItem
-    ){
+    numbers.forEach(
+      item => {
 
 
-      numbers.forEach(
-        item => {
+        if(
+          item.id === selectedItem.id
+        ){
 
-
-          if(
-            item.id === selectedItem.id
-          ){
-
-            return;
-
-          }
-
-
-          const divisor =
-
-            gcd(
-
-              selectedItem.value,
-
-              item.value
-
-            );
-
-
-          if(
-            divisor > 1
-          ){
-
-            reduceCandidateIds.add(
-              item.id
-            );
-
-          }
-
+          return;
 
         }
-      );
 
-    }
+
+        const divisor =
+
+          gcd(
+
+            selectedItem.value,
+
+            item.value
+
+          );
+
+
+        if(
+          divisor > 1
+        ){
+
+          reduceCandidateIds.add(
+            item.id
+          );
+
+        }
+
+
+      }
+    );
 
   }
 
@@ -198,28 +216,16 @@ export default function NumberList({
 
 
   if(
-    selected.length === 2
+    selectedItems.length === 2
   ){
 
 
     const firstItem =
-
-      numbers.find(
-
-        item =>
-          item.id === selected[0]
-
-      );
+      selectedItems[0];
 
 
     const secondItem =
-
-      numbers.find(
-
-        item =>
-          item.id === selected[1]
-
-      );
+      selectedItems[1];
 
 
 
@@ -306,7 +312,8 @@ export default function NumberList({
 
 
             // ==================================================
-            // 合成预览位置
+            // 合成预览
+            // 点击即可完成搭配
             // ==================================================
 
             if(
@@ -321,22 +328,27 @@ export default function NumberList({
 
 
               const combineValue =
+
                 preview.combine.value;
 
 
               const foodType =
+
                 preview.combine.foodType;
 
 
               const isMeat =
+
                 foodType === "meat";
 
 
               const isVegetable =
+
                 foodType === "vegetable";
 
 
               const isDessert =
+
                 foodType === "dessert";
 
 
@@ -354,14 +366,31 @@ export default function NumberList({
 
               return (
 
-                <div
+                <button
 
                   key={
                     `preview-${index}`
                   }
 
+                  type="button"
+
+                  onClick={() => {
+
+
+                    if(
+                      typeof onCombine === "function"
+                    ){
+
+                      onCombine();
+
+                    }
+
+                  }}
+
                   className={`
                     number-slot
+
+                    combine-preview-card
 
                     relative
 
@@ -373,43 +402,38 @@ export default function NumberList({
 
                     overflow-hidden
 
-                    border
-                    border-dashed
-
-                    combine-preview-slot
-
                     ${
                       isVegetable
 
-                        ? `
-                          border-emerald-300/65
-                          bg-emerald-50/35
-                          text-emerald-700
-                        `
+                        ?
 
-                        : isMeat
+                        "combine-preview-card--vegetable"
 
-                        ? `
-                          border-orange-300/65
-                          bg-orange-50/35
-                          text-orange-700
-                        `
+                        :
 
-                        : isDessert
+                      isMeat
 
-                        ? `
-                          border-violet-300/65
-                          bg-violet-50/35
-                          text-violet-700
-                        `
+                        ?
 
-                        : `
-                          border-gray-300/65
-                          bg-gray-50/35
-                          text-gray-500
-                        `
+                        "combine-preview-card--meat"
+
+                        :
+
+                      isDessert
+
+                        ?
+
+                        "combine-preview-card--dessert"
+
+                        :
+
+                        "combine-preview-card--default"
                     }
                   `}
+
+                  aria-label={
+                    `点击搭配 ${foodName ?? combineValue}`
+                  }
 
                 >
 
@@ -426,7 +450,7 @@ export default function NumberList({
 
                       font-black
 
-                      opacity-50
+                      opacity-60
 
                       max-[560px]:top-[7px]
                       max-[560px]:left-[8px]
@@ -454,7 +478,7 @@ export default function NumberList({
 
                       tracking-[-0.06em]
 
-                      opacity-75
+                      opacity-85
 
                       max-[720px]:text-[19px]
                       max-[560px]:text-[17px]
@@ -469,33 +493,17 @@ export default function NumberList({
 
 
                   <span
-
                     className="
-                      absolute
-
-                      bottom-[7px]
-
-                      left-1/2
-
-                      -translate-x-1/2
-
-                      text-[7px]
-
-                      font-bold
-
-                      tracking-[0.16em]
-
-                      opacity-35
+                      combine-preview-action
                     "
-
                   >
 
-                    三拼
+                    点击搭配
 
                   </span>
 
 
-                </div>
+                </button>
 
               );
 
@@ -504,6 +512,10 @@ export default function NumberList({
 
 
 
+
+            // ==================================================
+            // 正式料理
+            // ==================================================
 
             if(
               item
@@ -525,14 +537,18 @@ export default function NumberList({
                 item.value === 1 &&
                 item.origin?.type === "reduce"
 
-                  ? (
-                      item.origin
-                        .parent
-                        ?.value
-                      ?? null
-                    )
+                  ?
 
-                  : null;
+                  (
+                    item.origin
+                      ?.parent
+                      ?.value
+                    ?? null
+                  )
+
+                  :
+
+                  null;
 
 
 
@@ -608,7 +624,7 @@ export default function NumberList({
                   }
 
                   selected={
-                    selected.includes(
+                    selectedIds.includes(
                       item.id
                     )
                   }
@@ -623,11 +639,52 @@ export default function NumberList({
                     displayMode
                   }
 
-                  onClick={() =>
-                    onSelect(
-                      item.id
-                    )
-                  }
+                  onClick={() => {
+
+
+                    // =========================
+                    // 1
+                    // 直接获取调料
+                    // =========================
+
+                    if(
+                      item.value === 1
+                    ){
+
+
+                      if(
+                        typeof onRemoveOne === "function"
+                      ){
+
+                        onRemoveOne(
+                          item.id
+                        );
+
+                      }
+
+
+                      return;
+
+                    }
+
+
+
+                    // =========================
+                    // 普通料理
+                    // 正常选择
+                    // =========================
+
+                    if(
+                      typeof onSelect === "function"
+                    ){
+
+                      onSelect(
+                        item.id
+                      );
+
+                    }
+
+                  }}
 
                   reducePreview={
                     reducePreviewMap[

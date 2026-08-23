@@ -8,8 +8,20 @@ export default function Discovery({
 }) {
 
 
-  const count =
-    collection.length;
+  // =========================
+  // 当前发现数量
+  // =========================
+
+  const discoveredCount =
+
+    Array.isArray(
+      collection
+    )
+
+      ? collection.length
+
+      : 0;
+
 
 
   return (
@@ -21,69 +33,26 @@ export default function Discovery({
     >
 
 
-      <div
+      <span
         className="
           discovery-label
         "
       >
 
-        DISCOVERY
+        探索
 
-      </div>
+      </span>
 
 
-
-      <div
+      <strong
         className="
-          discovery-main
+          discovery-value
         "
       >
 
+        {discoveredCount}
 
-        <div
-          className="
-            discovery-value
-          "
-        >
-
-          {count}
-
-        </div>
-
-
-
-        <div
-          className="
-            discovery-unit
-          "
-        >
-
-          探索度
-
-        </div>
-
-
-      </div>
-
-
-
-      <div
-        className="
-          discovery-line
-        "
-      />
-
-
-
-      <div
-        className="
-          discovery-footer
-        "
-      >
-
-        本局探索
-
-      </div>
+      </strong>
 
 
     </div>

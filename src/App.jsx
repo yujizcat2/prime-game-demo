@@ -30,26 +30,12 @@ function App() {
 
 
 
-  // =========================
-  // 卡片显示模式
-  //
-  // food
-  // 菜名大 / 数字小
-  //
-  // number
-  // 数字大 / 菜名小
-  // =========================
-
   const [
     cardDisplayMode,
     setCardDisplayMode
   ] = useState("food");
 
 
-
-  // =========================
-  // 正在消除的数字
-  // =========================
 
   const [
     removingId,
@@ -58,31 +44,42 @@ function App() {
 
 
 
+
+
   // =========================
-  // 消除动画
+  // 获取调料动画
   // =========================
 
   function handleRemoveOne(id) {
 
 
-    if (
+    if(
       removingId !== null
-    ) {
+    ){
 
       return;
 
     }
 
 
-    setRemovingId(id);
+    setRemovingId(
+      id
+    );
 
 
     window.setTimeout(
       () => {
 
-        game.removeOne(id);
 
-        setRemovingId(null);
+        game.removeOne(
+          id
+        );
+
+
+        setRemovingId(
+          null
+        );
+
 
       },
       300
@@ -95,7 +92,7 @@ function App() {
 
 
   // =========================
-  // 切换卡片显示模式
+  // 卡片显示模式
   // =========================
 
   function toggleCardDisplayMode() {
@@ -120,12 +117,12 @@ function App() {
 
 
   // =========================
-  // 开始界面
+  // 开始
   // =========================
 
-  if (
+  if(
     !game.started
-  ) {
+  ){
 
     return (
 
@@ -145,14 +142,14 @@ function App() {
 
 
 
-  // =========================
-  // 活性状态
-  // =========================
-
   const activityStatus =
+
     getActivityStatus(
+
       game.numbers,
+
       game.primeDensity
+
     );
 
 
@@ -177,7 +174,7 @@ function App() {
 
 
         {/* =========================
-            顶部标题
+            标题
             ========================= */}
 
         <header
@@ -245,7 +242,7 @@ function App() {
 
 
         {/* =========================
-            顶部状态
+            金钱 + 时间
             ========================= */}
 
         <section
@@ -266,7 +263,6 @@ function App() {
             }
 
           />
-
 
 
           <Discovery
@@ -405,169 +401,45 @@ function App() {
 
           <div
             className="
-              game-section-header
-              game-board-section-header
+              game-board-toolbar
             "
           >
 
 
-            <div
-              className="
-                game-section-title
-              "
-            >
-
-              主菜台
-
-            </div>
-
-
+            {/* 左侧 */}
 
             <div
               className="
-                game-section-line
+                game-board-toolbar-left
               "
-            />
-
-
-
-            {/* =====================
-                卡片模式切换
-                ===================== */}
-
-            <button
-
-              type="button"
-
-              className="
-                game-card-mode-toggle
-              "
-
-              onClick={
-                toggleCardDisplayMode
-              }
-
-              aria-label="切换主菜卡显示模式"
-
             >
 
-
-              <span
+              <div
                 className="
-                  game-card-mode-toggle-label
+                  game-section-title
                 "
               >
 
-                {
-                  cardDisplayMode === "food"
+                主菜台
 
-                    ? "料理"
-
-                    : "数字"
-                }
-
-              </span>
-
-
-              <span
-                className="
-                  game-card-mode-toggle-icon
-                "
-              >
-
-                ⇄
-
-              </span>
-
-
-            </button>
-
-
-
-            <div
-              className="
-                game-section-count
-              "
-            >
-
-              {game.numbers.length}
-              {" / "}
-              10
-
-            </div>
-
-
-          </div>
-
-
-
-
-
-          {/* =========================
-              主菜盘 + 操作
-              ========================= */}
-
-          <div
-            className="
-              game-board-control-row
-            "
-          >
-
-
-            <div
-              className="
-                game-board
-              "
-            >
-
-              <NumberList
-
-                numbers={
-                  game.numbers
-                }
-
-                selected={
-                  game.selected
-                }
-
-                preview={
-                  game.preview
-                }
-
-                onSelect={
-                  game.selectNumber
-                }
-
-                collection={
-                  game.collection
-                }
-
-                removingId={
-                  removingId
-                }
-
-                displayMode={
-                  cardDisplayMode
-                }
-
-              />
+              </div>
 
             </div>
 
 
 
+            {/* 中间：
+                现在只剩处理
+            */}
+
             <div
               className="
-                game-board-actions
+                game-board-toolbar-actions
               "
             >
 
               <ActionButtons
 
-                numbers={
-                  game.numbers
-                }
-
                 selected={
                   game.selected
                 }
@@ -576,16 +448,8 @@ function App() {
                   game.preview
                 }
 
-                onCombine={
-                  game.combineNumbers
-                }
-
                 onReduce={
                   game.reduceNumbers
-                }
-
-                onRemoveOne={
-                  handleRemoveOne
                 }
 
                 gameOver={
@@ -600,6 +464,137 @@ function App() {
 
             </div>
 
+
+
+            {/* 右侧 */}
+
+            <div
+              className="
+                game-board-toolbar-right
+              "
+            >
+
+
+              <button
+
+                type="button"
+
+                className="
+                  game-card-mode-toggle
+                "
+
+                onClick={
+                  toggleCardDisplayMode
+                }
+
+                aria-label="切换主菜卡显示模式"
+
+              >
+
+
+                <span
+                  className="
+                    game-card-mode-toggle-label
+                  "
+                >
+
+                  {
+                    cardDisplayMode === "food"
+
+                      ? "料理"
+
+                      : "数字"
+                  }
+
+                </span>
+
+
+                <span
+                  className="
+                    game-card-mode-toggle-icon
+                  "
+                >
+
+                  ⇄
+
+                </span>
+
+
+              </button>
+
+
+
+              <div
+                className="
+                  game-section-count
+                "
+              >
+
+                {game.numbers.length}
+                {" / "}
+                10
+
+              </div>
+
+
+            </div>
+
+
+          </div>
+
+
+
+
+
+          {/* =========================
+              主菜盘
+              ========================= */}
+
+          <div
+            className="
+              game-board
+            "
+          >
+
+            <NumberList
+
+              numbers={
+                game.numbers
+              }
+
+              selected={
+                game.selected
+              }
+
+              preview={
+                game.preview
+              }
+
+              onSelect={
+                game.selectNumber
+              }
+
+              onCombine={
+                game.combineNumbers
+              }
+
+              onRemoveOne={
+                handleRemoveOne
+              }
+
+              collection={
+                game.collection
+              }
+
+              removingId={
+                removingId
+              }
+
+              displayMode={
+                cardDisplayMode
+              }
+
+            />
 
           </div>
 

@@ -1,23 +1,13 @@
-import {
-  GAME_CONFIG
-} from "../game/config";
-
 import "./ActionButtons.css";
 
 
 export default function ActionButtons({
 
-  numbers,
-
-  selected,
+  selected = [],
 
   preview,
 
-  onCombine,
-
   onReduce,
-
-  onRemoveOne,
 
   gameOver,
 
@@ -28,21 +18,6 @@ export default function ActionButtons({
 
   const busy =
     removingId !== null;
-
-
-
-  const canCombine =
-
-    !gameOver &&
-
-    !busy &&
-
-    selected.length === 2 &&
-
-    !!preview?.combine &&
-
-    numbers.length <
-      GAME_CONFIG.MAX_NUMBERS;
 
 
 
@@ -58,298 +33,71 @@ export default function ActionButtons({
 
 
 
-  const selectedNumber =
-
-    selected.length === 1
-
-      ?
-
-      numbers.find(
-
-        item =>
-          item.id === selected[0]
-
-      )
-
-      :
-
-      null;
-
-
-
-  const canRemoveOne =
-
-    !gameOver &&
-
-    !busy &&
-
-    selected.length === 1 &&
-
-    selectedNumber?.value === 1;
-
-
-
   return (
 
     <div
       className="
-        action-controls
+        action-toolbar
       "
     >
 
 
-      <div
-        className="
-          action-controls-list
-        "
-      >
+      <button
 
+        type="button"
 
+        onClick={
+          canReduce
+            ? onReduce
+            : undefined
+        }
 
-        {/* =========================
-            搭配
-            ========================= */}
+        disabled={
+          !canReduce
+        }
 
-        <button
+        className={`
+          action-toolbar-button
 
-          type="button"
-
-          onClick={
-            canCombine
-              ? onCombine
-              : undefined
-          }
-
-          disabled={
-            !canCombine
-          }
-
-          className={`
-            action-node
-            action-node-combine
-
-            ${
-              canCombine
-                ? "is-active"
-                : "is-disabled"
-            }
-          `}
-
-        >
-
-
-          <span
-            className="
-              action-node-core
-            "
-          >
-
-            <span
-              className="
-                action-node-icon
-              "
-            >
-
-              ＋
-
-            </span>
-
-          </span>
-
-
-          <span
-            className="
-              action-node-label
-            "
-          >
-
-            搭配
-
-          </span>
-
-
-        </button>
-
-
-
-
-
-        {/* =========================
-            处理
-            ========================= */}
-
-        <button
-
-          type="button"
-
-          onClick={
+          ${
             canReduce
-              ? onReduce
-              : undefined
-          }
-
-          disabled={
-            !canReduce
-          }
-
-          className={`
-            action-node
-            action-node-reduce
-
-            ${
-              canReduce
-                ? "is-active"
-                : "is-disabled"
-            }
-          `}
-
-        >
-
-
-          <span
-            className="
-              action-node-core
-            "
-          >
-
-            <span
-              className="
-                action-node-icon
-              "
-            >
-
-              ↓
-
-            </span>
-
-          </span>
-
-
-          <span
-            className="
-              action-node-label
-            "
-          >
-
-            处理
-
-          </span>
-
-
-        </button>
-
-
-
-
-
-        {/* =========================
-            获取调料
-            ========================= */}
-
-        <button
-
-          type="button"
-
-          onClick={
-
-            canRemoveOne
 
               ?
 
-              () =>
-                onRemoveOne(
-                  selected[0]
-                )
+              "action-toolbar-button--reduce-active"
 
               :
 
-              undefined
-
+              "action-toolbar-button--disabled"
           }
+        `}
 
-          disabled={
-            !canRemoveOne
-          }
+      >
 
-          className={`
-            action-node
-            action-node-seasoning
 
-            ${
-              canRemoveOne
-                ? "is-active"
-                : "is-disabled"
-            }
-          `}
-
+        <span
+          className="
+            action-toolbar-icon
+          "
         >
 
+          ↓
 
-          <span
-            className="
-              action-node-core
-            "
-          >
-
-            <span
-              className="
-                action-node-icon
-                action-node-icon-small
-              "
-            >
-
-              ◇
-
-            </span>
-
-          </span>
+        </span>
 
 
-          <span
-            className="
-              action-node-label
-              action-node-label-small
-            "
-          >
+        <span
+          className="
+            action-toolbar-label
+          "
+        >
 
-            获取调料
+          处理
 
-          </span>
-
-
-        </button>
+        </span>
 
 
-      </div>
-
-
-
-
-
-      {/* =========================
-          满格提示
-          ========================= */}
-
-      {
-
-        numbers.length >=
-        GAME_CONFIG.MAX_NUMBERS && (
-
-          <div
-            className="
-              action-capacity-warning
-            "
-          >
-
-            操作台已满
-            <br />
-            先处理食材
-
-          </div>
-
-        )
-
-      }
+      </button>
 
 
     </div>
