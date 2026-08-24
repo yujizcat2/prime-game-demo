@@ -13,25 +13,46 @@ import {
 // ============================================================
 // Collection Rules
 //
-// V0 Unified
+// V1-B 基础阶段
 //
-// 同时兼容：
+// 当前仍保持原有收藏规则不变。
 //
-// 1. 正式 Game Engine
+// 新增 / 更新：
 //
-//    collection = Array
-//    来源 = piece.origin.parent
+// 1. collectionTypeHistory
+// 2. 最近6个新收藏的三系平衡计算
 //
-// 2. Simulation Engine
+// 三系：
 //
-//    collection = Set
-//    来源 = piece.previousValue
+// meat
+// vegetable
+// seasoning
+//
+// dessert 暂时作为特殊类型，
+// 不参与三系计数。
 //
 // ------------------------------------------------------------
 //
-// 当前版本只统一架构。
-// 不改变任何收藏规则。
+// 当前 balance 只是“状态指标”。
+// 暂时不会：
+//
+// - 禁止收藏
+// - 修改得分
+// - 修改合法动作
+// - 修改棋盘
+//
 // ============================================================
+
+
+
+
+
+// ============================================================
+// 三系平衡观察窗口
+// ============================================================
+
+export const COLLECTION_BALANCE_WINDOW =
+  6;
 
 
 
@@ -80,14 +101,6 @@ function isSimulationCollectionState(
 
 // ============================================================
 // 获取正式游戏收藏来源记录
-//
-// 正式游戏：
-//
-// 1
-// ↓
-// origin.type === "reduce"
-// ↓
-// origin.parent
 // ============================================================
 
 export function getCollectionRecord(
@@ -138,12 +151,10 @@ export function getCollectionRecord(
 // ============================================================
 // 获取收藏值
 //
-// 同时兼容：
-//
-// 正式游戏
+// 正式游戏：
 // origin.parent.value
 //
-// Simulation
+// Simulation：
 // previousValue
 // ============================================================
 
@@ -166,10 +177,6 @@ export function getCollectionValue(
 
 
 
-  // ==========================================================
-  // 正式游戏
-  // ==========================================================
-
   const record =
 
     getCollectionRecord(
@@ -190,10 +197,6 @@ export function getCollectionValue(
 
 
 
-
-  // ==========================================================
-  // Simulation
-  // ==========================================================
 
   if(
     piece.previousValue != null
@@ -219,7 +222,7 @@ export function getCollectionValue(
 // ============================================================
 // 是否能够形成收藏
 //
-// V0 不增加任何新资格。
+// V1-B 当前不增加额外收藏资格。
 // ============================================================
 
 export function canCollect(
@@ -273,15 +276,404 @@ export function canCollect(
 
 
 // ============================================================
+// 获取收藏类型历史
+// ============================================================
+
+export function getCollectionTypeHistory(
+  state
+){
+
+
+  if(
+    !Array.isArray(
+      state?.collectionTypeHistory
+    )
+  ){
+
+
+    return [];
+
+  }
+
+
+
+  return [
+
+    ...state.collectionTypeHistory
+
+  ];
+
+}
+
+
+
+
+
+// ============================================================
+// 计算最近收藏的三系平衡状态
+//
+// ------------------------------------------------------------
+//
+// 最近6个首次新收藏。
+//
+// 统计：
+//
+// meat
+// vegetable
+// seasoning
+//
+// dessert：
+//
+// 会占据窗口位置，
+// 但不计入三系数量。
+//
+// ------------------------------------------------------------
+//
+// imbalance：
+//
+// maxCount - minCount
+//
+// ------------------------------------------------------------
+//
+// 例1：
+//
+// meat       = 2
+// vegetable  = 2
+// seasoning  = 2
+//
+// imbalance = 0
+//
+// ------------------------------------------------------------
+//
+// 例2：
+//
+// meat       = 3
+// vegetable  = 2
+// seasoning  = 1
+//
+// imbalance = 2
+//
+// ------------------------------------------------------------
+//
+// 例3：
+//
+// dessert x6
+//
+// meat       = 0
+// vegetable  = 0
+// seasoning  = 0
+//
+// imbalance   = 0
+// regularCount = 0
+//
+// 这不是“真正平衡”，
+// 所以后续 AI / 防御规则必须同时看 regularCount。
+// ============================================================
+
+export function getCollectionBalanceState(
+  state
+){
+
+
+  const history =
+
+    getCollectionTypeHistory(
+      state
+    );
+
+
+
+  const recent =
+
+    history.slice(
+      -COLLECTION_BALANCE_WINDOW
+    );
+
+
+
+  let meatCount =
+    0;
+
+
+  let vegetableCount =
+    0;
+
+
+  let seasoningCount =
+    0;
+
+
+  let dessertCount =
+    0;
+
+
+
+  for(
+    const foodType
+    of recent
+  ){
+
+
+    if(
+      foodType === "meat"
+    ){
+
+
+      meatCount++;
+
+    }
+
+
+
+    else if(
+      foodType ===
+      "vegetable"
+    ){
+
+
+      vegetableCount++;
+
+    }
+
+
+
+    else if(
+      foodType ===
+      "seasoning"
+    ){
+
+
+      seasoningCount++;
+
+    }
+
+
+
+    else if(
+      foodType ===
+      "dessert"
+    ){
+
+
+      dessertCount++;
+
+    }
+
+  }
+
+
+
+
+
+  const regularCount =
+
+    meatCount
+
+    +
+
+    vegetableCount
+
+    +
+
+    seasoningCount;
+
+
+
+
+
+  const counts = [
+
+    meatCount,
+
+    vegetableCount,
+
+    seasoningCount
+
+  ];
+
+
+
+  const maxCount =
+
+    Math.max(
+      ...counts
+    );
+
+
+
+  const minCount =
+
+    Math.min(
+      ...counts
+    );
+
+
+
+  const imbalance =
+
+    maxCount -
+    minCount;
+
+
+
+
+
+  // ==========================================================
+  // 主导类型
+  //
+  // 如果存在并列最高，则 dominantType = null。
+  // ==========================================================
+
+  let dominantType =
+    null;
+
+
+
+  const maxTypes = [];
+
+
+
+  if(
+    meatCount ===
+    maxCount
+  ){
+
+
+    maxTypes.push(
+      "meat"
+    );
+
+  }
+
+
+
+  if(
+    vegetableCount ===
+    maxCount
+  ){
+
+
+    maxTypes.push(
+      "vegetable"
+    );
+
+  }
+
+
+
+  if(
+    seasoningCount ===
+    maxCount
+  ){
+
+
+    maxTypes.push(
+      "seasoning"
+    );
+
+  }
+
+
+
+  if(
+    maxTypes.length === 1
+    &&
+    maxCount > 0
+  ){
+
+
+    dominantType =
+      maxTypes[0];
+
+  }
+
+
+
+
+
+  // ==========================================================
+  // 三系参与率
+  //
+  // 0 ~ 1
+  //
+  // 6个窗口全部是常规三系：
+  //
+  // regularParticipation = 1
+  //
+  // 全甜：
+  //
+  // regularParticipation = 0
+  // ==========================================================
+
+  const regularParticipation =
+
+    recent.length > 0
+
+      ?
+
+        regularCount /
+        recent.length
+
+      :
+
+        0;
+
+
+
+
+
+  return {
+
+    windowSize:
+      COLLECTION_BALANCE_WINDOW,
+
+    recentCount:
+      recent.length,
+
+    recent,
+
+
+
+
+
+    meatCount,
+
+    vegetableCount,
+
+    seasoningCount,
+
+    dessertCount,
+
+
+
+
+
+    regularCount,
+
+    regularParticipation,
+
+
+
+
+
+    maxCount,
+
+    minCount,
+
+    imbalance,
+
+    dominantType
+
+  };
+
+}
+
+
+
+
+
+// ============================================================
 // Simulation 收藏
-//
-// Simulation Engine 本身使用可变 state。
-//
-// 所以这里保持原行为：
-//
-// state.collection.add(value)
-//
-// 返回同一个 state。
 // ============================================================
 
 function applySimulationCollection(
@@ -309,9 +701,62 @@ function applySimulationCollection(
 
 
 
+
+
+  const isFirstTime =
+
+    !state.collection.has(
+      value
+    );
+
+
+
+
+
   state.collection.add(
     value
   );
+
+
+
+
+
+  // ==========================================================
+  // 首次新收藏才记录真实类型
+  // ==========================================================
+
+  if(
+    isFirstTime
+  ){
+
+
+    if(
+      !Array.isArray(
+        state.collectionTypeHistory
+      )
+    ){
+
+
+      state.collectionTypeHistory =
+        [];
+
+    }
+
+
+
+    state.collectionTypeHistory.push(
+
+      piece.foodType
+
+      ??
+
+      null
+
+    );
+
+  }
+
+
 
 
 
@@ -325,14 +770,6 @@ function applySimulationCollection(
 
 // ============================================================
 // 正式游戏收藏
-//
-// 保持原 gameEngine removeOne() 的完整行为：
-//
-// collection
-// collectionOrigins
-// collectionPaths
-// latestCollection
-// score
 // ============================================================
 
 function applyGameCollection(
@@ -418,12 +855,15 @@ function applyGameCollection(
     null;
 
 
+  let nextCollectionTypeHistory =
+
+    getCollectionTypeHistory(
+      state
+    );
 
 
 
-  // ==========================================================
-  // 是否首次收藏
-  // ==========================================================
+
 
   const isFirstTime =
 
@@ -577,6 +1017,26 @@ function applyGameCollection(
 
     ];
 
+
+
+
+
+    // ========================================================
+    // 首次收藏真实类型历史
+    // ========================================================
+
+    nextCollectionTypeHistory = [
+
+      ...nextCollectionTypeHistory,
+
+      piece.foodType
+
+      ??
+
+      null
+
+    ];
+
   }
 
 
@@ -611,6 +1071,9 @@ function applyGameCollection(
     collection:
       nextCollection,
 
+    collectionTypeHistory:
+      nextCollectionTypeHistory,
+
     collectionOrigins:
       nextCollectionOrigins,
 
@@ -633,14 +1096,6 @@ function applyGameCollection(
 
 // ============================================================
 // 应用收藏
-//
-// 自动判断当前属于：
-//
-// 正式游戏
-//
-// 或
-//
-// Simulation
 // ============================================================
 
 export function applyCollection(
@@ -665,10 +1120,6 @@ export function applyCollection(
 
 
 
-  // ==========================================================
-  // Simulation
-  // ==========================================================
-
   if(
     isSimulationCollectionState(
       state
@@ -689,10 +1140,6 @@ export function applyCollection(
 
 
 
-
-  // ==========================================================
-  // 正式游戏
-  // ==========================================================
 
   if(
     isGameCollectionState(

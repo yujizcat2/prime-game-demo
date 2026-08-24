@@ -18,7 +18,7 @@ import "./TestLab.css";
 
 
 // ============================================================
-// 测试模式
+// 模式
 // ============================================================
 
 const TEST_MODES = {
@@ -39,7 +39,7 @@ const TEST_MODES = {
 
 
 // ============================================================
-// 局数
+// 测试局数
 // ============================================================
 
 const RANDOM_GAME_OPTIONS = [
@@ -48,9 +48,7 @@ const RANDOM_GAME_OPTIONS = [
   100,
   1000,
   10000,
-  100000,
-  500000,
-  1000000
+  100000
 
 ];
 
@@ -66,11 +64,34 @@ const SMART_GAME_OPTIONS = [
 
 
 
+// ============================================================
+// AI 参数
+// ============================================================
+
+const SMART_DEPTH =
+  4;
+
+
+const SMART_BEAM_WIDTH =
+  50;
+
+
+const COLLECTION_MAX_ACTIONS =
+  1000;
+
+
+const SURVIVAL_MAX_ACTIONS =
+  10000;
+
+
+
+
+
 export default function TestLab({
 
   onBack
 
-}) {
+}){
 
 
   const [
@@ -123,10 +144,6 @@ export default function TestLab({
 
 
 
-
-  // ==========================================================
-  // 模式
-  // ==========================================================
 
   const isSmartMode =
 
@@ -181,12 +198,12 @@ export default function TestLab({
     );
 
 
-    setProgress(
+    setResult(
       null
     );
 
 
-    setResult(
+    setProgress(
       null
     );
 
@@ -240,12 +257,12 @@ export default function TestLab({
     );
 
 
-    setProgress(
+    setResult(
       null
     );
 
 
-    setResult(
+    setProgress(
       null
     );
 
@@ -259,12 +276,12 @@ export default function TestLab({
     try{
 
 
-      let testResult;
+      let nextResult;
 
 
 
       // ======================================================
-      // 随机探路
+      // Random
       // ======================================================
 
       if(
@@ -273,7 +290,7 @@ export default function TestLab({
       ){
 
 
-        testResult =
+        nextResult =
 
           await runRandomExplorer({
 
@@ -297,7 +314,7 @@ export default function TestLab({
 
 
       // ======================================================
-      // 最长步数 AI
+      // Survival
       // ======================================================
 
       else if(
@@ -306,7 +323,7 @@ export default function TestLab({
       ){
 
 
-        testResult =
+        nextResult =
 
           await runSmartExplorer({
 
@@ -316,13 +333,13 @@ export default function TestLab({
             games,
 
             depth:
-              4,
+              SMART_DEPTH,
 
             beamWidth:
-              50,
+              SMART_BEAM_WIDTH,
 
             maxActionsPerGame:
-              10000,
+              SURVIVAL_MAX_ACTIONS,
 
             onProgress:
               setProgress
@@ -336,13 +353,13 @@ export default function TestLab({
 
 
       // ======================================================
-      // 最多收藏 AI
+      // Collection V4
       // ======================================================
 
       else{
 
 
-        testResult =
+        nextResult =
 
           await runSmartExplorer({
 
@@ -352,13 +369,13 @@ export default function TestLab({
             games,
 
             depth:
-              4,
+              SMART_DEPTH,
 
             beamWidth:
-              50,
+              SMART_BEAM_WIDTH,
 
             maxActionsPerGame:
-              1000,
+              COLLECTION_MAX_ACTIONS,
 
             onProgress:
               setProgress
@@ -370,7 +387,7 @@ export default function TestLab({
 
 
       setResult(
-        testResult
+        nextResult
       );
 
     }
@@ -387,7 +404,10 @@ export default function TestLab({
       setError(
 
         err?.message
-        ?? "测试失败"
+
+        ??
+
+        "测试失败"
 
       );
 
@@ -400,116 +420,6 @@ export default function TestLab({
       );
 
     }
-
-  }
-
-
-
-
-
-  // ==========================================================
-  // 标题
-  // ==========================================================
-
-  function getModeTitle(){
-
-
-    if(
-      mode ===
-      TEST_MODES.SURVIVAL
-    ){
-
-
-      return "最长步数 AI";
-
-    }
-
-
-    if(
-      mode ===
-      TEST_MODES.COLLECTION
-    ){
-
-
-      return "最多收藏 AI";
-
-    }
-
-
-    return "随机探路";
-
-  }
-
-
-
-
-
-  function getModeDescription(){
-
-
-    if(
-      mode ===
-      TEST_MODES.SURVIVAL
-    ){
-
-
-      return (
-
-        <>
-
-          AI 搜索未来局面，
-
-          <br />
-
-          尽可能延长棋盘生存时间。
-
-        </>
-
-      );
-
-    }
-
-
-    if(
-      mode ===
-      TEST_MODES.COLLECTION
-    ){
-
-
-      return (
-
-        <>
-
-          AI 搜索未来局面，
-
-          <br />
-
-          尽可能发现更多不同收藏，
-
-          <br />
-
-          并记录收藏路线与重复旧收藏消耗。
-
-        </>
-
-      );
-
-    }
-
-
-    return (
-
-      <>
-
-        每一步随机选择合法动作，
-
-        <br />
-
-        直到自然结束。
-
-      </>
-
-    );
 
   }
 
@@ -531,7 +441,6 @@ export default function TestLab({
           test-lab-shell
         "
       >
-
 
 
         <header
@@ -714,24 +623,29 @@ export default function TestLab({
           <strong>
 
             {
-              getModeTitle()
+              getModeTitle(
+                mode
+              )
             }
 
           </strong>
 
 
-          <br />
-
 
           {
-            getModeDescription()
+
+            isCollectionMode &&
+
+            <>
+
+              {" · "}
+
+              三系平衡 V4
+
+            </>
+
           }
 
-
-          <br />
-
-
-          处理 1 不增加正式步数。
 
 
           {
@@ -742,23 +656,35 @@ export default function TestLab({
 
               <br />
 
-              Depth 4 · Beam 50
+              Depth {
+                SMART_DEPTH
+              }
 
               {" · "}
 
-              {
+              Beam {
+                SMART_BEAM_WIDTH
+              }
+
+              {" · "}
+
+              最大 {
 
                 isCollectionMode
 
                   ?
 
-                    "最大 1,000 操作"
+                    formatNumber(
+                      COLLECTION_MAX_ACTIONS
+                    )
 
                   :
 
-                    "最大 10,000 操作"
+                    formatNumber(
+                      SURVIVAL_MAX_ACTIONS
+                    )
 
-              }
+              } 操作
 
             </>
 
@@ -838,7 +764,9 @@ export default function TestLab({
                   >
 
                     {
-                      value.toLocaleString()
+                      formatNumber(
+                        value
+                      )
                     }
 
                   </button>
@@ -903,12 +831,12 @@ export default function TestLab({
                 progress
               }
 
-              smart={
-                isSmartMode
-              }
-
               collectionMode={
                 isCollectionMode
+              }
+
+              smart={
+                isSmartMode
               }
 
             />
@@ -929,10 +857,6 @@ export default function TestLab({
               "
             >
 
-              测试失败：
-
-              {" "}
-
               {
                 error
               }
@@ -952,154 +876,21 @@ export default function TestLab({
 
           result &&
 
-          <section
-            className="
-              test-lab-results
-            "
-          >
+          <TestResults
 
-
-            <div
-              className="
-                test-lab-result-title
-              "
-            >
-
-              测试结果
-
-            </div>
-
-
-
-            {
-
-              isSmartMode &&
-
-              <div
-                className="
-                  test-lab-description
-                "
-              >
-
-                {
-                  getModeTitle()
-                }
-
-                {" · "}
-
-                Depth {
-                  result.depth
-                }
-
-                {" · "}
-
-                Beam {
-                  result.beamWidth
-                }
-
-              </div>
-
+            result={
+              result
             }
 
-
-
-
-
-            <ResultGrid
-
-              result={
-                result
-              }
-
-              smart={
-                isSmartMode
-              }
-
-              collectionMode={
-                isCollectionMode
-              }
-
-            />
-
-
-
-
-
-            {
-
-              result.bestStepGame &&
-
-              <RecordCard
-
-                title="最长步数纪录"
-
-                game={
-                  result.bestStepGame
-                }
-
-              />
-
+            smart={
+              isSmartMode
             }
 
-
-
-
-
-            {
-
-              result.bestCollectionGame &&
-
-              <>
-
-                <RecordCard
-
-                  title="最多收藏纪录"
-
-                  game={
-                    result.bestCollectionGame
-                  }
-
-                />
-
-
-
-                {
-
-                  isCollectionMode &&
-
-                  <CollectionTimelineCard
-
-                    game={
-                      result.bestCollectionGame
-                    }
-
-                  />
-
-                }
-
-
-
-                {
-
-                  isSmartMode &&
-
-                  <MazeTurnSummary
-
-                    game={
-                      result.bestCollectionGame
-                    }
-
-                  />
-
-                }
-
-
-              </>
-
+            collectionMode={
+              isCollectionMode
             }
 
-
-          </section>
+          />
 
         }
 
@@ -1118,7 +909,7 @@ export default function TestLab({
 
 
 // ============================================================
-// 模式按钮
+// Mode Button
 // ============================================================
 
 function ModeButton({
@@ -1179,7 +970,7 @@ function ModeButton({
 
 
 // ============================================================
-// 运行进度
+// Progress
 // ============================================================
 
 function ProgressPanel({
@@ -1193,6 +984,27 @@ function ProgressPanel({
 }){
 
 
+  const meat =
+    progress.currentCollectionMeatCount
+    ?? 0;
+
+
+  const vegetable =
+    progress.currentCollectionVegetableCount
+    ?? 0;
+
+
+  const seasoning =
+    progress.currentCollectionSeasoningCount
+    ?? 0;
+
+
+  const dessert =
+    progress.currentCollectionDessertCount
+    ?? 0;
+
+
+
   return (
 
     <div
@@ -1203,10 +1015,6 @@ function ProgressPanel({
 
 
       <div>
-
-        已完成：
-
-        {" "}
 
         {
           formatNumber(
@@ -1221,6 +1029,8 @@ function ProgressPanel({
             progress.total
           )
         }
+
+        {" 局"}
 
       </div>
 
@@ -1238,21 +1048,7 @@ function ProgressPanel({
 
           <div>
 
-            当前：
-
-            {" "}
-
-            第 {
-              progress.currentGame
-            } 局
-
-          </div>
-
-
-
-          <div>
-
-            当前局操作：
+            操作
 
             {" "}
 
@@ -1262,13 +1058,9 @@ function ProgressPanel({
               )
             }
 
-          </div>
+            {" · "}
 
-
-
-          <div>
-
-            当前局步数：
+            Step
 
             {" "}
 
@@ -1278,13 +1070,9 @@ function ProgressPanel({
               )
             }
 
-          </div>
+            {" · "}
 
-
-
-          <div>
-
-            当前局收藏：
+            收藏
 
             {" "}
 
@@ -1305,155 +1093,39 @@ function ProgressPanel({
           {
 
             collectionMode &&
-            progress.currentLastCollection &&
 
             <>
 
 
               <div>
 
-                最新收藏：
+                荤 {
+                  meat
+                }
 
-                {" "}
+                {" / "}
 
-                <strong>
+                素 {
+                  vegetable
+                }
 
-                  #{
-                    progress.currentLastCollection.order
-                  }
+                {" / "}
 
-                  {" · "}
+                调 {
+                  seasoning
+                }
 
-                  {
-                    progress.currentLastCollection.value
-                  }
+                {" / "}
 
-                </strong>
-
-              </div>
-
-
-
-              <div>
-
-                发现于：
-
-                {" "}
-
-                第 {
-                  formatNumber(
-                    progress
-                      .currentLastCollection
-                      .actionNumber
-                  )
-                } 次操作
+                甜 {
+                  dessert
+                }
 
                 {" · "}
 
-                Step {
-                  formatNumber(
-                    progress
-                      .currentLastCollection
-                      .steps
-                  )
-                }
-
-              </div>
-
-
-
-              {
-
-                progress
-                  .currentLastCollection
-                  .order > 1 &&
-
-                <>
-
-
-                  <div>
-
-                    距上个收藏：
-
-                    {" "}
-
-                    +{
-                      formatNumber(
-                        progress
-                          .currentLastCollection
-                          .actionsSincePrevious
-                      )
-                    } 操作
-
-                    {" · "}
-
-                    +{
-                      formatNumber(
-                        progress
-                          .currentLastCollection
-                          .stepsSincePrevious
-                      )
-                    } 步
-
-                  </div>
-
-
-
-                  <div>
-
-                    期间重复旧收藏：
-
-                    {" "}
-
-                    <strong>
-
-                      {
-                        formatNumber(
-                          progress
-                            .currentLastCollection
-                            .repeatRemovalsSincePrevious
-                          ?? 0
-                        )
-                      }
-
-                    </strong>
-
-                    {" "}
-
-                    次
-
-                  </div>
-
-
-                </>
-
-              }
-
-
-            </>
-
-          }
-
-
-
-          {
-
-            collectionMode &&
-
-            <>
-
-
-              <div>
-
-                当前局处理1：
-
-                {" "}
-
-                {
-                  formatNumber(
-                    progress.currentRemoveActions
-                    ?? 0
-                  )
+                失衡 {
+                  progress.currentCollectionImbalance
+                  ?? 0
                 }
 
               </div>
@@ -1462,16 +1134,22 @@ function ProgressPanel({
 
               <div>
 
-                当前局重复旧收藏：
-
-                {" "}
-
                 {
-                  formatNumber(
-                    progress
-                      .currentRepeatCollectionRemovals
-                    ?? 0
-                  )
+                  describeBalanceState({
+
+                    meatCount:
+                      meat,
+
+                    vegetableCount:
+                      vegetable,
+
+                    seasoningCount:
+                      seasoning,
+
+                    dessertCount:
+                      dessert
+
+                  })
                 }
 
               </div>
@@ -1480,111 +1158,11 @@ function ProgressPanel({
             </>
 
           }
-
-
-
-          <div>
-
-            已访问状态：
-
-            {" "}
-
-            {
-              formatNumber(
-                progress.currentVisitedStates
-              )
-            }
-
-          </div>
-
-
-
-          <div>
-
-            当前局回转：
-
-            {" "}
-
-            {
-              progress.currentMazeTurns
-              ?? 0
-            }
-
-          </div>
 
 
         </>
 
       }
-
-
-
-
-
-      <div>
-
-        当前最长步数：
-
-        {" "}
-
-        {
-          formatNumber(
-            progress.maxSteps
-          )
-        }
-
-      </div>
-
-
-
-      <div>
-
-        当前最多收藏：
-
-        {" "}
-
-        {
-          progress.maxCollection
-          ?? 0
-        }
-
-      </div>
-
-
-
-      {
-
-        smart &&
-
-        <div>
-
-          当前最多回转：
-
-          {" "}
-
-          {
-            progress.maxMazeTurns
-            ?? 0
-          }
-
-        </div>
-
-      }
-
-
-
-      <div>
-
-        达到保护上限：
-
-        {" "}
-
-        {
-          progress.hitLimitCount
-          ?? 0
-        }
-
-      </div>
 
 
     </div>
@@ -1598,7 +1176,142 @@ function ProgressPanel({
 
 
 // ============================================================
-// 总体统计
+// Results
+// ============================================================
+
+function TestResults({
+
+  result,
+
+  smart,
+
+  collectionMode
+
+}){
+
+
+  const bestGame =
+
+    result.bestCollectionGame
+
+    ??
+
+    result.bestStepGame;
+
+
+
+  return (
+
+    <section
+      className="
+        test-lab-results
+      "
+    >
+
+
+      <div
+        className="
+          test-lab-result-title
+        "
+      >
+
+        测试结果
+
+      </div>
+
+
+
+
+
+      <ResultGrid
+
+        result={
+          result
+        }
+
+        smart={
+          smart
+        }
+
+        collectionMode={
+          collectionMode
+        }
+
+      />
+
+
+
+
+
+      {
+
+        bestGame &&
+
+        <BestGameCard
+
+          game={
+            bestGame
+          }
+
+          collectionMode={
+            collectionMode
+          }
+
+        />
+
+      }
+
+
+
+
+
+      {
+
+        collectionMode &&
+        result.bestCollectionGame &&
+
+        <CollectionTimeline
+
+          game={
+            result.bestCollectionGame
+          }
+
+        />
+
+      }
+
+
+
+
+
+      {
+
+        smart &&
+        bestGame?.mazeTurnCount > 0 &&
+
+        <MazeTurnSummary
+
+          game={
+            bestGame
+          }
+
+        />
+
+      }
+
+
+    </section>
+
+  );
+
+}
+
+
+
+
+
+// ============================================================
+// Result Grid
 // ============================================================
 
 function ResultGrid({
@@ -1622,78 +1335,58 @@ function ResultGrid({
 
 
       <ResultItem
-
         label="测试局数"
-
         value={
           formatNumber(
             result.games
           )
         }
-
       />
 
 
       <ResultItem
-
         label="平均步数"
-
         value={
           Number(
             result.averageSteps
             ?? 0
+          ).toFixed(
+            2
           )
-            .toFixed(
-              2
-            )
         }
-
       />
 
 
       <ResultItem
-
         label="最长步数"
-
         value={
           formatNumber(
             result.maxSteps
           )
         }
-
-        highlight
-
       />
 
 
       <ResultItem
-
         label="平均收藏"
-
         value={
           Number(
             result.averageCollection
             ?? 0
+          ).toFixed(
+            2
           )
-            .toFixed(
-              2
-            )
         }
-
       />
 
 
       <ResultItem
-
         label="最多收藏"
-
         value={
           result.maxCollection
           ?? 0
         }
-
         highlight
-
       />
 
 
@@ -1708,56 +1401,48 @@ function ResultGrid({
 
 
           <ResultItem
-
-            label="总处理1"
-
+            label="平均三系失衡"
             value={
-              formatNumber(
-                result.totalRemoveActions
+              Number(
+                result.averageCollectionImbalance
                 ?? 0
+              ).toFixed(
+                2
               )
             }
-
           />
 
 
           <ResultItem
+            label="最大三系失衡"
+            value={
+              result.maxCollectionImbalance
+              ?? 0
+            }
+          />
 
-            label="重复旧收藏处理"
 
+          <ResultItem
+            label="重复旧收藏"
             value={
               formatNumber(
                 result.totalRepeatCollectionRemovals
                 ?? 0
               )
             }
-
-            highlight={
-              (
-                result.totalRepeatCollectionRemovals
-                ?? 0
-              ) > 0
-            }
-
           />
 
 
           <ResultItem
-
-            label="每个新收藏平均消耗旧收藏"
-
+            label="每收藏平均重复"
             value={
               Number(
                 result.averageRepeatRemovalsPerCollection
                 ?? 0
+              ).toFixed(
+                2
               )
-                .toFixed(
-                  2
-                )
             }
-
-            highlight
-
           />
 
 
@@ -1770,21 +1455,11 @@ function ResultGrid({
 
 
       <ResultItem
-
         label="达到保护上限"
-
         value={
           result.hitLimitCount
           ?? 0
         }
-
-        highlight={
-          (
-            result.hitLimitCount
-            ?? 0
-          ) > 0
-        }
-
       />
 
 
@@ -1795,46 +1470,13 @@ function ResultGrid({
 
         smart &&
 
-        <>
-
-
-          <ResultItem
-
-            label="发生回转局数"
-
-            value={
-              result.mazeTurnGameCount
-              ?? 0
-            }
-
-          />
-
-
-          <ResultItem
-
-            label="总回转次数"
-
-            value={
-              result.totalMazeTurns
-              ?? 0
-            }
-
-          />
-
-
-          <ResultItem
-
-            label="最多回转"
-
-            value={
-              result.maxMazeTurns
-              ?? 0
-            }
-
-          />
-
-
-        </>
+        <ResultItem
+          label="迷宫回转"
+          value={
+            result.totalMazeTurns
+            ?? 0
+          }
+        />
 
       }
 
@@ -1850,7 +1492,7 @@ function ResultGrid({
 
 
 // ============================================================
-// 单统计项
+// Result Item
 // ============================================================
 
 function ResultItem({
@@ -1920,16 +1562,25 @@ function ResultItem({
 
 
 // ============================================================
-// 纪录卡
+// Best Game
 // ============================================================
 
-function RecordCard({
+function BestGameCard({
 
-  title,
+  game,
 
-  game
+  collectionMode
 
 }){
+
+
+  const balance =
+    game.collectionBalance;
+
+
+  const typeCounts =
+    game.collectionTypeCounts;
+
 
 
   return (
@@ -1948,7 +1599,17 @@ function RecordCard({
       >
 
         {
-          title
+
+          collectionMode
+
+            ?
+
+              "最多收藏纪录"
+
+            :
+
+              "最长步数纪录"
+
         }
 
       </div>
@@ -1961,25 +1622,16 @@ function RecordCard({
           game.gameIndex
         } 局
 
-      </div>
+        {" · "}
 
+        开局 {
 
-
-      <div>
-
-        开局：
-
-        {" "}
-
-        <strong>
-
-          {
-            game.initialValues.join(
+          game.initialValues
+            ?.join(
               " / "
             )
-          }
 
-        </strong>
+        }
 
       </div>
 
@@ -1987,7 +1639,7 @@ function RecordCard({
 
       <div>
 
-        步数：
+        Step
 
         {" "}
 
@@ -2001,13 +1653,9 @@ function RecordCard({
 
         </strong>
 
-      </div>
+        {" · "}
 
-
-
-      <div>
-
-        实际选择次数：
+        操作
 
         {" "}
 
@@ -2017,13 +1665,9 @@ function RecordCard({
           )
         }
 
-      </div>
+        {" · "}
 
-
-
-      <div>
-
-        收藏：
+        收藏
 
         {" "}
 
@@ -2039,46 +1683,49 @@ function RecordCard({
 
 
 
-      {
-
-        game.totalRemoveActions !==
-        undefined &&
-
-        <div>
-
-          处理1：
-
-          {" "}
-
-          {
-            formatNumber(
-              game.totalRemoveActions
-            )
-          }
-
-        </div>
-
-      }
 
 
+      {/* =====================================================
+          整局收藏类型总数
+          ===================================================== */}
 
       {
 
-        game.repeatCollectionRemovals !==
-        undefined &&
+        collectionMode &&
+        typeCounts &&
 
         <div>
 
-          重复旧收藏：
+          收藏类型总数：
 
           {" "}
 
           <strong>
 
-            {
-              formatNumber(
-                game.repeatCollectionRemovals
-              )
+            荤 {
+              typeCounts.meat
+              ?? 0
+            }
+
+            {" / "}
+
+            素 {
+              typeCounts.vegetable
+              ?? 0
+            }
+
+            {" / "}
+
+            调料 {
+              typeCounts.seasoning
+              ?? 0
+            }
+
+            {" / "}
+
+            甜 {
+              typeCounts.dessert
+              ?? 0
             }
 
           </strong>
@@ -2089,125 +1736,126 @@ function RecordCard({
 
 
 
+
+
       {
 
-        game.averageRepeatRemovalsPerCollection !==
-        undefined &&
+        collectionMode &&
+        balance &&
 
-        <div>
+        <>
 
-          每个新收藏平均消耗旧收藏：
 
-          {" "}
+          <div>
 
-          <strong>
+            最终窗口：
 
-            {
-              Number(
-                game.averageRepeatRemovalsPerCollection
-                ?? 0
-              )
-                .toFixed(
-                  2
+            {" "}
+
+            <strong>
+
+              荤 {
+                balance.meatCount
+              }
+
+              {" / "}
+
+              素 {
+                balance.vegetableCount
+              }
+
+              {" / "}
+
+              调料 {
+                balance.seasoningCount
+              }
+
+              {" / "}
+
+              甜 {
+                balance.dessertCount
+              }
+
+            </strong>
+
+          </div>
+
+
+
+          <div>
+
+            三系失衡：
+
+            {" "}
+
+            <strong>
+
+              {
+                balance.imbalance
+              }
+
+            </strong>
+
+          </div>
+
+
+
+          <div>
+
+            <strong>
+
+              {
+                describeBalanceState(
+                  balance
                 )
-            }
+              }
 
-          </strong>
+            </strong>
 
-        </div>
-
-      }
+          </div>
 
 
 
-      {
+          <div>
 
-        game.mazeTurnCount !==
-        undefined &&
+            最近类型：
 
-        <div>
-
-          迷宫回转：
-
-          {" "}
-
-          {
-            game.mazeTurnCount
-            ?? 0
-          }
-
-        </div>
-
-      }
-
-
-
-      {
-
-        game.visitedStates !==
-        undefined &&
-
-        <div>
-
-          已访问规则状态：
-
-          {" "}
-
-          {
-            formatNumber(
-              game.visitedStates
-            )
-          }
-
-        </div>
-
-      }
-
-
-
-      {
-
-        game.endedNaturally !==
-        undefined &&
-
-        <div>
-
-          结束原因：
-
-          {" "}
-
-          <strong>
+            {" "}
 
             {
-              getEndReason(
-                game
+              formatTypeSequence(
+                balance.recent
               )
             }
 
-          </strong>
-
-        </div>
-
-      }
+          </div>
 
 
-
-      {
-
-        game.hitLimit &&
-
-        <div
-          className="
-            test-lab-record-warning
-          "
-        >
-
-          ⚠ 达到测试保护上限，
-          当前路线尚未自然结束。
-
-        </div>
+        </>
 
       }
+
+
+
+
+
+      <div>
+
+        结束：
+
+        {" "}
+
+        <strong>
+
+          {
+            getEndReason(
+              game
+            )
+          }
+
+        </strong>
+
+      </div>
 
 
     </div>
@@ -2218,13 +1866,11 @@ function RecordCard({
 
 
 
-
-
 // ============================================================
-// 收藏时间线
+// Collection Timeline
 // ============================================================
 
-function CollectionTimelineCard({
+function CollectionTimeline({
 
   game
 
@@ -2258,14 +1904,6 @@ function CollectionTimelineCard({
 
 
 
-  const summary =
-
-    analyzeCollectionTimeline(
-      timeline
-    );
-
-
-
   return (
 
     <div
@@ -2281,7 +1919,7 @@ function CollectionTimelineCard({
         "
       >
 
-        收藏时间线 / 路线解剖
+        收藏时间线
 
       </div>
 
@@ -2290,11 +1928,11 @@ function CollectionTimelineCard({
       <div
         style={{
           marginBottom:
-            "12px"
+            "10px"
         }}
       >
 
-        共发现
+        共
 
         {" "}
 
@@ -2308,168 +1946,9 @@ function CollectionTimelineCard({
 
         {" "}
 
-        种不同收藏
+        个收藏
 
       </div>
-
-
-
-
-
-      <div
-        style={{
-
-          padding:
-            "10px",
-
-          marginBottom:
-            "12px",
-
-          border:
-            "1px solid rgba(90,110,96,.10)",
-
-          borderRadius:
-            "10px",
-
-          background:
-            "rgba(255,255,255,.30)",
-
-          fontSize:
-            "11px",
-
-          lineHeight:
-            1.7
-
-        }}
-      >
-
-
-        <div>
-
-          平均新增间隔：
-
-          {" "}
-
-          <strong>
-
-            {
-              summary.averageGapSteps.toFixed(
-                1
-              )
-            } 步
-
-          </strong>
-
-          {" · "}
-
-          {
-            summary.averageGapActions.toFixed(
-              1
-            )
-          } 操作
-
-        </div>
-
-
-
-        <div>
-
-          时间线重复旧收藏：
-
-          {" "}
-
-          <strong>
-
-            {
-              formatNumber(
-                summary.totalRepeatRemovals
-              )
-            }
-
-          </strong>
-
-          {" "}
-
-          次
-
-        </div>
-
-
-
-        <div>
-
-          每段平均重复：
-
-          {" "}
-
-          <strong>
-
-            {
-              summary.averageRepeatRemovals.toFixed(
-                2
-              )
-            }
-
-          </strong>
-
-          {" "}
-
-          次
-
-        </div>
-
-
-
-        {
-
-          summary.maxGapEntry &&
-
-          <div>
-
-            最大收藏墙：
-
-            {" "}
-
-            <strong>
-
-              +{
-                formatNumber(
-                  summary.maxGapEntry
-                    .stepsSincePrevious
-                )
-              } 步
-
-            </strong>
-
-            {" · "}
-
-            +{
-              formatNumber(
-                summary.maxGapEntry
-                  .actionsSincePrevious
-              )
-            } 操作
-
-            {" · "}
-
-            #{
-              summary.maxGapEntry.order
-            }
-
-            {" · "}
-
-            收藏 {
-              summary.maxGapEntry.value
-            }
-
-          </div>
-
-        }
-
-
-      </div>
-
-
 
 
 
@@ -2483,7 +1962,7 @@ function CollectionTimelineCard({
             "column",
 
           gap:
-            "6px"
+            "5px"
 
         }}
       >
@@ -2528,7 +2007,7 @@ function CollectionTimelineCard({
 
 
 // ============================================================
-// 单条收藏
+// Collection Timeline Item
 // ============================================================
 
 function CollectionTimelineItem({
@@ -2547,6 +2026,11 @@ function CollectionTimelineItem({
 
 
 
+  const balance =
+    entry.balance;
+
+
+
   return (
 
     <div
@@ -2557,9 +2041,6 @@ function CollectionTimelineItem({
 
         borderRadius:
           "8px",
-
-        background:
-          "rgba(255,255,255,.24)",
 
         overflow:
           "hidden"
@@ -2584,21 +2065,6 @@ function CollectionTimelineItem({
           width:
             "100%",
 
-          display:
-            "grid",
-
-          gridTemplateColumns:
-            "44px 52px 1fr 20px",
-
-          gap:
-            "8px",
-
-          alignItems:
-            "center",
-
-          padding:
-            "8px 10px",
-
           border:
             "none",
 
@@ -2611,6 +2077,21 @@ function CollectionTimelineItem({
           textAlign:
             "left",
 
+          padding:
+            "8px 10px",
+
+          display:
+            "grid",
+
+          gridTemplateColumns:
+            "42px 88px 1fr 20px",
+
+          gap:
+            "8px",
+
+          alignItems:
+            "center",
+
           color:
             "inherit"
 
@@ -2619,15 +2100,13 @@ function CollectionTimelineItem({
       >
 
 
-        <div
+        <span
           style={{
+            opacity:
+              0.5,
 
             fontSize:
-              "10px",
-
-            opacity:
-              0.5
-
+              "10px"
           }}
         >
 
@@ -2635,170 +2114,154 @@ function CollectionTimelineItem({
             entry.order
           }
 
-        </div>
+        </span>
 
 
 
-        <div
+        <span>
+
+
+          <strong>
+
+            {
+              entry.value
+            }
+
+          </strong>
+
+
+          <span
+            style={{
+              marginLeft:
+                "5px",
+
+              opacity:
+                0.6,
+
+              fontSize:
+                "10px"
+            }}
+          >
+
+            {
+              formatFoodType(
+                entry.foodType
+              )
+            }
+
+          </span>
+
+
+        </span>
+
+
+
+        <span
           style={{
-
-            fontSize:
-              "16px",
-
-            fontWeight:
-              900
-
-          }}
-        >
-
-          {
-            entry.value
-          }
-
-        </div>
-
-
-
-        <div
-          style={{
-
             fontSize:
               "11px",
 
             lineHeight:
               1.5
-
           }}
         >
 
 
-          <div>
+          第 {
+            formatNumber(
+              entry.actionNumber
+            )
+          } 操作
 
-            第 {
-              formatNumber(
-                entry.actionNumber
-              )
-            } 次操作
+          {" · "}
 
-            {" · "}
-
-            Step {
-              formatNumber(
-                entry.steps
-              )
-            }
-
-          </div>
+          Step {
+            formatNumber(
+              entry.steps
+            )
+          }
 
 
 
           {
 
-            entry.order > 1 &&
+            balance &&
 
             <>
 
+              <br />
 
-              <div
-                style={{
-                  opacity:
-                    0.58
-                }}
-              >
+              荤 {
+                balance.meatCount
+              }
 
-                距上次：
+              {" / "}
 
-                {" "}
+              素 {
+                balance.vegetableCount
+              }
 
-                +{
-                  formatNumber(
-                    entry.actionsSincePrevious
+              {" / "}
+
+              调 {
+                balance.seasoningCount
+              }
+
+              {" / "}
+
+              甜 {
+                balance.dessertCount
+              }
+
+              {" · "}
+
+              失衡 {
+                balance.imbalance
+              }
+
+
+              <br />
+
+
+              <strong>
+
+                {
+                  describeBalanceState(
+                    balance
                   )
-                } 操作
+                }
 
-                {" · "}
-
-                +{
-                  formatNumber(
-                    entry.stepsSincePrevious
-                  )
-                } 步
-
-              </div>
-
-
-
-              <div
-                style={{
-                  opacity:
-                    0.58
-                }}
-              >
-
-                期间重复旧收藏：
-
-                {" "}
-
-                <strong>
-
-                  {
-                    formatNumber(
-                      entry.repeatRemovalsSincePrevious
-                      ?? 0
-                    )
-                  }
-
-                </strong>
-
-                {" "}
-
-                次
-
-              </div>
-
+              </strong>
 
             </>
 
           }
 
 
-        </div>
+        </span>
 
 
 
-        <div
-          style={{
+        <span>
 
-            fontSize:
-              "12px",
+          {
+            open
 
-            opacity:
-              0.45,
+              ?
 
-            transform:
+                "▴"
 
-              open
+              :
 
-                ?
+                "▾"
+          }
 
-                  "rotate(180deg)"
-
-                :
-
-                  "rotate(0deg)",
-
-            transition:
-              "transform .15s ease"
-
-          }}
-        >
-
-          ▾
-
-        </div>
+        </span>
 
 
       </button>
+
+
 
 
 
@@ -2828,7 +2291,7 @@ function CollectionTimelineItem({
 
 
 // ============================================================
-// 收藏路线详情
+// Collection Route Detail
 // ============================================================
 
 function CollectionRouteDetail({
@@ -2841,7 +2304,7 @@ function CollectionRouteDetail({
   const route =
 
     Array.isArray(
-      entry?.routeWindow
+      entry.routeWindow
     )
 
       ?
@@ -2865,14 +2328,11 @@ function CollectionRouteDetail({
         borderTop:
           "1px solid rgba(90,110,96,.08)",
 
-        background:
-          "rgba(255,255,255,.18)",
-
         fontSize:
           "11px",
 
         lineHeight:
-          1.65
+          1.6
 
       }}
     >
@@ -2882,12 +2342,7 @@ function CollectionRouteDetail({
 
         entry.previousAction &&
 
-        <div
-          style={{
-            marginBottom:
-              "4px"
-          }}
-        >
+        <div>
 
           <strong>
 
@@ -2914,7 +2369,7 @@ function CollectionRouteDetail({
         <div
           style={{
             marginBottom:
-              "10px"
+              "8px"
           }}
         >
 
@@ -2942,41 +2397,22 @@ function CollectionRouteDetail({
 
         route.length > 0 &&
 
-        <>
+        <div>
 
 
-          <div
-            style={{
-
-              marginBottom:
-                "5px",
-
-              fontWeight:
-                700,
-
-              opacity:
-                0.7
-
-            }}
-          >
+          <strong>
 
             最近路线
 
-          </div>
+          </strong>
 
 
 
           <div
             style={{
 
-              display:
-                "flex",
-
-              flexDirection:
-                "column",
-
-              gap:
-                "2px",
+              marginTop:
+                "5px",
 
               maxHeight:
                 "220px",
@@ -2995,77 +2431,34 @@ function CollectionRouteDetail({
                 item => (
 
                   <div
-
                     key={
                       item.actionNumber
                     }
-
-                    style={{
-
-                      display:
-                        "grid",
-
-                      gridTemplateColumns:
-                        "44px 1fr",
-
-                      gap:
-                        "6px",
-
-                      opacity:
-
-                        item.actionNumber ===
-                        entry.actionNumber
-
-                          ?
-
-                            1
-
-                          :
-
-                            0.65
-
-                    }}
-
                   >
 
+                    {
+                      item.actionNumber
+                    }
 
-                    <span>
+                    {" "}
 
-                      {
-                        item.actionNumber
-                      }
-
-                    </span>
-
-
-                    <span>
-
-                      {
-                        item.text
-                      }
+                    {
+                      item.text
+                    }
 
 
 
-                      {
+                    {
 
-                        item.repeatCollectionRemoval &&
+                      item.repeatCollectionRemoval &&
 
-                        <strong
-                          style={{
+                      <strong>
 
-                            marginLeft:
-                              "6px"
+                        {" [重复]"}
 
-                          }}
-                        >
+                      </strong>
 
-                          [重复]
-
-                        </strong>
-
-                      }
-
-                    </span>
+                    }
 
 
                   </div>
@@ -3079,7 +2472,8 @@ function CollectionRouteDetail({
 
           </div>
 
-        </>
+
+        </div>
 
       }
 
@@ -3095,121 +2489,7 @@ function CollectionRouteDetail({
 
 
 // ============================================================
-// 收藏时间线统计
-// ============================================================
-
-function analyzeCollectionTimeline(
-  timeline
-){
-
-
-  let totalSteps =
-    0;
-
-
-  let totalActions =
-    0;
-
-
-  let totalRepeatRemovals =
-    0;
-
-
-  let maxGapEntry =
-    null;
-
-
-
-  for(
-    let i = 1;
-    i < timeline.length;
-    i++
-  ){
-
-
-    const entry =
-      timeline[i];
-
-
-
-    totalSteps +=
-      entry.stepsSincePrevious;
-
-
-    totalActions +=
-      entry.actionsSincePrevious;
-
-
-    totalRepeatRemovals +=
-
-      entry.repeatRemovalsSincePrevious
-
-      ??
-
-      0;
-
-
-
-    if(
-      !maxGapEntry
-      ||
-      entry.stepsSincePrevious >
-      maxGapEntry.stepsSincePrevious
-    ){
-
-
-      maxGapEntry =
-        entry;
-
-    }
-
-  }
-
-
-
-  const count =
-
-    Math.max(
-
-      timeline.length - 1,
-
-      1
-
-    );
-
-
-
-  return {
-
-    averageGapSteps:
-
-      totalSteps /
-      count,
-
-    averageGapActions:
-
-      totalActions /
-      count,
-
-    totalRepeatRemovals,
-
-    averageRepeatRemovals:
-
-      totalRepeatRemovals /
-      count,
-
-    maxGapEntry
-
-  };
-
-}
-
-
-
-
-
-// ============================================================
-// 迷宫回转摘要
+// Maze Summary
 // ============================================================
 
 function MazeTurnSummary({
@@ -3261,94 +2541,51 @@ function MazeTurnSummary({
         "
       >
 
-        迷宫回转摘要
+        迷宫回转
 
       </div>
 
 
 
-      <div>
+      {
 
-        总次数：
+        turns.map(
 
-        {" "}
+          turn => (
 
-        <strong>
+            <div
+              key={
+                `${turn.turnNumber}-${turn.actionNumber}`
+              }
+            >
 
-          {
-            turns.length
-          }
+              ↻ #{
+                turn.turnNumber
+              }
 
-        </strong>
+              {" · "}
 
-      </div>
+              操作 {
+                formatNumber(
+                  turn.actionNumber
+                )
+              }
 
+              {" · "}
 
+              Step {
+                formatNumber(
+                  turn.triggerSteps
+                )
+              }
 
-      <div
-        style={{
-
-          marginTop:
-            "10px",
-
-          display:
-            "flex",
-
-          flexDirection:
-            "column",
-
-          gap:
-            "5px",
-
-          fontSize:
-            "11px"
-
-        }}
-      >
-
-
-        {
-
-          turns.map(
-
-            turn => (
-
-              <div
-                key={
-                  `${turn.turnNumber}-${turn.actionNumber}`
-                }
-              >
-
-                ↻ #{
-                  turn.turnNumber
-                }
-
-                {" · "}
-
-                第 {
-                  formatNumber(
-                    turn.actionNumber
-                  )
-                } 次操作
-
-                {" · "}
-
-                Step {
-                  formatNumber(
-                    turn.triggerSteps
-                  )
-                }
-
-              </div>
-
-            )
+            </div>
 
           )
 
-        }
+        )
 
-
-      </div>
+      }
 
 
     </div>
@@ -3362,35 +2599,410 @@ function MazeTurnSummary({
 
 
 // ============================================================
-// 结束原因
+// 平衡状态文字说明
 // ============================================================
 
-function getEndReason(
-  game
+function describeBalanceState(
+  balance
 ){
 
 
   if(
-    game.hitLimit
+    !balance
   ){
 
 
-    return "达到保护上限";
+    return "无类型状态";
 
   }
 
+
+
+  const meat =
+
+    Number(
+      balance.meatCount
+      ?? 0
+    );
+
+
+  const vegetable =
+
+    Number(
+      balance.vegetableCount
+      ?? 0
+    );
+
+
+  const seasoning =
+
+    Number(
+      balance.seasoningCount
+      ?? 0
+    );
+
+
+  const dessert =
+
+    Number(
+      balance.dessertCount
+      ?? 0
+    );
+
+
+
+  const regular = [
+
+    {
+      key:
+        "meat",
+
+      label:
+        "荤",
+
+      count:
+        meat
+    },
+
+    {
+      key:
+        "vegetable",
+
+      label:
+        "素",
+
+      count:
+        vegetable
+    },
+
+    {
+      key:
+        "seasoning",
+
+      label:
+        "调料",
+
+      count:
+        seasoning
+    }
+
+  ];
+
+
+
+
+
+  const active =
+
+    regular.filter(
+
+      item =>
+        item.count > 0
+
+    );
+
+
+
+
+
+  let text =
+    "";
+
+
+
+
+
+  // ==========================================================
+  // 三系全部缺失
+  // ==========================================================
 
   if(
-    game.endedNaturally
+    active.length === 0
   ){
 
 
-    return "自然结束";
+    text =
+      "常规三系均缺失";
 
   }
 
 
-  return "未知";
+
+
+
+  // ==========================================================
+  // 只有一系
+  // ==========================================================
+
+  else if(
+    active.length === 1
+  ){
+
+
+    text =
+
+      `仅${active[0].label}系参与`;
+
+  }
+
+
+
+
+
+  // ==========================================================
+  // 两系参与
+  // ==========================================================
+
+  else if(
+    active.length === 2
+  ){
+
+
+    const missing =
+
+      regular.find(
+
+        item =>
+          item.count === 0
+
+      );
+
+
+
+    const [
+      first,
+      second
+    ] =
+      active;
+
+
+
+    if(
+      first.count ===
+      second.count
+    ){
+
+
+      text =
+
+        `${missing.label}系缺失 · ${first.label}/${second.label}均衡`;
+
+    }
+
+
+    else{
+
+
+      const dominant =
+
+        first.count >
+        second.count
+
+          ?
+
+            first
+
+          :
+
+            second;
+
+
+
+      text =
+
+        `${missing.label}系缺失 · 偏${dominant.label}`;
+
+    }
+
+  }
+
+
+
+
+
+  // ==========================================================
+  // 三系全部参与
+  // ==========================================================
+
+  else{
+
+
+    const counts =
+
+      regular.map(
+        item =>
+          item.count
+      );
+
+
+
+    const maxCount =
+
+      Math.max(
+        ...counts
+      );
+
+
+    const minCount =
+
+      Math.min(
+        ...counts
+      );
+
+
+
+
+
+    // ========================================================
+    // 完全均衡
+    // ========================================================
+
+    if(
+      maxCount ===
+      minCount
+    ){
+
+
+      text =
+        "三系完全均衡";
+
+    }
+
+
+    else{
+
+
+      const dominant =
+
+        regular.filter(
+
+          item =>
+            item.count ===
+            maxCount
+
+        );
+
+
+
+      const difference =
+
+        maxCount -
+        minCount;
+
+
+
+
+
+      // ======================================================
+      // 唯一优势系
+      // ======================================================
+
+      if(
+        dominant.length === 1
+      ){
+
+
+        if(
+          difference >= 3
+        ){
+
+
+          text =
+
+            `三系均参与 · ${dominant[0].label}明显偏多`;
+
+        }
+
+
+        else{
+
+
+          text =
+
+            `三系均参与 · ${dominant[0].label}偏多`;
+
+        }
+
+      }
+
+
+
+
+
+      // ======================================================
+      // 两个并列优势
+      // ======================================================
+
+      else{
+
+
+        text =
+
+          `三系均参与 · ${dominant
+            .map(
+              item =>
+                item.label
+            )
+            .join(
+              "/"
+            )}偏多`;
+
+      }
+
+    }
+
+  }
+
+
+
+
+
+  // ==========================================================
+  // 甜食提示
+  // ==========================================================
+
+  if(
+    dessert > 0
+  ){
+
+
+    if(
+      meat === 0
+      &&
+      vegetable === 0
+      &&
+      seasoning === 0
+    ){
+
+
+      text +=
+
+        dessert >= 6
+
+          ?
+
+            " · 全甜"
+
+          :
+
+            " · 含甜食";
+
+    }
+
+
+    else{
+
+
+      text +=
+        " · 含甜食";
+
+    }
+
+  }
+
+
+
+  return text;
 
 }
 
@@ -3399,8 +3011,121 @@ function getEndReason(
 
 
 // ============================================================
-// 数字显示
+// Helpers
 // ============================================================
+
+function getModeTitle(
+  mode
+){
+
+
+  if(
+    mode ===
+    TEST_MODES.SURVIVAL
+  ){
+
+
+    return "最长步数 AI";
+
+  }
+
+
+
+  if(
+    mode ===
+    TEST_MODES.COLLECTION
+  ){
+
+
+    return "最多收藏 AI V4";
+
+  }
+
+
+
+  return "随机探路";
+
+}
+
+
+
+
+
+function formatFoodType(
+  foodType
+){
+
+
+  switch(
+    foodType
+  ){
+
+
+    case "meat":
+
+      return "荤";
+
+
+    case "vegetable":
+
+      return "素";
+
+
+    case "seasoning":
+
+      return "调料";
+
+
+    case "dessert":
+
+      return "甜";
+
+
+    default:
+
+      return "未知";
+
+  }
+
+}
+
+
+
+
+
+function formatTypeSequence(
+  sequence
+){
+
+
+  if(
+    !Array.isArray(
+      sequence
+    )
+    ||
+    sequence.length === 0
+  ){
+
+
+    return "—";
+
+  }
+
+
+
+  return sequence
+    .map(
+      formatFoodType
+    )
+    .join(
+      " → "
+    );
+
+}
+
+
+
+
 
 function formatNumber(
   value
@@ -3433,5 +3158,40 @@ function formatNumber(
     value
 
   );
+
+}
+
+
+
+
+
+function getEndReason(
+  game
+){
+
+
+  if(
+    game.hitLimit
+  ){
+
+
+    return "达到保护上限";
+
+  }
+
+
+
+  if(
+    game.endedNaturally
+  ){
+
+
+    return "自然结束";
+
+  }
+
+
+
+  return "未知";
 
 }

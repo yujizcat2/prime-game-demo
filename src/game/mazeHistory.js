@@ -35,6 +35,7 @@
 // parentFoods
 // 当前1的待收藏来源
 // collection
+// 最近6个首次收藏类型
 //
 // ------------------------------------------------------------
 //
@@ -53,6 +54,25 @@
 // 完整 origin 祖先树
 //
 // ============================================================
+
+
+
+
+
+// ============================================================
+// 收藏类型状态窗口
+//
+// 必须和 collectionRules.js 当前 V1 保持一致。
+//
+// 当前 V1：
+//
+// 最近6个首次新收藏
+//
+// 用于未来荤素失衡判断。
+// ============================================================
+
+const COLLECTION_TYPE_HISTORY_WINDOW =
+  6;
 
 
 
@@ -139,6 +159,61 @@ function createCollectionSnapshot(
       ) =>
         a - b
     );
+
+}
+
+
+
+
+
+// ============================================================
+// 创建收藏类型历史快照
+//
+// 当前 V1 只关心：
+//
+// 最近6个首次新收藏类型。
+//
+// ------------------------------------------------------------
+//
+// 为什么不是完整历史？
+//
+// 因为更早的类型已经不会影响
+// 当前 V1 的荤素失衡计算。
+//
+// 所以从“未来规则”角度看：
+//
+// [很长的旧历史..., A B C D E F]
+//
+// 与
+//
+// [另一段旧历史..., A B C D E F]
+//
+// 如果当前 board / collection 等其它状态也完全相同，
+//
+// 那么它们未来的荤素失衡规则是相同的。
+// ============================================================
+
+function createCollectionTypeHistorySnapshot(
+  history
+){
+
+
+  if(
+    !Array.isArray(
+      history
+    )
+  ){
+
+
+    return [];
+
+  }
+
+
+
+  return history.slice(
+    -COLLECTION_TYPE_HISTORY_WINDOW
+  );
 
 }
 
@@ -550,6 +625,35 @@ export function createMazeRuleState(
 
       createCollectionSnapshot(
         state?.collection
+      ),
+
+
+    // ========================================================
+    // 最近收藏类型历史
+    //
+    // 当前 V1：
+    //
+    // 只保存最近6个首次新收藏类型。
+    //
+    // 例如：
+    //
+    // [
+    //   "meat",
+    //   "meat",
+    //   "vegetable",
+    //   "meat",
+    //   "seasoning",
+    //   "meat"
+    // ]
+    //
+    // 未来荤素失衡会依赖这部分状态，
+    // 所以必须进入迷宫状态 Key。
+    // ========================================================
+
+    collectionTypeHistory:
+
+      createCollectionTypeHistorySnapshot(
+        state?.collectionTypeHistory
       )
 
   };
@@ -569,7 +673,8 @@ export function createMazeRuleState(
 //
 // createMazeRuleState() 输出字段顺序固定；
 // collection 已排序；
-// board 顺序固定为九宫格位置。
+// board 顺序固定为九宫格位置；
+// collectionTypeHistory 顺序本身有意义。
 //
 // 因此相同规则状态一定得到相同字符串。
 // ============================================================
@@ -946,7 +1051,7 @@ export function hasVisitedMazeState(
 //
 // 1. 先检测
 // 2. 如果没有重复 → record
-// 3. 如果重复 → gameEngine触发迷宫回转
+// 3. 如果重复 → mazeEngine触发迷宫回转
 // 4. 回转后 → 再record新的状态
 //
 // ------------------------------------------------------------
@@ -1064,7 +1169,7 @@ export function recordMazeState(
 //
 // 它不负责真正执行全盘 +1。
 //
-// 全盘 +1 应由 gameEngine 完成。
+// 全盘 +1 应由 mazeEngine 完成。
 // ============================================================
 
 export function incrementMazeTurnCount(
