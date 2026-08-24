@@ -68,6 +68,18 @@ function getFoodName(
 
 
   if(
+    foodType === "seasoning"
+  ){
+
+    return getSeasoningName(
+      value
+    );
+
+  }
+
+
+
+  if(
     foodType === "dessert"
   ){
 
@@ -186,6 +198,10 @@ export default function BoardCell({
     foodType === "vegetable";
 
 
+  const isSeasoning =
+    foodType === "seasoning";
+
+
   const isDessert =
     foodType === "dessert";
 
@@ -209,14 +225,29 @@ export default function BoardCell({
 
   // ==========================================================
   // 当前料理名
+  //
+  // 1 = 水
+  //
+  // 水不属于：
+  //
+  // 荤
+  // 素
+  // 调料
+  // 甜食
+  //
+  // 它是约分产生的特殊终点状态。
   // ==========================================================
 
   const foodName =
 
-    getFoodName(
-      value,
-      foodType
-    );
+    isOne
+
+      ? "水"
+
+      : getFoodName(
+          value,
+          foodType
+        );
 
 
 
@@ -224,6 +255,14 @@ export default function BoardCell({
 
   // ==========================================================
   // 约分后的料理名
+  //
+  // 当前规则：
+  //
+  // 普通约分保持原foodType。
+  //
+  // 如果约到1：
+  //
+  // → 水
   // ==========================================================
 
   const reduceFoodName =
@@ -295,7 +334,20 @@ export default function BoardCell({
 
 
   // ==========================================================
-  // 1的直接来源
+  // 水的直接来源
+  //
+  // 例如：
+  //
+  // 牛肉 6
+  // ↓ 约分
+  // 水 1
+  //
+  // 这里保留：
+  //
+  // 来源料理名称
+  // 来源数字
+  //
+  // 但不再映射成调料。
   // ==========================================================
 
   const onePreviousRecord =
@@ -320,14 +372,32 @@ export default function BoardCell({
 
 
 
-  const seasoningName =
+  const onePreviousFoodType =
+
+    onePreviousRecord?.foodType
+
+    ??
+
+    foodType
+
+    ??
+
+    null;
+
+
+
+  const onePreviousFoodName =
 
     onePreviousValue !== null
 
       ?
 
-      getSeasoningName(
-        onePreviousValue
+      getFoodName(
+
+        onePreviousValue,
+
+        onePreviousFoodType
+
       )
 
       :
@@ -352,6 +422,10 @@ export default function BoardCell({
 
       ? "素"
 
+      : isSeasoning
+
+      ? "调"
+
       : isDessert
 
       ? "甜"
@@ -364,13 +438,15 @@ export default function BoardCell({
 
   // ==========================================================
   // 类型class
+  //
+  // 水使用独立class。
   // ==========================================================
 
   const typeClass =
 
     isOne
 
-      ? "board-piece--seasoning"
+      ? "board-piece--one"
 
       : isVegetable
 
@@ -379,6 +455,10 @@ export default function BoardCell({
       : isMeat
 
       ? "board-piece--meat"
+
+      : isSeasoning
+
+      ? "board-piece--seasoning"
 
       : isDessert
 
@@ -573,7 +653,7 @@ export default function BoardCell({
               isOne &&
               isNewDiscovery
 
-                ? "board-piece--new-seasoning"
+                ? "board-piece--new-discovery"
 
                 : ""
             }
@@ -694,7 +774,7 @@ export default function BoardCell({
 
 
           {/* ==================================================
-              料理名称
+              料理名 / 水
           ================================================== */}
 
           <div
@@ -720,13 +800,7 @@ export default function BoardCell({
 
             >
 
-              {
-                isOne
-
-                  ? seasoningName ?? "调料"
-
-                  : foodName
-              }
+              {foodName}
 
             </span>
 
@@ -762,7 +836,7 @@ export default function BoardCell({
                 {
                   reducePreview === 1
 
-                    ? seasoningName ?? "调料"
+                    ? "水"
 
                     : reduceFoodName
                 }
@@ -820,6 +894,7 @@ export default function BoardCell({
 
           {
 
+            !isOne &&
             parentFoodNames &&
             parentFoodNames[0] &&
             parentFoodNames[1] &&
@@ -865,14 +940,13 @@ export default function BoardCell({
 
 
           {/* ==================================================
-              调料来源
+              水的来源
           ================================================== */}
 
           {
 
             isOne &&
             onePreviousValue !== null &&
-            seasoningName &&
 
             <div
               className="
@@ -883,7 +957,10 @@ export default function BoardCell({
 
               <span>
 
-                {seasoningName}
+                {
+                  onePreviousFoodName
+                  ?? "来源"
+                }
 
               </span>
 

@@ -6,7 +6,6 @@ import "./App.css";
 
 import StartScreen from "./components/StartScreen";
 import Board from "./components/Board";
-import SeasoningTray from "./components/SeasoningTray";
 import ActionButtons from "./components/ActionButtons";
 import ActionHintPanel from "./components/ActionHintPanel";
 import CollectionPanel from "./components/CollectionPanel";
@@ -394,7 +393,7 @@ function App(){
 
 
         {/* =====================================================
-            主菜台
+            主棋盘
         ===================================================== */}
 
         <section
@@ -421,7 +420,7 @@ function App(){
               "
             >
 
-              主菜台
+              料理台
 
             </div>
 
@@ -452,14 +451,17 @@ function App(){
 
           {/* ===================================================
               主游戏核心
-              
+
               桌面：
-              
+
               左操作区 + 右九宫格
-              
+
               手机：
-              
+
               上九宫格 + 下操作区
+
+              荤 / 素 / 调料 / 甜食
+              现在全部统一存在于九宫格。
           =================================================== */}
 
           <div
@@ -539,7 +541,7 @@ function App(){
 
 
             {/* =================================================
-                右侧棋盘
+                右侧九宫格
             ================================================= */}
 
             <div
@@ -599,74 +601,8 @@ function App(){
 
 
         {/* =====================================================
-            调料
+            收藏分隔
         ===================================================== */}
-
-        <section
-          className="
-            game-seasoning-section
-          "
-        >
-
-
-          <div
-            className="
-              game-section-header
-              game-seasoning-section-header
-            "
-          >
-
-
-            <div
-              className="
-                game-section-title
-              "
-            >
-
-              调料
-
-            </div>
-
-
-            <div
-              className="
-                game-section-line
-              "
-            />
-
-
-          </div>
-
-
-
-          <div
-            className="
-              game-seasoning-area
-            "
-          >
-
-
-            <SeasoningTray
-
-              seasoningTray={
-                game.seasoningTray
-              }
-
-              numbers={
-                game.numbers
-              }
-
-            />
-
-
-          </div>
-
-
-        </section>
-
-
-
-
 
         <div
           className="

@@ -10,7 +10,14 @@ export default function StartScreen({
 
   // =========================
   // 快速开始
-  // 随机生成 4 个不同的 2～9
+  //
+  // 随机生成 3 个不同的 2～9
+  //
+  // gameEngine 会自动解释为：
+  //
+  // 第1个 → 荤
+  // 第2个 → 素
+  // 第3个 → 调料
   // =========================
 
   function quickStart() {
@@ -75,7 +82,7 @@ export default function StartScreen({
 
       shuffled.slice(
         0,
-        4
+        3
       )
 
     );

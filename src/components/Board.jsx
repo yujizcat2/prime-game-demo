@@ -18,6 +18,10 @@ import {
   getDessertName
 } from "../data/food/dessertData";
 
+import {
+  getSeasoningName
+} from "../data/food/seasoningData";
+
 import BoardCell from "./BoardCell";
 
 import "./Board.css";
@@ -62,6 +66,18 @@ function getFoodName(
   ){
 
     return getVegetableName(
+      value
+    );
+
+  }
+
+
+
+  if(
+    foodType === "seasoning"
+  ){
+
+    return getSeasoningName(
       value
     );
 
@@ -423,6 +439,10 @@ export default function Board({
 
 
 
+  // ==========================================================
+  // 合成Preview类型
+  // ==========================================================
+
   const combinePreviewTypeClass =
 
     combinePreview?.foodType === "meat"
@@ -438,6 +458,14 @@ export default function Board({
       ?
 
       "board-preview--vegetable"
+
+      :
+
+    combinePreview?.foodType === "seasoning"
+
+      ?
+
+      "board-preview--seasoning"
 
       :
 

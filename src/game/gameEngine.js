@@ -43,18 +43,6 @@ export const BOARD_CONFIG = {
 
 
 // ============================================================
-// 调料盘
-// ============================================================
-
-export const SEASONING_TRAY_CONFIG = {
-
-  MAX_SIZE: 3
-
-};
-
-
-
-// ============================================================
 // 创建空棋盘
 // ============================================================
 
@@ -144,11 +132,8 @@ export function isBoardFull(
 // 3 4 5
 // 6 7 8
 //
-// 与旧NumberList：
-//
-// numbers[numbers.length]
-//
-// 的逻辑对应。
+// 新棋子自动进入
+// 第一个空位置。
 // ============================================================
 
 export function getNextEmptyIndex(
@@ -215,7 +200,7 @@ export function getPieceAt(
 // ============================================================
 // 根据ID获取节点
 //
-// 主要保留给旧UI兼容。
+// 保留给旧UI兼容。
 // ============================================================
 
 export function getNumberById(
@@ -240,13 +225,20 @@ export function getNumberById(
 // ============================================================
 // 创建初始状态
 //
-// 开局4个数字：
+// 新版开局：
 //
-// 荤 素 荤
-// 素 ·  ·
-// ·  ·  ·
+// 荤   素   调料
+// ·    ·    ·
+// ·    ·    ·
 //
-// 不再排序。
+// 只读取前三个数字。
+//
+// 推荐由 StartScreen 保证：
+//
+// 1. 数字来自 2-9
+// 2. 三个数字互不重复
+//
+// Engine 这里只负责赋予类型。
 // ============================================================
 
 export function createGameState(
@@ -267,12 +259,24 @@ export function createGameState(
 
       values.slice(
         0,
-        BOARD_CONFIG.SIZE
+        3
       )
 
       :
 
       [];
+
+
+
+  const initialFoodTypes = [
+
+    FOOD_TYPES.MEAT,
+
+    FOOD_TYPES.VEGETABLE,
+
+    FOOD_TYPES.SEASONING
+
+  ];
 
 
 
@@ -296,11 +300,9 @@ export function createGameState(
 
         foodType:
 
-          index % 2 === 0
-
-            ? FOOD_TYPES.MEAT
-
-            : FOOD_TYPES.VEGETABLE,
+          initialFoodTypes[index]
+          ??
+          FOOD_TYPES.MEAT,
 
 
         parents:
@@ -325,13 +327,6 @@ export function createGameState(
   return {
 
     board,
-
-
-    seasoningTray: [],
-
-
-    nextSeasoningId:
-      1,
 
 
     collection: [],
@@ -421,6 +416,15 @@ export function consumeStep(
 // index较小 = front
 //
 // 点击顺序不影响结果。
+//
+// 注意：
+//
+// 新版 foodType 合成规则
+// 已经不再依赖前后位置。
+//
+// 但这里仍然保留 front / back，
+// 因为来源路径、parentFoods 等
+// 仍然需要稳定的棋盘顺序。
 // ============================================================
 
 export function getOrderedPair(
@@ -503,91 +507,6 @@ export function getOrderedPair(
 
 
 // ============================================================
-// 添加调料
-// ============================================================
-
-export function addSeasoningToTray(
-  state,
-  value
-){
-
-
-  if(
-    value === null ||
-    value === undefined
-  ){
-
-    return state;
-
-  }
-
-
-
-  const newSeasoning = {
-
-    id:
-      state.nextSeasoningId,
-
-    value
-
-  };
-
-
-
-  const currentTray =
-
-    state.seasoningTray
-    ?? [];
-
-
-
-  const nextTray = [
-
-    ...currentTray,
-
-    newSeasoning
-
-  ];
-
-
-
-  const trimmedTray =
-
-    nextTray.length >
-    SEASONING_TRAY_CONFIG.MAX_SIZE
-
-      ?
-
-      nextTray.slice(
-
-        nextTray.length -
-        SEASONING_TRAY_CONFIG.MAX_SIZE
-
-      )
-
-      :
-
-      nextTray;
-
-
-
-  return {
-
-    ...state,
-
-    seasoningTray:
-      trimmedTray,
-
-    nextSeasoningId:
-      state.nextSeasoningId + 1
-
-  };
-
-}
-
-
-
-// ============================================================
 // 两格能否合成
 // ============================================================
 
@@ -656,6 +575,10 @@ export function canCombineCells(
   }
 
 
+
+  // ==========================================================
+  // 1不能参与合成
+  // ==========================================================
 
   if(
     a.value === 1 ||
@@ -742,6 +665,10 @@ export function canReduceCells(
 
 
 
+  // ==========================================================
+  // 1不能继续约分
+  // ==========================================================
+
   if(
     a.value === 1 ||
     b.value === 1
@@ -765,13 +692,38 @@ export function canReduceCells(
 // ============================================================
 // 合成
 //
-// 新版九宫格规则：
+// 九宫格规则：
 //
 // 1. A、B保留
 // 2. 自动寻找第一个null
 // 3. C进入该格
 //
-// 玩家不选择位置。
+// 玩家不选择结果位置。
+//
+//
+// 类型规则交给 combineFoodType：
+//
+// 荤 + 素
+// → 调料
+//
+// 素 + 调料
+// → 荤
+//
+// 调料 + 荤
+// → 素
+//
+// 同类 + 同类
+// → 同类
+//
+// 甜食 + 普通
+// → 普通
+//
+// 甜食 + 甜食
+// → 甜食
+//
+//
+// 跨101只改变数字，
+// 不改变类型。
 // ============================================================
 
 export function combineCells(
@@ -782,6 +734,7 @@ export function combineCells(
 
 
   if(
+    !state ||
     state.gameOver
   ){
 
@@ -871,6 +824,10 @@ export function combineCells(
 
 
 
+  // ==========================================================
+  // 数字结果
+  // ==========================================================
+
   const result =
 
     combineValue(
@@ -883,6 +840,12 @@ export function combineCells(
 
 
 
+  // ==========================================================
+  // 类型结果
+  //
+  // 与数字是否跨101完全独立。
+  // ==========================================================
+
   const foodType =
 
     combineFoodType(
@@ -892,6 +855,16 @@ export function combineCells(
       back
 
     );
+
+
+
+  if(
+    !foodType
+  ){
+
+    return state;
+
+  }
 
 
 
@@ -1005,6 +978,15 @@ export function combineCells(
 // 约分
 //
 // 原地变化。
+//
+// 当前版本：
+//
+// 约分只改变数字，
+// 暂时保持原 foodType 不变。
+//
+// 下一阶段如果要加入
+// “约分产生甜食”规则，
+// 就主要从这里扩展。
 // ============================================================
 
 export function reduceCells(
@@ -1015,6 +997,7 @@ export function reduceCells(
 
 
   if(
+    !state ||
     state.gameOver
   ){
 
@@ -1053,6 +1036,17 @@ export function reduceCells(
 
 
 
+  if(
+    !first ||
+    !second
+  ){
+
+    return state;
+
+  }
+
+
+
   const divisor =
 
     gcd(
@@ -1069,6 +1063,7 @@ export function reduceCells(
 
     first.value /
     divisor;
+
 
 
   const secondResult =
@@ -1110,6 +1105,12 @@ export function reduceCells(
 
 
 
+  // ==========================================================
+  // 第一个数字原地约分
+  //
+  // foodType保持不变。
+  // ==========================================================
+
   nextBoard[
     indexA
   ] = {
@@ -1131,6 +1132,12 @@ export function reduceCells(
   };
 
 
+
+  // ==========================================================
+  // 第二个数字原地约分
+  //
+  // foodType保持不变。
+  // ==========================================================
 
   nextBoard[
     indexB
@@ -1183,6 +1190,17 @@ export function reduceCells(
 // 消除1
 //
 // board[index] = null
+//
+// 新版已经完全取消调料盘。
+//
+// 因此：
+//
+// 约分得到1
+// → 玩家消除1
+// → 记录收藏 / 来源 / 路径 / 分数
+// → 该格变为空
+//
+// 不再自动生成调料。
 // ============================================================
 
 export function removeOne(
@@ -1192,6 +1210,7 @@ export function removeOne(
 
 
   if(
+    !state ||
     state.gameOver
   ){
 
@@ -1219,6 +1238,10 @@ export function removeOne(
   }
 
 
+
+  // ==========================================================
+  // 获取1之前的来源
+  // ==========================================================
 
   const previousRecord =
 
@@ -1261,6 +1284,10 @@ export function removeOne(
 
 
 
+  // ==========================================================
+  // 有合法来源
+  // ==========================================================
+
   if(
     discoveredValue !== null &&
     previousRecord
@@ -1274,6 +1301,10 @@ export function removeOne(
       );
 
 
+
+    // ========================================================
+    // 保存来源实例
+    // ========================================================
 
     const oldOrigins =
 
@@ -1298,6 +1329,10 @@ export function removeOne(
     };
 
 
+
+    // ========================================================
+    // 保存主路径
+    // ========================================================
 
     const mainLineage =
 
@@ -1348,6 +1383,10 @@ export function removeOne(
 
 
 
+    // ========================================================
+    // 第一次发现
+    // ========================================================
+
     if(
       isFirstTime
     ){
@@ -1386,6 +1425,10 @@ export function removeOne(
     }
 
 
+    // ========================================================
+    // 重复发现
+    // ========================================================
+
     else{
 
 
@@ -1401,6 +1444,10 @@ export function removeOne(
 
 
 
+  // ==========================================================
+  // 清空棋盘位置
+  // ==========================================================
+
   const nextBoard = [
 
     ...state.board
@@ -1415,7 +1462,11 @@ export function removeOne(
 
 
 
-  let nextState = {
+  // ==========================================================
+  // 新状态
+  // ==========================================================
+
+  return {
 
     ...state,
 
@@ -1439,29 +1490,6 @@ export function removeOne(
 
   };
 
-
-
-  if(
-    discoveredValue !== null
-  ){
-
-
-    nextState =
-
-      addSeasoningToTray(
-
-        nextState,
-
-        discoveredValue
-
-      );
-
-  }
-
-
-
-  return nextState;
-
 }
 
 
@@ -1476,6 +1504,7 @@ export function getLegalCombineActions(
 
 
   if(
+    !state ||
     state.gameOver ||
     isBoardFull(
       state.board
@@ -1571,6 +1600,7 @@ export function getLegalReduceActions(
 
 
   if(
+    !state ||
     state.gameOver
   ){
 
@@ -1663,6 +1693,7 @@ export function getLegalRemoveActions(
 
 
   if(
+    !state ||
     state.gameOver
   ){
 
@@ -1719,6 +1750,7 @@ export function getLegalActions(
 
 
   if(
+    !state ||
     state.gameOver
   ){
 
@@ -1759,6 +1791,7 @@ export function applyAction(
 
 
   if(
+    !state ||
     !action
   ){
 
