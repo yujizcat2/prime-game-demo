@@ -378,18 +378,6 @@ function scoreSurvival(
 // 收藏潜力分析
 //
 // Collection AI V2
-//
-// 不只看：
-//
-// “已经收藏几个”
-//
-// 还看：
-//
-// 1. 是否已经存在可直接处理的新收藏1
-// 2. 是否一次约分就能得到新收藏1
-// 3. 未收藏数字是否已经进入可约分状态
-// 4. 棋盘上是否存在尚未收藏的数字
-//
 // ============================================================
 
 function analyzeCollectionPotential(
@@ -446,12 +434,6 @@ function analyzeCollectionPotential(
 
 
 
-    // ========================================================
-    // 已经存在一个1
-    //
-    // previousValue 是处理它以后获得的收藏来源。
-    // ========================================================
-
     if(
       piece.value === 1
     ){
@@ -485,10 +467,6 @@ function analyzeCollectionPotential(
 
 
 
-    // ========================================================
-    // 当前棋盘上的未收藏数字
-    // ========================================================
-
     if(
       !collected.has(
         piece.value
@@ -510,8 +488,6 @@ function analyzeCollectionPotential(
 
   // ==========================================================
   // 扫描所有合法约分
-  //
-  // 判断是否已经“一次约分即可收藏”。
   // ==========================================================
 
   for(
@@ -600,10 +576,6 @@ function analyzeCollectionPotential(
 
 
 
-    // ========================================================
-    // A 一步直接约成1
-    // ========================================================
-
     if(
       nextA === 1
       &&
@@ -621,10 +593,6 @@ function analyzeCollectionPotential(
 
 
 
-    // ========================================================
-    // B 一步直接约成1
-    // ========================================================
-
     if(
       nextB === 1
       &&
@@ -641,12 +609,6 @@ function analyzeCollectionPotential(
 
 
 
-
-    // ========================================================
-    // 尚未收藏，而且已经能够参与合法约分
-    //
-    // 说明它正在进入“可加工”状态。
-    // ========================================================
 
     if(
       !collected.has(
@@ -704,25 +666,6 @@ function analyzeCollectionPotential(
 
 // ============================================================
 // Collection 评分 V2
-//
-// 优先顺序：
-//
-// 1. 已经获得的新收藏
-// 2. 可直接处理的新收藏1
-// 3. 一步约分得到新收藏
-// 4. 未收藏数字已经可以约分
-// 5. 当前棋盘存在未收藏数字
-// 6. 局面活性只做辅助
-//
-// ------------------------------------------------------------
-//
-// 重要变化：
-//
-// 删除 state.steps 奖励。
-//
-// 对 Collection AI 来说：
-//
-// 活很久 ≠ 做得好。
 // ============================================================
 
 function scoreCollection(
@@ -750,26 +693,12 @@ function scoreCollection(
 
 
 
-
-
-  // ==========================================================
-  // 已经获得的不同收藏
-  //
-  // 绝对最高优先级。
-  // ==========================================================
-
   const collectionScore =
 
     state.collection.size *
     1000000;
 
 
-
-
-
-  // ==========================================================
-  // 已经存在可直接处理的新收藏1
-  // ==========================================================
 
   const directScore =
 
@@ -778,24 +707,12 @@ function scoreCollection(
 
 
 
-
-
-  // ==========================================================
-  // 一次约分即可产生新收藏1
-  // ==========================================================
-
   const oneReduceScore =
 
     potential.oneReduceAway *
     100000;
 
 
-
-
-
-  // ==========================================================
-  // 未收藏数字已经进入可约分状态
-  // ==========================================================
 
   const reducibleUnseenScore =
 
@@ -804,31 +721,12 @@ function scoreCollection(
 
 
 
-
-
-  // ==========================================================
-  // 棋盘上存在未收藏数字
-  //
-  // 权重故意较低。
-  //
-  // 避免 AI 只喜欢囤陌生数字，
-  // 却不真正加工它们。
-  // ==========================================================
-
   const unseenScore =
 
     potential.unseenBoardValues *
     1000;
 
 
-
-
-
-  // ==========================================================
-  // 基础局面质量
-  //
-  // 只负责同等收藏潜力局面之间的细微排序。
-  // ==========================================================
 
   const boardScore =
 
@@ -852,12 +750,6 @@ function scoreCollection(
 
 
 
-
-
-  // ==========================================================
-  // 死局惩罚
-  // ==========================================================
-
   const deadPenalty =
 
     info.legalCount === 0
@@ -869,8 +761,6 @@ function scoreCollection(
       :
 
         0;
-
-
 
 
 
@@ -1337,8 +1227,6 @@ function chooseSmartAction(
 
 // ============================================================
 // 棋盘快照
-//
-// 只在主路线发生回转时记录。
 // ============================================================
 
 function snapshotBoard(
@@ -1570,6 +1458,23 @@ export async function runSmartGame({
 
 
   // ==========================================================
+  // 处理1统计
+  // ==========================================================
+
+  let totalRemoveActions =
+    0;
+
+
+  let repeatCollectionRemovals =
+    0;
+
+
+  let repeatRemovalsSincePreviousCollection =
+    0;
+
+
+
+  // ==========================================================
   // 回转记录
   // ==========================================================
 
@@ -1584,6 +1489,19 @@ export async function runSmartGame({
 
   const collectionTimeline =
     [];
+
+
+
+  // ==========================================================
+  // 最近动作窗口
+  // ==========================================================
+
+  const recentActions =
+    [];
+
+
+  const ROUTE_WINDOW_SIZE =
+    20;
 
 
 
@@ -1662,6 +1580,70 @@ export async function runSmartGame({
 
 
 
+    // ========================================================
+    // 在执行 remove 前判断：
+    //
+    // 这次处理的是新收藏，
+    // 还是已经收藏过的旧数字。
+    // ========================================================
+
+    let isRepeatCollectionRemoval =
+      false;
+
+
+    let removedSource =
+      null;
+
+
+
+    if(
+      action.type ===
+      "remove"
+    ){
+
+
+      const piece =
+
+        state.board[
+          action.index
+        ];
+
+
+
+      removedSource =
+
+        piece?.previousValue
+
+        ??
+
+        null;
+
+
+
+      totalRemoveActions++;
+
+
+
+      if(
+        removedSource != null
+        &&
+        state.collection.has(
+          removedSource
+        )
+      ){
+
+
+        isRepeatCollectionRemoval =
+          true;
+
+      }
+
+    }
+
+
+
+
+
     const beforeTurnCount =
       state.mazeTurnCount;
 
@@ -1699,6 +1681,74 @@ export async function runSmartGame({
 
 
     actions++;
+
+
+
+
+
+    // ========================================================
+    // 重复旧收藏处理统计
+    // ========================================================
+
+    if(
+      isRepeatCollectionRemoval
+    ){
+
+
+      repeatCollectionRemovals++;
+
+      repeatRemovalsSincePreviousCollection++;
+
+    }
+
+
+
+
+
+    // ========================================================
+    // 收藏路线分析
+    // ========================================================
+
+    recentActions.push({
+
+      actionNumber:
+        actions,
+
+      steps:
+        state.steps,
+
+      type:
+        description.type,
+
+      text:
+        description.text,
+
+      removedSource,
+
+      repeatCollectionRemoval:
+        isRepeatCollectionRemoval,
+
+      beforeBoard,
+
+      afterBoard:
+
+        snapshotBoard(
+          state
+        )
+
+    });
+
+
+
+    if(
+      recentActions.length >
+      ROUTE_WINDOW_SIZE
+    ){
+
+
+      recentActions.shift();
+
+    }
 
 
 
@@ -1761,6 +1811,14 @@ export async function runSmartGame({
           mazeTurnCount:
             state.mazeTurnCount,
 
+
+
+
+
+          // ====================================================
+          // 距离上一个收藏
+          // ====================================================
+
           actionsSincePrevious:
 
             previousTimelineEntry
@@ -1774,6 +1832,8 @@ export async function runSmartGame({
 
                 actions,
 
+
+
           stepsSincePrevious:
 
             previousTimelineEntry
@@ -1785,9 +1845,115 @@ export async function runSmartGame({
 
               :
 
-                state.steps
+                state.steps,
+
+
+
+
+
+          // ====================================================
+          // 从上一个新收藏到现在，
+          // 重复处理了多少次旧收藏。
+          // ====================================================
+
+          repeatRemovalsSincePrevious:
+
+            repeatRemovalsSincePreviousCollection,
+
+
+
+
+
+          // ====================================================
+          // 真正触发收藏的动作
+          // ====================================================
+
+          triggerAction:
+
+            recentActions[
+              recentActions.length - 1
+            ]
+
+            ??
+
+            null,
+
+
+
+
+
+          // ====================================================
+          // 收藏前一个动作
+          // ====================================================
+
+          previousAction:
+
+            recentActions[
+              recentActions.length - 2
+            ]
+
+            ??
+
+            null,
+
+
+
+
+
+          // ====================================================
+          // 最近20步路线
+          // ====================================================
+
+          routeWindow:
+
+            recentActions.map(
+
+              item => ({
+
+                actionNumber:
+                  item.actionNumber,
+
+                steps:
+                  item.steps,
+
+                type:
+                  item.type,
+
+                text:
+                  item.text,
+
+                removedSource:
+                  item.removedSource,
+
+                repeatCollectionRemoval:
+                  item.repeatCollectionRemoval,
+
+                beforeBoard:
+                  item.beforeBoard,
+
+                afterBoard:
+                  item.afterBoard
+
+              })
+
+            )
 
         });
+
+
+
+
+
+        // ======================================================
+        // 新收藏已经形成。
+        //
+        // 下一段重新统计：
+        // “为了下一个新收藏，
+        //  中间用了多少旧收藏。”
+        // ======================================================
+
+        repeatRemovalsSincePreviousCollection =
+          0;
 
       }
 
@@ -1916,7 +2082,11 @@ export async function runSmartGame({
           state.mazeVisitedCount,
 
         mazeTurnCount:
-          state.mazeTurnCount
+          state.mazeTurnCount,
+
+        totalRemoveActions,
+
+        repeatCollectionRemovals
 
       });
 
@@ -1971,6 +2141,35 @@ export async function runSmartGame({
 
     collectionCount:
       state.collection.size,
+
+
+
+
+
+    // ========================================================
+    // 处理1统计
+    // ========================================================
+
+    totalRemoveActions,
+
+    repeatCollectionRemovals,
+
+    averageRepeatRemovalsPerCollection:
+
+      state.collection.size > 0
+
+        ?
+
+          repeatCollectionRemovals /
+          state.collection.size
+
+        :
+
+          0,
+
+
+
+
 
     collectionTimeline,
 
@@ -2072,6 +2271,15 @@ export async function runSmartExplorer({
     0;
 
 
+  let totalRemoveActions =
+    0;
+
+
+  let totalRepeatCollectionRemovals =
+    0;
+
+
+
   let maxSteps =
     0;
 
@@ -2165,6 +2373,12 @@ export async function runSmartExplorer({
               currentMazeTurns:
                 current.mazeTurnCount,
 
+              currentRemoveActions:
+                current.totalRemoveActions,
+
+              currentRepeatCollectionRemovals:
+                current.repeatCollectionRemovals,
+
               maxSteps,
 
               maxCollection,
@@ -2214,6 +2428,14 @@ export async function runSmartExplorer({
 
     totalMazeTurns +=
       result.mazeTurnCount;
+
+
+    totalRemoveActions +=
+      result.totalRemoveActions;
+
+
+    totalRepeatCollectionRemovals +=
+      result.repeatCollectionRemovals;
 
 
 
@@ -2362,6 +2584,12 @@ export async function runSmartExplorer({
       currentMazeTurns:
         0,
 
+      currentRemoveActions:
+        0,
+
+      currentRepeatCollectionRemovals:
+        0,
+
       maxSteps,
 
       maxCollection,
@@ -2398,6 +2626,9 @@ export async function runSmartExplorer({
     beamWidth,
 
 
+
+
+
     // ========================================================
     // 步数
     // ========================================================
@@ -2408,6 +2639,9 @@ export async function runSmartExplorer({
       safeGames,
 
     maxSteps,
+
+
+
 
 
     // ========================================================
@@ -2422,11 +2656,47 @@ export async function runSmartExplorer({
     maxCollection,
 
 
+
+
+
+    // ========================================================
+    // 处理1 / 重复旧收藏统计
+    // ========================================================
+
+    totalRemoveActions,
+
+    totalRepeatCollectionRemovals,
+
+    averageRepeatCollectionRemovalsPerGame:
+
+      totalRepeatCollectionRemovals /
+      safeGames,
+
+    averageRepeatRemovalsPerCollection:
+
+      totalCollection > 0
+
+        ?
+
+          totalRepeatCollectionRemovals /
+          totalCollection
+
+        :
+
+          0,
+
+
+
+
+
     // ========================================================
     // 保护上限
     // ========================================================
 
     hitLimitCount,
+
+
+
 
 
     // ========================================================
@@ -2448,6 +2718,9 @@ export async function runSmartExplorer({
 
       mazeTurnGameCount /
       safeGames,
+
+
+
 
 
     // ========================================================

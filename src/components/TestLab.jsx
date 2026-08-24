@@ -488,7 +488,7 @@ export default function TestLab({
 
           <br />
 
-          并记录收藏发现时间线。
+          并记录收藏路线与重复旧收藏消耗。
 
         </>
 
@@ -533,10 +533,6 @@ export default function TestLab({
       >
 
 
-
-        {/* =====================================================
-            Header
-            ===================================================== */}
 
         <header
           className="
@@ -598,10 +594,6 @@ export default function TestLab({
 
 
 
-
-        {/* =====================================================
-            模式选择
-            ===================================================== */}
 
         <section
           className="
@@ -712,10 +704,6 @@ export default function TestLab({
 
 
 
-        {/* =====================================================
-            说明
-            ===================================================== */}
-
         <div
           className="
             test-lab-description
@@ -754,7 +742,23 @@ export default function TestLab({
 
               <br />
 
-              Depth 4 · Beam 50 · 最大 10,000 操作
+              Depth 4 · Beam 50
+
+              {" · "}
+
+              {
+
+                isCollectionMode
+
+                  ?
+
+                    "最大 1,000 操作"
+
+                  :
+
+                    "最大 10,000 操作"
+
+              }
 
             </>
 
@@ -766,10 +770,6 @@ export default function TestLab({
 
 
 
-
-        {/* =====================================================
-            测试控制
-            ===================================================== */}
 
         <section
           className="
@@ -892,10 +892,6 @@ export default function TestLab({
 
 
 
-          {/* ===================================================
-              进度
-              =================================================== */}
-
           {
 
             running &&
@@ -951,10 +947,6 @@ export default function TestLab({
 
 
 
-
-        {/* =====================================================
-            最终结果
-            ===================================================== */}
 
         {
 
@@ -1013,10 +1005,6 @@ export default function TestLab({
 
 
 
-            {/* =================================================
-                总体数据
-                ================================================= */}
-
             <ResultGrid
 
               result={
@@ -1027,15 +1015,15 @@ export default function TestLab({
                 isSmartMode
               }
 
+              collectionMode={
+                isCollectionMode
+              }
+
             />
 
 
 
 
-
-            {/* =================================================
-                最长步数纪录
-                ================================================= */}
 
             {
 
@@ -1057,10 +1045,6 @@ export default function TestLab({
 
 
 
-            {/* =================================================
-                最多收藏纪录
-                ================================================= */}
-
             {
 
               result.bestCollectionGame &&
@@ -1079,10 +1063,6 @@ export default function TestLab({
 
 
 
-                {/* =============================================
-                    收藏研究核心
-                    ============================================= */}
-
                 {
 
                   isCollectionMode &&
@@ -1098,10 +1078,6 @@ export default function TestLab({
                 }
 
 
-
-                {/* =============================================
-                    回转只保留轻量摘要
-                    ============================================= */}
 
                 {
 
@@ -1326,10 +1302,6 @@ function ProgressPanel({
 
 
 
-          {/* ===============================================
-              Collection模式实时最新收藏
-              =============================================== */}
-
           {
 
             collectionMode &&
@@ -1396,33 +1368,113 @@ function ProgressPanel({
                   .currentLastCollection
                   .order > 1 &&
 
-                <div>
+                <>
 
-                  距上个收藏：
 
-                  {" "}
+                  <div>
 
-                  +{
-                    formatNumber(
-                      progress
-                        .currentLastCollection
-                        .actionsSincePrevious
-                    )
-                  } 操作
+                    距上个收藏：
 
-                  {" · "}
+                    {" "}
 
-                  +{
-                    formatNumber(
-                      progress
-                        .currentLastCollection
-                        .stepsSincePrevious
-                    )
-                  } 步
+                    +{
+                      formatNumber(
+                        progress
+                          .currentLastCollection
+                          .actionsSincePrevious
+                      )
+                    } 操作
 
-                </div>
+                    {" · "}
+
+                    +{
+                      formatNumber(
+                        progress
+                          .currentLastCollection
+                          .stepsSincePrevious
+                      )
+                    } 步
+
+                  </div>
+
+
+
+                  <div>
+
+                    期间重复旧收藏：
+
+                    {" "}
+
+                    <strong>
+
+                      {
+                        formatNumber(
+                          progress
+                            .currentLastCollection
+                            .repeatRemovalsSincePrevious
+                          ?? 0
+                        )
+                      }
+
+                    </strong>
+
+                    {" "}
+
+                    次
+
+                  </div>
+
+
+                </>
 
               }
+
+
+            </>
+
+          }
+
+
+
+          {
+
+            collectionMode &&
+
+            <>
+
+
+              <div>
+
+                当前局处理1：
+
+                {" "}
+
+                {
+                  formatNumber(
+                    progress.currentRemoveActions
+                    ?? 0
+                  )
+                }
+
+              </div>
+
+
+
+              <div>
+
+                当前局重复旧收藏：
+
+                {" "}
+
+                {
+                  formatNumber(
+                    progress
+                      .currentRepeatCollectionRemovals
+                    ?? 0
+                  )
+                }
+
+              </div>
 
 
             </>
@@ -1553,7 +1605,9 @@ function ResultGrid({
 
   result,
 
-  smart
+  smart,
+
+  collectionMode
 
 }){
 
@@ -1641,6 +1695,78 @@ function ResultGrid({
         highlight
 
       />
+
+
+
+
+
+      {
+
+        collectionMode &&
+
+        <>
+
+
+          <ResultItem
+
+            label="总处理1"
+
+            value={
+              formatNumber(
+                result.totalRemoveActions
+                ?? 0
+              )
+            }
+
+          />
+
+
+          <ResultItem
+
+            label="重复旧收藏处理"
+
+            value={
+              formatNumber(
+                result.totalRepeatCollectionRemovals
+                ?? 0
+              )
+            }
+
+            highlight={
+              (
+                result.totalRepeatCollectionRemovals
+                ?? 0
+              ) > 0
+            }
+
+          />
+
+
+          <ResultItem
+
+            label="每个新收藏平均消耗旧收藏"
+
+            value={
+              Number(
+                result.averageRepeatRemovalsPerCollection
+                ?? 0
+              )
+                .toFixed(
+                  2
+                )
+            }
+
+            highlight
+
+          />
+
+
+        </>
+
+      }
+
+
+
 
 
       <ResultItem
@@ -1915,6 +2041,87 @@ function RecordCard({
 
       {
 
+        game.totalRemoveActions !==
+        undefined &&
+
+        <div>
+
+          处理1：
+
+          {" "}
+
+          {
+            formatNumber(
+              game.totalRemoveActions
+            )
+          }
+
+        </div>
+
+      }
+
+
+
+      {
+
+        game.repeatCollectionRemovals !==
+        undefined &&
+
+        <div>
+
+          重复旧收藏：
+
+          {" "}
+
+          <strong>
+
+            {
+              formatNumber(
+                game.repeatCollectionRemovals
+              )
+            }
+
+          </strong>
+
+        </div>
+
+      }
+
+
+
+      {
+
+        game.averageRepeatRemovalsPerCollection !==
+        undefined &&
+
+        <div>
+
+          每个新收藏平均消耗旧收藏：
+
+          {" "}
+
+          <strong>
+
+            {
+              Number(
+                game.averageRepeatRemovalsPerCollection
+                ?? 0
+              )
+                .toFixed(
+                  2
+                )
+            }
+
+          </strong>
+
+        </div>
+
+      }
+
+
+
+      {
+
         game.mazeTurnCount !==
         undefined &&
 
@@ -2074,7 +2281,7 @@ function CollectionTimelineCard({
         "
       >
 
-        收藏时间线
+        收藏时间线 / 路线解剖
 
       </div>
 
@@ -2108,10 +2315,6 @@ function CollectionTimelineCard({
 
 
 
-
-      {/* =====================================================
-          收藏墙摘要
-          ===================================================== */}
 
       <div
         style={{
@@ -2169,6 +2372,54 @@ function CollectionTimelineCard({
 
 
 
+        <div>
+
+          时间线重复旧收藏：
+
+          {" "}
+
+          <strong>
+
+            {
+              formatNumber(
+                summary.totalRepeatRemovals
+              )
+            }
+
+          </strong>
+
+          {" "}
+
+          次
+
+        </div>
+
+
+
+        <div>
+
+          每段平均重复：
+
+          {" "}
+
+          <strong>
+
+            {
+              summary.averageRepeatRemovals.toFixed(
+                2
+              )
+            }
+
+          </strong>
+
+          {" "}
+
+          次
+
+        </div>
+
+
+
         {
 
           summary.maxGapEntry &&
@@ -2221,10 +2472,6 @@ function CollectionTimelineCard({
 
 
 
-
-      {/* =====================================================
-          时间线
-          ===================================================== */}
 
       <div
         style={{
@@ -2291,25 +2538,19 @@ function CollectionTimelineItem({
 }){
 
 
+  const [
+    open,
+    setOpen
+  ] = useState(
+    false
+  );
+
+
+
   return (
 
     <div
       style={{
-
-        display:
-          "grid",
-
-        gridTemplateColumns:
-          "44px 52px 1fr",
-
-        gap:
-          "8px",
-
-        alignItems:
-          "center",
-
-        padding:
-          "8px 10px",
 
         border:
           "1px solid rgba(90,110,96,.09)",
@@ -2318,120 +2559,529 @@ function CollectionTimelineItem({
           "8px",
 
         background:
-          "rgba(255,255,255,.24)"
+          "rgba(255,255,255,.24)",
+
+        overflow:
+          "hidden"
 
       }}
     >
 
 
-      <div
-        style={{
+      <button
 
-          fontSize:
-            "10px",
+        type="button"
 
-          opacity:
-            0.5
-
-        }}
-      >
-
-        #{
-          entry.order
+        onClick={() =>
+          setOpen(
+            value =>
+              !value
+          )
         }
 
-      </div>
-
-
-
-      <div
         style={{
 
-          fontSize:
-            "16px",
+          width:
+            "100%",
 
-          fontWeight:
-            900
+          display:
+            "grid",
+
+          gridTemplateColumns:
+            "44px 52px 1fr 20px",
+
+          gap:
+            "8px",
+
+          alignItems:
+            "center",
+
+          padding:
+            "8px 10px",
+
+          border:
+            "none",
+
+          background:
+            "transparent",
+
+          cursor:
+            "pointer",
+
+          textAlign:
+            "left",
+
+          color:
+            "inherit"
 
         }}
-      >
 
-        {
-          entry.value
-        }
-
-      </div>
-
-
-
-      <div
-        style={{
-
-          fontSize:
-            "11px",
-
-          lineHeight:
-            1.5
-
-        }}
       >
 
 
-        <div>
+        <div
+          style={{
 
-          第 {
-            formatNumber(
-              entry.actionNumber
-            )
-          } 次操作
+            fontSize:
+              "10px",
 
-          {" · "}
+            opacity:
+              0.5
 
-          Step {
-            formatNumber(
-              entry.steps
-            )
+          }}
+        >
+
+          #{
+            entry.order
           }
 
         </div>
 
 
 
-        {
+        <div
+          style={{
 
-          entry.order > 1 &&
+            fontSize:
+              "16px",
 
-          <div
-            style={{
-              opacity:
-                0.58
-            }}
-          >
+            fontWeight:
+              900
 
-            距上次：
+          }}
+        >
 
-            {" "}
+          {
+            entry.value
+          }
 
-            +{
+        </div>
+
+
+
+        <div
+          style={{
+
+            fontSize:
+              "11px",
+
+            lineHeight:
+              1.5
+
+          }}
+        >
+
+
+          <div>
+
+            第 {
               formatNumber(
-                entry.actionsSincePrevious
+                entry.actionNumber
               )
-            } 操作
+            } 次操作
 
             {" · "}
 
-            +{
+            Step {
               formatNumber(
-                entry.stepsSincePrevious
+                entry.steps
               )
-            } 步
+            }
 
           </div>
 
-        }
 
 
-      </div>
+          {
+
+            entry.order > 1 &&
+
+            <>
+
+
+              <div
+                style={{
+                  opacity:
+                    0.58
+                }}
+              >
+
+                距上次：
+
+                {" "}
+
+                +{
+                  formatNumber(
+                    entry.actionsSincePrevious
+                  )
+                } 操作
+
+                {" · "}
+
+                +{
+                  formatNumber(
+                    entry.stepsSincePrevious
+                  )
+                } 步
+
+              </div>
+
+
+
+              <div
+                style={{
+                  opacity:
+                    0.58
+                }}
+              >
+
+                期间重复旧收藏：
+
+                {" "}
+
+                <strong>
+
+                  {
+                    formatNumber(
+                      entry.repeatRemovalsSincePrevious
+                      ?? 0
+                    )
+                  }
+
+                </strong>
+
+                {" "}
+
+                次
+
+              </div>
+
+
+            </>
+
+          }
+
+
+        </div>
+
+
+
+        <div
+          style={{
+
+            fontSize:
+              "12px",
+
+            opacity:
+              0.45,
+
+            transform:
+
+              open
+
+                ?
+
+                  "rotate(180deg)"
+
+                :
+
+                  "rotate(0deg)",
+
+            transition:
+              "transform .15s ease"
+
+          }}
+        >
+
+          ▾
+
+        </div>
+
+
+      </button>
+
+
+
+      {
+
+        open &&
+
+        <CollectionRouteDetail
+
+          entry={
+            entry
+          }
+
+        />
+
+      }
+
+
+    </div>
+
+  );
+
+}
+
+
+
+
+
+// ============================================================
+// 收藏路线详情
+// ============================================================
+
+function CollectionRouteDetail({
+
+  entry
+
+}){
+
+
+  const route =
+
+    Array.isArray(
+      entry?.routeWindow
+    )
+
+      ?
+
+        entry.routeWindow
+
+      :
+
+        [];
+
+
+
+  return (
+
+    <div
+      style={{
+
+        padding:
+          "10px",
+
+        borderTop:
+          "1px solid rgba(90,110,96,.08)",
+
+        background:
+          "rgba(255,255,255,.18)",
+
+        fontSize:
+          "11px",
+
+        lineHeight:
+          1.65
+
+      }}
+    >
+
+
+      {
+
+        entry.previousAction &&
+
+        <div
+          style={{
+            marginBottom:
+              "4px"
+          }}
+        >
+
+          <strong>
+
+            前一步：
+
+          </strong>
+
+          {" "}
+
+          {
+            entry.previousAction.text
+          }
+
+        </div>
+
+      }
+
+
+
+      {
+
+        entry.triggerAction &&
+
+        <div
+          style={{
+            marginBottom:
+              "10px"
+          }}
+        >
+
+          <strong>
+
+            收藏：
+
+          </strong>
+
+          {" "}
+
+          {
+            entry.triggerAction.text
+          }
+
+        </div>
+
+      }
+
+
+
+
+
+      {
+
+        route.length > 0 &&
+
+        <>
+
+
+          <div
+            style={{
+
+              marginBottom:
+                "5px",
+
+              fontWeight:
+                700,
+
+              opacity:
+                0.7
+
+            }}
+          >
+
+            最近路线
+
+          </div>
+
+
+
+          <div
+            style={{
+
+              display:
+                "flex",
+
+              flexDirection:
+                "column",
+
+              gap:
+                "2px",
+
+              maxHeight:
+                "220px",
+
+              overflowY:
+                "auto"
+
+            }}
+          >
+
+
+            {
+
+              route.map(
+
+                item => (
+
+                  <div
+
+                    key={
+                      item.actionNumber
+                    }
+
+                    style={{
+
+                      display:
+                        "grid",
+
+                      gridTemplateColumns:
+                        "44px 1fr",
+
+                      gap:
+                        "6px",
+
+                      opacity:
+
+                        item.actionNumber ===
+                        entry.actionNumber
+
+                          ?
+
+                            1
+
+                          :
+
+                            0.65
+
+                    }}
+
+                  >
+
+
+                    <span>
+
+                      {
+                        item.actionNumber
+                      }
+
+                    </span>
+
+
+                    <span>
+
+                      {
+                        item.text
+                      }
+
+
+
+                      {
+
+                        item.repeatCollectionRemoval &&
+
+                        <strong
+                          style={{
+
+                            marginLeft:
+                              "6px"
+
+                          }}
+                        >
+
+                          [重复]
+
+                        </strong>
+
+                      }
+
+                    </span>
+
+
+                  </div>
+
+                )
+
+              )
+
+            }
+
+
+          </div>
+
+        </>
+
+      }
 
 
     </div>
@@ -2461,6 +3111,10 @@ function analyzeCollectionTimeline(
     0;
 
 
+  let totalRepeatRemovals =
+    0;
+
+
   let maxGapEntry =
     null;
 
@@ -2484,6 +3138,15 @@ function analyzeCollectionTimeline(
 
     totalActions +=
       entry.actionsSincePrevious;
+
+
+    totalRepeatRemovals +=
+
+      entry.repeatRemovalsSincePrevious
+
+      ??
+
+      0;
 
 
 
@@ -2528,6 +3191,13 @@ function analyzeCollectionTimeline(
       totalActions /
       count,
 
+    totalRepeatRemovals,
+
+    averageRepeatRemovals:
+
+      totalRepeatRemovals /
+      count,
+
     maxGapEntry
 
   };
@@ -2540,8 +3210,6 @@ function analyzeCollectionTimeline(
 
 // ============================================================
 // 迷宫回转摘要
-//
-// 现在只作为辅助诊断。
 // ============================================================
 
 function MazeTurnSummary({
