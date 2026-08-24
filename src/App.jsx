@@ -631,6 +631,10 @@ function App(){
                   game.preview
                 }
 
+                mazeTurn={
+                  game.mazeTurn
+                }
+
               />
 
 

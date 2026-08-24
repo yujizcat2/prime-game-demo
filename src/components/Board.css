@@ -2326,3 +2326,483 @@
   }
 
 }
+
+/* ============================================================
+   迷宫回转
+   ============================================================ */
+
+.board {
+
+  position:
+    relative;
+
+}
+
+
+
+/* ============================================================
+   回转时棋盘轻微震荡
+   ============================================================ */
+
+.board--maze-turn {
+
+  animation:
+    boardMazeTurnPulse
+    .72s
+    cubic-bezier(.2,.8,.2,1);
+
+}
+
+
+
+/* ============================================================
+   回转覆盖层
+   ============================================================ */
+
+.board-maze-turn {
+
+  position:
+    absolute;
+
+  inset:
+    -10px;
+
+  z-index:
+    100;
+
+  pointer-events:
+    none;
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  overflow:
+    hidden;
+
+  border-radius:
+    24px;
+
+}
+
+
+
+/* ============================================================
+   整个棋盘的闪光
+   ============================================================ */
+
+.board-maze-turn-flash {
+
+  position:
+    absolute;
+
+  inset:
+    0;
+
+  border-radius:
+    inherit;
+
+  background:
+    rgba(
+      240,
+      248,
+      242,
+      .78
+    );
+
+  box-shadow:
+    inset 0 0 40px
+    rgba(
+      113,
+      145,
+      121,
+      .14
+    );
+
+  animation:
+    boardMazeTurnFlash
+    .72s
+    ease-out
+    forwards;
+
+}
+
+
+
+/* ============================================================
+   中央提示
+   ============================================================ */
+
+.board-maze-turn-message {
+
+  position:
+    relative;
+
+  z-index:
+    2;
+
+  min-width:
+    154px;
+
+  padding:
+    15px 23px;
+
+  display:
+    flex;
+
+  flex-direction:
+    column;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  border:
+    1px solid
+    rgba(
+      73,
+      102,
+      82,
+      .15
+    );
+
+  border-radius:
+    17px;
+
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      .94
+    );
+
+  color:
+    #324238;
+
+  box-shadow:
+    0 15px 42px
+    rgba(
+      38,
+      55,
+      43,
+      .14
+    );
+
+  backdrop-filter:
+    blur(8px);
+
+  -webkit-backdrop-filter:
+    blur(8px);
+
+  animation:
+    boardMazeTurnMessage
+    .72s
+    cubic-bezier(.2,.8,.2,1)
+    forwards;
+
+}
+
+
+
+/* ============================================================
+   中文标题
+   ============================================================ */
+
+.board-maze-turn-title {
+
+  font-size:
+    18px;
+
+  line-height:
+    1.1;
+
+  font-weight:
+    900;
+
+  letter-spacing:
+    .11em;
+
+  color:
+    #34483a;
+
+}
+
+
+
+/* ============================================================
+   英文
+   ============================================================ */
+
+.board-maze-turn-subtitle {
+
+  margin-top:
+    5px;
+
+  font-size:
+    7px;
+
+  line-height:
+    1;
+
+  font-weight:
+    800;
+
+  letter-spacing:
+    .23em;
+
+  color:
+    rgba(
+      52,
+      72,
+      58,
+      .40
+    );
+
+}
+
+
+
+/* ============================================================
+   全盘 +1
+   ============================================================ */
+
+.board-maze-turn-change {
+
+  margin-top:
+    10px;
+
+  padding:
+    5px 10px;
+
+  border-radius:
+    999px;
+
+  background:
+    rgba(
+      88,
+      120,
+      97,
+      .08
+    );
+
+  font-size:
+    10px;
+
+  line-height:
+    1;
+
+  font-weight:
+    800;
+
+  letter-spacing:
+    .08em;
+
+  color:
+    #657b6b;
+
+}
+
+
+
+/* ============================================================
+   棋盘整体脉冲
+   ============================================================ */
+
+@keyframes boardMazeTurnPulse {
+
+  0% {
+
+    transform:
+      scale(1);
+
+  }
+
+
+  24% {
+
+    transform:
+      scale(1.018);
+
+  }
+
+
+  52% {
+
+    transform:
+      scale(.996);
+
+  }
+
+
+  78% {
+
+    transform:
+      scale(1.005);
+
+  }
+
+
+  100% {
+
+    transform:
+      scale(1);
+
+  }
+
+}
+
+
+
+/* ============================================================
+   闪光
+   ============================================================ */
+
+@keyframes boardMazeTurnFlash {
+
+  0% {
+
+    opacity:
+      0;
+
+  }
+
+
+  13% {
+
+    opacity:
+      1;
+
+  }
+
+
+  32% {
+
+    opacity:
+      .78;
+
+  }
+
+
+  58% {
+
+    opacity:
+      .34;
+
+  }
+
+
+  100% {
+
+    opacity:
+      0;
+
+  }
+
+}
+
+
+
+/* ============================================================
+   提示出现 / 消失
+   ============================================================ */
+
+@keyframes boardMazeTurnMessage {
+
+  0% {
+
+    opacity:
+      0;
+
+    transform:
+      translateY(5px)
+      scale(.90);
+
+  }
+
+
+  18% {
+
+    opacity:
+      1;
+
+    transform:
+      translateY(0)
+      scale(1.035);
+
+  }
+
+
+  38% {
+
+    opacity:
+      1;
+
+    transform:
+      translateY(0)
+      scale(1);
+
+  }
+
+
+  70% {
+
+    opacity:
+      1;
+
+    transform:
+      translateY(0)
+      scale(1);
+
+  }
+
+
+  100% {
+
+    opacity:
+      0;
+
+    transform:
+      translateY(-4px)
+      scale(.98);
+
+  }
+
+}
+
+
+
+/* ============================================================
+   减少动画
+   ============================================================ */
+
+@media (
+  prefers-reduced-motion:
+    reduce
+) {
+
+  .board--maze-turn,
+  .board-maze-turn-flash,
+  .board-maze-turn-message {
+
+    animation:
+      none;
+
+  }
+
+
+  .board-maze-turn {
+
+    display:
+      none;
+
+  }
+
+}

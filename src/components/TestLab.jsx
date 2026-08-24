@@ -39,7 +39,7 @@ const TEST_MODES = {
 
 
 // ============================================================
-// Random 可选局数
+// 局数
 // ============================================================
 
 const RANDOM_GAME_OPTIONS = [
@@ -54,13 +54,6 @@ const RANDOM_GAME_OPTIONS = [
 
 ];
 
-
-
-
-
-// ============================================================
-// Smart AI 第一版
-// ============================================================
 
 const SMART_GAME_OPTIONS = [
 
@@ -80,10 +73,6 @@ export default function TestLab({
 }) {
 
 
-  // ==========================================================
-  // 模式
-  // ==========================================================
-
   const [
     mode,
     setMode
@@ -91,11 +80,6 @@ export default function TestLab({
     TEST_MODES.RANDOM
   );
 
-
-
-  // ==========================================================
-  // 局数
-  // ==========================================================
 
   const [
     games,
@@ -105,11 +89,6 @@ export default function TestLab({
   );
 
 
-
-  // ==========================================================
-  // 是否运行
-  // ==========================================================
-
   const [
     running,
     setRunning
@@ -117,11 +96,6 @@ export default function TestLab({
     false
   );
 
-
-
-  // ==========================================================
-  // 进度
-  // ==========================================================
 
   const [
     progress,
@@ -131,11 +105,6 @@ export default function TestLab({
   );
 
 
-
-  // ==========================================================
-  // 结果
-  // ==========================================================
-
   const [
     result,
     setResult
@@ -143,11 +112,6 @@ export default function TestLab({
     null
   );
 
-
-
-  // ==========================================================
-  // 错误
-  // ==========================================================
 
   const [
     error,
@@ -161,7 +125,7 @@ export default function TestLab({
 
 
   // ==========================================================
-  // Smart 模式
+  // 模式
   // ==========================================================
 
   const isSmartMode =
@@ -170,12 +134,11 @@ export default function TestLab({
     TEST_MODES.RANDOM;
 
 
+  const isCollectionMode =
 
+    mode ===
+    TEST_MODES.COLLECTION;
 
-
-  // ==========================================================
-  // 当前局数选项
-  // ==========================================================
 
   const gameOptions =
 
@@ -183,11 +146,11 @@ export default function TestLab({
 
       ?
 
-      SMART_GAME_OPTIONS
+        SMART_GAME_OPTIONS
 
       :
 
-      RANDOM_GAME_OPTIONS;
+        RANDOM_GAME_OPTIONS;
 
 
 
@@ -205,6 +168,7 @@ export default function TestLab({
     if(
       running
     ){
+
 
       return;
 
@@ -232,26 +196,20 @@ export default function TestLab({
     );
 
 
+    setGames(
 
-    if(
       nextMode ===
       TEST_MODES.RANDOM
-    ){
 
+        ?
 
-      setGames(
-        100
-      );
+          100
 
-    }
-    else{
+        :
 
+          1
 
-      setGames(
-        1
-      );
-
-    }
+    );
 
   }
 
@@ -269,6 +227,7 @@ export default function TestLab({
     if(
       running
     ){
+
 
       return;
 
@@ -305,7 +264,7 @@ export default function TestLab({
 
 
       // ======================================================
-      // Random
+      // 随机探路
       // ======================================================
 
       if(
@@ -326,20 +285,14 @@ export default function TestLab({
             batchSize:
               1000,
 
-
             onProgress:
-              data => {
-
-
-                setProgress(
-                  data
-                );
-
-              }
+              setProgress
 
           });
 
       }
+
+
 
 
 
@@ -368,32 +321,17 @@ export default function TestLab({
             beamWidth:
               50,
 
-
-            // =================================================
-            // 循环检测存在以后，
-            // 正常情况下不会真的跑到10000。
-            //
-            // 如果没有循环，
-            // 10000仍然作为安全保护。
-            // =================================================
-
             maxActionsPerGame:
               10000,
 
-
             onProgress:
-              data => {
-
-
-                setProgress(
-                  data
-                );
-
-              }
+              setProgress
 
           });
 
       }
+
+
 
 
 
@@ -422,16 +360,8 @@ export default function TestLab({
             maxActionsPerGame:
               1000,
 
-
             onProgress:
-              data => {
-
-
-                setProgress(
-                  data
-                );
-
-              }
+              setProgress
 
           });
 
@@ -442,7 +372,6 @@ export default function TestLab({
       setResult(
         testResult
       );
-
 
     }
     catch(
@@ -462,7 +391,6 @@ export default function TestLab({
 
       );
 
-
     }
     finally{
 
@@ -480,7 +408,7 @@ export default function TestLab({
 
 
   // ==========================================================
-  // 模式标题
+  // 标题
   // ==========================================================
 
   function getModeTitle(){
@@ -497,7 +425,6 @@ export default function TestLab({
     }
 
 
-
     if(
       mode ===
       TEST_MODES.COLLECTION
@@ -509,7 +436,6 @@ export default function TestLab({
     }
 
 
-
     return "随机探路";
 
   }
@@ -517,10 +443,6 @@ export default function TestLab({
 
 
 
-
-  // ==========================================================
-  // 模式说明
-  // ==========================================================
 
   function getModeDescription(){
 
@@ -535,18 +457,17 @@ export default function TestLab({
 
         <>
 
-          AI 会搜索未来局面，
+          AI 搜索未来局面，
 
           <br />
 
-          尽可能让棋盘继续存活。
+          尽可能延长棋盘生存时间。
 
         </>
 
       );
 
     }
-
 
 
     if(
@@ -559,11 +480,15 @@ export default function TestLab({
 
         <>
 
-          AI 会搜索未来局面，
+          AI 搜索未来局面，
 
           <br />
 
-          尽可能收藏更多不同数字。
+          尽可能发现更多不同收藏，
+
+          <br />
+
+          并记录收藏发现时间线。
 
         </>
 
@@ -572,16 +497,15 @@ export default function TestLab({
     }
 
 
-
     return (
 
       <>
 
-        每一步从所有合法动作中随机选择。
+        每一步随机选择合法动作，
 
         <br />
 
-        一直运行到没有合法动作。
+        直到自然结束。
 
       </>
 
@@ -612,7 +536,7 @@ export default function TestLab({
 
         {/* =====================================================
             Header
-        ===================================================== */}
+            ===================================================== */}
 
         <header
           className="
@@ -654,12 +578,12 @@ export default function TestLab({
               test-lab-back
             "
 
-            onClick={
-              onBack
-            }
-
             disabled={
               running
+            }
+
+            onClick={
+              onBack
             }
 
           >
@@ -677,7 +601,7 @@ export default function TestLab({
 
         {/* =====================================================
             模式选择
-        ===================================================== */}
+            ===================================================== */}
 
         <section
           className="
@@ -705,23 +629,11 @@ export default function TestLab({
           >
 
 
-            <button
+            <ModeButton
 
-              type="button"
-
-              className={
-
+              active={
                 mode ===
                 TEST_MODES.RANDOM
-
-                  ?
-
-                  "test-lab-option is-active"
-
-                  :
-
-                  "test-lab-option"
-
               }
 
               disabled={
@@ -729,38 +641,24 @@ export default function TestLab({
               }
 
               onClick={() =>
-
                 changeMode(
                   TEST_MODES.RANDOM
                 )
-
               }
 
             >
 
               随机探路
 
-            </button>
+            </ModeButton>
 
 
 
-            <button
+            <ModeButton
 
-              type="button"
-
-              className={
-
+              active={
                 mode ===
                 TEST_MODES.SURVIVAL
-
-                  ?
-
-                  "test-lab-option is-active"
-
-                  :
-
-                  "test-lab-option"
-
               }
 
               disabled={
@@ -768,38 +666,24 @@ export default function TestLab({
               }
 
               onClick={() =>
-
                 changeMode(
                   TEST_MODES.SURVIVAL
                 )
-
               }
 
             >
 
               最长步数 AI
 
-            </button>
+            </ModeButton>
 
 
 
-            <button
+            <ModeButton
 
-              type="button"
-
-              className={
-
+              active={
                 mode ===
                 TEST_MODES.COLLECTION
-
-                  ?
-
-                  "test-lab-option is-active"
-
-                  :
-
-                  "test-lab-option"
-
               }
 
               disabled={
@@ -807,18 +691,16 @@ export default function TestLab({
               }
 
               onClick={() =>
-
                 changeMode(
                   TEST_MODES.COLLECTION
                 )
-
               }
 
             >
 
               最多收藏 AI
 
-            </button>
+            </ModeButton>
 
 
           </div>
@@ -831,8 +713,8 @@ export default function TestLab({
 
 
         {/* =====================================================
-            模式说明
-        ===================================================== */}
+            说明
+            ===================================================== */}
 
         <div
           className="
@@ -861,7 +743,7 @@ export default function TestLab({
           <br />
 
 
-          处理 1 不计游戏步数。
+          处理 1 不增加正式步数。
 
 
           {
@@ -872,7 +754,7 @@ export default function TestLab({
 
               <br />
 
-              Depth 4 · Beam 50
+              Depth 4 · Beam 50 · 最大 10,000 操作
 
             </>
 
@@ -887,7 +769,7 @@ export default function TestLab({
 
         {/* =====================================================
             测试控制
-        ===================================================== */}
+            ===================================================== */}
 
         <section
           className="
@@ -931,16 +813,15 @@ export default function TestLab({
 
                     className={
 
-                      games ===
-                      value
+                      games === value
 
                         ?
 
-                        "test-lab-option is-active"
+                          "test-lab-option is-active"
 
                         :
 
-                        "test-lab-option"
+                          "test-lab-option"
 
                     }
 
@@ -949,11 +830,9 @@ export default function TestLab({
                     }
 
                     onClick={() =>
-
                       setGames(
                         value
                       )
-
                     }
 
                   >
@@ -999,11 +878,11 @@ export default function TestLab({
 
                 ?
 
-                "测试中..."
+                  "测试中..."
 
                 :
 
-                "开始测试"
+                  "开始测试"
 
             }
 
@@ -1014,202 +893,35 @@ export default function TestLab({
 
 
           {/* ===================================================
-              运行进度
-          =================================================== */}
+              进度
+              =================================================== */}
 
           {
 
             running &&
             progress &&
 
-            <div
-              className="
-                test-lab-progress
-              "
-            >
+            <ProgressPanel
 
-
-              <div>
-
-                已完成：
-
-                {" "}
-
-                {
-                  progress.completed
-                  ?.toLocaleString?.()
-                  ?? progress.completed
-                }
-
-                {" / "}
-
-                {
-                  progress.total
-                  ?.toLocaleString?.()
-                  ?? progress.total
-                }
-
-              </div>
-
-
-
-              {
-
-                isSmartMode &&
-                progress.currentGame &&
-
-                <>
-
-
-                  <div>
-
-                    当前：
-
-                    {" "}
-
-                    第 {
-                      progress.currentGame
-                    } 局
-
-                  </div>
-
-
-                  <div>
-
-                    当前局操作：
-
-                    {" "}
-
-                    {
-                      progress.currentActions
-                    }
-
-                  </div>
-
-
-                  <div>
-
-                    当前局步数：
-
-                    {" "}
-
-                    {
-                      progress.currentSteps
-                    }
-
-                  </div>
-
-
-                  <div>
-
-                    当前局收藏：
-
-                    {" "}
-
-                    {
-                      progress.currentCollection
-                    }
-
-                  </div>
-
-
-                  {
-
-                    progress.currentVisitedStates !==
-                    undefined &&
-
-                    <div>
-
-                      已访问状态：
-
-                      {" "}
-
-                      {
-                        progress.currentVisitedStates
-                      }
-
-                    </div>
-
-                  }
-
-
-                </>
-
+              progress={
+                progress
               }
 
-
-
-              <div>
-
-                当前最长步数：
-
-                {" "}
-
-                {
-                  progress.maxSteps
-                }
-
-              </div>
-
-
-              <div>
-
-                当前最多收藏：
-
-                {" "}
-
-                {
-                  progress.maxCollection
-                }
-
-              </div>
-
-
-              <div>
-
-                达到保护上限：
-
-                {" "}
-
-                {
-                  progress.hitLimitCount
-                }
-
-              </div>
-
-
-              {
-
-                isSmartMode &&
-                progress.cycleCount !==
-                undefined &&
-
-                <div>
-
-                  已检测循环：
-
-                  {" "}
-
-                  {
-                    progress.cycleCount
-                  }
-
-                </div>
-
+              smart={
+                isSmartMode
               }
 
+              collectionMode={
+                isCollectionMode
+              }
 
-            </div>
+            />
 
           }
 
 
 
 
-
-          {/* ===================================================
-              Error
-          =================================================== */}
 
           {
 
@@ -1242,7 +954,7 @@ export default function TestLab({
 
         {/* =====================================================
             最终结果
-        ===================================================== */}
+            ===================================================== */}
 
         {
 
@@ -1302,137 +1014,20 @@ export default function TestLab({
 
 
             {/* =================================================
-                基础统计
-            ================================================= */}
+                总体数据
+                ================================================= */}
 
-            <div
-              className="
-                test-lab-result-grid
-              "
-            >
+            <ResultGrid
 
-
-              <ResultItem
-
-                label="测试局数"
-
-                value={
-                  result.games.toLocaleString()
-                }
-
-              />
-
-
-              <ResultItem
-
-                label="平均步数"
-
-                value={
-                  result.averageSteps.toFixed(
-                    2
-                  )
-                }
-
-              />
-
-
-              <ResultItem
-
-                label="最长步数"
-
-                value={
-                  result.maxSteps
-                }
-
-                highlight
-
-              />
-
-
-              <ResultItem
-
-                label="平均收藏"
-
-                value={
-                  result.averageCollection.toFixed(
-                    2
-                  )
-                }
-
-              />
-
-
-              <ResultItem
-
-                label="最多收藏"
-
-                value={
-                  result.maxCollection
-                }
-
-                highlight
-
-              />
-
-
-              <ResultItem
-
-                label="达到保护上限"
-
-                value={
-                  result.hitLimitCount
-                }
-
-              />
-
-
-              {
-
-                isSmartMode &&
-
-                <ResultItem
-
-                  label="检测到循环"
-
-                  value={
-                    result.cycleCount
-                    ?? 0
-                  }
-
-                  highlight={
-                    (
-                      result.cycleCount
-                      ?? 0
-                    ) > 0
-                  }
-
-                />
-
+              result={
+                result
               }
 
+              smart={
+                isSmartMode
+              }
 
-            </div>
-
-
-
-
-
-            {/* =================================================
-                循环检测结果
-            ================================================= */}
-
-            {
-
-              isSmartMode &&
-              result.firstCycle &&
-
-              <CycleCard
-                cycleGame={
-                  result.firstCycle
-                }
-              />
-
-            }
+            />
 
 
 
@@ -1440,7 +1035,7 @@ export default function TestLab({
 
             {/* =================================================
                 最长步数纪录
-            ================================================= */}
+                ================================================= */}
 
             {
 
@@ -1464,21 +1059,66 @@ export default function TestLab({
 
             {/* =================================================
                 最多收藏纪录
-            ================================================= */}
+                ================================================= */}
 
             {
 
               result.bestCollectionGame &&
 
-              <RecordCard
+              <>
 
-                title="最多收藏纪录"
+                <RecordCard
 
-                game={
-                  result.bestCollectionGame
+                  title="最多收藏纪录"
+
+                  game={
+                    result.bestCollectionGame
+                  }
+
+                />
+
+
+
+                {/* =============================================
+                    收藏研究核心
+                    ============================================= */}
+
+                {
+
+                  isCollectionMode &&
+
+                  <CollectionTimelineCard
+
+                    game={
+                      result.bestCollectionGame
+                    }
+
+                  />
+
                 }
 
-              />
+
+
+                {/* =============================================
+                    回转只保留轻量摘要
+                    ============================================= */}
+
+                {
+
+                  isSmartMode &&
+
+                  <MazeTurnSummary
+
+                    game={
+                      result.bestCollectionGame
+                    }
+
+                  />
+
+                }
+
+
+              </>
 
             }
 
@@ -1502,7 +1142,589 @@ export default function TestLab({
 
 
 // ============================================================
-// 单个统计项
+// 模式按钮
+// ============================================================
+
+function ModeButton({
+
+  active,
+
+  disabled,
+
+  onClick,
+
+  children
+
+}){
+
+
+  return (
+
+    <button
+
+      type="button"
+
+      className={
+
+        active
+
+          ?
+
+            "test-lab-option is-active"
+
+          :
+
+            "test-lab-option"
+
+      }
+
+      disabled={
+        disabled
+      }
+
+      onClick={
+        onClick
+      }
+
+    >
+
+      {
+        children
+      }
+
+    </button>
+
+  );
+
+}
+
+
+
+
+
+// ============================================================
+// 运行进度
+// ============================================================
+
+function ProgressPanel({
+
+  progress,
+
+  smart,
+
+  collectionMode
+
+}){
+
+
+  return (
+
+    <div
+      className="
+        test-lab-progress
+      "
+    >
+
+
+      <div>
+
+        已完成：
+
+        {" "}
+
+        {
+          formatNumber(
+            progress.completed
+          )
+        }
+
+        {" / "}
+
+        {
+          formatNumber(
+            progress.total
+          )
+        }
+
+      </div>
+
+
+
+
+
+      {
+
+        smart &&
+        progress.currentGame &&
+
+        <>
+
+
+          <div>
+
+            当前：
+
+            {" "}
+
+            第 {
+              progress.currentGame
+            } 局
+
+          </div>
+
+
+
+          <div>
+
+            当前局操作：
+
+            {" "}
+
+            {
+              formatNumber(
+                progress.currentActions
+              )
+            }
+
+          </div>
+
+
+
+          <div>
+
+            当前局步数：
+
+            {" "}
+
+            {
+              formatNumber(
+                progress.currentSteps
+              )
+            }
+
+          </div>
+
+
+
+          <div>
+
+            当前局收藏：
+
+            {" "}
+
+            <strong>
+
+              {
+                progress.currentCollection
+              }
+
+            </strong>
+
+          </div>
+
+
+
+
+
+          {/* ===============================================
+              Collection模式实时最新收藏
+              =============================================== */}
+
+          {
+
+            collectionMode &&
+            progress.currentLastCollection &&
+
+            <>
+
+
+              <div>
+
+                最新收藏：
+
+                {" "}
+
+                <strong>
+
+                  #{
+                    progress.currentLastCollection.order
+                  }
+
+                  {" · "}
+
+                  {
+                    progress.currentLastCollection.value
+                  }
+
+                </strong>
+
+              </div>
+
+
+
+              <div>
+
+                发现于：
+
+                {" "}
+
+                第 {
+                  formatNumber(
+                    progress
+                      .currentLastCollection
+                      .actionNumber
+                  )
+                } 次操作
+
+                {" · "}
+
+                Step {
+                  formatNumber(
+                    progress
+                      .currentLastCollection
+                      .steps
+                  )
+                }
+
+              </div>
+
+
+
+              {
+
+                progress
+                  .currentLastCollection
+                  .order > 1 &&
+
+                <div>
+
+                  距上个收藏：
+
+                  {" "}
+
+                  +{
+                    formatNumber(
+                      progress
+                        .currentLastCollection
+                        .actionsSincePrevious
+                    )
+                  } 操作
+
+                  {" · "}
+
+                  +{
+                    formatNumber(
+                      progress
+                        .currentLastCollection
+                        .stepsSincePrevious
+                    )
+                  } 步
+
+                </div>
+
+              }
+
+
+            </>
+
+          }
+
+
+
+          <div>
+
+            已访问状态：
+
+            {" "}
+
+            {
+              formatNumber(
+                progress.currentVisitedStates
+              )
+            }
+
+          </div>
+
+
+
+          <div>
+
+            当前局回转：
+
+            {" "}
+
+            {
+              progress.currentMazeTurns
+              ?? 0
+            }
+
+          </div>
+
+
+        </>
+
+      }
+
+
+
+
+
+      <div>
+
+        当前最长步数：
+
+        {" "}
+
+        {
+          formatNumber(
+            progress.maxSteps
+          )
+        }
+
+      </div>
+
+
+
+      <div>
+
+        当前最多收藏：
+
+        {" "}
+
+        {
+          progress.maxCollection
+          ?? 0
+        }
+
+      </div>
+
+
+
+      {
+
+        smart &&
+
+        <div>
+
+          当前最多回转：
+
+          {" "}
+
+          {
+            progress.maxMazeTurns
+            ?? 0
+          }
+
+        </div>
+
+      }
+
+
+
+      <div>
+
+        达到保护上限：
+
+        {" "}
+
+        {
+          progress.hitLimitCount
+          ?? 0
+        }
+
+      </div>
+
+
+    </div>
+
+  );
+
+}
+
+
+
+
+
+// ============================================================
+// 总体统计
+// ============================================================
+
+function ResultGrid({
+
+  result,
+
+  smart
+
+}){
+
+
+  return (
+
+    <div
+      className="
+        test-lab-result-grid
+      "
+    >
+
+
+      <ResultItem
+
+        label="测试局数"
+
+        value={
+          formatNumber(
+            result.games
+          )
+        }
+
+      />
+
+
+      <ResultItem
+
+        label="平均步数"
+
+        value={
+          Number(
+            result.averageSteps
+            ?? 0
+          )
+            .toFixed(
+              2
+            )
+        }
+
+      />
+
+
+      <ResultItem
+
+        label="最长步数"
+
+        value={
+          formatNumber(
+            result.maxSteps
+          )
+        }
+
+        highlight
+
+      />
+
+
+      <ResultItem
+
+        label="平均收藏"
+
+        value={
+          Number(
+            result.averageCollection
+            ?? 0
+          )
+            .toFixed(
+              2
+            )
+        }
+
+      />
+
+
+      <ResultItem
+
+        label="最多收藏"
+
+        value={
+          result.maxCollection
+          ?? 0
+        }
+
+        highlight
+
+      />
+
+
+      <ResultItem
+
+        label="达到保护上限"
+
+        value={
+          result.hitLimitCount
+          ?? 0
+        }
+
+        highlight={
+          (
+            result.hitLimitCount
+            ?? 0
+          ) > 0
+        }
+
+      />
+
+
+
+
+
+      {
+
+        smart &&
+
+        <>
+
+
+          <ResultItem
+
+            label="发生回转局数"
+
+            value={
+              result.mazeTurnGameCount
+              ?? 0
+            }
+
+          />
+
+
+          <ResultItem
+
+            label="总回转次数"
+
+            value={
+              result.totalMazeTurns
+              ?? 0
+            }
+
+          />
+
+
+          <ResultItem
+
+            label="最多回转"
+
+            value={
+              result.maxMazeTurns
+              ?? 0
+            }
+
+          />
+
+
+        </>
+
+      }
+
+
+    </div>
+
+  );
+
+}
+
+
+
+
+
+// ============================================================
+// 单统计项
 // ============================================================
 
 function ResultItem({
@@ -1525,11 +1747,11 @@ function ResultItem({
 
           ?
 
-          "test-lab-result-item is-highlight"
+            "test-lab-result-item is-highlight"
 
           :
 
-          "test-lab-result-item"
+            "test-lab-result-item"
 
       }
     >
@@ -1564,56 +1786,6 @@ function ResultItem({
     </div>
 
   );
-
-}
-
-
-
-
-
-// ============================================================
-// 判断一局结束原因
-// ============================================================
-
-function getEndReason(
-  game
-){
-
-
-  if(
-    game.cycleDetected
-  ){
-
-
-    return "检测到循环";
-
-  }
-
-
-
-  if(
-    game.hitLimit
-  ){
-
-
-    return "达到保护上限";
-
-  }
-
-
-
-  if(
-    game.endedNaturally
-  ){
-
-
-    return "自然结束";
-
-  }
-
-
-
-  return "未知";
 
 }
 
@@ -1673,11 +1845,15 @@ function RecordCard({
 
         {" "}
 
-        {
-          game.initialValues.join(
-            " / "
-          )
-        }
+        <strong>
+
+          {
+            game.initialValues.join(
+              " / "
+            )
+          }
+
+        </strong>
 
       </div>
 
@@ -1689,9 +1865,15 @@ function RecordCard({
 
         {" "}
 
-        {
-          game.steps
-        }
+        <strong>
+
+          {
+            formatNumber(
+              game.steps
+            )
+          }
+
+        </strong>
 
       </div>
 
@@ -1704,7 +1886,9 @@ function RecordCard({
         {" "}
 
         {
-          game.actions
+          formatNumber(
+            game.actions
+          )
         }
 
       </div>
@@ -1717,9 +1901,13 @@ function RecordCard({
 
         {" "}
 
-        {
-          game.collectionCount
-        }
+        <strong>
+
+          {
+            game.collectionCount
+          }
+
+        </strong>
 
       </div>
 
@@ -1727,7 +1915,52 @@ function RecordCard({
 
       {
 
-        game.cycleDetected !==
+        game.mazeTurnCount !==
+        undefined &&
+
+        <div>
+
+          迷宫回转：
+
+          {" "}
+
+          {
+            game.mazeTurnCount
+            ?? 0
+          }
+
+        </div>
+
+      }
+
+
+
+      {
+
+        game.visitedStates !==
+        undefined &&
+
+        <div>
+
+          已访问规则状态：
+
+          {" "}
+
+          {
+            formatNumber(
+              game.visitedStates
+            )
+          }
+
+        </div>
+
+      }
+
+
+
+      {
+
+        game.endedNaturally !==
         undefined &&
 
         <div>
@@ -1754,53 +1987,6 @@ function RecordCard({
 
       {
 
-        game.visitedStates !==
-        undefined &&
-
-        <div>
-
-          不同状态：
-
-          {" "}
-
-          {
-            game.visitedStates
-          }
-
-        </div>
-
-      }
-
-
-
-      <div
-        className="
-          test-lab-record-collection
-        "
-      >
-
-        {
-
-          game.collection.length > 0
-
-            ?
-
-            game.collection.join(
-              " · "
-            )
-
-            :
-
-            "暂无收藏"
-
-        }
-
-      </div>
-
-
-
-      {
-
         game.hitLimit &&
 
         <div
@@ -1809,25 +1995,8 @@ function RecordCard({
           "
         >
 
-          ⚠ 达到测试保护上限
-
-        </div>
-
-      }
-
-
-
-      {
-
-        game.cycleDetected &&
-
-        <div
-          className="
-            test-lab-record-warning
-          "
-        >
-
-          ↻ 测试因检测到重复状态而停止
+          ⚠ 达到测试保护上限，
+          当前路线尚未自然结束。
 
         </div>
 
@@ -1842,24 +2011,37 @@ function RecordCard({
 
 
 
+
+
 // ============================================================
-// 循环检测卡片
+// 收藏时间线
 // ============================================================
 
-function CycleCard({
+function CollectionTimelineCard({
 
-  cycleGame
+  game
 
 }){
 
 
-  const info =
-    cycleGame.cycleInfo;
+  const timeline =
+
+    Array.isArray(
+      game?.collectionTimeline
+    )
+
+      ?
+
+        game.collectionTimeline
+
+      :
+
+        [];
 
 
 
   if(
-    !info
+    timeline.length === 0
   ){
 
 
@@ -1869,14 +2051,11 @@ function CycleCard({
 
 
 
-  // ==========================================================
-  // 是否构成正步数循环
-  // ==========================================================
+  const summary =
 
-  const potentialUnbounded =
-
-    info.increasesSteps ===
-    true;
+    analyzeCollectionTimeline(
+      timeline
+    );
 
 
 
@@ -1885,7 +2064,6 @@ function CycleCard({
     <div
       className="
         test-lab-record
-        test-lab-cycle
       "
     >
 
@@ -1896,209 +2074,34 @@ function CycleCard({
         "
       >
 
-        循环检测
+        收藏时间线
 
       </div>
 
 
 
-      <div>
+      <div
+        style={{
+          marginBottom:
+            "12px"
+        }}
+      >
 
-        检测结果：
-
-        {" "}
-
-        <strong>
-
-          检测到重复状态
-
-        </strong>
-
-      </div>
-
-
-
-      <div>
-
-        所在测试：
-
-        {" "}
-
-        第 {
-          cycleGame.gameIndex
-        } 局
-
-      </div>
-
-
-
-      <div>
-
-        开局：
-
-        {" "}
-
-        {
-          cycleGame.initialValues.join(
-            " / "
-          )
-        }
-
-      </div>
-
-
-
-      <div>
-
-        首次出现：
-
-        {" "}
-
-        第 {
-          info.firstAction
-        } 次操作
-
-        {" · "}
-
-        {
-          info.firstSteps
-        } 步
-
-      </div>
-
-
-
-      <div>
-
-        再次出现：
-
-        {" "}
-
-        第 {
-          info.repeatAction
-        } 次操作
-
-        {" · "}
-
-        {
-          info.repeatSteps
-        } 步
-
-      </div>
-
-
-
-      <div>
-
-        循环长度：
+        共发现
 
         {" "}
 
         <strong>
 
           {
-            info.cycleActions
-          } 次操作
-
-        </strong>
-
-      </div>
-
-
-
-      <div>
-
-        循环增加步数：
-
-        {" "}
-
-        <strong>
-
-          +{
-            info.cycleSteps
+            timeline.length
           }
 
         </strong>
 
-      </div>
-
-
-
-      <div>
-
-        循环收藏变化：
-
         {" "}
 
-        {
-
-          info.cycleCollection >= 0
-
-            ?
-
-            `+${info.cycleCollection}`
-
-            :
-
-            info.cycleCollection
-
-        }
-
-      </div>
-
-
-
-      <div>
-
-        循环前收藏：
-
-        {" "}
-
-        {
-          info.firstCollection
-        }
-
-      </div>
-
-
-
-      <div>
-
-        循环后收藏：
-
-        {" "}
-
-        {
-          info.repeatCollection
-        }
-
-      </div>
-
-
-
-      <div>
-
-        潜在无界步数循环：
-
-        {" "}
-
-        <strong>
-
-          {
-
-            potentialUnbounded
-
-              ?
-
-              "是"
-
-              :
-
-              "否"
-
-          }
-
-        </strong>
+        种不同收藏
 
       </div>
 
@@ -2107,255 +2110,164 @@ function CycleCard({
 
 
       {/* =====================================================
-          完整循环动作
-      ===================================================== */}
+          收藏墙摘要
+          ===================================================== */}
 
-      {
+      <div
+        style={{
 
-        Array.isArray(
-          info.actionList
-        )
-        &&
-        info.actionList.length > 0
+          padding:
+            "10px",
 
-        &&
+          marginBottom:
+            "12px",
 
-        <div
-          className="
-            test-lab-cycle-actions
-          "
-        >
+          border:
+            "1px solid rgba(90,110,96,.10)",
+
+          borderRadius:
+            "10px",
+
+          background:
+            "rgba(255,255,255,.30)",
+
+          fontSize:
+            "11px",
+
+          lineHeight:
+            1.7
+
+        }}
+      >
 
 
-          <div
-            className="
-              test-lab-record-title
-            "
-          >
+        <div>
 
-            完整循环步骤
+          平均新增间隔：
+
+          {" "}
+
+          <strong>
+
+            {
+              summary.averageGapSteps.toFixed(
+                1
+              )
+            } 步
+
+          </strong>
+
+          {" · "}
+
+          {
+            summary.averageGapActions.toFixed(
+              1
+            )
+          } 操作
+
+        </div>
+
+
+
+        {
+
+          summary.maxGapEntry &&
+
+          <div>
+
+            最大收藏墙：
+
+            {" "}
+
+            <strong>
+
+              +{
+                formatNumber(
+                  summary.maxGapEntry
+                    .stepsSincePrevious
+                )
+              } 步
+
+            </strong>
+
+            {" · "}
+
+            +{
+              formatNumber(
+                summary.maxGapEntry
+                  .actionsSincePrevious
+              )
+            } 操作
+
+            {" · "}
+
+            #{
+              summary.maxGapEntry.order
+            }
+
+            {" · "}
+
+            收藏 {
+              summary.maxGapEntry.value
+            }
 
           </div>
 
+        }
 
 
-          {
-
-            info.actionList.map(
-
-              (
-                action,
-                index
-              ) => (
-
-                <div
-
-                  key={
-                    `${action.actionNumber}-${index}`
-                  }
-
-                  className="
-                    test-lab-cycle-action
-                  "
-
-                >
-
-
-                  <div>
-
-                    <strong>
-
-                      {
-                        index + 1
-                      }.
-
-                    </strong>
-
-                    {" "}
-
-                    {
-                      action.text
-                    }
-
-                  </div>
+      </div>
 
 
 
-                  <div>
-
-                    操作：
-
-                    {" "}
-
-                    第 {
-                      action.actionNumber
-                    } 次
-
-                    {" · "}
-
-                    Step {
-                      action.beforeSteps
-                    }
-
-                    {" → "}
-
-                    Step {
-                      action.afterSteps
-                    }
-
-                  </div>
 
 
+      {/* =====================================================
+          时间线
+          ===================================================== */}
 
-                  <div>
+      <div
+        style={{
 
-                    步数变化：
+          display:
+            "flex",
 
-                    {" "}
+          flexDirection:
+            "column",
 
-                    <strong>
+          gap:
+            "6px"
 
-                      {
-
-                        action.stepDelta > 0
-
-                          ?
-
-                          `+${action.stepDelta}`
-
-                          :
-
-                          "0（免费）"
-
-                      }
-
-                    </strong>
-
-                  </div>
+        }}
+      >
 
 
+        {
 
-                  {
+          timeline.map(
 
-                    action.collectionDelta !== 0
+            entry => (
 
-                    &&
+              <CollectionTimelineItem
 
-                    <div>
+                key={
+                  `${entry.order}-${entry.value}`
+                }
 
-                      收藏变化：
+                entry={
+                  entry
+                }
 
-                      {" "}
-
-                      {
-
-                        action.collectionDelta > 0
-
-                          ?
-
-                          `+${action.collectionDelta}`
-
-                          :
-
-                          action.collectionDelta
-
-                      }
-
-                    </div>
-
-                  }
-
-
-                </div>
-
-              )
+              />
 
             )
 
-          }
+          )
+
+        }
 
 
-        </div>
-
-      }
-
-
-
-
-
-      {/* =====================================================
-          循环起点棋盘
-      ===================================================== */}
-
-      {
-
-        Array.isArray(
-          info.startBoard
-        )
-
-        &&
-
-        <BoardSnapshot
-
-          title="循环开始棋盘"
-
-          board={
-            info.startBoard
-          }
-
-        />
-
-      }
-
-
-
-
-
-      {/* =====================================================
-          循环终点棋盘
-      ===================================================== */}
-
-      {
-
-        Array.isArray(
-          info.endBoard
-        )
-
-        &&
-
-        <BoardSnapshot
-
-          title="循环结束棋盘"
-
-          board={
-            info.endBoard
-          }
-
-        />
-
-      }
-
-
-
-
-
-      {
-
-        potentialUnbounded &&
-
-        <div
-          className="
-            test-lab-record-warning
-          "
-        >
-
-          ⚠ 相同规则状态重新出现，
-          但正式步数已经增加。
-          该路线需要进一步验证是否可以重复执行。
-
-        </div>
-
-      }
+      </div>
 
 
     </div>
@@ -2369,14 +2281,12 @@ function CycleCard({
 
 
 // ============================================================
-// 调试棋盘快照
+// 单条收藏
 // ============================================================
 
-function BoardSnapshot({
+function CollectionTimelineItem({
 
-  title,
-
-  board
+  entry
 
 }){
 
@@ -2384,8 +2294,295 @@ function BoardSnapshot({
   return (
 
     <div
+      style={{
+
+        display:
+          "grid",
+
+        gridTemplateColumns:
+          "44px 52px 1fr",
+
+        gap:
+          "8px",
+
+        alignItems:
+          "center",
+
+        padding:
+          "8px 10px",
+
+        border:
+          "1px solid rgba(90,110,96,.09)",
+
+        borderRadius:
+          "8px",
+
+        background:
+          "rgba(255,255,255,.24)"
+
+      }}
+    >
+
+
+      <div
+        style={{
+
+          fontSize:
+            "10px",
+
+          opacity:
+            0.5
+
+        }}
+      >
+
+        #{
+          entry.order
+        }
+
+      </div>
+
+
+
+      <div
+        style={{
+
+          fontSize:
+            "16px",
+
+          fontWeight:
+            900
+
+        }}
+      >
+
+        {
+          entry.value
+        }
+
+      </div>
+
+
+
+      <div
+        style={{
+
+          fontSize:
+            "11px",
+
+          lineHeight:
+            1.5
+
+        }}
+      >
+
+
+        <div>
+
+          第 {
+            formatNumber(
+              entry.actionNumber
+            )
+          } 次操作
+
+          {" · "}
+
+          Step {
+            formatNumber(
+              entry.steps
+            )
+          }
+
+        </div>
+
+
+
+        {
+
+          entry.order > 1 &&
+
+          <div
+            style={{
+              opacity:
+                0.58
+            }}
+          >
+
+            距上次：
+
+            {" "}
+
+            +{
+              formatNumber(
+                entry.actionsSincePrevious
+              )
+            } 操作
+
+            {" · "}
+
+            +{
+              formatNumber(
+                entry.stepsSincePrevious
+              )
+            } 步
+
+          </div>
+
+        }
+
+
+      </div>
+
+
+    </div>
+
+  );
+
+}
+
+
+
+
+
+// ============================================================
+// 收藏时间线统计
+// ============================================================
+
+function analyzeCollectionTimeline(
+  timeline
+){
+
+
+  let totalSteps =
+    0;
+
+
+  let totalActions =
+    0;
+
+
+  let maxGapEntry =
+    null;
+
+
+
+  for(
+    let i = 1;
+    i < timeline.length;
+    i++
+  ){
+
+
+    const entry =
+      timeline[i];
+
+
+
+    totalSteps +=
+      entry.stepsSincePrevious;
+
+
+    totalActions +=
+      entry.actionsSincePrevious;
+
+
+
+    if(
+      !maxGapEntry
+      ||
+      entry.stepsSincePrevious >
+      maxGapEntry.stepsSincePrevious
+    ){
+
+
+      maxGapEntry =
+        entry;
+
+    }
+
+  }
+
+
+
+  const count =
+
+    Math.max(
+
+      timeline.length - 1,
+
+      1
+
+    );
+
+
+
+  return {
+
+    averageGapSteps:
+
+      totalSteps /
+      count,
+
+    averageGapActions:
+
+      totalActions /
+      count,
+
+    maxGapEntry
+
+  };
+
+}
+
+
+
+
+
+// ============================================================
+// 迷宫回转摘要
+//
+// 现在只作为辅助诊断。
+// ============================================================
+
+function MazeTurnSummary({
+
+  game
+
+}){
+
+
+  const turns =
+
+    Array.isArray(
+      game?.mazeTurns
+    )
+
+      ?
+
+        game.mazeTurns
+
+      :
+
+        [];
+
+
+
+  if(
+    turns.length === 0
+  ){
+
+
+    return null;
+
+  }
+
+
+
+  return (
+
+    <div
       className="
-        test-lab-board-snapshot
+        test-lab-record
       "
     >
 
@@ -2396,9 +2593,25 @@ function BoardSnapshot({
         "
       >
 
-        {
-          title
-        }
+        迷宫回转摘要
+
+      </div>
+
+
+
+      <div>
+
+        总次数：
+
+        {" "}
+
+        <strong>
+
+          {
+            turns.length
+          }
+
+        </strong>
 
       </div>
 
@@ -2407,20 +2620,20 @@ function BoardSnapshot({
       <div
         style={{
 
-          display:
-            "grid",
+          marginTop:
+            "10px",
 
-          gridTemplateColumns:
-            "repeat(3, minmax(70px, 1fr))",
+          display:
+            "flex",
+
+          flexDirection:
+            "column",
 
           gap:
-            "6px",
+            "5px",
 
-          marginTop:
-            "8px",
-
-          maxWidth:
-            "360px"
+          fontSize:
+            "11px"
 
         }}
       >
@@ -2428,105 +2641,35 @@ function BoardSnapshot({
 
         {
 
-          board.map(
+          turns.map(
 
-            (
-              piece,
-              index
-            ) => (
+            turn => (
 
               <div
-
                 key={
-                  index
+                  `${turn.turnNumber}-${turn.actionNumber}`
                 }
-
-                style={{
-
-                  minHeight:
-                    "64px",
-
-                  padding:
-                    "8px",
-
-                  border:
-                    "1px solid rgba(255,255,255,0.15)",
-
-                  borderRadius:
-                    "8px"
-
-                }}
-
               >
 
-
-                <div>
-
-                  格 {
-                    index + 1
-                  }
-
-                </div>
-
-
-
-                {
-
-                  piece.empty
-
-                    ?
-
-                    <strong>
-
-                      空
-
-                    </strong>
-
-                    :
-
-                    <>
-
-                      <strong>
-
-                        {
-                          piece.value
-                        }
-
-                      </strong>
-
-
-                      <div>
-
-                        {
-                          piece.foodType
-                        }
-
-                      </div>
-
-
-                      {
-
-                        piece.purity != null
-
-                        &&
-
-                        <div>
-
-                          纯度：
-
-                          {
-                            piece.purity
-                          }
-
-                        </div>
-
-                      }
-
-
-                    </>
-
+                ↻ #{
+                  turn.turnNumber
                 }
 
+                {" · "}
+
+                第 {
+                  formatNumber(
+                    turn.actionNumber
+                  )
+                } 次操作
+
+                {" · "}
+
+                Step {
+                  formatNumber(
+                    turn.triggerSteps
+                  )
+                }
 
               </div>
 
@@ -2541,6 +2684,85 @@ function BoardSnapshot({
 
 
     </div>
+
+  );
+
+}
+
+
+
+
+
+// ============================================================
+// 结束原因
+// ============================================================
+
+function getEndReason(
+  game
+){
+
+
+  if(
+    game.hitLimit
+  ){
+
+
+    return "达到保护上限";
+
+  }
+
+
+  if(
+    game.endedNaturally
+  ){
+
+
+    return "自然结束";
+
+  }
+
+
+  return "未知";
+
+}
+
+
+
+
+
+// ============================================================
+// 数字显示
+// ============================================================
+
+function formatNumber(
+  value
+){
+
+
+  if(
+    value ===
+    null
+    ||
+    value ===
+    undefined
+  ){
+
+
+    return 0;
+
+  }
+
+
+
+  return (
+
+    value
+      ?.toLocaleString
+      ?.()
+
+    ??
+
+    value
 
   );
 

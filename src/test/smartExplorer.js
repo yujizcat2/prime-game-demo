@@ -2,15 +2,20 @@ import {
   createSimulationState,
   cloneSimulationState,
   getSimulationLegalActions,
-  applySimulationAction
+  applySimulationAction,
+  getSimulationHistorySignature
 } from "./simulationEngine";
+
+import {
+  createMazeStateKey
+} from "../game/mazeHistory";
 
 
 
 
 
 // ============================================================
-// Smart AI 模式
+// AI 模式
 // ============================================================
 
 export const SMART_AI_MODES = {
@@ -69,16 +74,15 @@ function createRandomInitialValues(){
 
 
 
-    const temp =
-      pool[i];
+    [
+      pool[i],
+      pool[j]
+    ] = [
 
+      pool[j],
+      pool[i]
 
-    pool[i] =
-      pool[j];
-
-
-    pool[j] =
-      temp;
+    ];
 
   }
 
@@ -104,14 +108,15 @@ function yieldToBrowser(){
 
   return new Promise(
 
-    resolve => {
+    resolve =>
 
       window.setTimeout(
-        resolve,
-        0
-      );
 
-    }
+        resolve,
+
+        0
+
+      )
 
   );
 
@@ -122,7 +127,62 @@ function yieldToBrowser(){
 
 
 // ============================================================
-// 分析当前局面
+// 简单 gcd
+//
+// 只用于收藏启发式。
+// ============================================================
+
+function gcdSimple(
+  a,
+  b
+){
+
+
+  let x =
+
+    Math.abs(
+      a
+    );
+
+
+  let y =
+
+    Math.abs(
+      b
+    );
+
+
+
+  while(
+    y !== 0
+  ){
+
+
+    const temp =
+      x % y;
+
+
+    x =
+      y;
+
+
+    y =
+      temp;
+
+  }
+
+
+
+  return x;
+
+}
+
+
+
+
+
+// ============================================================
+// 局面信息
 // ============================================================
 
 function analyzeState(
@@ -130,15 +190,11 @@ function analyzeState(
 ){
 
 
-  let boardCount =
+  let empty =
     0;
 
 
   let ones =
-    0;
-
-
-  let empty =
     0;
 
 
@@ -156,17 +212,10 @@ function analyzeState(
 
       empty++;
 
-      continue;
-
     }
 
 
-
-    boardCount++;
-
-
-
-    if(
+    else if(
       piece.value === 1
     ){
 
@@ -179,8 +228,6 @@ function analyzeState(
 
 
 
-
-
   const legalActions =
 
     getSimulationLegalActions(
@@ -189,17 +236,11 @@ function analyzeState(
 
 
 
-
-
   let combineCount =
     0;
 
 
   let reduceCount =
-    0;
-
-
-  let removeCount =
     0;
 
 
@@ -219,6 +260,8 @@ function analyzeState(
       combineCount++;
 
     }
+
+
     else if(
       action.type ===
       "reduce"
@@ -228,29 +271,12 @@ function analyzeState(
       reduceCount++;
 
     }
-    else if(
-      action.type ===
-      "remove"
-    ){
-
-
-      removeCount++;
-
-    }
 
   }
 
 
 
-
-
   return {
-
-    boardCount,
-
-    empty,
-
-    ones,
 
     legalActions,
 
@@ -261,7 +287,9 @@ function analyzeState(
 
     reduceCount,
 
-    removeCount
+    empty,
+
+    ones
 
   };
 
@@ -272,10 +300,10 @@ function analyzeState(
 
 
 // ============================================================
-// 最长步数 AI 评分
+// Survival 评分
 // ============================================================
 
-function scoreSurvivalState(
+function scoreSurvival(
   state
 ){
 
@@ -347,10 +375,357 @@ function scoreSurvivalState(
 
 
 // ============================================================
-// 最多收藏 AI 评分
+// 收藏潜力分析
+//
+// Collection AI V2
+//
+// 不只看：
+//
+// “已经收藏几个”
+//
+// 还看：
+//
+// 1. 是否已经存在可直接处理的新收藏1
+// 2. 是否一次约分就能得到新收藏1
+// 3. 未收藏数字是否已经进入可约分状态
+// 4. 棋盘上是否存在尚未收藏的数字
+//
 // ============================================================
 
-function scoreCollectionState(
+function analyzeCollectionPotential(
+  state,
+  info
+){
+
+
+  const collected =
+    state.collection;
+
+
+
+  let directNewCollection =
+    0;
+
+
+  let oneReduceAway =
+    0;
+
+
+
+  const unseenValues =
+    new Set();
+
+
+  const reducibleUnseenValues =
+    new Set();
+
+
+
+
+
+  // ==========================================================
+  // 当前棋盘
+  // ==========================================================
+
+  for(
+    const piece
+    of state.board
+  ){
+
+
+    if(
+      !piece
+    ){
+
+
+      continue;
+
+    }
+
+
+
+
+
+    // ========================================================
+    // 已经存在一个1
+    //
+    // previousValue 是处理它以后获得的收藏来源。
+    // ========================================================
+
+    if(
+      piece.value === 1
+    ){
+
+
+      const source =
+        piece.previousValue;
+
+
+
+      if(
+        source != null
+        &&
+        !collected.has(
+          source
+        )
+      ){
+
+
+        directNewCollection++;
+
+      }
+
+
+
+      continue;
+
+    }
+
+
+
+
+
+    // ========================================================
+    // 当前棋盘上的未收藏数字
+    // ========================================================
+
+    if(
+      !collected.has(
+        piece.value
+      )
+    ){
+
+
+      unseenValues.add(
+        piece.value
+      );
+
+    }
+
+  }
+
+
+
+
+
+  // ==========================================================
+  // 扫描所有合法约分
+  //
+  // 判断是否已经“一次约分即可收藏”。
+  // ==========================================================
+
+  for(
+    const action
+    of info.legalActions
+  ){
+
+
+    if(
+      action.type !==
+      "reduce"
+    ){
+
+
+      continue;
+
+    }
+
+
+
+    const [
+      indexA,
+      indexB
+    ] =
+      action.indexes;
+
+
+
+    const a =
+      state.board[indexA];
+
+
+    const b =
+      state.board[indexB];
+
+
+
+    if(
+      !a
+      ||
+      !b
+    ){
+
+
+      continue;
+
+    }
+
+
+
+    const divisor =
+
+      gcdSimple(
+
+        a.value,
+
+        b.value
+
+      );
+
+
+
+    if(
+      divisor <= 1
+    ){
+
+
+      continue;
+
+    }
+
+
+
+    const nextA =
+
+      a.value /
+      divisor;
+
+
+    const nextB =
+
+      b.value /
+      divisor;
+
+
+
+
+
+    // ========================================================
+    // A 一步直接约成1
+    // ========================================================
+
+    if(
+      nextA === 1
+      &&
+      !collected.has(
+        a.value
+      )
+    ){
+
+
+      oneReduceAway++;
+
+    }
+
+
+
+
+
+    // ========================================================
+    // B 一步直接约成1
+    // ========================================================
+
+    if(
+      nextB === 1
+      &&
+      !collected.has(
+        b.value
+      )
+    ){
+
+
+      oneReduceAway++;
+
+    }
+
+
+
+
+
+    // ========================================================
+    // 尚未收藏，而且已经能够参与合法约分
+    //
+    // 说明它正在进入“可加工”状态。
+    // ========================================================
+
+    if(
+      !collected.has(
+        a.value
+      )
+    ){
+
+
+      reducibleUnseenValues.add(
+        a.value
+      );
+
+    }
+
+
+
+    if(
+      !collected.has(
+        b.value
+      )
+    ){
+
+
+      reducibleUnseenValues.add(
+        b.value
+      );
+
+    }
+
+  }
+
+
+
+
+
+  return {
+
+    directNewCollection,
+
+    oneReduceAway,
+
+    unseenBoardValues:
+      unseenValues.size,
+
+    unseenReducibleValues:
+      reducibleUnseenValues.size
+
+  };
+
+}
+
+
+
+
+
+// ============================================================
+// Collection 评分 V2
+//
+// 优先顺序：
+//
+// 1. 已经获得的新收藏
+// 2. 可直接处理的新收藏1
+// 3. 一步约分得到新收藏
+// 4. 未收藏数字已经可以约分
+// 5. 当前棋盘存在未收藏数字
+// 6. 局面活性只做辅助
+//
+// ------------------------------------------------------------
+//
+// 重要变化：
+//
+// 删除 state.steps 奖励。
+//
+// 对 Collection AI 来说：
+//
+// 活很久 ≠ 做得好。
+// ============================================================
+
+function scoreCollection(
   state
 ){
 
@@ -363,51 +738,171 @@ function scoreCollectionState(
 
 
 
-  let score =
+  const potential =
+
+    analyzeCollectionPotential(
+
+      state,
+
+      info
+
+    );
+
+
+
+
+
+  // ==========================================================
+  // 已经获得的不同收藏
+  //
+  // 绝对最高优先级。
+  // ==========================================================
+
+  const collectionScore =
 
     state.collection.size *
-    100000
+    1000000;
 
-    +
 
-    info.legalCount *
-    40
 
-    +
+
+
+  // ==========================================================
+  // 已经存在可直接处理的新收藏1
+  // ==========================================================
+
+  const directScore =
+
+    potential.directNewCollection *
+    300000;
+
+
+
+
+
+  // ==========================================================
+  // 一次约分即可产生新收藏1
+  // ==========================================================
+
+  const oneReduceScore =
+
+    potential.oneReduceAway *
+    100000;
+
+
+
+
+
+  // ==========================================================
+  // 未收藏数字已经进入可约分状态
+  // ==========================================================
+
+  const reducibleUnseenScore =
+
+    potential.unseenReducibleValues *
+    8000;
+
+
+
+
+
+  // ==========================================================
+  // 棋盘上存在未收藏数字
+  //
+  // 权重故意较低。
+  //
+  // 避免 AI 只喜欢囤陌生数字，
+  // 却不真正加工它们。
+  // ==========================================================
+
+  const unseenScore =
+
+    potential.unseenBoardValues *
+    1000;
+
+
+
+
+
+  // ==========================================================
+  // 基础局面质量
+  //
+  // 只负责同等收藏潜力局面之间的细微排序。
+  // ==========================================================
+
+  const boardScore =
 
     info.reduceCount *
-    35
+    120
 
     +
 
     info.empty *
-    30
-
-    +
-
-    info.ones *
     60
 
     +
 
-    state.steps *
-    5;
+    info.legalCount *
+    15
+
+    +
+
+    info.ones *
+    10;
 
 
 
-  if(
+
+
+  // ==========================================================
+  // 死局惩罚
+  // ==========================================================
+
+  const deadPenalty =
+
     info.legalCount === 0
-  ){
+
+      ?
+
+        50000
+
+      :
+
+        0;
 
 
-    score -=
-      5000;
-
-  }
 
 
 
-  return score;
+  return (
+
+    collectionScore
+
+    +
+
+    directScore
+
+    +
+
+    oneReduceScore
+
+    +
+
+    reducibleUnseenScore
+
+    +
+
+    unseenScore
+
+    +
+
+    boardScore
+
+    -
+
+    deadPenalty
+
+  );
 
 }
 
@@ -425,291 +920,412 @@ function scoreState(
 ){
 
 
-  if(
+  return (
+
     mode ===
     SMART_AI_MODES.COLLECTION
+
+      ?
+
+        scoreCollection(
+          state
+        )
+
+      :
+
+        scoreSurvival(
+          state
+        )
+
+  );
+
+}
+
+
+
+
+
+// ============================================================
+// Beam 去重 Key
+// ============================================================
+
+function createSearchKey(
+  state
+){
+
+
+  return (
+
+    createMazeStateKey(
+      state
+    )
+
+    +
+
+    "#"
+
+    +
+
+    getSimulationHistorySignature(
+      state
+    )
+
+  );
+
+}
+
+
+
+
+
+// ============================================================
+// Beam Search
+// ============================================================
+
+function chooseSmartAction(
+  state,
+  mode,
+  {
+
+    depth = 4,
+
+    beamWidth = 50
+
+  } = {}
+){
+
+
+  const rootActions =
+
+    getSimulationLegalActions(
+      state
+    );
+
+
+
+  if(
+    rootActions.length <=
+    1
   ){
 
 
-    return scoreCollectionState(
-      state
+    return (
+
+      rootActions[0]
+      ?? null
+
     );
 
   }
 
 
 
-  return scoreSurvivalState(
-    state
+  let beam =
+    [];
+
+
+
+
+
+  // ==========================================================
+  // 第一层
+  // ==========================================================
+
+  for(
+    const action
+    of rootActions
+  ){
+
+
+    const nextState =
+
+      cloneSimulationState(
+        state
+      );
+
+
+
+    if(
+      !applySimulationAction(
+        nextState,
+        action
+      )
+    ){
+
+
+      continue;
+
+    }
+
+
+
+    beam.push({
+
+      state:
+        nextState,
+
+      firstAction:
+        action,
+
+      score:
+
+        scoreState(
+          nextState,
+          mode
+        )
+
+    });
+
+  }
+
+
+
+  if(
+    beam.length === 0
+  ){
+
+
+    return rootActions[0];
+
+  }
+
+
+
+  beam.sort(
+
+    (
+      a,
+      b
+    ) =>
+
+      b.score -
+      a.score
+
   );
 
-}
+
+
+  beam =
+
+    beam.slice(
+      0,
+      beamWidth
+    );
 
 
 
 
 
-// ============================================================
-// Beam Search 状态签名
-// ============================================================
+  // ==========================================================
+  // 未来层
+  // ==========================================================
 
-function createStateKey(
-  state
-){
-
-
-  const boardKey =
-
-    state.board
-      .map(
-
-        piece => {
+  for(
+    let level = 1;
+    level < depth;
+    level++
+  ){
 
 
-          if(
-            !piece
-          ){
+    const nextBeam =
+      [];
 
 
-            return "_";
-
-          }
+    const seen =
+      new Set();
 
 
 
-          const parents =
+    for(
+      const candidate
+      of beam
+    ){
 
-            piece.parents
 
-              ?
+      const actions =
 
-              piece.parents.join(
-                ","
-              )
-
-              :
-
-              "-";
+        getSimulationLegalActions(
+          candidate.state
+        );
 
 
 
-          return [
+      if(
+        actions.length === 0
+      ){
 
-            piece.value,
 
-            piece.foodType,
+        const key =
 
-            piece.purity
-            ?? "-",
+          createSearchKey(
+            candidate.state
+          );
 
-            parents,
 
-            piece.previousValue
-            ?? "-"
 
-          ].join(
-            ":"
+        if(
+          !seen.has(
+            key
+          )
+        ){
+
+
+          seen.add(
+            key
+          );
+
+
+          nextBeam.push(
+            candidate
           );
 
         }
 
-      )
-      .join(
-        "|"
+
+
+        continue;
+
+      }
+
+
+
+
+
+      for(
+        const action
+        of actions
+      ){
+
+
+        const nextState =
+
+          cloneSimulationState(
+            candidate.state
+          );
+
+
+
+        if(
+          !applySimulationAction(
+            nextState,
+            action
+          )
+        ){
+
+
+          continue;
+
+        }
+
+
+
+        const key =
+
+          createSearchKey(
+            nextState
+          );
+
+
+
+        if(
+          seen.has(
+            key
+          )
+        ){
+
+
+          continue;
+
+        }
+
+
+
+        seen.add(
+          key
+        );
+
+
+
+        nextBeam.push({
+
+          state:
+            nextState,
+
+          firstAction:
+            candidate.firstAction,
+
+          score:
+
+            scoreState(
+              nextState,
+              mode
+            )
+
+        });
+
+      }
+
+    }
+
+
+
+    if(
+      nextBeam.length === 0
+    ){
+
+
+      break;
+
+    }
+
+
+
+    nextBeam.sort(
+
+      (
+        a,
+        b
+      ) =>
+
+        b.score -
+        a.score
+
+    );
+
+
+
+    beam =
+
+      nextBeam.slice(
+        0,
+        beamWidth
       );
 
+  }
 
 
 
+  beam.sort(
 
-  const collectionKey =
+    (
+      a,
+      b
+    ) =>
 
-    Array.from(
-      state.collection
-    )
-      .sort(
-        (
-          a,
-          b
-        ) =>
-          a - b
-      )
-      .join(
-        ","
-      );
+      b.score -
+      a.score
 
-
+  );
 
 
 
   return (
 
-    boardKey
+    beam[0]?.firstAction
 
-    +
+    ??
 
-    "#"
-
-    +
-
-    collectionKey
-
-  );
-
-}
-
-
-
-
-
-// ============================================================
-// 循环检测完整状态指纹
-//
-// 包含所有影响未来规则的数据。
-// 不包含 steps / actions。
-// ============================================================
-
-function createCycleStateKey(
-  state
-){
-
-
-  const boardKey =
-
-    state.board
-      .map(
-
-        piece => {
-
-
-          if(
-            !piece
-          ){
-
-
-            return "_";
-
-          }
-
-
-
-
-
-          const parentsKey =
-
-            piece.parents
-
-              ?
-
-              piece.parents.join(
-                ","
-              )
-
-              :
-
-              "-";
-
-
-
-
-
-          const parentFoodsKey =
-
-            piece.parentFoods
-
-              ?
-
-              piece.parentFoods
-                .map(
-
-                  food => [
-
-                    food.value,
-
-                    food.foodType,
-
-                    food.purity
-                    ?? "-"
-
-                  ].join(
-                    ","
-                  )
-
-                )
-                .join(
-                  ";"
-                )
-
-              :
-
-              "-";
-
-
-
-
-
-          return [
-
-            piece.value,
-
-            piece.foodType,
-
-            piece.purity
-            ?? "-",
-
-            parentsKey,
-
-            parentFoodsKey,
-
-            piece.previousValue
-            ?? "-"
-
-          ].join(
-            ":"
-          );
-
-        }
-
-      )
-      .join(
-        "|"
-      );
-
-
-
-
-
-  const collectionKey =
-
-    Array.from(
-      state.collection
-    )
-      .sort(
-        (
-          a,
-          b
-        ) =>
-          a - b
-      )
-      .join(
-        ","
-      );
-
-
-
-
-
-  return (
-
-    boardKey
-
-    +
-
-    "#"
-
-    +
-
-    collectionKey
+    rootActions[0]
 
   );
 
@@ -722,10 +1338,10 @@ function createCycleStateKey(
 // ============================================================
 // 棋盘快照
 //
-// 专门用于循环调试。
+// 只在主路线发生回转时记录。
 // ============================================================
 
-function createBoardSnapshot(
+function snapshotBoard(
   state
 ){
 
@@ -773,48 +1389,6 @@ function createBoardSnapshot(
           piece.purity
           ?? null,
 
-        parents:
-
-          piece.parents
-
-            ?
-
-            [
-              ...piece.parents
-            ]
-
-            :
-
-            null,
-
-        parentFoods:
-
-          piece.parentFoods
-
-            ?
-
-            piece.parentFoods.map(
-
-              food => ({
-
-                value:
-                  food.value,
-
-                foodType:
-                  food.foodType,
-
-                purity:
-                  food.purity
-                  ?? null
-
-              })
-
-            )
-
-            :
-
-            null,
-
         previousValue:
           piece.previousValue
           ?? null
@@ -833,8 +1407,6 @@ function createBoardSnapshot(
 
 // ============================================================
 // 动作描述
-//
-// 必须在执行动作之前调用。
 // ============================================================
 
 function describeAction(
@@ -844,175 +1416,16 @@ function describeAction(
 
 
   if(
-    !action
-  ){
-
-
-    return {
-
-      type:
-        "unknown",
-
-      text:
-        "未知动作"
-
-    };
-
-  }
-
-
-
-
-
-  // ==========================================================
-  // 合成
-  // ==========================================================
-
-  if(
-    action.type ===
-    "combine"
-  ){
-
-
-    const [
-      indexA,
-      indexB
-    ] =
-      action.indexes;
-
-
-
-    const a =
-      state.board[indexA];
-
-
-    const b =
-      state.board[indexB];
-
-
-
-    return {
-
-      type:
-        "combine",
-
-      indexes: [
-
-        indexA,
-
-        indexB
-
-      ],
-
-      beforeValues: [
-
-        a?.value
-        ?? null,
-
-        b?.value
-        ?? null
-
-      ],
-
-      text:
-
-        `合成：格${indexA + 1} ${a?.value ?? "?"}`
-
-        +
-
-        ` + 格${indexB + 1} ${b?.value ?? "?"}`
-
-    };
-
-  }
-
-
-
-
-
-  // ==========================================================
-  // 约分
-  // ==========================================================
-
-  if(
-    action.type ===
-    "reduce"
-  ){
-
-
-    const [
-      indexA,
-      indexB
-    ] =
-      action.indexes;
-
-
-
-    const a =
-      state.board[indexA];
-
-
-    const b =
-      state.board[indexB];
-
-
-
-    return {
-
-      type:
-        "reduce",
-
-      indexes: [
-
-        indexA,
-
-        indexB
-
-      ],
-
-      beforeValues: [
-
-        a?.value
-        ?? null,
-
-        b?.value
-        ?? null
-
-      ],
-
-      text:
-
-        `约分：格${indexA + 1} ${a?.value ?? "?"}`
-
-        +
-
-        ` ↔ 格${indexB + 1} ${b?.value ?? "?"}`
-
-    };
-
-  }
-
-
-
-
-
-  // ==========================================================
-  // 处理1
-  // ==========================================================
-
-  if(
     action.type ===
     "remove"
   ){
 
 
-    const index =
-      action.index;
+    const piece =
 
-
-
-    const target =
-      state.board[index];
+      state.board[
+        action.index
+      ];
 
 
 
@@ -1021,33 +1434,23 @@ function describeAction(
       type:
         "remove",
 
-      index,
-
-      beforeValue:
-        target?.value
-        ?? null,
-
-      discoveredValue:
-        target?.previousValue
-        ?? null,
-
       text:
 
-        `处理1：格${index + 1}`
+        `处理1：格${action.index + 1}`
 
         +
 
         (
 
-          target?.previousValue != null
+          piece?.previousValue != null
 
             ?
 
-            ` · 收藏来源 ${target.previousValue}`
+              ` · 收藏来源 ${piece.previousValue}`
 
             :
 
-            ""
+              ""
 
         )
 
@@ -1057,15 +1460,60 @@ function describeAction(
 
 
 
+  const [
+    aIndex,
+    bIndex
+  ] =
+    action.indexes;
+
+
+
+  const a =
+    state.board[aIndex];
+
+
+  const b =
+    state.board[bIndex];
+
+
+
+  if(
+    action.type ===
+    "combine"
+  ){
+
+
+    return {
+
+      type:
+        "combine",
+
+      text:
+
+        `合成：格${aIndex + 1} ${a?.value}`
+
+        +
+
+        ` + 格${bIndex + 1} ${b?.value}`
+
+    };
+
+  }
+
 
 
   return {
 
     type:
-      action.type,
+      "reduce",
 
     text:
-      action.type
+
+      `约分：格${aIndex + 1} ${a?.value}`
+
+      +
+
+      ` ↔ 格${bIndex + 1} ${b?.value}`
 
   };
 
@@ -1076,379 +1524,7 @@ function describeAction(
 
 
 // ============================================================
-// Beam Search
-// ============================================================
-
-function chooseSmartAction(
-  state,
-  mode,
-  {
-
-    depth = 4,
-
-    beamWidth = 50
-
-  } = {}
-){
-
-
-  const rootActions =
-
-    getSimulationLegalActions(
-      state
-    );
-
-
-
-
-
-  if(
-    rootActions.length === 0
-  ){
-
-
-    return null;
-
-  }
-
-
-
-
-
-  if(
-    rootActions.length === 1
-  ){
-
-
-    return rootActions[0];
-
-  }
-
-
-
-
-
-  let beam =
-    [];
-
-
-
-
-
-  // ==========================================================
-  // 第一层
-  // ==========================================================
-
-  for(
-    const action
-    of rootActions
-  ){
-
-
-    const nextState =
-
-      cloneSimulationState(
-        state
-      );
-
-
-
-    applySimulationAction(
-
-      nextState,
-
-      action
-
-    );
-
-
-
-    beam.push({
-
-      state:
-        nextState,
-
-      firstAction:
-        action,
-
-      score:
-
-        scoreState(
-          nextState,
-          mode
-        )
-
-    });
-
-  }
-
-
-
-
-
-  beam.sort(
-
-    (
-      a,
-      b
-    ) =>
-      b.score -
-      a.score
-
-  );
-
-
-
-  beam =
-
-    beam.slice(
-      0,
-      beamWidth
-    );
-
-
-
-
-
-  // ==========================================================
-  // 继续向未来搜索
-  // ==========================================================
-
-  for(
-    let level = 1;
-    level < depth;
-    level++
-  ){
-
-
-    const nextBeam =
-      [];
-
-
-    const seen =
-
-      new Set();
-
-
-
-
-
-    for(
-      const candidate
-      of beam
-    ){
-
-
-      const legalActions =
-
-        getSimulationLegalActions(
-          candidate.state
-        );
-
-
-
-
-
-      if(
-        legalActions.length === 0
-      ){
-
-
-        const key =
-
-          createStateKey(
-            candidate.state
-          );
-
-
-
-        if(
-          !seen.has(
-            key
-          )
-        ){
-
-
-          seen.add(
-            key
-          );
-
-
-          nextBeam.push(
-            candidate
-          );
-
-        }
-
-
-
-        continue;
-
-      }
-
-
-
-
-
-      for(
-        const action
-        of legalActions
-      ){
-
-
-        const nextState =
-
-          cloneSimulationState(
-            candidate.state
-          );
-
-
-
-        applySimulationAction(
-
-          nextState,
-
-          action
-
-        );
-
-
-
-
-
-        const key =
-
-          createStateKey(
-            nextState
-          );
-
-
-
-        if(
-          seen.has(
-            key
-          )
-        ){
-
-
-          continue;
-
-        }
-
-
-
-        seen.add(
-          key
-        );
-
-
-
-
-
-        nextBeam.push({
-
-          state:
-            nextState,
-
-          firstAction:
-            candidate.firstAction,
-
-          score:
-
-            scoreState(
-              nextState,
-              mode
-            )
-
-        });
-
-      }
-
-    }
-
-
-
-
-
-    if(
-      nextBeam.length === 0
-    ){
-
-
-      break;
-
-    }
-
-
-
-
-
-    nextBeam.sort(
-
-      (
-        a,
-        b
-      ) =>
-        b.score -
-        a.score
-
-    );
-
-
-
-    beam =
-
-      nextBeam.slice(
-        0,
-        beamWidth
-      );
-
-  }
-
-
-
-
-
-  beam.sort(
-
-    (
-      a,
-      b
-    ) =>
-      b.score -
-      a.score
-
-  );
-
-
-
-
-
-  return (
-
-    beam[0]?.firstAction
-
-    ??
-
-    rootActions[0]
-
-  );
-
-}
-
-
-
-
-
-// ============================================================
-// Smart AI 玩一局
-//
-// 包含：
-//
-// 真实动作记录
-// 循环检测
-// 循环动作抓取
-// 棋盘快照
+// 单局
 // ============================================================
 
 export async function runSmartGame({
@@ -1463,20 +1539,16 @@ export async function runSmartGame({
     50,
 
   maxActions =
-    1000,
+    10000,
 
   yieldEvery =
-    10,
+    20,
 
   onProgress =
     null
 
 } = {}){
 
-
-  // ==========================================================
-  // 开局
-  // ==========================================================
 
   const initialValues =
 
@@ -1492,105 +1564,44 @@ export async function runSmartGame({
 
 
 
-
-
-  // ==========================================================
-  // 实际选择次数
-  // ==========================================================
-
   let actions =
     0;
 
 
 
-
-
   // ==========================================================
-  // AI 真正执行过的动作历史
+  // 回转记录
   // ==========================================================
 
-  const actionHistory =
+  const mazeTurns =
     [];
 
 
 
-
-
   // ==========================================================
-  // 已出现状态
+  // 收藏时间线
   // ==========================================================
 
-  const seenStates =
-
-    new Map();
-
+  const collectionTimeline =
+    [];
 
 
 
+  let previousCollection =
 
-  // ==========================================================
-  // 循环结果
-  // ==========================================================
-
-  let cycleDetected =
-    false;
-
-
-  let cycleInfo =
-    null;
-
-
-
-
-
-  // ==========================================================
-  // 初始状态
-  // ==========================================================
-
-  const initialStateKey =
-
-    createCycleStateKey(
-      state
+    new Set(
+      state.collection
     );
 
 
 
-  seenStates.set(
 
-    initialStateKey,
-
-    {
-
-      action:
-        0,
-
-      steps:
-        state.steps,
-
-      collectionCount:
-        state.collection.size
-
-    }
-
-  );
-
-
-
-
-
-  // ==========================================================
-  // 开始真实游戏
-  // ==========================================================
 
   while(
     actions <
     maxActions
   ){
 
-
-    // ========================================================
-    // 当前合法动作
-    // ========================================================
 
     const legalActions =
 
@@ -1599,12 +1610,6 @@ export async function runSmartGame({
       );
 
 
-
-
-
-    // ========================================================
-    // 自然结束
-    // ========================================================
 
     if(
       legalActions.length === 0
@@ -1616,12 +1621,6 @@ export async function runSmartGame({
     }
 
 
-
-
-
-    // ========================================================
-    // AI 选择动作
-    // ========================================================
 
     const action =
 
@@ -1643,8 +1642,6 @@ export async function runSmartGame({
 
 
 
-
-
     if(
       !action
     ){
@@ -1656,13 +1653,7 @@ export async function runSmartGame({
 
 
 
-
-
-    // ========================================================
-    // 执行前记录动作
-    // ========================================================
-
-    const actionDescription =
+    const description =
 
       describeAction(
         state,
@@ -1671,44 +1662,39 @@ export async function runSmartGame({
 
 
 
+    const beforeTurnCount =
+      state.mazeTurnCount;
 
 
-    // ========================================================
-    // 执行前棋盘
-    // ========================================================
 
     const beforeBoard =
 
-      createBoardSnapshot(
+      snapshotBoard(
         state
       );
 
 
 
+    const applied =
+
+      applySimulationAction(
+
+        state,
+
+        action
+
+      );
 
 
-    const beforeSteps =
-      state.steps;
+
+    if(
+      !applied
+    ){
 
 
-    const beforeCollection =
-      state.collection.size;
+      break;
 
-
-
-
-
-    // ========================================================
-    // 真正执行
-    // ========================================================
-
-    applySimulationAction(
-
-      state,
-
-      action
-
-    );
+    }
 
 
 
@@ -1719,257 +1705,99 @@ export async function runSmartGame({
 
 
     // ========================================================
-    // 执行后棋盘
-    // ========================================================
-
-    const afterBoard =
-
-      createBoardSnapshot(
-        state
-      );
-
-
-
-
-
-    // ========================================================
-    // 写入真实动作历史
-    // ========================================================
-
-    actionHistory.push({
-
-      actionNumber:
-        actions,
-
-      ...actionDescription,
-
-      beforeSteps,
-
-      afterSteps:
-        state.steps,
-
-      stepDelta:
-
-        state.steps -
-        beforeSteps,
-
-      beforeCollection,
-
-      afterCollection:
-        state.collection.size,
-
-      collectionDelta:
-
-        state.collection.size -
-        beforeCollection,
-
-      beforeBoard,
-
-      afterBoard
-
-    });
-
-
-
-
-
-    // ========================================================
-    // 当前完整状态
-    // ========================================================
-
-    const stateKey =
-
-      createCycleStateKey(
-        state
-      );
-
-
-
-
-
-    // ========================================================
-    // 是否以前出现过
-    // ========================================================
-
-    const previous =
-
-      seenStates.get(
-        stateKey
-      );
-
-
-
-
-
-    // ========================================================
-    // 检测到循环
+    // 收藏时间线
     // ========================================================
 
     if(
-      previous
+      state.collection.size >
+      previousCollection.size
     ){
 
 
-      const cycleActions =
-
-        actions -
-        previous.action;
-
-
-
-      const cycleSteps =
-
-        state.steps -
-        previous.steps;
+      for(
+        const value
+        of state.collection
+      ){
 
 
+        if(
+          previousCollection.has(
+            value
+          )
+        ){
 
-      const cycleCollection =
 
-        state.collection.size -
-        previous.collectionCount;
+          continue;
+
+        }
 
 
 
+        const previousTimelineEntry =
 
-
-      // ======================================================
-      // 提取真正的循环动作
-      //
-      // 例如：
-      //
-      // firstAction  = 27
-      // repeatAction = 39
-      //
-      // 循环动作：
-      //
-      // 28 ～ 39
-      //
-      // actionHistory下标：
-      //
-      // 27 ～ 38
-      // ======================================================
-
-      const cycleActionList =
-
-        actionHistory.slice(
-
-          previous.action,
-
-          actions
-
-        );
-
-
-
-
-
-      cycleDetected =
-        true;
-
-
-
-
-
-      cycleInfo = {
-
-        // ====================================================
-        // 第一次出现
-        // ====================================================
-
-        firstAction:
-          previous.action,
-
-        firstSteps:
-          previous.steps,
-
-        firstCollection:
-          previous.collectionCount,
-
-
-        // ====================================================
-        // 再次出现
-        // ====================================================
-
-        repeatAction:
-          actions,
-
-        repeatSteps:
-          state.steps,
-
-        repeatCollection:
-          state.collection.size,
-
-
-        // ====================================================
-        // 循环统计
-        // ====================================================
-
-        cycleActions,
-
-        cycleSteps,
-
-        cycleCollection,
-
-
-        // ====================================================
-        // 是否增加正式步数
-        // ====================================================
-
-        increasesSteps:
-
-          cycleSteps >
-          0,
-
-
-        // ====================================================
-        // 完整循环动作
-        // ====================================================
-
-        actionList:
-          cycleActionList,
-
-
-        // ====================================================
-        // 循环开始棋盘
-        // ====================================================
-
-        startBoard:
-
-          cycleActionList[0]
-            ?.beforeBoard
-
-          ??
-
-          null,
-
-
-        // ====================================================
-        // 循环结束棋盘
-        // ====================================================
-
-        endBoard:
-
-          cycleActionList[
-            cycleActionList.length - 1
+          collectionTimeline[
+            collectionTimeline.length - 1
           ]
-            ?.afterBoard
 
           ??
 
-          null
-
-      };
+          null;
 
 
 
+        collectionTimeline.push({
+
+          order:
+            collectionTimeline.length + 1,
+
+          value,
+
+          actionNumber:
+            actions,
+
+          steps:
+            state.steps,
+
+          mazeTurnCount:
+            state.mazeTurnCount,
+
+          actionsSincePrevious:
+
+            previousTimelineEntry
+
+              ?
+
+                actions -
+                previousTimelineEntry.actionNumber
+
+              :
+
+                actions,
+
+          stepsSincePrevious:
+
+            previousTimelineEntry
+
+              ?
+
+                state.steps -
+                previousTimelineEntry.steps
+
+              :
+
+                state.steps
+
+        });
+
+      }
 
 
-      // ======================================================
-      // 抓到循环后立即停止
-      // ======================================================
 
-      break;
+      previousCollection =
+
+        new Set(
+          state.collection
+        );
 
     }
 
@@ -1978,66 +1806,119 @@ export async function runSmartGame({
 
 
     // ========================================================
-    // 第一次出现当前状态
+    // 迷宫回转
     // ========================================================
 
-    seenStates.set(
+    if(
+      state.mazeTurnCount >
+      beforeTurnCount
+    ){
 
-      stateKey,
 
-      {
+      mazeTurns.push({
 
-        action:
+        turnNumber:
+          state.mazeTurnCount,
+
+        actionNumber:
           actions,
+
+        actionText:
+          description.text,
+
+        triggerSteps:
+          state.steps,
+
+        previousSequence:
+
+          state.lastMazeTurn
+            ?.previousSequence
+
+          ??
+
+          null,
+
+        previousSteps:
+
+          state.lastMazeTurn
+            ?.previousSteps
+
+          ??
+
+          null,
+
+        beforeValues:
+
+          state.lastMazeTurn
+            ?.beforeValues
+
+          ??
+
+          [],
+
+        afterValues:
+
+          state.lastMazeTurn
+            ?.afterValues
+
+          ??
+
+          [],
+
+        beforeBoard,
+
+        afterBoard:
+
+          snapshotBoard(
+            state
+          )
+
+      });
+
+    }
+
+
+
+
+
+    // ========================================================
+    // 进度
+    // ========================================================
+
+    if(
+      actions %
+      yieldEvery ===
+      0
+    ){
+
+
+      onProgress?.({
+
+        actions,
 
         steps:
           state.steps,
 
         collectionCount:
-          state.collection.size
+          state.collection.size,
 
-      }
+        lastCollection:
 
-    );
+          collectionTimeline[
+            collectionTimeline.length - 1
+          ]
 
+          ??
 
+          null,
 
+        visitedStates:
+          state.mazeVisitedCount,
 
+        mazeTurnCount:
+          state.mazeTurnCount
 
-    // ========================================================
-    // UI进度
-    // ========================================================
-
-    if(
-      actions %
-      yieldEvery === 0
-    ){
-
-
-      if(
-        typeof onProgress ===
-        "function"
-      ){
-
-
-        onProgress({
-
-          actions,
-
-          steps:
-            state.steps,
-
-          collectionCount:
-            state.collection.size,
-
-          visitedStates:
-            seenStates.size,
-
-          cycleDetected
-
-        });
-
-      }
+      });
 
 
 
@@ -2051,11 +1932,7 @@ export async function runSmartGame({
 
 
 
-  // ==========================================================
-  // 最终合法动作
-  // ==========================================================
-
-  const finalLegalActions =
+  const finalActions =
 
     getSimulationLegalActions(
       state
@@ -2063,11 +1940,13 @@ export async function runSmartGame({
 
 
 
+  const endedNaturally =
+
+    finalActions.length === 0;
 
 
-  // ==========================================================
-  // 返回单局结果
-  // ==========================================================
+
+
 
   return {
 
@@ -2079,13 +1958,10 @@ export async function runSmartGame({
 
     beamWidth,
 
-
     steps:
       state.steps,
 
-
     actions,
-
 
     collection:
 
@@ -2093,46 +1969,47 @@ export async function runSmartGame({
         state.collection
       ),
 
-
     collectionCount:
       state.collection.size,
 
+    collectionTimeline,
 
-    endedNaturally:
+    visitedStates:
+      state.mazeVisitedCount,
 
-      !cycleDetected
+    mazeTurnCount:
+      state.mazeTurnCount,
 
-      &&
+    mazeTurns,
 
-      finalLegalActions.length === 0,
+    firstMazeTurn:
 
+      mazeTurns[0]
+
+      ??
+
+      null,
+
+    lastMazeTurn:
+
+      mazeTurns[
+        mazeTurns.length - 1
+      ]
+
+      ??
+
+      null,
+
+    endedNaturally,
 
     hitLimit:
 
-      !cycleDetected
+      !endedNaturally
 
       &&
 
       actions >=
-      maxActions,
-
-
-    cycleDetected,
-
-    cycleInfo,
-
-
-    visitedStates:
-      seenStates.size,
-
-
-    // ========================================================
-    // 完整真实路线
-    //
-    // 目前主要用于开发调试。
-    // ========================================================
-
-    actionHistory
+      maxActions
 
   };
 
@@ -2143,7 +2020,7 @@ export async function runSmartGame({
 
 
 // ============================================================
-// Smart AI 批量测试
+// 批量测试
 // ============================================================
 
 export async function runSmartExplorer({
@@ -2183,12 +2060,6 @@ export async function runSmartExplorer({
 
 
 
-
-
-  // ==========================================================
-  // 总计
-  // ==========================================================
-
   let totalSteps =
     0;
 
@@ -2197,12 +2068,9 @@ export async function runSmartExplorer({
     0;
 
 
+  let totalMazeTurns =
+    0;
 
-
-
-  // ==========================================================
-  // 极值
-  // ==========================================================
 
   let maxSteps =
     0;
@@ -2212,12 +2080,18 @@ export async function runSmartExplorer({
     0;
 
 
+  let maxMazeTurns =
+    0;
 
 
+  let hitLimitCount =
+    0;
 
-  // ==========================================================
-  // 纪录
-  // ==========================================================
+
+  let mazeTurnGameCount =
+    0;
+
+
 
   let bestStepGame =
     null;
@@ -2227,43 +2101,21 @@ export async function runSmartExplorer({
     null;
 
 
+  let mostMazeTurnGame =
+    null;
 
 
-
-  // ==========================================================
-  // 保护上限
-  // ==========================================================
-
-  let hitLimitCount =
-    0;
-
-
-
-
-
-  // ==========================================================
-  // 循环统计
-  // ==========================================================
-
-  let cycleCount =
-    0;
-
-
-  let firstCycle =
+  let firstMazeTurnGame =
     null;
 
 
 
 
 
-  // ==========================================================
-  // 开始批量测试
-  // ==========================================================
-
   for(
-    let gameIndex = 0;
-    gameIndex < safeGames;
-    gameIndex++
+    let i = 0;
+    i < safeGames;
+    i++
   ){
 
 
@@ -2280,58 +2132,69 @@ export async function runSmartExplorer({
         maxActions:
           maxActionsPerGame,
 
-
         onProgress:
-          gameProgress => {
+          current => {
 
 
-            if(
-              typeof onProgress ===
-              "function"
-            ){
+            onProgress?.({
 
+              completed:
+                i,
 
-              onProgress({
+              total:
+                safeGames,
 
-                completed:
-                  gameIndex,
+              currentGame:
+                i + 1,
 
-                total:
-                  safeGames,
+              currentActions:
+                current.actions,
 
-                currentGame:
-                  gameIndex + 1,
+              currentSteps:
+                current.steps,
 
-                currentActions:
-                  gameProgress.actions,
+              currentCollection:
+                current.collectionCount,
 
-                currentSteps:
-                  gameProgress.steps,
+              currentLastCollection:
+                current.lastCollection,
 
-                currentCollection:
-                  gameProgress.collectionCount,
+              currentVisitedStates:
+                current.visitedStates,
 
-                currentVisitedStates:
-                  gameProgress.visitedStates,
+              currentMazeTurns:
+                current.mazeTurnCount,
 
-                currentCycleDetected:
-                  gameProgress.cycleDetected,
+              maxSteps,
 
-                maxSteps,
+              maxCollection,
 
-                maxCollection,
+              maxMazeTurns,
 
-                hitLimitCount,
+              totalMazeTurns,
 
-                cycleCount
+              mazeTurnGameCount,
 
-              });
+              hitLimitCount
 
-            }
+            });
 
           }
 
       });
+
+
+
+
+
+    const game = {
+
+      gameIndex:
+        i + 1,
+
+      ...result
+
+    };
 
 
 
@@ -2347,6 +2210,10 @@ export async function runSmartExplorer({
 
     totalCollection +=
       result.collectionCount;
+
+
+    totalMazeTurns +=
+      result.mazeTurnCount;
 
 
 
@@ -2366,15 +2233,8 @@ export async function runSmartExplorer({
         result.steps;
 
 
-
-      bestStepGame = {
-
-        gameIndex:
-          gameIndex + 1,
-
-        ...result
-
-      };
+      bestStepGame =
+        game;
 
     }
 
@@ -2396,15 +2256,55 @@ export async function runSmartExplorer({
         result.collectionCount;
 
 
+      bestCollectionGame =
+        game;
 
-      bestCollectionGame = {
+    }
 
-        gameIndex:
-          gameIndex + 1,
 
-        ...result
 
-      };
+
+
+    // ========================================================
+    // 回转
+    // ========================================================
+
+    if(
+      result.mazeTurnCount >
+      0
+    ){
+
+
+      mazeTurnGameCount++;
+
+
+
+      if(
+        !firstMazeTurnGame
+      ){
+
+
+        firstMazeTurnGame =
+          game;
+
+      }
+
+    }
+
+
+
+    if(
+      result.mazeTurnCount >
+      maxMazeTurns
+    ){
+
+
+      maxMazeTurns =
+        result.mazeTurnCount;
+
+
+      mostMazeTurnGame =
+        game;
 
     }
 
@@ -2430,89 +2330,51 @@ export async function runSmartExplorer({
 
 
     // ========================================================
-    // 循环
+    // 进度
     // ========================================================
 
-    if(
-      result.cycleDetected
-    ){
+    onProgress?.({
 
+      completed:
+        i + 1,
 
-      cycleCount++;
+      total:
+        safeGames,
 
+      currentGame:
+        null,
 
+      currentActions:
+        0,
 
-      if(
-        !firstCycle
-      ){
+      currentSteps:
+        0,
 
+      currentCollection:
+        0,
 
-        firstCycle = {
+      currentLastCollection:
+        null,
 
-          gameIndex:
-            gameIndex + 1,
+      currentVisitedStates:
+        0,
 
-          ...result
+      currentMazeTurns:
+        0,
 
-        };
+      maxSteps,
 
-      }
+      maxCollection,
 
-    }
+      maxMazeTurns,
 
+      totalMazeTurns,
 
+      mazeTurnGameCount,
 
+      hitLimitCount
 
-
-    // ========================================================
-    // 更新 UI
-    // ========================================================
-
-    if(
-      typeof onProgress ===
-      "function"
-    ){
-
-
-      onProgress({
-
-        completed:
-          gameIndex + 1,
-
-        total:
-          safeGames,
-
-        currentGame:
-          null,
-
-        currentActions:
-          0,
-
-        currentSteps:
-          0,
-
-        currentCollection:
-          0,
-
-        currentVisitedStates:
-          0,
-
-        currentCycleDetected:
-          false,
-
-        maxSteps,
-
-        maxCollection,
-
-        hitLimitCount,
-
-        cycleCount
-
-      });
-
-    }
-
-
+    });
 
 
 
@@ -2523,10 +2385,6 @@ export async function runSmartExplorer({
 
 
 
-
-  // ==========================================================
-  // 最终统计
-  // ==========================================================
 
   return {
 
@@ -2540,31 +2398,65 @@ export async function runSmartExplorer({
     beamWidth,
 
 
+    // ========================================================
+    // 步数
+    // ========================================================
+
     averageSteps:
 
       totalSteps /
       safeGames,
 
-
     maxSteps,
 
+
+    // ========================================================
+    // 收藏
+    // ========================================================
 
     averageCollection:
 
       totalCollection /
       safeGames,
 
-
     maxCollection,
 
+
+    // ========================================================
+    // 保护上限
+    // ========================================================
 
     hitLimitCount,
 
 
-    cycleCount,
+    // ========================================================
+    // 回转
+    // ========================================================
 
-    firstCycle,
+    totalMazeTurns,
 
+    averageMazeTurns:
+
+      totalMazeTurns /
+      safeGames,
+
+    maxMazeTurns,
+
+    mazeTurnGameCount,
+
+    mazeTurnRate:
+
+      mazeTurnGameCount /
+      safeGames,
+
+
+    // ========================================================
+    // 纪录
+    // ========================================================
+
+    firstMazeTurnGame,
+
+    mostMazeTurnGame,
 
     bestStepGame,
 

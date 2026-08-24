@@ -28,6 +28,8 @@ import "./Board.css";
 
 
 
+
+
 // ============================================================
 // 获取料理名称
 // ============================================================
@@ -43,6 +45,7 @@ function getFoodName(
     value === undefined
   ){
 
+
     return null;
 
   }
@@ -52,6 +55,7 @@ function getFoodName(
   if(
     foodType === "meat"
   ){
+
 
     return getMeatName(
       value
@@ -65,6 +69,7 @@ function getFoodName(
     foodType === "vegetable"
   ){
 
+
     return getVegetableName(
       value
     );
@@ -77,6 +82,7 @@ function getFoodName(
     foodType === "seasoning"
   ){
 
+
     return getSeasoningName(
       value
     );
@@ -88,6 +94,7 @@ function getFoodName(
   if(
     foodType === "dessert"
   ){
+
 
     return getDessertName(
       value
@@ -129,6 +136,13 @@ export default function Board({
 
   preview = null,
 
+
+  // ==========================================================
+  // 迷宫回转事件
+  // ==========================================================
+
+  mazeTurn = null,
+
 }) {
 
 
@@ -141,7 +155,8 @@ export default function Board({
     Array.from(
 
       {
-        length: 9
+        length:
+          9
       },
 
       (
@@ -170,11 +185,11 @@ export default function Board({
 
       ?
 
-      selectedIndexes
+        selectedIndexes
 
       :
 
-      [];
+        [];
 
 
 
@@ -249,6 +264,7 @@ export default function Board({
           !piece
         ){
 
+
           return;
 
         }
@@ -260,6 +276,7 @@ export default function Board({
           selectedEntry.index
         ){
 
+
           return;
 
         }
@@ -270,6 +287,7 @@ export default function Board({
           piece.value === 1 ||
           selectedPiece.value === 1
         ){
+
 
           return;
 
@@ -423,17 +441,17 @@ export default function Board({
 
       ?
 
-      getFoodName(
+        getFoodName(
 
-        combinePreview.value,
+          combinePreview.value,
 
-        combinePreview.foodType
+          combinePreview.foodType
 
-      )
+        )
 
       :
 
-      null;
+        null;
 
 
 
@@ -449,7 +467,7 @@ export default function Board({
 
       ?
 
-      "board-preview--meat"
+        "board-preview--meat"
 
       :
 
@@ -457,7 +475,7 @@ export default function Board({
 
       ?
 
-      "board-preview--vegetable"
+        "board-preview--vegetable"
 
       :
 
@@ -465,7 +483,7 @@ export default function Board({
 
       ?
 
-      "board-preview--seasoning"
+        "board-preview--seasoning"
 
       :
 
@@ -473,11 +491,11 @@ export default function Board({
 
       ?
 
-      "board-preview--dessert"
+        "board-preview--dessert"
 
       :
 
-      "board-preview--default";
+        "board-preview--default";
 
 
 
@@ -515,14 +533,130 @@ export default function Board({
 
 
 
+  // ==========================================================
+  // 是否正在显示迷宫回转
+  // ==========================================================
+
+  const mazeTurnActive =
+
+    mazeTurn?.triggered ===
+    true;
+
+
+
+
+
   return (
 
     <div
-      className="
+      className={`
         board
-      "
+
+        ${
+          mazeTurnActive
+
+            ? "board--maze-turn"
+
+            : ""
+        }
+      `}
     >
 
+
+
+      {/* =====================================================
+          迷宫回转提示
+          ===================================================== */}
+
+      {
+
+        mazeTurnActive &&
+
+        <div
+
+          key={
+            `maze-turn-${mazeTurn.count ?? 0}`
+          }
+
+          className="
+            board-maze-turn
+          "
+
+          aria-live="polite"
+
+        >
+
+
+          {/* ===============================================
+              棋盘闪光
+              =============================================== */}
+
+          <div
+            className="
+              board-maze-turn-flash
+            "
+          />
+
+
+
+          {/* ===============================================
+              中央提示
+              =============================================== */}
+
+          <div
+            className="
+              board-maze-turn-message
+            "
+          >
+
+
+            <div
+              className="
+                board-maze-turn-title
+              "
+            >
+
+              迷宫回转
+
+            </div>
+
+
+            <div
+              className="
+                board-maze-turn-subtitle
+              "
+            >
+
+              MAZE TURN
+
+            </div>
+
+
+            <div
+              className="
+                board-maze-turn-change
+              "
+            >
+
+              全盘 +1
+
+            </div>
+
+
+          </div>
+
+
+        </div>
+
+      }
+
+
+
+
+
+      {/* =====================================================
+          九宫格
+          ===================================================== */}
 
       {
 
@@ -738,6 +872,8 @@ export default function Board({
 
 
 
+
+
             // ==================================================
             // 已发现
             // ==================================================
@@ -754,6 +890,8 @@ export default function Board({
 
 
 
+
+
             // ==================================================
             // 1的来源
             // ==================================================
@@ -766,17 +904,19 @@ export default function Board({
 
                 ?
 
-                (
-                  piece.origin
-                    ?.parent
-                    ?.value
+                  (
+                    piece.origin
+                      ?.parent
+                      ?.value
 
-                  ?? null
-                )
+                    ?? null
+                  )
 
                 :
 
-                null;
+                  null;
+
+
 
 
 
@@ -793,6 +933,8 @@ export default function Board({
               !collection.includes(
                 reduceFrom
               );
+
+
 
 
 
@@ -859,6 +1001,7 @@ export default function Board({
               if(
                 !piece
               ){
+
 
                 return;
 

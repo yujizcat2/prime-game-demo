@@ -12,40 +12,241 @@ import {
   canCombine
 } from "../game/rules";
 
-
-
-// ============================================================
-// 高速模拟引擎
-//
-// 目标：
-//
-// 与正式 Game Engine 保持相同的核心玩法规则，
-// 但完全移除：
-//
-// origin
-// collectionOrigins
-// collectionPaths
-// latestCollection
-// score
-// UI历史
-//
-// 专门用于：
-//
-// 随机测试
-// AI搜索
-// 大规模压力测试
-// ============================================================
+import {
+  createMazeStateKey
+} from "../game/mazeHistory";
 
 
 
 
 
 // ============================================================
-// 九宫格
+// Simulation
+//
+// 高速版本：
+//
+// 不保存完整 mazeHistory.entries。
+// 使用持久化 prototype 链记录访问状态。
+//
+// clone 时：
+//
+// Object.create(parentVisited)
+//
+// 不再复制整条历史。
 // ============================================================
 
-export const SIM_BOARD_SIZE =
-  9;
+export const SIM_BOARD_SIZE = 9;
+
+
+
+
+
+// ============================================================
+// 快速字符串 Hash
+//
+// 只用于 Beam Search 历史签名。
+// 不用于真正的回转判断。
+// ============================================================
+
+function hashString(
+  text
+){
+
+
+  let hash =
+    2166136261;
+
+
+
+  for(
+    let i = 0;
+    i < text.length;
+    i++
+  ){
+
+
+    hash ^=
+
+      text.charCodeAt(
+        i
+      );
+
+
+    hash =
+
+      Math.imul(
+        hash,
+        16777619
+      );
+
+  }
+
+
+
+  return hash >>> 0;
+
+}
+
+
+
+
+
+// ============================================================
+// 持久化历史 Key
+// ============================================================
+
+function toVisitedKey(
+  stateKey
+){
+
+
+  return `@${stateKey}`;
+
+}
+
+
+
+
+
+// ============================================================
+// 当前状态是否曾经出现
+// ============================================================
+
+function getVisitedEntry(
+  state,
+  stateKey
+){
+
+
+  const key =
+
+    toVisitedKey(
+      stateKey
+    );
+
+
+
+  if(
+    key in state.mazeVisited
+  ){
+
+
+    return state.mazeVisited[key];
+
+  }
+
+
+
+  return null;
+
+}
+
+
+
+
+
+// ============================================================
+// 记录状态
+//
+// 注意：
+//
+// mazeVisited 使用 prototype chain。
+// 当前分支只写自己的这一层。
+// ============================================================
+
+function recordVisitedState(
+  state,
+  stateKey,
+  reason = "normal"
+){
+
+
+  const existing =
+
+    getVisitedEntry(
+      state,
+      stateKey
+    );
+
+
+
+  if(
+    existing
+  ){
+
+
+    return existing;
+
+  }
+
+
+
+  const hash =
+
+    hashString(
+      stateKey
+    );
+
+
+
+  const entry = {
+
+    sequence:
+      state.mazeVisitedCount,
+
+    steps:
+      state.steps,
+
+    reason
+
+  };
+
+
+
+  state.mazeVisited[
+    toVisitedKey(
+      stateKey
+    )
+  ] =
+    entry;
+
+
+
+  state.mazeVisitedCount++;
+
+
+
+  state.mazeHashXor =
+
+    (
+      state.mazeHashXor
+      ^
+      hash
+    )
+
+    >>>
+
+    0;
+
+
+
+  state.mazeHashSum =
+
+    (
+      state.mazeHashSum
+      +
+      hash
+    )
+
+    >>>
+
+    0;
+
+
+
+  return entry;
+
+}
 
 
 
@@ -67,29 +268,32 @@ export function createSimulationState(
         length:
           SIM_BOARD_SIZE
       },
-      () => null
+      () =>
+        null
     );
 
 
 
   const initialValues =
 
-    Array.isArray(values)
+    Array.isArray(
+      values
+    )
 
       ?
 
-      values.slice(
-        0,
-        3
-      )
+        values.slice(
+          0,
+          3
+        )
 
       :
 
-      [];
+        [];
 
 
 
-  const initialFoodTypes = [
+  const types = [
 
     FOOD_TYPES.MEAT,
 
@@ -114,7 +318,7 @@ export function createSimulationState(
         value,
 
         foodType:
-          initialFoodTypes[index],
+          types[index],
 
         purity:
           FOOD_PURITY.PURE,
@@ -123,6 +327,9 @@ export function createSimulationState(
           null,
 
         parentFoods:
+          null,
+
+        previousValue:
           null
 
       };
@@ -133,7 +340,9 @@ export function createSimulationState(
 
 
 
-  return {
+
+
+  const state = {
 
     board,
 
@@ -141,9 +350,58 @@ export function createSimulationState(
       new Set(),
 
     steps:
-      0
+      0,
+
+
+    // ========================================================
+    // 快速迷宫历史
+    // ========================================================
+
+    mazeVisited:
+      Object.create(
+        null
+      ),
+
+    mazeVisitedCount:
+      0,
+
+    mazeHashXor:
+      0,
+
+    mazeHashSum:
+      0,
+
+    mazeTurnCount:
+      0,
+
+    lastMazeTurn:
+      null
 
   };
+
+
+
+
+
+  // ==========================================================
+  // 开局必须记录
+  // ==========================================================
+
+  recordVisitedState(
+
+    state,
+
+    createMazeStateKey(
+      state
+    ),
+
+    "initial"
+
+  );
+
+
+
+  return state;
 
 }
 
@@ -152,7 +410,7 @@ export function createSimulationState(
 
 
 // ============================================================
-// 棋盘棋子
+// 当前棋子
 // ============================================================
 
 function getPieces(
@@ -171,7 +429,7 @@ function getPieces(
 
 
 // ============================================================
-// 棋盘是否满
+// 是否满盘
 // ============================================================
 
 function isBoardFull(
@@ -179,13 +437,9 @@ function isBoardFull(
 ){
 
 
-  let count =
-    0;
-
-
-
   for(
-    let i = 0;
+    let i = 0,
+        count = 0;
     i < SIM_BOARD_SIZE;
     i++
   ){
@@ -199,10 +453,12 @@ function isBoardFull(
       count++;
 
 
+
       if(
         count >=
         SIM_BOARD_SIZE
       ){
+
 
         return true;
 
@@ -223,7 +479,7 @@ function isBoardFull(
 
 
 // ============================================================
-// 下一个空格
+// 第一个空格
 // ============================================================
 
 function getNextEmptyIndex(
@@ -239,8 +495,10 @@ function getNextEmptyIndex(
 
 
     if(
-      board[i] === null
+      board[i] ===
+      null
     ){
+
 
       return i;
 
@@ -259,7 +517,7 @@ function getNextEmptyIndex(
 
 
 // ============================================================
-// 是否可以合成
+// 合成合法
 // ============================================================
 
 function canCombineIndexes(
@@ -270,20 +528,12 @@ function canCombineIndexes(
 
 
   if(
-    indexA === indexB
-  ){
-
-    return false;
-
-  }
-
-
-
-  if(
+    indexA === indexB ||
     isBoardFull(
       state.board
     )
   ){
+
 
     return false;
 
@@ -302,19 +552,11 @@ function canCombineIndexes(
 
   if(
     !a ||
-    !b
-  ){
-
-    return false;
-
-  }
-
-
-
-  if(
+    !b ||
     a.value === 1 ||
     b.value === 1
   ){
+
 
     return false;
 
@@ -341,7 +583,7 @@ function canCombineIndexes(
 
 
 // ============================================================
-// 是否可以约分
+// 约分合法
 // ============================================================
 
 function canReduceIndexes(
@@ -352,8 +594,10 @@ function canReduceIndexes(
 
 
   if(
-    indexA === indexB
+    indexA ===
+    indexB
   ){
+
 
     return false;
 
@@ -372,19 +616,11 @@ function canReduceIndexes(
 
   if(
     !a ||
-    !b
-  ){
-
-    return false;
-
-  }
-
-
-
-  if(
+    !b ||
     a.value === 1 ||
     b.value === 1
   ){
+
 
     return false;
 
@@ -404,15 +640,7 @@ function canReduceIndexes(
 
 
 // ============================================================
-// 获取所有合法动作
-//
-// 为了测试速度，这里一次遍历直接生成：
-//
-// combine
-// reduce
-// remove
-//
-// 不像正式 Engine 那样分别生成三个数组再合并。
+// 所有合法动作
 // ============================================================
 
 export function getSimulationLegalActions(
@@ -420,14 +648,15 @@ export function getSimulationLegalActions(
 ){
 
 
-  const actions = [];
+  const actions =
+    [];
 
 
   const board =
     state.board;
 
 
-  const boardFull =
+  const full =
 
     isBoardFull(
       board
@@ -435,8 +664,10 @@ export function getSimulationLegalActions(
 
 
 
+
+
   // ==========================================================
-  // 1 可以直接处理
+  // 处理1
   // ==========================================================
 
   for(
@@ -447,7 +678,8 @@ export function getSimulationLegalActions(
 
 
     if(
-      board[i]?.value === 1
+      board[i]?.value ===
+      1
     ){
 
 
@@ -470,7 +702,7 @@ export function getSimulationLegalActions(
 
 
   // ==========================================================
-  // 两两组合
+  // 两两动作
   // ==========================================================
 
   for(
@@ -480,10 +712,16 @@ export function getSimulationLegalActions(
   ){
 
 
+    const a =
+      board[i];
+
+
+
     if(
-      !board[i] ||
-      board[i].value === 1
+      !a ||
+      a.value === 1
     ){
+
 
       continue;
 
@@ -498,10 +736,16 @@ export function getSimulationLegalActions(
     ){
 
 
+      const b =
+        board[j];
+
+
+
       if(
-        !board[j] ||
-        board[j].value === 1
+        !b ||
+        b.value === 1
       ){
+
 
         continue;
 
@@ -509,14 +753,8 @@ export function getSimulationLegalActions(
 
 
 
-
-
-      // ======================================================
-      // 合成
-      // ======================================================
-
       if(
-        !boardFull &&
+        !full &&
         canCombineIndexes(
           state,
           i,
@@ -540,12 +778,6 @@ export function getSimulationLegalActions(
       }
 
 
-
-
-
-      // ======================================================
-      // 约分
-      // ======================================================
 
       if(
         canReduceIndexes(
@@ -604,10 +836,12 @@ function applyCombine(
 
 
   if(
-    targetIndex === -1
+    targetIndex ===
+    -1
   ){
 
-    return;
+
+    return false;
 
   }
 
@@ -627,45 +861,30 @@ function applyCombine(
     !b
   ){
 
-    return;
+
+    return false;
 
   }
 
 
 
-
-
-  // ==========================================================
-  // 正式 Engine：
-  //
-  // index 小的棋子是 front。
-  //
-  // 因为合法动作始终 i < j，
-  // 所以这里 indexA 就是 front。
-  // ==========================================================
-
   const front =
 
     indexA < indexB
-
       ? a
-
       : b;
+
 
 
   const back =
 
     indexA < indexB
-
       ? b
-
       : a;
 
 
 
-
-
-  const result =
+  const value =
 
     combineValue(
 
@@ -693,45 +912,27 @@ function applyCombine(
     !foodType
   ){
 
-    return;
+
+    return false;
 
   }
 
 
 
-  const purity =
-
-    combineFoodPurity(
-
-      front,
-
-      back
-
-    );
-
-
-
-
-
-  // ==========================================================
-  // 注意：
-  //
-  // parents 与正式 Engine 一样，
-  // 使用原 indexA / indexB 的 value。
-  //
-  // parentFoods 则使用 front / back。
-  // ==========================================================
-
   state.board[
     targetIndex
   ] = {
 
-    value:
-      result,
+    value,
 
     foodType,
 
-    purity,
+    purity:
+
+      combineFoodPurity(
+        front,
+        back
+      ),
 
     parents: [
 
@@ -771,13 +972,20 @@ function applyCombine(
 
       }
 
-    ]
+    ],
+
+    previousValue:
+      null
 
   };
 
 
 
   state.steps++;
+
+
+
+  return true;
 
 }
 
@@ -810,7 +1018,8 @@ function applyReduce(
     !second
   ){
 
-    return;
+
+    return false;
 
   }
 
@@ -828,78 +1037,67 @@ function applyReduce(
 
 
 
-  const firstOldValue =
+  if(
+    divisor <=
+    1
+  ){
+
+
+    return false;
+
+  }
+
+
+
+  const oldA =
     first.value;
 
 
-  const secondOldValue =
+  const oldB =
     second.value;
 
 
 
   first.value =
-
-    firstOldValue /
-    divisor;
-
+    oldA / divisor;
 
 
   second.value =
-
-    secondOldValue /
-    divisor;
+    oldB / divisor;
 
 
 
-
-
-  // ==========================================================
-  // 正式 Engine：
-  //
-  // 约分后 parents / parentFoods 清空。
-  // ==========================================================
+  // 约分后直接父母清空
 
   first.parents =
     null;
 
-
   first.parentFoods =
     null;
 
-
   second.parents =
     null;
-
 
   second.parentFoods =
     null;
 
 
 
-
-
-  // ==========================================================
-  // 高速模拟唯一额外保存的信息：
-  //
-  // 如果之后这个棋子变成1并被处理，
-  // 收藏的是它约分前的数字。
-  //
-  // 正式 Engine 从 origin.parent.value 读取。
-  //
-  // Simulation 不保存 origin，
-  // 只保存一个 previousValue。
-  // ==========================================================
+  // 模拟 origin.parent.value
 
   first.previousValue =
-    firstOldValue;
-
+    oldA;
 
   second.previousValue =
-    secondOldValue;
+    oldB;
 
 
 
   state.steps++;
+
+
+
+  return true;
 
 }
 
@@ -909,22 +1107,6 @@ function applyReduce(
 
 // ============================================================
 // 处理1
-//
-// 正式游戏：
-//
-// 1 本身不收藏。
-//
-// 收藏的是：
-//
-// target.origin.parent.value
-//
-// Simulation 中等价为：
-//
-// target.previousValue
-//
-// 同时：
-//
-// 处理1不增加 steps。
 // ============================================================
 
 function applyRemove(
@@ -943,26 +1125,21 @@ function applyRemove(
     target.value !== 1
   ){
 
-    return;
+
+    return false;
 
   }
 
 
 
-  const discoveredValue =
-
-    target.previousValue
-    ?? null;
-
-
-
   if(
-    discoveredValue !== null
+    target.previousValue !=
+    null
   ){
 
 
     state.collection.add(
-      discoveredValue
+      target.previousValue
     );
 
   }
@@ -971,6 +1148,249 @@ function applyRemove(
 
   state.board[index] =
     null;
+
+
+
+  return true;
+
+}
+
+
+
+
+
+// ============================================================
+// 迷宫回转数值
+// ============================================================
+
+function mazeTurnValue(
+  value
+){
+
+
+  return (
+
+    value === 101
+
+      ?
+
+        2
+
+      :
+
+        value + 1
+
+  );
+
+}
+
+
+
+
+
+// ============================================================
+// 全盘迷宫回转
+// ============================================================
+
+function applyMazeTurn(
+  state
+){
+
+
+  for(
+    let i = 0;
+    i < SIM_BOARD_SIZE;
+    i++
+  ){
+
+
+    const piece =
+      state.board[i];
+
+
+
+    if(
+      piece
+    ){
+
+
+      piece.value =
+
+        mazeTurnValue(
+          piece.value
+        );
+
+    }
+
+  }
+
+}
+
+
+
+
+
+// ============================================================
+// 动作后的迷宫检测
+//
+// 每次动作最多触发一次。
+// ============================================================
+
+function resolveMaze(
+  state
+){
+
+
+  const key =
+
+    createMazeStateKey(
+      state
+    );
+
+
+
+  const previous =
+
+    getVisitedEntry(
+      state,
+      key
+    );
+
+
+
+
+
+  // ==========================================================
+  // 新状态
+  // ==========================================================
+
+  if(
+    !previous
+  ){
+
+
+    recordVisitedState(
+
+      state,
+
+      key,
+
+      "normal"
+
+    );
+
+
+    state.lastMazeTurn =
+      null;
+
+
+    return;
+
+  }
+
+
+
+
+
+  // ==========================================================
+  // 触发回转
+  // ==========================================================
+
+  const beforeValues =
+
+    state.board.map(
+
+      piece =>
+        piece?.value
+        ?? null
+
+    );
+
+
+
+  applyMazeTurn(
+    state
+  );
+
+
+
+  state.mazeTurnCount++;
+
+
+
+  const afterValues =
+
+    state.board.map(
+
+      piece =>
+        piece?.value
+        ?? null
+
+    );
+
+
+
+  state.lastMazeTurn = {
+
+    triggered:
+      true,
+
+    count:
+      state.mazeTurnCount,
+
+    previousSequence:
+      previous.sequence,
+
+    previousSteps:
+      previous.steps,
+
+    triggerSteps:
+      state.steps,
+
+    beforeValues,
+
+    afterValues
+
+  };
+
+
+
+
+
+  // ==========================================================
+  // 记录回转后的状态
+  //
+  // 如果它以前已经存在，
+  // 第一版仍不连续触发第二次。
+  // ==========================================================
+
+  const turnedKey =
+
+    createMazeStateKey(
+      state
+    );
+
+
+
+  if(
+    !getVisitedEntry(
+      state,
+      turnedKey
+    )
+  ){
+
+
+    recordVisitedState(
+
+      state,
+
+      turnedKey,
+
+      "maze-turn"
+
+    );
+
+  }
 
 }
 
@@ -993,9 +1413,15 @@ export function applySimulationAction(
     !action
   ){
 
-    return;
+
+    return false;
 
   }
+
+
+
+  let applied =
+    false;
 
 
 
@@ -1007,15 +1433,17 @@ export function applySimulationAction(
     case "combine":
 
 
-      applyCombine(
+      applied =
 
-        state,
+        applyCombine(
 
-        action.indexes[0],
+          state,
 
-        action.indexes[1]
+          action.indexes[0],
 
-      );
+          action.indexes[1]
+
+        );
 
 
       break;
@@ -1025,15 +1453,17 @@ export function applySimulationAction(
     case "reduce":
 
 
-      applyReduce(
+      applied =
 
-        state,
+        applyReduce(
 
-        action.indexes[0],
+          state,
 
-        action.indexes[1]
+          action.indexes[0],
 
-      );
+          action.indexes[1]
+
+        );
 
 
       break;
@@ -1043,13 +1473,15 @@ export function applySimulationAction(
     case "remove":
 
 
-      applyRemove(
+      applied =
 
-        state,
+        applyRemove(
 
-        action.index
+          state,
 
-      );
+          action.index
+
+        );
 
 
       break;
@@ -1058,20 +1490,40 @@ export function applySimulationAction(
 
     default:
 
-      break;
+
+      return false;
 
   }
+
+
+
+  if(
+    !applied
+  ){
+
+
+    return false;
+
+  }
+
+
+
+  resolveMaze(
+    state
+  );
+
+
+
+  return true;
 
 }
 
 
+
+
+
 // ============================================================
-// 克隆单个棋子
-//
-// Smart AI 搜索未来分支时使用。
-//
-// 这里只复制会影响游戏规则的数据。
-// 不存在 origin / UI history 等正式游戏数据。
+// 克隆棋子
 // ============================================================
 
 function clonePiece(
@@ -1082,6 +1534,7 @@ function clonePiece(
   if(
     !piece
   ){
+
 
     return null;
 
@@ -1100,21 +1553,19 @@ function clonePiece(
     purity:
       piece.purity,
 
-
     parents:
 
       piece.parents
 
         ?
 
-        [
-          ...piece.parents
-        ]
+          [
+            ...piece.parents
+          ]
 
         :
 
-        null,
-
+          null,
 
     parentFoods:
 
@@ -1122,34 +1573,28 @@ function clonePiece(
 
         ?
 
-        piece.parentFoods.map(
+          piece.parentFoods.map(
 
-          food => ({
+            food => ({
 
-            value:
-              food.value,
+              value:
+                food.value,
 
-            foodType:
-              food.foodType,
+              foodType:
+                food.foodType,
 
-            purity:
-              food.purity
+              purity:
+                food.purity
 
-          })
+            })
 
-        )
+          )
 
         :
 
-        null,
-
-
-    // ========================================================
-    // 处理1收藏时需要
-    // ========================================================
+          null,
 
     previousValue:
-
       piece.previousValue
       ?? null
 
@@ -1162,16 +1607,12 @@ function clonePiece(
 
 
 // ============================================================
-// 克隆模拟状态
+// 高速 clone
 //
-// Beam Search 必须能够从同一个局面同时探索：
+// 关键：
 //
-// A动作
-// B动作
-// C动作
-// ...
-//
-// 所以每个未来分支必须拥有独立状态。
+// mazeVisited 不复制整个历史。
+// 新建一层 prototype。
 // ============================================================
 
 export function cloneSimulationState(
@@ -1187,17 +1628,86 @@ export function cloneSimulationState(
         clonePiece
       ),
 
-
     collection:
 
       new Set(
         state.collection
       ),
 
-
     steps:
-      state.steps
+      state.steps,
+
+
+    // ========================================================
+    // O(1) 历史分支
+    // ========================================================
+
+    mazeVisited:
+
+      Object.create(
+        state.mazeVisited
+      ),
+
+    mazeVisitedCount:
+      state.mazeVisitedCount,
+
+    mazeHashXor:
+      state.mazeHashXor,
+
+    mazeHashSum:
+      state.mazeHashSum,
+
+    mazeTurnCount:
+      state.mazeTurnCount,
+
+    lastMazeTurn:
+      null
 
   };
+
+}
+
+
+
+
+
+// ============================================================
+// Beam 快速历史签名
+//
+// 不需要重新：
+//
+// Set
+// sort
+// join
+//
+// O(1)
+// ============================================================
+
+export function getSimulationHistorySignature(
+  state
+){
+
+
+  return (
+
+    `${state.mazeVisitedCount}`
+
+    +
+
+    ":"
+
+    +
+
+    `${state.mazeHashXor}`
+
+    +
+
+    ":"
+
+    +
+
+    `${state.mazeHashSum}`
+
+  );
 
 }

@@ -37,6 +37,7 @@
 }
 
 
+
 /* ============================================================
    背景
    ============================================================ */
@@ -56,6 +57,7 @@
     none;
 
 }
+
 
 
 /* ============================================================
@@ -97,6 +99,7 @@
 }
 
 
+
 /* ============================================================
    迷宫圆环
    ============================================================ */
@@ -122,6 +125,7 @@
 }
 
 
+
 .start-orbit--one {
 
   width:
@@ -135,6 +139,7 @@
     rotate(8deg);
 
 }
+
 
 
 .start-orbit--two {
@@ -155,6 +160,7 @@
 }
 
 
+
 .start-orbit--three {
 
   width:
@@ -171,6 +177,7 @@
     .4;
 
 }
+
 
 
 /* ============================================================
@@ -192,6 +199,7 @@
     .34;
 
 }
+
 
 
 .start-path--left {
@@ -216,6 +224,7 @@
 }
 
 
+
 .start-path--right {
 
   right:
@@ -236,6 +245,7 @@
     0 0 0 34px;
 
 }
+
 
 
 /* ============================================================
@@ -265,6 +275,7 @@
 }
 
 
+
 .start-background-dot--one {
 
   left:
@@ -274,6 +285,7 @@
     23%;
 
 }
+
 
 
 .start-background-dot--two {
@@ -293,6 +305,7 @@
 }
 
 
+
 .start-background-dot--three {
 
   left:
@@ -310,6 +323,7 @@
 }
 
 
+
 .start-background-dot--four {
 
   right:
@@ -319,6 +333,7 @@
     18%;
 
 }
+
 
 
 /* ============================================================
@@ -337,7 +352,7 @@
     100%;
 
   max-width:
-    420px;
+    460px;
 
   display:
     flex;
@@ -358,6 +373,7 @@
     both;
 
 }
+
 
 
 /* ============================================================
@@ -381,6 +397,7 @@
 }
 
 
+
 .start-logo-outer {
 
   position:
@@ -402,6 +419,7 @@
     center;
 
 }
+
 
 
 .start-logo-outer::before {
@@ -428,6 +446,7 @@
 }
 
 
+
 .start-logo-outer::after {
 
   content:
@@ -450,6 +469,7 @@
     rotate(-7deg);
 
 }
+
 
 
 .start-logo {
@@ -498,6 +518,7 @@
 }
 
 
+
 .start-logo-caption {
 
   margin-top:
@@ -521,6 +542,7 @@
 }
 
 
+
 /* ============================================================
    标题
    ============================================================ */
@@ -531,6 +553,7 @@
     relative;
 
 }
+
 
 
 .start-title-area::before {
@@ -569,6 +592,7 @@
 }
 
 
+
 .start-title {
 
   margin:
@@ -592,6 +616,7 @@
 }
 
 
+
 .start-title-en {
 
   margin-top:
@@ -613,6 +638,7 @@
     #9da69f;
 
 }
+
 
 
 /* ============================================================
@@ -642,6 +668,7 @@
 }
 
 
+
 /* ============================================================
    分隔装饰
    ============================================================ */
@@ -669,6 +696,7 @@
 }
 
 
+
 .start-divider-line {
 
   flex:
@@ -687,6 +715,7 @@
 }
 
 
+
 .start-divider-line:last-child {
 
   background:
@@ -697,6 +726,7 @@
     );
 
 }
+
 
 
 .start-divider-symbol {
@@ -716,9 +746,648 @@
 }
 
 
+
 /* ============================================================
-   开始按钮
-   唯一操作入口
+   自选开局
+   ============================================================ */
+
+.start-picker {
+
+  width:
+    100%;
+
+  max-width:
+    380px;
+
+  margin-top:
+    25px;
+
+}
+
+
+
+.start-picker-title {
+
+  margin-bottom:
+    12px;
+
+  font-size:
+    9px;
+
+  line-height:
+    1;
+
+  font-weight:
+    800;
+
+  letter-spacing:
+    .18em;
+
+  color:
+    #9da69f;
+
+}
+
+
+
+/* ============================================================
+   荤 / 素 / 调料
+   ============================================================ */
+
+.start-picker-groups {
+
+  width:
+    100%;
+
+  display:
+    grid;
+
+  grid-template-columns:
+    repeat(3, 1fr);
+
+  gap:
+    8px;
+
+}
+
+
+
+.start-picker-group {
+
+  position:
+    relative;
+
+  min-width:
+    0;
+
+  height:
+    78px;
+
+  padding:
+    10px 7px;
+
+  display:
+    flex;
+
+  flex-direction:
+    column;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  border:
+    1px solid
+    rgba(57,72,62,.09);
+
+  border-radius:
+    16px;
+
+  background:
+    rgba(255,255,255,.62);
+
+  color:
+    #344039;
+
+  cursor:
+    pointer;
+
+  box-shadow:
+    0 5px 15px
+    rgba(15,23,42,.025);
+
+  -webkit-tap-highlight-color:
+    transparent;
+
+  transition:
+    transform .16s ease,
+    border-color .16s ease,
+    background .16s ease,
+    box-shadow .16s ease;
+
+}
+
+
+
+.start-picker-group.is-selected {
+
+  background:
+    rgba(255,255,255,.88);
+
+  border-color:
+    rgba(70,100,79,.16);
+
+}
+
+
+
+.start-picker-group.is-active {
+
+  transform:
+    translateY(-2px);
+
+  border-color:
+    rgba(60,96,72,.30);
+
+  background:
+    rgba(255,255,255,.94);
+
+  box-shadow:
+    0 7px 20px
+    rgba(38,53,44,.07);
+
+}
+
+
+
+.start-picker-group:focus {
+
+  outline:
+    none;
+
+}
+
+
+
+.start-picker-group:focus-visible {
+
+  outline:
+    2px solid
+    rgba(77,112,89,.22);
+
+  outline-offset:
+    3px;
+
+}
+
+
+
+.start-picker-type {
+
+  font-size:
+    10px;
+
+  line-height:
+    1;
+
+  font-weight:
+    800;
+
+  letter-spacing:
+    .08em;
+
+  color:
+    #869188;
+
+}
+
+
+
+.start-picker-empty {
+
+  margin-top:
+    10px;
+
+  font-size:
+    11px;
+
+  line-height:
+    1;
+
+  font-weight:
+    600;
+
+  color:
+    #b0b7b2;
+
+}
+
+
+
+.start-picker-name {
+
+  width:
+    100%;
+
+  margin-top:
+    7px;
+
+  overflow:
+    hidden;
+
+  text-overflow:
+    ellipsis;
+
+  white-space:
+    nowrap;
+
+  font-size:
+    13px;
+
+  line-height:
+    1.15;
+
+  font-weight:
+    800;
+
+  color:
+    #303a33;
+
+}
+
+
+
+.start-picker-number {
+
+  margin-top:
+    5px;
+
+  font-size:
+    10px;
+
+  line-height:
+    1;
+
+  font-weight:
+    800;
+
+  color:
+    #9ba59e;
+
+}
+
+
+
+/* ============================================================
+   2～9 选择面板
+   ============================================================ */
+
+.start-value-panel {
+
+  width:
+    100%;
+
+  margin-top:
+    9px;
+
+  padding:
+    12px;
+
+  border:
+    1px solid
+    rgba(57,72,62,.075);
+
+  border-radius:
+    17px;
+
+  background:
+    rgba(255,255,255,.76);
+
+  box-shadow:
+    0 8px 25px
+    rgba(15,23,42,.035);
+
+  animation:
+    startPickerOpen
+    .18s
+    ease-out
+    both;
+
+}
+
+
+
+.start-value-panel-header {
+
+  margin:
+    1px 0 10px;
+
+  font-size:
+    9px;
+
+  line-height:
+    1;
+
+  font-weight:
+    800;
+
+  letter-spacing:
+    .14em;
+
+  color:
+    #919b94;
+
+}
+
+
+
+.start-value-grid {
+
+  display:
+    grid;
+
+  grid-template-columns:
+    repeat(4, 1fr);
+
+  gap:
+    6px;
+
+}
+
+
+
+.start-value-option {
+
+  min-width:
+    0;
+
+  height:
+    50px;
+
+  padding:
+    5px 4px;
+
+  display:
+    flex;
+
+  flex-direction:
+    column;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  border:
+    1px solid
+    rgba(60,76,65,.075);
+
+  border-radius:
+    12px;
+
+  background:
+    rgba(247,249,247,.92);
+
+  color:
+    #38433c;
+
+  cursor:
+    pointer;
+
+  -webkit-tap-highlight-color:
+    transparent;
+
+  transition:
+    transform .14s ease,
+    background .14s ease,
+    border-color .14s ease,
+    opacity .14s ease;
+
+}
+
+
+
+.start-value-option.is-current {
+
+  border-color:
+    rgba(62,94,72,.30);
+
+  background:
+    rgba(224,232,226,.74);
+
+}
+
+
+
+.start-value-option:disabled {
+
+  opacity:
+    .26;
+
+  cursor:
+    default;
+
+}
+
+
+
+.start-value-option:focus {
+
+  outline:
+    none;
+
+}
+
+
+
+.start-value-option:focus-visible {
+
+  outline:
+    2px solid
+    rgba(77,112,89,.20);
+
+  outline-offset:
+    2px;
+
+}
+
+
+
+.start-value-number {
+
+  font-size:
+    13px;
+
+  line-height:
+    1;
+
+  font-weight:
+    900;
+
+  color:
+    #435148;
+
+}
+
+
+
+.start-value-name {
+
+  width:
+    100%;
+
+  margin-top:
+    5px;
+
+  overflow:
+    hidden;
+
+  text-overflow:
+    ellipsis;
+
+  white-space:
+    nowrap;
+
+  font-size:
+    9px;
+
+  line-height:
+    1;
+
+  font-weight:
+    700;
+
+  color:
+    #8e9991;
+
+}
+
+
+
+/* ============================================================
+   自选开始按钮
+   ============================================================ */
+
+.start-custom-button {
+
+  width:
+    100%;
+
+  height:
+    47px;
+
+  margin-top:
+    10px;
+
+  padding:
+    0 17px;
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    space-between;
+
+  border:
+    1px solid
+    rgba(46,69,53,.08);
+
+  border-radius:
+    14px;
+
+  background:
+    rgba(58,78,64,.09);
+
+  color:
+    #425247;
+
+  cursor:
+    pointer;
+
+  font-size:
+    11px;
+
+  line-height:
+    1;
+
+  font-weight:
+    800;
+
+  letter-spacing:
+    .06em;
+
+  -webkit-tap-highlight-color:
+    transparent;
+
+  transition:
+    transform .15s ease,
+    background .15s ease,
+    opacity .15s ease,
+    box-shadow .15s ease;
+
+}
+
+
+
+.start-custom-button:disabled {
+
+  opacity:
+    .30;
+
+  cursor:
+    default;
+
+}
+
+
+
+.start-custom-button:not(:disabled) {
+
+  background:
+    #e0e7e2;
+
+  color:
+    #36463b;
+
+}
+
+
+
+.start-custom-button-arrow {
+
+  font-size:
+    15px;
+
+  line-height:
+    1;
+
+  opacity:
+    .55;
+
+}
+
+
+
+.start-custom-button:focus {
+
+  outline:
+    none;
+
+}
+
+
+
+.start-custom-button:focus-visible {
+
+  outline:
+    2px solid
+    rgba(77,112,89,.24);
+
+  outline-offset:
+    3px;
+
+}
+
+
+
+.start-custom-button:not(:disabled):active {
+
+  transform:
+    translateY(1px)
+    scale(.99);
+
+}
+
+
+
+/* ============================================================
+   正式游戏入口
    ============================================================ */
 
 .start-button {
@@ -733,7 +1402,7 @@
     58px;
 
   margin-top:
-    31px;
+    17px;
 
   padding:
     0 20px;
@@ -780,12 +1449,14 @@
 }
 
 
+
 .start-button-space {
 
   grid-column:
     1;
 
 }
+
 
 
 .start-button-label {
@@ -806,6 +1477,7 @@
     .08em;
 
 }
+
 
 
 .start-button-arrow {
@@ -832,7 +1504,120 @@
 }
 
 
+
+/* ============================================================
+   TEST LAB
+   ============================================================ */
+
+.start-test-button {
+
+  margin-top:
+    14px;
+
+  padding:
+    8px 12px;
+
+  border:
+    0;
+
+  background:
+    transparent;
+
+  color:
+    #a6aea8;
+
+  cursor:
+    pointer;
+
+  font-size:
+    8px;
+
+  line-height:
+    1;
+
+  font-weight:
+    800;
+
+  letter-spacing:
+    .22em;
+
+  -webkit-tap-highlight-color:
+    transparent;
+
+  transition:
+    color .15s ease,
+    transform .15s ease;
+
+}
+
+
+
+.start-test-button:focus {
+
+  outline:
+    none;
+
+}
+
+
+
+.start-test-button:focus-visible {
+
+  outline:
+    2px solid
+    rgba(77,112,89,.20);
+
+  outline-offset:
+    3px;
+
+}
+
+
+
 @media (hover: hover) {
+
+  .start-picker-group:hover {
+
+    transform:
+      translateY(-2px);
+
+    background:
+      rgba(255,255,255,.90);
+
+    border-color:
+      rgba(62,94,72,.19);
+
+  }
+
+
+  .start-value-option:not(:disabled):hover {
+
+    transform:
+      translateY(-1px);
+
+    background:
+      #fff;
+
+    border-color:
+      rgba(62,94,72,.22);
+
+  }
+
+
+  .start-custom-button:not(:disabled):hover {
+
+    transform:
+      translateY(-1px);
+
+    background:
+      #d8e2db;
+
+    box-shadow:
+      0 5px 15px
+      rgba(38,53,44,.05);
+
+  }
+
 
   .start-button:hover {
 
@@ -862,7 +1647,19 @@
 
   }
 
+
+  .start-test-button:hover {
+
+    color:
+      #778179;
+
+    transform:
+      translateY(-1px);
+
+  }
+
 }
+
 
 
 .start-button:active {
@@ -874,12 +1671,14 @@
 }
 
 
+
 .start-button:focus {
 
   outline:
     none;
 
 }
+
 
 
 .start-button:focus-visible {
@@ -892,6 +1691,7 @@
     4px;
 
 }
+
 
 
 /* ============================================================
@@ -919,6 +1719,7 @@
     #b0b7b2;
 
 }
+
 
 
 /* ============================================================
@@ -953,6 +1754,40 @@
 }
 
 
+
+/* ============================================================
+   自选面板展开动画
+   ============================================================ */
+
+@keyframes startPickerOpen {
+
+  from {
+
+    opacity:
+      0;
+
+    transform:
+      translateY(-4px)
+      scale(.99);
+
+  }
+
+
+  to {
+
+    opacity:
+      1;
+
+    transform:
+      translateY(0)
+      scale(1);
+
+  }
+
+}
+
+
+
 /* ============================================================
    背景极轻微漂移
    ============================================================ */
@@ -968,6 +1803,7 @@
 }
 
 
+
 .start-orbit--two {
 
   animation:
@@ -977,6 +1813,7 @@
     infinite alternate;
 
 }
+
 
 
 @keyframes startOrbitFloatOne {
@@ -1003,6 +1840,7 @@
 }
 
 
+
 @keyframes startOrbitFloatTwo {
 
   from {
@@ -1023,6 +1861,7 @@
   }
 
 }
+
 
 
 /* ============================================================
@@ -1113,6 +1952,90 @@
   }
 
 
+  .start-picker {
+
+    max-width:
+      330px;
+
+    margin-top:
+      22px;
+
+  }
+
+
+  .start-picker-title {
+
+    margin-bottom:
+      10px;
+
+  }
+
+
+  .start-picker-groups {
+
+    gap:
+      6px;
+
+  }
+
+
+  .start-picker-group {
+
+    height:
+      72px;
+
+    border-radius:
+      14px;
+
+  }
+
+
+  .start-picker-name {
+
+    font-size:
+      12px;
+
+  }
+
+
+  .start-value-panel {
+
+    padding:
+      10px;
+
+    border-radius:
+      15px;
+
+  }
+
+
+  .start-value-grid {
+
+    gap:
+      5px;
+
+  }
+
+
+  .start-value-option {
+
+    height:
+      47px;
+
+    border-radius:
+      11px;
+
+  }
+
+
+  .start-custom-button {
+
+    height:
+      45px;
+
+  }
+
+
   .start-button {
 
     max-width:
@@ -1122,7 +2045,7 @@
       56px;
 
     margin-top:
-      27px;
+      15px;
 
   }
 
@@ -1162,6 +2085,7 @@
 }
 
 
+
 /* ============================================================
    矮屏
    ============================================================ */
@@ -1170,6 +2094,20 @@
   max-height:
     680px
 ) {
+
+  .start-screen {
+
+    padding-top:
+      18px;
+
+    padding-bottom:
+      18px;
+
+    overflow-y:
+      auto;
+
+  }
+
 
   .start-logo-area {
 
@@ -1228,10 +2166,34 @@
   }
 
 
+  .start-picker {
+
+    margin-top:
+      17px;
+
+  }
+
+
+  .start-picker-group {
+
+    height:
+      66px;
+
+  }
+
+
+  .start-value-option {
+
+    height:
+      44px;
+
+  }
+
+
   .start-button {
 
     margin-top:
-      21px;
+      13px;
 
   }
 
@@ -1244,6 +2206,7 @@
   }
 
 }
+
 
 
 /* ============================================================
@@ -1259,7 +2222,12 @@
   .start-orbit--one,
   .start-orbit--two,
   .start-button,
-  .start-button-arrow {
+  .start-button-arrow,
+  .start-picker-group,
+  .start-value-panel,
+  .start-value-option,
+  .start-custom-button,
+  .start-test-button {
 
     animation:
       none !important;

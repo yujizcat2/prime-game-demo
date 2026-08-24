@@ -26,6 +26,16 @@ import {
   getMainLineage
 } from "./numberOrigin";
 
+import {
+  createMazeHistory,
+  checkMazeReturn,
+  recordMazeState,
+  incrementMazeTurnCount,
+  getMazeTurnCount
+} from "./mazeHistory";
+
+
+
 
 
 // ============================================================
@@ -34,13 +44,18 @@ import {
 
 export const BOARD_CONFIG = {
 
-  ROWS: 3,
+  ROWS:
+    3,
 
-  COLS: 3,
+  COLS:
+    3,
 
-  SIZE: 9
+  SIZE:
+    9
 
 };
+
+
 
 
 
@@ -53,12 +68,16 @@ export function createEmptyBoard(){
 
   return Array.from(
     {
-      length: BOARD_CONFIG.SIZE
+      length:
+        BOARD_CONFIG.SIZE
     },
-    () => null
+    () =>
+      null
   );
 
 }
+
+
 
 
 
@@ -72,12 +91,16 @@ export function getBoardPieces(
 
 
   if(
-    !Array.isArray(board)
+    !Array.isArray(
+      board
+    )
   ){
+
 
     return [];
 
   }
+
 
 
   return board.filter(
@@ -85,6 +108,8 @@ export function getBoardPieces(
   );
 
 }
+
+
 
 
 
@@ -105,6 +130,8 @@ export function getBoardCount(
 
 
 
+
+
 // ============================================================
 // 是否满盘
 // ============================================================
@@ -115,13 +142,20 @@ export function isBoardFull(
 
 
   return (
+
     getBoardCount(
       board
-    ) >=
+    )
+
+    >=
+
     BOARD_CONFIG.SIZE
+
   );
 
 }
+
+
 
 
 
@@ -144,12 +178,16 @@ export function getNextEmptyIndex(
 
 
   if(
-    !Array.isArray(board)
+    !Array.isArray(
+      board
+    )
   ){
+
 
     return -1;
 
   }
+
 
 
   return board.findIndex(
@@ -160,6 +198,8 @@ export function getNextEmptyIndex(
   );
 
 }
+
+
 
 
 
@@ -177,9 +217,11 @@ export function getPieceAt(
     !state?.board
   ){
 
+
     return null;
 
   }
+
 
 
   if(
@@ -187,15 +229,26 @@ export function getPieceAt(
     index >= BOARD_CONFIG.SIZE
   ){
 
+
     return null;
 
   }
 
 
-  return state.board[index]
-    ?? null;
+
+  return (
+
+    state.board[index]
+
+    ??
+
+    null
+
+  );
 
 }
+
+
 
 
 
@@ -211,16 +264,27 @@ export function getNumberById(
 ){
 
 
-  return getBoardPieces(
-    state?.board
-  ).find(
+  return (
 
-    item =>
-      item.id === id
+    getBoardPieces(
+      state?.board
+    )
+      .find(
 
-  ) ?? null;
+        item =>
+          item.id === id
+
+      )
+
+    ??
+
+    null
+
+  );
 
 }
+
+
 
 
 
@@ -240,6 +304,24 @@ export function getNumberById(
 // 荤   → pure
 // 素   → pure
 // 调料 → pure
+//
+// ------------------------------------------------------------
+//
+// 新增：
+//
+// mazeHistory
+//
+// 初始规则状态必须立即写入迷宫历史。
+//
+// 否则：
+//
+// S0
+// ↓
+// 绕一圈
+// ↓
+// S0
+//
+// 将无法在第一次回到开局时触发迷宫回转。
 // ============================================================
 
 export function createGameState(
@@ -254,18 +336,20 @@ export function createGameState(
 
   const initialValues =
 
-    Array.isArray(values)
+    Array.isArray(
+      values
+    )
 
       ?
 
-      values.slice(
-        0,
-        3
-      )
+        values.slice(
+          0,
+          3
+        )
 
       :
 
-      [];
+        [];
 
 
 
@@ -302,7 +386,9 @@ export function createGameState(
         foodType:
 
           initialFoodTypes[index]
+
           ??
+
           FOOD_TYPES.MEAT,
 
 
@@ -329,18 +415,27 @@ export function createGameState(
 
 
 
-  return {
+
+
+  // ==========================================================
+  // 先建立基础状态
+  // ==========================================================
+
+  const baseState = {
 
     board,
 
 
-    collection: [],
+    collection:
+      [],
 
 
-    collectionOrigins: {},
+    collectionOrigins:
+      {},
 
 
-    collectionPaths: {},
+    collectionPaths:
+      {},
 
 
     latestCollection:
@@ -360,11 +455,54 @@ export function createGameState(
 
 
     nextId:
-      initialValues.length + 1
+      initialValues.length + 1,
+
+
+    // ========================================================
+    // 最近一次迷宫回转事件
+    //
+    // null
+    // = 当前没有新的回转事件。
+    //
+    // UI以后可以监听它显示提示。
+    // ========================================================
+
+    mazeTurn:
+      null
+
+  };
+
+
+
+
+
+  // ==========================================================
+  // 创建迷宫历史
+  //
+  // createMazeHistory 会立即记录开局 S0。
+  // ==========================================================
+
+  const mazeHistory =
+
+    createMazeHistory(
+      baseState
+    );
+
+
+
+
+
+  return {
+
+    ...baseState,
+
+    mazeHistory
 
   };
 
 }
+
+
 
 
 
@@ -379,14 +517,17 @@ export function hasOne(
 
   return getBoardPieces(
     board
-  ).some(
+  )
+    .some(
 
-    item =>
-      item.value === 1
+      item =>
+        item.value === 1
 
-  );
+    );
 
 }
+
+
 
 
 
@@ -405,13 +546,17 @@ export function consumeStep(
 
     steps:
 
-      state.steps +
+      state.steps
+
+      +
 
       GAME_CONFIG.STEP_COST
 
   };
 
 }
+
+
 
 
 
@@ -431,6 +576,7 @@ export function getOrderedPair(
 
 
   const a =
+
     getPieceAt(
       state,
       indexA
@@ -438,6 +584,7 @@ export function getOrderedPair(
 
 
   const b =
+
     getPieceAt(
       state,
       indexB
@@ -451,6 +598,7 @@ export function getOrderedPair(
     indexA === indexB
   ){
 
+
     return null;
 
   }
@@ -458,7 +606,8 @@ export function getOrderedPair(
 
 
   if(
-    indexA < indexB
+    indexA <
+    indexB
   ){
 
 
@@ -502,6 +651,8 @@ export function getOrderedPair(
 
 
 
+
+
 // ============================================================
 // 两格能否合成
 // ============================================================
@@ -518,6 +669,7 @@ export function canCombineCells(
     state.gameOver
   ){
 
+
     return false;
 
   }
@@ -525,8 +677,10 @@ export function canCombineCells(
 
 
   if(
-    indexA === indexB
+    indexA ===
+    indexB
   ){
+
 
     return false;
 
@@ -540,6 +694,7 @@ export function canCombineCells(
     )
   ){
 
+
     return false;
 
   }
@@ -547,6 +702,7 @@ export function canCombineCells(
 
 
   const a =
+
     getPieceAt(
       state,
       indexA
@@ -554,6 +710,7 @@ export function canCombineCells(
 
 
   const b =
+
     getPieceAt(
       state,
       indexB
@@ -566,6 +723,7 @@ export function canCombineCells(
     !b
   ){
 
+
     return false;
 
   }
@@ -576,6 +734,7 @@ export function canCombineCells(
     a.value === 1 ||
     b.value === 1
   ){
+
 
     return false;
 
@@ -599,6 +758,8 @@ export function canCombineCells(
 
 
 
+
+
 // ============================================================
 // 两格能否约分
 // ============================================================
@@ -615,6 +776,7 @@ export function canReduceCells(
     state.gameOver
   ){
 
+
     return false;
 
   }
@@ -622,8 +784,10 @@ export function canReduceCells(
 
 
   if(
-    indexA === indexB
+    indexA ===
+    indexB
   ){
+
 
     return false;
 
@@ -632,6 +796,7 @@ export function canReduceCells(
 
 
   const a =
+
     getPieceAt(
       state,
       indexA
@@ -639,6 +804,7 @@ export function canReduceCells(
 
 
   const b =
+
     getPieceAt(
       state,
       indexB
@@ -651,6 +817,7 @@ export function canReduceCells(
     !b
   ){
 
+
     return false;
 
   }
@@ -661,6 +828,7 @@ export function canReduceCells(
     a.value === 1 ||
     b.value === 1
   ){
+
 
     return false;
 
@@ -674,6 +842,8 @@ export function canReduceCells(
   );
 
 }
+
+
 
 
 
@@ -704,6 +874,7 @@ export function combineCells(
     state.gameOver
   ){
 
+
     return state;
 
   }
@@ -717,6 +888,7 @@ export function combineCells(
       indexB
     )
   ){
+
 
     return state;
 
@@ -736,6 +908,7 @@ export function combineCells(
     targetIndex === -1
   ){
 
+
     return state;
 
   }
@@ -743,6 +916,7 @@ export function combineCells(
 
 
   const a =
+
     getPieceAt(
       state,
       indexA
@@ -750,6 +924,7 @@ export function combineCells(
 
 
   const b =
+
     getPieceAt(
       state,
       indexB
@@ -777,6 +952,7 @@ export function combineCells(
     !orderedPair
   ){
 
+
     return state;
 
   }
@@ -786,7 +962,10 @@ export function combineCells(
   const {
     front,
     back
-  } = orderedPair;
+  } =
+    orderedPair;
+
+
 
 
 
@@ -803,6 +982,8 @@ export function combineCells(
       back.value
 
     );
+
+
 
 
 
@@ -826,9 +1007,12 @@ export function combineCells(
     !foodType
   ){
 
+
     return state;
 
   }
+
+
 
 
 
@@ -849,6 +1033,8 @@ export function combineCells(
       back
 
     );
+
+
 
 
 
@@ -927,6 +1113,8 @@ export function combineCells(
 
 
 
+
+
   const nextBoard = [
 
     ...state.board
@@ -937,7 +1125,8 @@ export function combineCells(
 
   nextBoard[
     targetIndex
-  ] = newPiece;
+  ] =
+    newPiece;
 
 
 
@@ -969,6 +1158,8 @@ export function combineCells(
 
 
 
+
+
 // ============================================================
 // 约分
 //
@@ -986,6 +1177,15 @@ export function combineCells(
 // 半纯肉10
 //
 // purity不会因为约分重新计算。
+//
+// ------------------------------------------------------------
+//
+// 当前约分会清空：
+//
+// parents
+// parentFoods
+//
+// 并生成新的 reduce origin。
 // ============================================================
 
 export function reduceCells(
@@ -999,6 +1199,7 @@ export function reduceCells(
     !state ||
     state.gameOver
   ){
+
 
     return state;
 
@@ -1014,6 +1215,7 @@ export function reduceCells(
     )
   ){
 
+
     return state;
 
   }
@@ -1021,6 +1223,7 @@ export function reduceCells(
 
 
   const first =
+
     getPieceAt(
       state,
       indexA
@@ -1028,6 +1231,7 @@ export function reduceCells(
 
 
   const second =
+
     getPieceAt(
       state,
       indexB
@@ -1039,6 +1243,7 @@ export function reduceCells(
     !first ||
     !second
   ){
+
 
     return state;
 
@@ -1173,6 +1378,8 @@ export function reduceCells(
 
 
 
+
+
 // ============================================================
 // 消除1
 // ============================================================
@@ -1188,6 +1395,7 @@ export function removeOne(
     state.gameOver
   ){
 
+
     return state;
 
   }
@@ -1195,6 +1403,7 @@ export function removeOne(
 
 
   const target =
+
     getPieceAt(
       state,
       index
@@ -1207,6 +1416,7 @@ export function removeOne(
     target.value !== 1
   ){
 
+
     return state;
 
   }
@@ -1215,18 +1425,26 @@ export function removeOne(
 
   const previousRecord =
 
-    target.origin?.type === "reduce"
+    target.origin?.type ===
+    "reduce"
 
-      ? target.origin.parent
+      ?
 
-      : null;
+        target.origin.parent
+
+      :
+
+        null;
 
 
 
   const discoveredValue =
 
     previousRecord?.value
-    ?? null;
+
+    ??
+
+    null;
 
 
 
@@ -1239,18 +1457,30 @@ export function removeOne(
 
 
   let nextCollectionOrigins =
+
     state.collectionOrigins
-    ?? {};
+
+    ??
+
+    {};
 
 
   let nextCollectionPaths =
+
     state.collectionPaths
-    ?? {};
+
+    ??
+
+    {};
 
 
   let nextLatestCollection =
+
     state.latestCollection
-    ?? null;
+
+    ??
+
+    null;
 
 
 
@@ -1272,7 +1502,11 @@ export function removeOne(
 
       nextCollectionOrigins[
         discoveredValue
-      ] ?? [];
+      ]
+
+      ??
+
+      [];
 
 
 
@@ -1304,7 +1538,11 @@ export function removeOne(
 
       nextCollectionPaths[
         discoveredValue
-      ] ?? [];
+      ]
+
+      ??
+
+      [];
 
 
 
@@ -1354,7 +1592,9 @@ export function removeOne(
 
       const discoveryScore =
 
-        newNumberCount *
+        newNumberCount
+
+        *
 
         SCORE_CONFIG.NEW_NUMBER_GROWTH;
 
@@ -1362,7 +1602,9 @@ export function removeOne(
 
       nextScore =
 
-        state.score +
+        state.score
+
+        +
 
         discoveryScore;
 
@@ -1377,14 +1619,14 @@ export function removeOne(
       ];
 
     }
-
-
     else{
 
 
       nextScore =
 
-        state.score +
+        state.score
+
+        +
 
         SCORE_CONFIG.REPEAT_SCORE;
 
@@ -1404,7 +1646,8 @@ export function removeOne(
 
   nextBoard[
     index
-  ] = null;
+  ] =
+    null;
 
 
 
@@ -1436,6 +1679,8 @@ export function removeOne(
 
 
 
+
+
 // ============================================================
 // 所有合法合成
 // ============================================================
@@ -1453,13 +1698,15 @@ export function getLegalCombineActions(
     )
   ){
 
+
     return [];
 
   }
 
 
 
-  const actions = [];
+  const actions =
+    [];
 
 
 
@@ -1473,6 +1720,7 @@ export function getLegalCombineActions(
     if(
       !state.board[i]
     ){
+
 
       continue;
 
@@ -1490,6 +1738,7 @@ export function getLegalCombineActions(
       if(
         !state.board[j]
       ){
+
 
         continue;
 
@@ -1532,6 +1781,8 @@ export function getLegalCombineActions(
 
 
 
+
+
 // ============================================================
 // 所有合法约分
 // ============================================================
@@ -1546,13 +1797,15 @@ export function getLegalReduceActions(
     state.gameOver
   ){
 
+
     return [];
 
   }
 
 
 
-  const actions = [];
+  const actions =
+    [];
 
 
 
@@ -1566,6 +1819,7 @@ export function getLegalReduceActions(
     if(
       !state.board[i]
     ){
+
 
       continue;
 
@@ -1583,6 +1837,7 @@ export function getLegalReduceActions(
       if(
         !state.board[j]
       ){
+
 
         continue;
 
@@ -1625,6 +1880,8 @@ export function getLegalReduceActions(
 
 
 
+
+
 // ============================================================
 // 所有可消除1
 // ============================================================
@@ -1639,13 +1896,15 @@ export function getLegalRemoveActions(
     state.gameOver
   ){
 
+
     return [];
 
   }
 
 
 
-  const actions = [];
+  const actions =
+    [];
 
 
 
@@ -1682,6 +1941,8 @@ export function getLegalRemoveActions(
 
 
 
+
+
 // ============================================================
 // 所有合法动作
 // ============================================================
@@ -1695,6 +1956,7 @@ export function getLegalActions(
     !state ||
     state.gameOver
   ){
+
 
     return [];
 
@@ -1722,8 +1984,588 @@ export function getLegalActions(
 
 
 
+
+
+// ============================================================
+// 迷宫回转数值
+//
+// 普通：
+//
+// 1   → 2
+// 2   → 3
+// ...
+// 100 → 101
+//
+// 特殊：
+//
+// 101 → 2
+//
+// ------------------------------------------------------------
+//
+// 注意：
+//
+// 1不是正式2～101主数域的一部分。
+// 它是约分产生的特殊处理中间状态。
+//
+// 回转会把1变成2。
+// ============================================================
+
+export function getMazeTurnValue(
+  value
+){
+
+
+  if(
+    value === 101
+  ){
+
+
+    return 2;
+
+  }
+
+
+
+  return value + 1;
+
+}
+
+
+
+
+
+// ============================================================
+// 执行一次迷宫回转
+//
+// ------------------------------------------------------------
+//
+// 规则：
+//
+// 所有当前存在棋子：
+//
+// value + 1
+//
+// 101 → 2
+//
+// ------------------------------------------------------------
+//
+// 不改变：
+//
+// foodType
+// purity
+// parents
+// parentFoods
+// origin
+// id
+//
+// ------------------------------------------------------------
+//
+// 不改变：
+//
+// steps
+// score
+// collection
+//
+// 因为迷宫回转不是玩家动作。
+// ============================================================
+
+export function applyMazeTurn(
+  state
+){
+
+
+  if(
+    !state ||
+    !Array.isArray(
+      state.board
+    )
+  ){
+
+
+    return state;
+
+  }
+
+
+
+  const nextBoard =
+
+    state.board.map(
+
+      piece => {
+
+
+        if(
+          !piece
+        ){
+
+
+          return null;
+
+        }
+
+
+
+        return {
+
+          ...piece,
+
+          value:
+
+            getMazeTurnValue(
+              piece.value
+            )
+
+        };
+
+      }
+
+    );
+
+
+
+  return {
+
+    ...state,
+
+    board:
+      nextBoard
+
+  };
+
+}
+
+
+
+
+
+// ============================================================
+// 清除最近一次迷宫回转提示
+//
+// ------------------------------------------------------------
+//
+// UI如果以后需要：
+//
+// 提示动画结束
+// ↓
+// clearMazeTurn()
+//
+// 可以调用这个函数。
+//
+// ------------------------------------------------------------
+// ============================================================
+
+export function clearMazeTurn(
+  state
+){
+
+
+  if(
+    !state
+  ){
+
+
+    return state;
+
+  }
+
+
+
+  if(
+    !state.mazeTurn
+  ){
+
+
+    return state;
+
+  }
+
+
+
+  return {
+
+    ...state,
+
+    mazeTurn:
+      null
+
+  };
+
+}
+
+
+
+
+
+// ============================================================
+// 动作完成后处理迷宫历史
+//
+// ------------------------------------------------------------
+//
+// 这是正式「迷宫回转」的核心调度器。
+//
+// 每次玩家合法动作完成后：
+//
+// 1. 生成当前第二层规则状态
+// 2. 查询历史
+//
+// 如果没有出现过：
+//
+// → 记录
+//
+// 如果出现过：
+//
+// → 触发迷宫回转
+// → 全盘 +1
+// → 101 → 2
+// → 回转次数 +1
+// → 记录回转后的新状态
+//
+// ------------------------------------------------------------
+//
+// 第一版规则：
+//
+// 每个玩家动作最多触发一次迷宫回转。
+//
+// 也就是说：
+//
+// 如果 +1 后的新状态碰巧也已经存在于历史中，
+// 当前这一刻不连续触发第二次。
+//
+// 先保持规则简单，
+// 后续可以通过AI测试判断是否需要“连续回转检测”。
+// ============================================================
+
+export function resolveMazeHistoryAfterAction(
+  state
+){
+
+
+  if(
+    !state
+  ){
+
+
+    return state;
+
+  }
+
+
+
+
+
+  // ==========================================================
+  // 兼容旧存档 / 开发热更新
+  //
+  // 如果当前状态还没有 mazeHistory，
+  // 就从当前状态建立一个。
+  //
+  // 正常新游戏不会走这里。
+  // ==========================================================
+
+  const history =
+
+    state.mazeHistory
+
+    ??
+
+    createMazeHistory(
+      state
+    );
+
+
+
+
+
+  // ==========================================================
+  // 当前状态是否已经出现
+  // ==========================================================
+
+  const mazeCheck =
+
+    checkMazeReturn(
+
+      history,
+
+      state
+
+    );
+
+
+
+
+
+  // ==========================================================
+  // 没有重复
+  //
+  // 直接记录当前状态。
+  // ==========================================================
+
+  if(
+    !mazeCheck.repeated
+  ){
+
+
+    const nextHistory =
+
+      recordMazeState(
+
+        history,
+
+        state,
+
+        {
+
+          reason:
+            "normal"
+
+        }
+
+      );
+
+
+
+    return {
+
+      ...state,
+
+      mazeHistory:
+        nextHistory,
+
+      mazeTurn:
+        null
+
+    };
+
+  }
+
+
+
+
+
+  // ==========================================================
+  // 检测到第二层状态重复
+  //
+  // → 迷宫回转
+  // ==========================================================
+
+  const beforeValues =
+
+    state.board.map(
+
+      piece =>
+
+        piece
+          ? piece.value
+          : null
+
+    );
+
+
+
+
+
+  // ==========================================================
+  // 回转次数 +1
+  // ==========================================================
+
+  const historyWithTurn =
+
+    incrementMazeTurnCount(
+      history
+    );
+
+
+
+
+
+  // ==========================================================
+  // 真正执行全盘 +1
+  // ==========================================================
+
+  const turnedState =
+
+    applyMazeTurn(
+      state
+    );
+
+
+
+
+
+  const afterValues =
+
+    turnedState.board.map(
+
+      piece =>
+
+        piece
+          ? piece.value
+          : null
+
+    );
+
+
+
+
+
+  // ==========================================================
+  // 回转后的状态写入历史
+  //
+  // 注意：
+//
+// 重复的“回转前状态”不再次写入。
+// 因为历史里已经有它。
+//
+// 写入的是：
+//
+// 回转后的新状态。
+// ==========================================================
+
+  const nextHistory =
+
+    recordMazeState(
+
+      historyWithTurn,
+
+      turnedState,
+
+      {
+
+        reason:
+          "maze-turn"
+
+      }
+
+    );
+
+
+
+
+
+  const turnCount =
+
+    getMazeTurnCount(
+      nextHistory
+    );
+
+
+
+
+
+  // ==========================================================
+  // 生成 UI / 调试事件
+  // ==========================================================
+
+  const mazeTurn = {
+
+    triggered:
+      true,
+
+
+    // ========================================================
+    // 第几次迷宫回转
+    // ========================================================
+
+    count:
+      turnCount,
+
+
+    // ========================================================
+    // 本次命中的规则状态Key
+    // ========================================================
+
+    repeatedKey:
+      mazeCheck.key,
+
+
+    // ========================================================
+    // 以前第一次出现的位置
+    // ========================================================
+
+    previousSequence:
+
+      mazeCheck.previous
+        ?.sequence
+
+      ??
+
+      null,
+
+
+    previousSteps:
+
+      mazeCheck.previous
+        ?.steps
+
+      ??
+
+      null,
+
+
+    // ========================================================
+    // 本次触发时的正式步数
+    //
+    // 回转本身不增加steps。
+    // ========================================================
+
+    triggerSteps:
+      state.steps,
+
+
+    // ========================================================
+    // 回转前后数字
+    //
+    // 主要给UI动画和测试使用。
+    // ========================================================
+
+    beforeValues,
+
+    afterValues
+
+  };
+
+
+
+
+
+  return {
+
+    ...turnedState,
+
+    mazeHistory:
+      nextHistory,
+
+    mazeTurn
+
+  };
+
+}
+
+
+
+
+
 // ============================================================
 // 执行动作
+//
+// ------------------------------------------------------------
+//
+// 新流程：
+//
+// 玩家动作
+// ↓
+// combine / reduce / remove
+// ↓
+// 得到 actionState
+// ↓
+// resolveMazeHistoryAfterAction()
+// ↓
+// 检测第二层重复
+// ↓
+// 必要时触发迷宫回转
+//
+// ------------------------------------------------------------
 // ============================================================
 
 export function applyAction(
@@ -1737,9 +2579,19 @@ export function applyAction(
     !action
   ){
 
+
     return state;
 
   }
+
+
+
+
+
+  let actionState =
+    state;
+
+
 
 
 
@@ -1748,50 +2600,124 @@ export function applyAction(
   ){
 
 
+    // ========================================================
+    // 合成
+    // ========================================================
+
     case "combine":
 
-      return combineCells(
 
-        state,
+      actionState =
 
-        action.indexes?.[0],
+        combineCells(
 
-        action.indexes?.[1]
+          state,
 
-      );
+          action.indexes?.[0],
+
+          action.indexes?.[1]
+
+        );
 
 
+      break;
+
+
+
+
+
+    // ========================================================
+    // 约分
+    // ========================================================
 
     case "reduce":
 
-      return reduceCells(
 
-        state,
+      actionState =
 
-        action.indexes?.[0],
+        reduceCells(
 
-        action.indexes?.[1]
+          state,
 
-      );
+          action.indexes?.[0],
+
+          action.indexes?.[1]
+
+        );
 
 
+      break;
+
+
+
+
+
+    // ========================================================
+    // 处理1
+    // ========================================================
 
     case "remove":
 
-      return removeOne(
 
-        state,
+      actionState =
 
-        action.index
+        removeOne(
 
-      );
+          state,
+
+          action.index
+
+        );
+
+
+      break;
+
+
 
 
 
     default:
 
+
       return state;
 
   }
+
+
+
+
+
+  // ==========================================================
+  // 非法动作
+  //
+  // combineCells / reduceCells / removeOne
+  // 在非法情况下会原样返回 state。
+  //
+  // 这种情况不能进行迷宫历史检测，
+  // 否则单纯点一个非法动作就可能触发回转。
+  // ==========================================================
+
+  if(
+    actionState === state
+  ){
+
+
+    return state;
+
+  }
+
+
+
+
+
+  // ==========================================================
+  // 合法动作完成
+  //
+  // 统一进入迷宫历史系统。
+  // ==========================================================
+
+  return resolveMazeHistoryAfterAction(
+    actionState
+  );
 
 }
