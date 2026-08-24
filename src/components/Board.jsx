@@ -483,6 +483,38 @@ export default function Board({
 
 
 
+  // ==========================================================
+  // Preview是否为纯系
+  //
+  // ◆ = pure
+  //
+  // 只允许：
+  //
+  // meat
+  // vegetable
+  // seasoning
+  //
+  // dessert不显示。
+  // ==========================================================
+
+  const combinePreviewPure =
+
+    combinePreview?.purity === "pure"
+
+    &&
+
+    (
+      combinePreview?.foodType === "meat"
+      ||
+      combinePreview?.foodType === "vegetable"
+      ||
+      combinePreview?.foodType === "seasoning"
+    );
+
+
+
+
+
   return (
 
     <div
@@ -566,6 +598,32 @@ export default function Board({
                         board-preview-type-bar
                       "
                     />
+
+
+
+                    {/* =======================================
+                        纯系Preview标记
+                        ======================================= */}
+
+                    {
+
+                      combinePreviewPure &&
+
+                      <div
+
+                        className="
+                          board-preview-pure
+                        "
+
+                        aria-label="纯系"
+
+                      >
+
+                        ◆
+
+                      </div>
+
+                    }
 
 
 

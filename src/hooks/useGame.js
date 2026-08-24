@@ -8,7 +8,8 @@ import {
 
 import {
   combineValue,
-  combineFoodType
+  combineFoodType,
+  combineFoodPurity
 } from "../game/rules";
 
 import {
@@ -78,15 +79,13 @@ export default function useGame(){
   // ==========================================================
   // 开始游戏
   //
-  // 新版：
-  //
   // values只需要3个数字。
   //
   // gameEngine会自动赋予：
   //
-  // 第0格 → 荤
-  // 第1格 → 素
-  // 第2格 → 调料
+  // 第0格 → 荤 / pure
+  // 第1格 → 素 / pure
+  // 第2格 → 调料 / pure
   // ==========================================================
 
   function startGame(
@@ -142,16 +141,20 @@ export default function useGame(){
   // ==========================================================
   // 普通棋子数组
   //
-  // 现在包括：
+  // 当前所有正式棋子统一存在主棋盘：
   //
   // meat
   // vegetable
   // seasoning
   // dessert
   //
-  // 全部统一存在于主棋盘。
+  // 每个普通棋子还可以拥有：
   //
-  // 继续用于旧统计系统兼容。
+  // purity:
+  // pure
+  // mixed
+  //
+  // dessert当前purity为null。
   // ==========================================================
 
   const numbers =
@@ -205,8 +208,14 @@ export default function useGame(){
   // ==========================================================
   // 质数状态
   //
-  // 调料现在也是普通棋盘棋子，
-  // 因此自然参与这些统计。
+  // purity目前不影响：
+  //
+  // primeEnergy
+  // primeDensity
+  // primeState
+  //
+  // 后续如果要让纯度参与环境状态，
+  // 再单独扩展。
   // ==========================================================
 
   const primeEnergy =
@@ -506,31 +515,26 @@ export default function useGame(){
   // ==========================================================
   // Preview
   //
-  // 新版类型预览完全依赖：
+  // 合成预览现在同时计算：
   //
-  // combineFoodType()
+  // value
+  // foodType
+  // purity
   //
-  // 所以这里会自然得到：
   //
-  // 荤 + 素
-  // → 调料
+  // 例：
   //
-  // 素 + 调料
-  // → 荤
+  // 肉 + 肉
+  // → 肉 / pure
   //
-  // 调料 + 荤
-  // → 素
+  // 肉 + 素
+  // → 调料 / mixed
   //
-  // 同类
-  // → 同类
+  // 普通跨101
+  // → 甜食 / null
   //
   // 甜食 + 普通
-  // → 普通
-  //
-  // 甜食 + 甜食
-  // → 甜食
-  //
-  // 跨101不会改变类型。
+  // → 普通 / mixed
   // ==========================================================
 
   function getPreviewResult(){
@@ -664,6 +668,17 @@ export default function useGame(){
 
                 orderedPair.back
 
+              ),
+
+
+            purity:
+
+              combineFoodPurity(
+
+                orderedPair.front,
+
+                orderedPair.back
+
               )
 
           }
@@ -711,10 +726,15 @@ export default function useGame(){
   // ==========================================================
   // 搭配
   //
-  // 点击后：
+  // 真正的：
   //
-  // A、B保留
-  // C进入下一个空格
+  // value
+  // foodType
+  // purity
+  //
+  // 都由gameEngine生成。
+  //
+  // useGame不重复维护规则。
   // ==========================================================
 
   function combineNumbers(){
@@ -787,6 +807,12 @@ export default function useGame(){
 
   // ==========================================================
   // 处理 / 约分
+  //
+  // gameEngine负责：
+  //
+  // 数字变化
+  // foodType保留
+  // purity保留
   // ==========================================================
 
   function reduceNumbers(){

@@ -216,6 +216,150 @@ export default function CollectionPanel({
 
 
 
+  // ==========================================================
+  // 食物类型名称
+  // ==========================================================
+
+  function getFoodTypeName(
+    foodType
+  ){
+
+
+    if(
+      foodType === "meat"
+    ){
+
+      return "肉";
+
+    }
+
+
+
+    if(
+      foodType === "vegetable"
+    ){
+
+      return "素";
+
+    }
+
+
+
+    if(
+      foodType === "seasoning"
+    ){
+
+      return "调料";
+
+    }
+
+
+
+    if(
+      foodType === "dessert"
+    ){
+
+      return "甜食";
+
+    }
+
+
+
+    return null;
+
+  }
+
+
+
+
+
+  // ==========================================================
+  // 获取状态名称
+  //
+  // pure + meat
+  // → 纯肉
+  //
+  // mixed + meat
+  // → 半纯肉
+  //
+  // dessert
+  // → 甜食
+  //
+  // 旧历史没有foodType时：
+  // → 不显示状态
+  // ==========================================================
+
+  function getFoodStateName(
+    item
+  ){
+
+
+    if(
+      !item?.foodType
+    ){
+
+      return null;
+
+    }
+
+
+
+    if(
+      item.foodType === "dessert"
+    ){
+
+      return "甜食";
+
+    }
+
+
+
+    const foodTypeName =
+
+      getFoodTypeName(
+        item.foodType
+      );
+
+
+
+    if(
+      !foodTypeName
+    ){
+
+      return null;
+
+    }
+
+
+
+    if(
+      item.purity === "pure"
+    ){
+
+      return `纯${foodTypeName}`;
+
+    }
+
+
+
+    if(
+      item.purity === "mixed"
+    ){
+
+      return `半纯${foodTypeName}`;
+
+    }
+
+
+
+    return foodTypeName;
+
+  }
+
+
+
+
+
   return (
 
     <div
@@ -384,10 +528,6 @@ export default function CollectionPanel({
 
 
 
-                // =============================================
-                // 是否为最新收藏数字
-                // =============================================
-
                 const isLatestValue =
 
                   latestCollection?.value ===
@@ -449,10 +589,6 @@ export default function CollectionPanel({
 
 
 
-                    {/* =======================================
-                        星星
-                        ======================================= */}
-
                     <span
 
                       className="
@@ -473,10 +609,6 @@ export default function CollectionPanel({
                     </span>
 
 
-
-                    {/* =======================================
-                        收藏数量
-                        ======================================= */}
 
                     {
 
@@ -505,12 +637,6 @@ export default function CollectionPanel({
                     }
 
 
-
-                    {/* =======================================
-                        最新收藏红点
-
-                        永远只会有一个收藏数字带红点。
-                        ======================================= */}
 
                     {
 
@@ -746,10 +872,6 @@ export default function CollectionPanel({
 
 
 
-                    // =========================================
-                    // 是否是全局最新的那一条收藏
-                    // =========================================
-
                     const isLatestPath =
 
                       latestCollection?.value ===
@@ -757,6 +879,32 @@ export default function CollectionPanel({
 
                       latestCollection?.index ===
                         index;
+
+
+
+                    // =========================================
+                    // 每次收藏的最终状态
+                    //
+                    // path[0]就是这次被收藏数字本身。
+                    // =========================================
+
+                    const finalState =
+
+                      Array.isArray(
+                        path
+                      )
+
+                        ? path[0]
+
+                        : null;
+
+
+
+                    const finalStateName =
+
+                      getFoodStateName(
+                        finalState
+                      );
 
 
 
@@ -780,8 +928,8 @@ export default function CollectionPanel({
                         className={`
                           relative
 
-                          min-w-11
-                          h-10
+                          min-w-14
+                          h-12
 
                           px-3
 
@@ -804,23 +952,57 @@ export default function CollectionPanel({
                           }
 
                           flex
+                          flex-col
                           items-center
                           justify-center
 
-                          text-sm
-                          font-black
                           text-gray-600
                         `}
 
                       >
 
-                        {selectedValue}
+
+                        <span
+
+                          className="
+                            text-sm
+                            font-black
+                            leading-none
+                          "
+
+                        >
+
+                          {selectedValue}
+
+                        </span>
 
 
 
-                        {/* ===================================
-                            第几次收藏
-                            =================================== */}
+                        {
+
+                          finalStateName &&
+
+                          <span
+
+                            className="
+                              mt-1
+
+                              text-[8px]
+                              font-bold
+                              leading-none
+
+                              text-gray-400
+                            "
+
+                          >
+
+                            {finalStateName}
+
+                          </span>
+
+                        }
+
+
 
                         <span
 
@@ -842,10 +1024,6 @@ export default function CollectionPanel({
                         </span>
 
 
-
-                        {/* ===================================
-                            最新收藏红点
-                            =================================== */}
 
                         {
 
@@ -888,9 +1066,6 @@ export default function CollectionPanel({
 
             {/* ===============================================
                 父系单线路径
-
-                ← 约分
-                ⇐ 合成
                 =============================================== */}
 
             {
@@ -940,6 +1115,14 @@ export default function CollectionPanel({
 
 
 
+                        const stateName =
+
+                          getFoodStateName(
+                            item
+                          );
+
+
+
                         return (
 
                           <div
@@ -959,10 +1142,10 @@ export default function CollectionPanel({
                             <div
 
                               className="
-                                min-w-11
-                                h-10
+                                min-w-14
+                                h-12
 
-                                px-3
+                                px-2
 
                                 rounded-xl
 
@@ -972,11 +1155,10 @@ export default function CollectionPanel({
                                 border-gray-100
 
                                 flex
+                                flex-col
                                 items-center
                                 justify-center
 
-                                text-sm
-                                font-black
                                 text-gray-700
 
                                 shrink-0
@@ -984,7 +1166,47 @@ export default function CollectionPanel({
 
                             >
 
-                              {item.value}
+
+                              <span
+
+                                className="
+                                  text-sm
+                                  font-black
+                                  leading-none
+                                "
+
+                              >
+
+                                {item.value}
+
+                              </span>
+
+
+
+                              {
+
+                                stateName &&
+
+                                <span
+
+                                  className="
+                                    mt-1
+
+                                    text-[8px]
+                                    font-bold
+                                    leading-none
+
+                                    text-gray-400
+                                  "
+
+                                >
+
+                                  {stateName}
+
+                                </span>
+
+                              }
+
 
                             </div>
 

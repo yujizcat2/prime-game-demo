@@ -3,9 +3,17 @@
 //
 // 核心规则：
 //
-// 1. 开局最初4个数字
+// 1. 开局最初3个数字
 //
 //    origin = null
+//
+//    当前分别为：
+//
+//    荤
+//    素
+//    调料
+//
+//    且默认都是 pure。
 //
 //
 //
@@ -13,13 +21,14 @@
 //
 //    A + B = C
 //
-//    底层保存A、B完整来源
+//    底层保存A、B完整来源。
 //
 //    同时指定一个mainParent
-//    作为玩家默认看到的“父系”
+//    作为玩家默认看到的“父系”。
 //
 //    当前规则：
-//    棋盘位置靠前的一方 = 父
+//
+//    棋盘位置靠前的一方 = 父。
 //
 //
 //
@@ -27,10 +36,10 @@
 //
 //    A → B
 //
-//    B只继承A自身的历史
+//    B只继承A自身的历史。
 //
 //    另一边参与约分的数字
-//    不进入B的主路径
+//    不进入B的主路径。
 //
 //
 //
@@ -51,6 +60,22 @@
 //
 //    当前UI暂时不显示完整树，
 //    但底层数据继续保存。
+//
+//
+//
+// 6. 每一个历史节点同时保存：
+//
+//    value
+//    foodType
+//    purity
+//    origin
+//
+//    因此未来可以完整恢复：
+//
+//    数字
+//    类型
+//    纯度
+//    历史来源。
 // ============================================================
 
 
@@ -63,11 +88,23 @@
 // 保存当前数字：
 //
 // value
-// animal
+// foodType
+// purity
 // origin
 //
 // 防止之后数字继续变化时
 // 影响已经记录的旧历史。
+//
+//
+// 例如：
+//
+// {
+//   value: 40,
+//   foodType: "meat",
+//   purity: "mixed",
+//   origin: ...
+// }
+//
 // ============================================================
 
 export function createOriginSnapshot(
@@ -91,8 +128,12 @@ export function createOriginSnapshot(
       number.value,
 
 
-    animal:
-      number.animal ?? null,
+    foodType:
+      number.foodType ?? null,
+
+
+    purity:
+      number.purity ?? null,
 
 
     origin:
@@ -136,6 +177,20 @@ export function createOriginSnapshot(
 // 38 ⇐ 20
 //
 // 18仍然完整保存在parents中。
+//
+//
+// ------------------------------------------------------------
+// 类型 / 纯度
+//
+// father和otherParent的快照
+// 都会完整保存：
+//
+// value
+// foodType
+// purity
+// origin
+//
+// 因此以后可以恢复完整料理族谱。
 // ============================================================
 
 export function createCombineOrigin(
@@ -175,6 +230,13 @@ export function createCombineOrigin(
     // 完整父母
     //
     // 【底层保留】
+    //
+    // 保存双方：
+    //
+    // value
+    // foodType
+    // purity
+    // origin
     //
     // 当前简化UI暂时不全部展示。
     // ========================================================
@@ -226,6 +288,25 @@ export function createCombineOrigin(
 //
 // 参与约分的另一边数字
 // 不进入19的来源。
+//
+//
+// ------------------------------------------------------------
+// 类型 / 纯度
+//
+// previousNumber的：
+//
+// foodType
+// purity
+//
+// 都会一起进入历史快照。
+//
+// 因此：
+//
+// 半纯肉38
+// ↓约分
+// 半纯肉19
+//
+// 历史仍然知道38也是半纯肉。
 // ============================================================
 
 export function createReduceOrigin(
@@ -401,6 +482,13 @@ export function cloneOrigin(
 
 // ============================================================
 // 深复制一个来源记录
+//
+// 每一个来源记录现在保存：
+//
+// value
+// foodType
+// purity
+// origin
 // ============================================================
 
 function cloneRecord(
@@ -424,8 +512,12 @@ function cloneRecord(
       record.value,
 
 
-    animal:
-      record.animal ?? null,
+    foodType:
+      record.foodType ?? null,
+
+
+    purity:
+      record.purity ?? null,
 
 
     origin:
@@ -447,8 +539,15 @@ function cloneRecord(
 //
 // 【完整来源树接口】
 //
-// 当前简化UI暂时不直接使用，
-// 但保留给未来完整族谱 / 高级详情。
+// 当前简化UI暂时不直接使用。
+//
+// 未来完整族谱 / 高级详情
+// 可以直接通过这里读取：
+//
+// value
+// foodType
+// purity
+// origin
 // ============================================================
 
 export function getNumberOriginRecord(
@@ -473,32 +572,31 @@ export function getNumberOriginRecord(
 //
 // ------------------------------------------------------------
 //
-// 返回的不再只是数字：
-//
-// [
-//   19,
-//   38,
-//   20
-// ]
-//
-// 而是：
+// 返回：
 //
 // [
 //   {
 //     value: 19,
+//     foodType: "meat",
+//     purity: "mixed",
 //     fromType: "reduce"
 //   },
 //
 //   {
 //     value: 38,
+//     foodType: "meat",
+//     purity: "mixed",
 //     fromType: "combine"
 //   },
 //
 //   {
 //     value: 20,
+//     foodType: "vegetable",
+//     purity: "pure",
 //     fromType: null
 //   }
 // ]
+//
 //
 // ------------------------------------------------------------
 //
@@ -506,6 +604,7 @@ export function getNumberOriginRecord(
 //
 // 当前这个数字
 // 是通过什么方式从“下一个历史数字”变来的。
+//
 //
 // ------------------------------------------------------------
 //
@@ -517,12 +616,15 @@ export function getNumberOriginRecord(
 //
 // {
 //   value: 19,
+//   foodType: "meat",
+//   purity: "mixed",
 //   fromType: "reduce"
 // }
 //
-// 因此UI显示：
+// UI未来可以显示：
 //
-// 19 ← 38
+// 半纯肉19 ← 半纯肉38
+//
 //
 // ------------------------------------------------------------
 //
@@ -536,18 +638,15 @@ export function getNumberOriginRecord(
 //
 // {
 //   value: 38,
+//   foodType: "meat",
+//   purity: "mixed",
 //   fromType: "combine"
 // }
 //
-// UI显示：
+// UI未来可以显示：
 //
-// 38 ⇐ 20
+// 半纯肉38 ⇐ 纯素20
 //
-// ------------------------------------------------------------
-//
-// 最终：
-//
-// 19 ← 38 ⇐ 20 ← 40
 // ============================================================
 
 export function getMainLineage(
@@ -601,6 +700,15 @@ export function getMainLineage(
         value:
           current.value,
 
+
+        foodType:
+          current.foodType ?? null,
+
+
+        purity:
+          current.purity ?? null,
+
+
         fromType:
           null
 
@@ -633,6 +741,15 @@ export function getMainLineage(
 
         value:
           current.value,
+
+
+        foodType:
+          current.foodType ?? null,
+
+
+        purity:
+          current.purity ?? null,
+
 
         fromType:
           "reduce"
@@ -672,6 +789,15 @@ export function getMainLineage(
         value:
           current.value,
 
+
+        foodType:
+          current.foodType ?? null,
+
+
+        purity:
+          current.purity ?? null,
+
+
         fromType:
           "combine"
 
@@ -697,6 +823,15 @@ export function getMainLineage(
 
       value:
         current.value,
+
+
+      foodType:
+        current.foodType ?? null,
+
+
+      purity:
+        current.purity ?? null,
+
 
       fromType:
         null
@@ -726,6 +861,13 @@ export function getMainLineage(
 //
 // 未来如果要查看完整族谱，
 // 可以从这里取得双方来源。
+//
+// 每个parent都包含：
+//
+// value
+// foodType
+// purity
+// origin
 // ============================================================
 
 export function getCombineParents(
