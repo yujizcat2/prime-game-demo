@@ -1,9 +1,16 @@
 import "./StartScreen.css";
 
+import {
+  createRandomInitialValues
+} from "../game/initialValues";
+
+
 
 export default function StartScreen({
 
-  onStart
+  onStart,
+
+  onOpenTest
 
 }) {
 
@@ -23,67 +30,9 @@ export default function StartScreen({
   function quickStart() {
 
 
-    const pool = [
-
-      2,
-      3,
-      4,
-      5,
-      6,
-      7,
-      8,
-      9
-
-    ];
-
-
-    const shuffled = [
-
-      ...pool
-
-    ];
-
-
-    for (
-      let i = shuffled.length - 1;
-      i > 0;
-      i--
-    ) {
-
-
-      const j =
-
-        Math.floor(
-
-          Math.random() *
-          (i + 1)
-
-        );
-
-
-      [
-
-        shuffled[i],
-
-        shuffled[j]
-
-      ] = [
-
-        shuffled[j],
-
-        shuffled[i]
-
-      ];
-
-    }
-
-
     onStart(
 
-      shuffled.slice(
-        0,
-        3
-      )
+      createRandomInitialValues()
 
     );
 
@@ -352,7 +301,7 @@ export default function StartScreen({
 
 
         {/* =========================
-            唯一入口
+            正式游戏入口
             ========================= */}
 
         <button
@@ -398,6 +347,30 @@ export default function StartScreen({
 
           </span>
 
+
+        </button>
+
+
+
+        {/* =========================
+            测试实验室入口
+            ========================= */}
+
+        <button
+
+          type="button"
+
+          className="
+            start-test-button
+          "
+
+          onClick={
+            onOpenTest
+          }
+
+        >
+
+          TEST LAB
 
         </button>
 

@@ -5,6 +5,8 @@ import {
 import "./App.css";
 
 import StartScreen from "./components/StartScreen";
+import TestLab from "./components/TestLab";
+
 import Board from "./components/Board";
 import ActionButtons from "./components/ActionButtons";
 import ActionHintPanel from "./components/ActionHintPanel";
@@ -27,6 +29,19 @@ function App(){
 
   const game =
     useGame();
+
+
+
+  // ==========================================================
+  // 测试实验室
+  // ==========================================================
+
+  const [
+    showTestLab,
+    setShowTestLab
+  ] = useState(false);
+
+
 
 
 
@@ -93,6 +108,33 @@ function App(){
 
 
   // ==========================================================
+  // 测试实验室
+  // ==========================================================
+
+  if(
+    showTestLab
+  ){
+
+
+    return (
+
+      <TestLab
+
+        onBack={() =>
+          setShowTestLab(false)
+        }
+
+      />
+
+    );
+
+  }
+
+
+
+
+
+  // ==========================================================
   // 开始界面
   // ==========================================================
 
@@ -107,6 +149,10 @@ function App(){
 
         onStart={
           game.startGame
+        }
+
+        onOpenTest={() =>
+          setShowTestLab(true)
         }
 
       />
