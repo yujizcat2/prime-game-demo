@@ -1549,3 +1549,406 @@
   }
 
 }
+
+/* ============================================================
+   九宫格下方操作区
+   ============================================================ */
+
+.game-board-actions {
+
+  width: 100%;
+
+  display: flex;
+
+  justify-content: center;
+
+  align-items: center;
+
+  margin-top: 12px;
+
+}
+
+
+
+/* 手机 */
+
+@media (
+  max-width: 560px
+) {
+
+  .game-board-actions {
+
+    margin-top: 9px;
+
+  }
+
+}
+
+/* ============================================================
+   主菜台
+   ============================================================ */
+
+.game-board-section {
+
+  width:
+    100%;
+
+  margin-top:
+    10px;
+
+}
+
+
+
+/* ============================================================
+   标题栏
+   ============================================================ */
+
+.game-board-toolbar {
+
+  width:
+    100%;
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    space-between;
+
+  margin-bottom:
+    6px;
+
+}
+
+
+
+/* ============================================================
+   主游戏核心
+
+   左：
+   极窄操作轨
+
+   右：
+   大九宫格
+   ============================================================ */
+
+.game-board-layout {
+
+  width:
+    100%;
+
+  display:
+    grid;
+
+  grid-template-columns:
+    82px
+    minmax(0, 1fr);
+
+  gap:
+    6px;
+
+  align-items:
+    center;
+
+}
+
+
+
+/* ============================================================
+   左侧操作区
+   ============================================================ */
+
+.game-board-control-panel {
+
+  width:
+    82px;
+
+  min-width:
+    82px;
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+}
+
+
+
+/* ============================================================
+   操作区内部
+   ============================================================ */
+
+.game-board-control-inner {
+
+  width:
+    76px;
+
+  min-height:
+    auto;
+
+  padding:
+    0;
+
+  display:
+    flex;
+
+  flex-direction:
+    column;
+
+  align-items:
+    stretch;
+
+  justify-content:
+    center;
+
+  gap:
+    0;
+
+  border:
+    0;
+
+  background:
+    transparent;
+
+  box-shadow:
+    none;
+
+}
+
+
+
+/* ============================================================
+   ACTION标题不显示
+   ============================================================ */
+
+.game-board-control-kicker {
+
+  display:
+    none;
+
+}
+
+
+
+/* ============================================================
+   右侧主棋盘
+   ============================================================ */
+
+.game-board-main {
+
+  width:
+    100%;
+
+  min-width:
+    0;
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+}
+
+
+
+/* ============================================================
+   Board外层
+   ============================================================ */
+
+.game-board {
+
+  width:
+    100%;
+
+}
+
+
+
+/* ============================================================
+   超宽桌面
+   ============================================================ */
+
+@media (
+  min-width:
+    1000px
+) {
+
+
+  .game-board-layout {
+
+    grid-template-columns:
+      86px
+      minmax(0, 1fr);
+
+    gap:
+      7px;
+
+  }
+
+
+
+  .game-board-control-panel {
+
+    width:
+      86px;
+
+    min-width:
+      86px;
+
+  }
+
+
+
+  .game-board-control-inner {
+
+    width:
+      80px;
+
+  }
+
+
+}
+
+
+
+/* ============================================================
+   中屏
+   ============================================================ */
+
+@media (
+  min-width:
+    561px
+) and (
+  max-width:
+    720px
+) {
+
+
+  .game-board-layout {
+
+    grid-template-columns:
+      72px
+      minmax(0, 1fr);
+
+    gap:
+      5px;
+
+  }
+
+
+
+  .game-board-control-panel {
+
+    width:
+      72px;
+
+    min-width:
+      72px;
+
+  }
+
+
+
+  .game-board-control-inner {
+
+    width:
+      68px;
+
+  }
+
+
+}
+
+
+
+/* ============================================================
+   手机
+   ============================================================ */
+
+@media (
+  max-width:
+    560px
+) {
+
+
+  .game-board-section {
+
+    margin-top:
+      7px;
+
+  }
+
+
+
+  .game-board-toolbar {
+
+    margin-bottom:
+      4px;
+
+  }
+
+
+
+  .game-board-layout {
+
+    grid-template-columns:
+      1fr;
+
+    gap:
+      6px;
+
+  }
+
+
+
+  .game-board-main {
+
+    order:
+      1;
+
+    justify-content:
+      center;
+
+  }
+
+
+
+  .game-board-control-panel {
+
+    order:
+      2;
+
+    width:
+      100%;
+
+    min-width:
+      0;
+
+    justify-content:
+      center;
+
+  }
+
+
+
+  .game-board-control-inner {
+
+    width:
+      auto;
+
+  }
+
+
+}

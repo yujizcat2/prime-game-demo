@@ -5,7 +5,7 @@ import {
 import "./App.css";
 
 import StartScreen from "./components/StartScreen";
-import NumberList from "./components/NumberList";
+import Board from "./components/Board";
 import SeasoningTray from "./components/SeasoningTray";
 import ActionButtons from "./components/ActionButtons";
 import ActionHintPanel from "./components/ActionHintPanel";
@@ -22,7 +22,8 @@ import {
 } from "./game/activityStatus";
 
 
-function App() {
+
+function App(){
 
 
   const game =
@@ -30,31 +31,30 @@ function App() {
 
 
 
-  const [
-    cardDisplayMode,
-    setCardDisplayMode
-  ] = useState("food");
-
-
+  // ==========================================================
+  // 九宫格消除动画
+  // ==========================================================
 
   const [
-    removingId,
-    setRemovingId
+    removingIndex,
+    setRemovingIndex
   ] = useState(null);
 
 
 
 
 
-  // =========================
-  // 获取调料动画
-  // =========================
+  // ==========================================================
+  // 消除1
+  // ==========================================================
 
-  function handleRemoveOne(id) {
+  function handleRemoveOne(
+    index
+  ){
 
 
     if(
-      removingId !== null
+      removingIndex !== null
     ){
 
       return;
@@ -62,9 +62,11 @@ function App() {
     }
 
 
-    setRemovingId(
-      id
+
+    setRemovingIndex(
+      index
     );
+
 
 
     window.setTimeout(
@@ -72,11 +74,11 @@ function App() {
 
 
         game.removeOne(
-          id
+          index
         );
 
 
-        setRemovingId(
+        setRemovingIndex(
           null
         );
 
@@ -91,38 +93,14 @@ function App() {
 
 
 
-  // =========================
-  // 卡片显示模式
-  // =========================
-
-  function toggleCardDisplayMode() {
-
-
-    setCardDisplayMode(
-
-      current =>
-
-        current === "food"
-
-          ? "number"
-
-          : "food"
-
-    );
-
-  }
-
-
-
-
-
-  // =========================
-  // 开始
-  // =========================
+  // ==========================================================
+  // 开始界面
+  // ==========================================================
 
   if(
     !game.started
   ){
+
 
     return (
 
@@ -142,6 +120,10 @@ function App() {
 
 
 
+  // ==========================================================
+  // 活性
+  // ==========================================================
+
   const activityStatus =
 
     getActivityStatus(
@@ -149,6 +131,23 @@ function App() {
       game.numbers,
 
       game.primeDensity
+
+    );
+
+
+
+
+
+  // ==========================================================
+  // 旧外围UI兼容
+  // ==========================================================
+
+  const selectedIdsForLegacyUI =
+
+    game.selectedNumbers.map(
+
+      item =>
+        item.id
 
     );
 
@@ -173,9 +172,9 @@ function App() {
 
 
 
-        {/* =========================
-            标题
-            ========================= */}
+        {/* =====================================================
+            Header
+        ===================================================== */}
 
         <header
           className="
@@ -219,6 +218,7 @@ function App() {
             "
           >
 
+
             <span>
 
               LABYRINTH
@@ -232,6 +232,7 @@ function App() {
               "
             />
 
+
           </div>
 
 
@@ -241,9 +242,9 @@ function App() {
 
 
 
-        {/* =========================
+        {/* =====================================================
             金钱 + 时间
-            ========================= */}
+        ===================================================== */}
 
         <section
           className="
@@ -280,9 +281,9 @@ function App() {
 
 
 
-        {/* =========================
+        {/* =====================================================
             Tips + 活性
-            ========================= */}
+        ===================================================== */}
 
         <section
           className="
@@ -297,6 +298,7 @@ function App() {
             "
           >
 
+
             <ActionHintPanel
 
               numbers={
@@ -304,10 +306,11 @@ function App() {
               }
 
               selected={
-                game.selected
+                selectedIdsForLegacyUI
               }
 
             />
+
 
           </div>
 
@@ -318,6 +321,7 @@ function App() {
               game-info-item
             "
           >
+
 
             <BoardStatus
 
@@ -379,6 +383,7 @@ function App() {
 
             />
 
+
           </div>
 
 
@@ -388,9 +393,9 @@ function App() {
 
 
 
-        {/* =========================
+        {/* =====================================================
             主菜台
-            ========================= */}
+        ===================================================== */}
 
         <section
           className="
@@ -399,6 +404,10 @@ function App() {
         >
 
 
+          {/* ===================================================
+              标题栏
+          =================================================== */}
+
           <div
             className="
               game-board-toolbar
@@ -406,136 +415,31 @@ function App() {
           >
 
 
-            {/* 左侧 */}
-
             <div
               className="
-                game-board-toolbar-left
+                game-section-title
               "
             >
 
-              <div
-                className="
-                  game-section-title
-                "
-              >
-
-                主菜台
-
-              </div>
+              主菜台
 
             </div>
 
 
 
-            {/* 中间：
-                现在只剩处理
-            */}
-
             <div
               className="
-                game-board-toolbar-actions
+                game-section-count
               "
             >
 
-              <ActionButtons
+              {
+                game.numbers.length
+              }
 
-                selected={
-                  game.selected
-                }
+              {" / "}
 
-                preview={
-                  game.preview
-                }
-
-                onReduce={
-                  game.reduceNumbers
-                }
-
-                gameOver={
-                  game.gameOver
-                }
-
-                removingId={
-                  removingId
-                }
-
-              />
-
-            </div>
-
-
-
-            {/* 右侧 */}
-
-            <div
-              className="
-                game-board-toolbar-right
-              "
-            >
-
-
-              <button
-
-                type="button"
-
-                className="
-                  game-card-mode-toggle
-                "
-
-                onClick={
-                  toggleCardDisplayMode
-                }
-
-                aria-label="切换主菜卡显示模式"
-
-              >
-
-
-                <span
-                  className="
-                    game-card-mode-toggle-label
-                  "
-                >
-
-                  {
-                    cardDisplayMode === "food"
-
-                      ? "料理"
-
-                      : "数字"
-                  }
-
-                </span>
-
-
-                <span
-                  className="
-                    game-card-mode-toggle-icon
-                  "
-                >
-
-                  ⇄
-
-                </span>
-
-
-              </button>
-
-
-
-              <div
-                className="
-                  game-section-count
-                "
-              >
-
-                {game.numbers.length}
-                {" / "}
-                10
-
-              </div>
-
+              9
 
             </div>
 
@@ -546,55 +450,144 @@ function App() {
 
 
 
-          {/* =========================
-              主菜盘
-              ========================= */}
+          {/* ===================================================
+              主游戏核心
+              
+              桌面：
+              
+              左操作区 + 右九宫格
+              
+              手机：
+              
+              上九宫格 + 下操作区
+          =================================================== */}
 
           <div
             className="
-              game-board
+              game-board-layout
             "
           >
 
-            <NumberList
 
-              numbers={
-                game.numbers
-              }
 
-              selected={
-                game.selected
-              }
+            {/* =================================================
+                左侧操作区
+            ================================================= */}
 
-              preview={
-                game.preview
-              }
+            <aside
+              className="
+                game-board-control-panel
+              "
+            >
 
-              onSelect={
-                game.selectNumber
-              }
 
-              onCombine={
-                game.combineNumbers
-              }
+              <div
+                className="
+                  game-board-control-inner
+                "
+              >
 
-              onRemoveOne={
-                handleRemoveOne
-              }
 
-              collection={
-                game.collection
-              }
+                <div
+                  className="
+                    game-board-control-kicker
+                  "
+                >
 
-              removingId={
-                removingId
-              }
+                  ACTION
 
-              displayMode={
-                cardDisplayMode
-              }
+                </div>
 
-            />
+
+
+                <ActionButtons
+
+                  selected={
+                    selectedIdsForLegacyUI
+                  }
+
+                  preview={
+                    game.preview
+                  }
+
+                  onCombine={
+                    game.combineNumbers
+                  }
+
+                  onReduce={
+                    game.reduceNumbers
+                  }
+
+                  gameOver={
+                    game.gameOver
+                  }
+
+                  removingId={
+                    removingIndex
+                  }
+
+                />
+
+
+              </div>
+
+
+            </aside>
+
+
+
+
+
+            {/* =================================================
+                右侧棋盘
+            ================================================= */}
+
+            <div
+              className="
+                game-board-main
+              "
+            >
+
+
+              <Board
+
+                board={
+                  game.board
+                }
+
+                selectedIndexes={
+                  game.selectedIndexes
+                }
+
+                onSelectCell={
+                  game.selectCell
+                }
+
+                onRemoveOne={
+                  handleRemoveOne
+                }
+
+                onCombine={
+                  game.combineNumbers
+                }
+
+                collection={
+                  game.collection
+                }
+
+                removingIndex={
+                  removingIndex
+                }
+
+                preview={
+                  game.preview
+                }
+
+              />
+
+
+            </div>
+
 
           </div>
 
@@ -605,9 +598,9 @@ function App() {
 
 
 
-        {/* =========================
-            调料区
-            ========================= */}
+        {/* =====================================================
+            调料
+        ===================================================== */}
 
         <section
           className="
@@ -652,6 +645,7 @@ function App() {
             "
           >
 
+
             <SeasoningTray
 
               seasoningTray={
@@ -663,6 +657,7 @@ function App() {
               }
 
             />
+
 
           </div>
 
@@ -680,6 +675,10 @@ function App() {
         />
 
 
+
+        {/* =====================================================
+            收藏
+        ===================================================== */}
 
         <CollectionPanel
 
@@ -704,9 +703,9 @@ function App() {
 
 
 
-      {/* =========================
+      {/* =====================================================
           Game Over
-          ========================= */}
+      ===================================================== */}
 
       {
 

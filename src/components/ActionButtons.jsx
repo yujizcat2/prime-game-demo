@@ -7,6 +7,8 @@ export default function ActionButtons({
 
   preview,
 
+  onCombine,
+
   onReduce,
 
   gameOver,
@@ -17,7 +19,20 @@ export default function ActionButtons({
 
 
   const busy =
+
     removingId !== null;
+
+
+
+  const canCombine =
+
+    !gameOver &&
+
+    !busy &&
+
+    selected.length === 2 &&
+
+    !!preview?.combine;
 
 
 
@@ -41,6 +56,73 @@ export default function ActionButtons({
       "
     >
 
+
+      {/* ======================================================
+          搭配
+      ====================================================== */}
+
+      <button
+
+        type="button"
+
+        onClick={
+          canCombine
+            ? onCombine
+            : undefined
+        }
+
+        disabled={
+          !canCombine
+        }
+
+        className={`
+          action-toolbar-button
+
+          ${
+            canCombine
+
+              ?
+
+              "action-toolbar-button--combine-active"
+
+              :
+
+              "action-toolbar-button--disabled"
+          }
+        `}
+
+      >
+
+
+        <span
+          className="
+            action-toolbar-icon
+          "
+        >
+
+          +
+
+        </span>
+
+
+        <span
+          className="
+            action-toolbar-label
+          "
+        >
+
+          搭配
+
+        </span>
+
+
+      </button>
+
+
+
+      {/* ======================================================
+          处理
+      ====================================================== */}
 
       <button
 

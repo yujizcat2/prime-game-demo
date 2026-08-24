@@ -19,10 +19,6 @@ import {
 } from "./rules";
 
 import {
-  sortNumbers
-} from "./sort";
-
-import {
   createCombineOrigin,
   createReduceOrigin,
   getMainLineage
@@ -31,7 +27,23 @@ import {
 
 
 // ============================================================
-// 调料盘配置
+// 九宫格
+// ============================================================
+
+export const BOARD_CONFIG = {
+
+  ROWS: 3,
+
+  COLS: 3,
+
+  SIZE: 9
+
+};
+
+
+
+// ============================================================
+// 调料盘
 // ============================================================
 
 export const SEASONING_TRAY_CONFIG = {
@@ -42,37 +54,237 @@ export const SEASONING_TRAY_CONFIG = {
 
 
 
+// ============================================================
+// 创建空棋盘
+// ============================================================
+
+export function createEmptyBoard(){
+
+
+  return Array.from(
+    {
+      length: BOARD_CONFIG.SIZE
+    },
+    () => null
+  );
+
+}
+
 
 
 // ============================================================
-// 创建初始游戏状态
+// 获取所有正式棋子
+// ============================================================
+
+export function getBoardPieces(
+  board
+){
+
+
+  if(
+    !Array.isArray(board)
+  ){
+
+    return [];
+
+  }
+
+
+  return board.filter(
+    Boolean
+  );
+
+}
+
+
+
+// ============================================================
+// 当前棋子数量
+// ============================================================
+
+export function getBoardCount(
+  board
+){
+
+
+  return getBoardPieces(
+    board
+  ).length;
+
+}
+
+
+
+// ============================================================
+// 是否满盘
+// ============================================================
+
+export function isBoardFull(
+  board
+){
+
+
+  return (
+    getBoardCount(
+      board
+    ) >=
+    BOARD_CONFIG.SIZE
+  );
+
+}
+
+
+
+// ============================================================
+// 获取下一个空格
+//
+// 九宫格顺序：
+//
+// 0 1 2
+// 3 4 5
+// 6 7 8
+//
+// 与旧NumberList：
+//
+// numbers[numbers.length]
+//
+// 的逻辑对应。
+// ============================================================
+
+export function getNextEmptyIndex(
+  board
+){
+
+
+  if(
+    !Array.isArray(board)
+  ){
+
+    return -1;
+
+  }
+
+
+  return board.findIndex(
+
+    item =>
+      item === null
+
+  );
+
+}
+
+
+
+// ============================================================
+// 根据index获取节点
+// ============================================================
+
+export function getPieceAt(
+  state,
+  index
+){
+
+
+  if(
+    !state?.board
+  ){
+
+    return null;
+
+  }
+
+
+  if(
+    index < 0 ||
+    index >= BOARD_CONFIG.SIZE
+  ){
+
+    return null;
+
+  }
+
+
+  return state.board[index]
+    ?? null;
+
+}
+
+
+
+// ============================================================
+// 根据ID获取节点
+//
+// 主要保留给旧UI兼容。
+// ============================================================
+
+export function getNumberById(
+  state,
+  id
+){
+
+
+  return getBoardPieces(
+    state?.board
+  ).find(
+
+    item =>
+      item.id === id
+
+  ) ?? null;
+
+}
+
+
+
+// ============================================================
+// 创建初始状态
 //
 // 开局4个数字：
 //
-// 第1个：荤
-// 第2个：素
-// 第3个：荤
-// 第4个：素
+// 荤 素 荤
+// 素 ·  ·
+// ·  ·  ·
 //
-// 即：
-//
-// 荤 × 2
-// 素 × 2
-//
-// 后续仍然经过 sortNumbers。
-// foodType跟随节点本身，不会因为排序改变。
+// 不再排序。
 // ============================================================
 
 export function createGameState(
   values
-) {
+){
 
 
-  const numbers =
+  const board =
+    createEmptyBoard();
 
-    values.map(
 
-      (value, index) => ({
+
+  const initialValues =
+
+    Array.isArray(values)
+
+      ?
+
+      values.slice(
+        0,
+        BOARD_CONFIG.SIZE
+      )
+
+      :
+
+      [];
+
+
+
+  initialValues.forEach(
+
+    (
+      value,
+      index
+    ) => {
+
+
+      board[index] = {
 
 
         id:
@@ -81,10 +293,6 @@ export function createGameState(
 
         value,
 
-
-        // ====================================================
-        // 料理类型
-        // ====================================================
 
         foodType:
 
@@ -95,122 +303,64 @@ export function createGameState(
             : FOOD_TYPES.VEGETABLE,
 
 
-        // ====================================================
-        // 合成父母限制
-        // ====================================================
-
         parents:
           null,
 
-
-        // ====================================================
-        // UI显示来源料理
-        // ====================================================
 
         parentFoods:
           null,
 
 
-        // ====================================================
-        // 完整数字来源
-        // ====================================================
-
         origin:
           null
 
-      })
+      };
 
-    );
+    }
+
+  );
+
 
 
   return {
 
-    numbers:
-      sortNumbers(
-        numbers
-      ),
+    board,
 
-
-    // ========================================================
-    // 调料盘
-    // ========================================================
 
     seasoningTray: [],
 
-
-    // ========================================================
-    // 调料唯一ID
-    // ========================================================
 
     nextSeasoningId:
       1,
 
 
-    // ========================================================
-    // 收藏数字种类
-    // ========================================================
-
     collection: [],
 
-
-    // ========================================================
-    // 完整来源树
-    // ========================================================
 
     collectionOrigins: {},
 
 
-    // ========================================================
-    // 父系单线路径
-    // ========================================================
-
     collectionPaths: {},
 
-
-    // ========================================================
-    // 最新收藏
-    // ========================================================
 
     latestCollection:
       null,
 
 
-    // ========================================================
-    // 分数
-    //
-    // 后续UI换皮为：
-    // 金钱 / 营业额
-    // ========================================================
-
     score:
       0,
 
 
-    // ========================================================
-    // 步数
-    //
-    // 不再有上限。
-    //
-    // 后续UI换皮为时间。
-    // 每次合成 / 约分消耗1个时间单位。
-    // ========================================================
-
     steps:
       0,
 
-
-    // ========================================================
-    // 游戏结束
-    //
-    // 这里不再因为steps达到上限结束。
-    // ========================================================
 
     gameOver:
       false,
 
 
     nextId:
-      values.length + 1
+      initialValues.length + 1
 
   };
 
@@ -218,18 +368,18 @@ export function createGameState(
 
 
 
-
-
 // ============================================================
-// 是否存在数字1
+// 是否存在1
 // ============================================================
 
 export function hasOne(
-  numbers
-) {
+  board
+){
 
 
-  return numbers.some(
+  return getBoardPieces(
+    board
+  ).some(
 
     item =>
       item.value === 1
@@ -240,24 +390,13 @@ export function hasOne(
 
 
 
-
-
 // ============================================================
 // 消耗一个时间单位
-//
-// 原逻辑：
-// step达到stepLimit后进入checkpoint。
-//
-// 新逻辑：
-// 只累加steps。
-// 没有stepLimit。
-// 没有checkpoint。
-// 没有因为时间结束Game Over。
 // ============================================================
 
 export function consumeStep(
   state
-) {
+){
 
 
   return {
@@ -268,8 +407,7 @@ export function consumeStep(
 
       state.steps +
 
-      GAME_CONFIG
-        .STEP_COST
+      GAME_CONFIG.STEP_COST
 
   };
 
@@ -277,73 +415,40 @@ export function consumeStep(
 
 
 
-
-
 // ============================================================
-// 根据ID获取数字节点
-// ============================================================
-
-export function getNumberById(
-  state,
-  id
-) {
-
-
-  return state.numbers.find(
-
-    item =>
-      item.id === id
-
-  );
-
-}
-
-
-
-
-
-// ============================================================
-// 获取两个数字在主菜盘上的前后顺序
+// 确定两个棋子的前后
 //
-// front = 主菜盘位置靠前
-// back  = 主菜盘位置靠后
+// index较小 = front
 //
-// 注意：
-//
-// 不是玩家点击顺序。
+// 点击顺序不影响结果。
 // ============================================================
 
 export function getOrderedPair(
   state,
-  idA,
-  idB
-) {
+  indexA,
+  indexB
+){
 
 
-  const indexA =
-
-    state.numbers.findIndex(
-
-      item =>
-        item.id === idA
-
+  const a =
+    getPieceAt(
+      state,
+      indexA
     );
 
 
-  const indexB =
-
-    state.numbers.findIndex(
-
-      item =>
-        item.id === idB
-
+  const b =
+    getPieceAt(
+      state,
+      indexB
     );
 
 
 
   if(
-    indexA === -1 ||
-    indexB === -1
+    !a ||
+    !b ||
+    indexA === indexB
   ){
 
     return null;
@@ -360,10 +465,16 @@ export function getOrderedPair(
     return {
 
       front:
-        state.numbers[indexA],
+        a,
 
       back:
-        state.numbers[indexB]
+        b,
+
+      frontIndex:
+        indexA,
+
+      backIndex:
+        indexB
 
     };
 
@@ -374,10 +485,16 @@ export function getOrderedPair(
   return {
 
     front:
-      state.numbers[indexB],
+      b,
 
     back:
-      state.numbers[indexA]
+      a,
+
+    frontIndex:
+      indexB,
+
+    backIndex:
+      indexA
 
   };
 
@@ -385,21 +502,14 @@ export function getOrderedPair(
 
 
 
-
-
 // ============================================================
-// 向调料盘加入调料
-//
-// 最大3格。
-//
-// 新调料永远进入末尾。
-// 满3格后自动移除最前面的调料。
+// 添加调料
 // ============================================================
 
 export function addSeasoningToTray(
   state,
   value
-) {
+){
 
 
   if(
@@ -426,7 +536,8 @@ export function addSeasoningToTray(
 
   const currentTray =
 
-    state.seasoningTray ?? [];
+    state.seasoningTray
+    ?? [];
 
 
 
@@ -448,8 +559,10 @@ export function addSeasoningToTray(
       ?
 
       nextTray.slice(
+
         nextTray.length -
         SEASONING_TRAY_CONFIG.MAX_SIZE
+
       )
 
       :
@@ -474,38 +587,198 @@ export function addSeasoningToTray(
 
 
 
+// ============================================================
+// 两格能否合成
+// ============================================================
+
+export function canCombineCells(
+  state,
+  indexA,
+  indexB
+){
+
+
+  if(
+    !state ||
+    state.gameOver
+  ){
+
+    return false;
+
+  }
+
+
+
+  if(
+    indexA === indexB
+  ){
+
+    return false;
+
+  }
+
+
+
+  if(
+    isBoardFull(
+      state.board
+    )
+  ){
+
+    return false;
+
+  }
+
+
+
+  const a =
+    getPieceAt(
+      state,
+      indexA
+    );
+
+
+  const b =
+    getPieceAt(
+      state,
+      indexB
+    );
+
+
+
+  if(
+    !a ||
+    !b
+  ){
+
+    return false;
+
+  }
+
+
+
+  if(
+    a.value === 1 ||
+    b.value === 1
+  ){
+
+    return false;
+
+  }
+
+
+
+  return canCombine(
+
+    a,
+
+    b,
+
+    getBoardPieces(
+      state.board
+    )
+
+  );
+
+}
+
+
+
+// ============================================================
+// 两格能否约分
+// ============================================================
+
+export function canReduceCells(
+  state,
+  indexA,
+  indexB
+){
+
+
+  if(
+    !state ||
+    state.gameOver
+  ){
+
+    return false;
+
+  }
+
+
+
+  if(
+    indexA === indexB
+  ){
+
+    return false;
+
+  }
+
+
+
+  const a =
+    getPieceAt(
+      state,
+      indexA
+    );
+
+
+  const b =
+    getPieceAt(
+      state,
+      indexB
+    );
+
+
+
+  if(
+    !a ||
+    !b
+  ){
+
+    return false;
+
+  }
+
+
+
+  if(
+    a.value === 1 ||
+    b.value === 1
+  ){
+
+    return false;
+
+  }
+
+
+
+  return canReduce(
+    a,
+    b
+  );
+
+}
+
 
 
 // ============================================================
 // 合成
 //
-// 数学：
+// 新版九宫格规则：
 //
-// A + B = C
+// 1. A、B保留
+// 2. 自动寻找第一个null
+// 3. C进入该格
 //
-// 游戏语言：
-//
-// A、B与C组成三拼关系。
-//
-// 数值规则保持原样。
-//
-// 类型规则：
-//
-// 没跨101
-// → 主盘前位foodType
-//
-// 跨101
-// → dessert
-//
-// 原A、B继续留在主盘。
-// 新C加入。
+// 玩家不选择位置。
 // ============================================================
 
-export function combineNumbers(
+export function combineCells(
   state,
-  idA,
-  idB
-) {
+  indexA,
+  indexB
+){
 
 
   if(
@@ -519,49 +792,10 @@ export function combineNumbers(
 
 
   if(
-    state.numbers.length >=
-    GAME_CONFIG
-      .MAX_NUMBERS
-  ){
-
-    return state;
-
-  }
-
-
-
-  const a =
-    getNumberById(
+    !canCombineCells(
       state,
-      idA
-    );
-
-
-  const b =
-    getNumberById(
-      state,
-      idB
-    );
-
-
-
-  if(
-    !a ||
-    !b ||
-    a.id === b.id
-  ){
-
-    return state;
-
-  }
-
-
-
-  if(
-    !canCombine(
-      a,
-      b,
-      state.numbers
+      indexA,
+      indexB
     )
   ){
 
@@ -571,21 +805,56 @@ export function combineNumbers(
 
 
 
-  // ==========================================================
-  // 根据主盘位置确定front / back
-  // ==========================================================
+  const targetIndex =
 
-  const orderedPair =
-
-    getOrderedPair(
-      state,
-      idA,
-      idB
+    getNextEmptyIndex(
+      state.board
     );
 
 
 
   if(
+    targetIndex === -1
+  ){
+
+    return state;
+
+  }
+
+
+
+  const a =
+    getPieceAt(
+      state,
+      indexA
+    );
+
+
+  const b =
+    getPieceAt(
+      state,
+      indexB
+    );
+
+
+
+  const orderedPair =
+
+    getOrderedPair(
+
+      state,
+
+      indexA,
+
+      indexB
+
+    );
+
+
+
+  if(
+    !a ||
+    !b ||
     !orderedPair
   ){
 
@@ -602,37 +871,32 @@ export function combineNumbers(
 
 
 
-  // ==========================================================
-  // 数值结果
-  // ==========================================================
-
   const result =
 
     combineValue(
+
       front.value,
+
       back.value
+
     );
 
 
-
-  // ==========================================================
-  // 料理类型结果
-  // ==========================================================
 
   const foodType =
 
     combineFoodType(
+
       front,
+
       back
+
     );
 
 
 
-  // ==========================================================
-  // 新料理节点
-  // ==========================================================
+  const newPiece = {
 
-  const newNumber = {
 
     id:
       state.nextId,
@@ -645,10 +909,6 @@ export function combineNumbers(
     foodType,
 
 
-    // ========================================================
-    // 合成父母限制
-    // ========================================================
-
     parents: [
 
       a.value,
@@ -657,10 +917,6 @@ export function combineNumbers(
 
     ],
 
-
-    // ========================================================
-    // UI专用来源料理
-    // ========================================================
 
     parentFoods: [
 
@@ -687,10 +943,6 @@ export function combineNumbers(
     ],
 
 
-    // ========================================================
-    // 完整来源历史
-    // ========================================================
-
     origin:
 
       createCombineOrigin(
@@ -707,17 +959,26 @@ export function combineNumbers(
 
 
 
+  const nextBoard = [
+
+    ...state.board
+
+  ];
+
+
+
+  nextBoard[
+    targetIndex
+  ] = newPiece;
+
+
+
   let nextState = {
 
     ...state,
 
-    numbers: [
-
-      ...state.numbers,
-
-      newNumber
-
-    ],
+    board:
+      nextBoard,
 
     nextId:
       state.nextId + 1
@@ -726,14 +987,12 @@ export function combineNumbers(
 
 
 
-  // ==========================================================
-  // 消耗一个时间单位
-  // ==========================================================
-
   nextState =
+
     consumeStep(
       nextState
     );
+
 
 
   return nextState;
@@ -742,28 +1001,17 @@ export function combineNumbers(
 
 
 
-
-
 // ============================================================
 // 约分
 //
-// 只改变数字。
-// foodType保持不变。
-//
-// 同时：
-//
-// parents清空
-// parentFoods清空
-//
-// 因为经过约分以后，
-// 当前数字已经不是原来的三拼结果节点。
+// 原地变化。
 // ============================================================
 
-export function reduceNumbers(
+export function reduceCells(
   state,
-  idA,
-  idB
-) {
+  indexA,
+  indexB
+){
 
 
   if(
@@ -776,37 +1024,11 @@ export function reduceNumbers(
 
 
 
-  const first =
-    getNumberById(
-      state,
-      idA
-    );
-
-
-  const second =
-    getNumberById(
-      state,
-      idB
-    );
-
-
-
   if(
-    !first ||
-    !second ||
-    first.id === second.id
-  ){
-
-    return state;
-
-  }
-
-
-
-  if(
-    !canReduce(
-      first,
-      second
+    !canReduceCells(
+      state,
+      indexA,
+      indexB
     )
   ){
 
@@ -816,42 +1038,51 @@ export function reduceNumbers(
 
 
 
-  const a =
-    first.value;
+  const first =
+    getPieceAt(
+      state,
+      indexA
+    );
 
 
-  const b =
-    second.value;
+  const second =
+    getPieceAt(
+      state,
+      indexB
+    );
 
 
 
   const divisor =
 
     gcd(
-      a,
-      b
+
+      first.value,
+
+      second.value
+
     );
 
 
 
-  const a2 =
-    a / divisor;
+  const firstResult =
+
+    first.value /
+    divisor;
 
 
-  const b2 =
-    b / divisor;
+  const secondResult =
+
+    second.value /
+    divisor;
 
 
-
-  // ==========================================================
-  // 保存约分来源
-  // ==========================================================
 
   const firstOrigin =
 
     createReduceOrigin(
 
-      a2,
+      firstResult,
 
       first
 
@@ -863,7 +1094,7 @@ export function reduceNumbers(
 
     createReduceOrigin(
 
-      b2,
+      secondResult,
 
       second
 
@@ -871,72 +1102,55 @@ export function reduceNumbers(
 
 
 
-  const nextNumbers =
+  const nextBoard = [
 
-    state.numbers.map(
+    ...state.board
 
-      item => {
-
-
-        if(
-          item.id === idA
-        ){
-
-
-          return {
-
-            ...item,
-
-            value:
-              a2,
-
-            parents:
-              null,
-
-            parentFoods:
-              null,
-
-            origin:
-              firstOrigin
-
-          };
-
-        }
+  ];
 
 
 
-        if(
-          item.id === idB
-        ){
+  nextBoard[
+    indexA
+  ] = {
 
+    ...first,
 
-          return {
+    value:
+      firstResult,
 
-            ...item,
+    parents:
+      null,
 
-            value:
-              b2,
+    parentFoods:
+      null,
 
-            parents:
-              null,
+    origin:
+      firstOrigin
 
-            parentFoods:
-              null,
-
-            origin:
-              secondOrigin
-
-          };
-
-        }
+  };
 
 
 
-        return item;
+  nextBoard[
+    indexB
+  ] = {
 
-      }
+    ...second,
 
-    );
+    value:
+      secondResult,
+
+    parents:
+      null,
+
+    parentFoods:
+      null,
+
+    origin:
+      secondOrigin
+
+  };
 
 
 
@@ -944,21 +1158,19 @@ export function reduceNumbers(
 
     ...state,
 
-    numbers:
-      nextNumbers
+    board:
+      nextBoard
 
   };
 
 
 
-  // ==========================================================
-  // 消耗一个时间单位
-  // ==========================================================
-
   nextState =
+
     consumeStep(
       nextState
     );
+
 
 
   return nextState;
@@ -967,31 +1179,16 @@ export function reduceNumbers(
 
 
 
-
-
 // ============================================================
 // 消除1
 //
-// 一个数字通过约分变成1后：
-//
-// 1. 找到它的直接前身n
-// 2. 收藏n
-// 3. 保存来源树
-// 4. 保存主路径
-// 5. 更新最新收藏
-// 6. 获得一个n号调料
-// 7. 调料进入调料盘
-//
-// 注意：
-//
-// 消除1目前不增加steps。
-// 即：获得调料本身不额外消耗时间。
+// board[index] = null
 // ============================================================
 
 export function removeOne(
   state,
-  id
-) {
+  index
+){
 
 
   if(
@@ -1005,9 +1202,9 @@ export function removeOne(
 
 
   const target =
-    getNumberById(
+    getPieceAt(
       state,
-      id
+      index
     );
 
 
@@ -1022,10 +1219,6 @@ export function removeOne(
   }
 
 
-
-  // ==========================================================
-  // 找到1的直接前身
-  // ==========================================================
 
   const previousRecord =
 
@@ -1053,15 +1246,18 @@ export function removeOne(
 
 
   let nextCollectionOrigins =
-    state.collectionOrigins ?? {};
+    state.collectionOrigins
+    ?? {};
 
 
   let nextCollectionPaths =
-    state.collectionPaths ?? {};
+    state.collectionPaths
+    ?? {};
 
 
   let nextLatestCollection =
-    state.latestCollection ?? null;
+    state.latestCollection
+    ?? null;
 
 
 
@@ -1078,10 +1274,6 @@ export function removeOne(
       );
 
 
-
-    // ========================================================
-    // 保存完整来源树
-    // ========================================================
 
     const oldOrigins =
 
@@ -1106,10 +1298,6 @@ export function removeOne(
     };
 
 
-
-    // ========================================================
-    // 生成父系单线路径
-    // ========================================================
 
     const mainLineage =
 
@@ -1148,10 +1336,6 @@ export function removeOne(
 
 
 
-    // ========================================================
-    // 更新最新收藏
-    // ========================================================
-
     nextLatestCollection = {
 
       value:
@@ -1163,10 +1347,6 @@ export function removeOne(
     };
 
 
-
-    // ========================================================
-    // 首次发现
-    // ========================================================
 
     if(
       isFirstTime
@@ -1183,8 +1363,7 @@ export function removeOne(
 
         newNumberCount *
 
-        SCORE_CONFIG
-          .NEW_NUMBER_GROWTH;
+        SCORE_CONFIG.NEW_NUMBER_GROWTH;
 
 
 
@@ -1207,11 +1386,6 @@ export function removeOne(
     }
 
 
-
-    // ========================================================
-    // 重复发现
-    // ========================================================
-
     else{
 
 
@@ -1219,8 +1393,7 @@ export function removeOne(
 
         state.score +
 
-        SCORE_CONFIG
-          .REPEAT_SCORE;
+        SCORE_CONFIG.REPEAT_SCORE;
 
     }
 
@@ -1228,18 +1401,17 @@ export function removeOne(
 
 
 
-  // ==========================================================
-  // 删除主菜盘上的1
-  // ==========================================================
+  const nextBoard = [
 
-  const nextNumbers =
+    ...state.board
 
-    state.numbers.filter(
+  ];
 
-      item =>
-        item.id !== id
 
-    );
+
+  nextBoard[
+    index
+  ] = null;
 
 
 
@@ -1247,8 +1419,8 @@ export function removeOne(
 
     ...state,
 
-    numbers:
-      nextNumbers,
+    board:
+      nextBoard,
 
     collection:
       nextCollection,
@@ -1268,10 +1440,6 @@ export function removeOne(
   };
 
 
-
-  // ==========================================================
-  // 获得对应编号调料
-  // ==========================================================
 
   if(
     discoveredValue !== null
@@ -1298,23 +1466,20 @@ export function removeOne(
 
 
 
-
-
 // ============================================================
-// 获取所有合法合成
-//
-// 测试 / AI / 自动模拟使用。
+// 所有合法合成
 // ============================================================
 
 export function getLegalCombineActions(
   state
-) {
+){
 
 
   if(
     state.gameOver ||
-    state.numbers.length >=
-      GAME_CONFIG.MAX_NUMBERS
+    isBoardFull(
+      state.board
+    )
   ){
 
     return [];
@@ -1329,32 +1494,43 @@ export function getLegalCombineActions(
 
   for(
     let i = 0;
-    i < state.numbers.length;
+    i < BOARD_CONFIG.SIZE;
     i++
   ){
 
 
+    if(
+      !state.board[i]
+    ){
+
+      continue;
+
+    }
+
+
+
     for(
       let j = i + 1;
-      j < state.numbers.length;
+      j < BOARD_CONFIG.SIZE;
       j++
     ){
 
 
-      const a =
-        state.numbers[i];
+      if(
+        !state.board[j]
+      ){
 
+        continue;
 
-      const b =
-        state.numbers[j];
+      }
 
 
 
       if(
-        canCombine(
-          a,
-          b,
-          state.numbers
+        canCombineCells(
+          state,
+          i,
+          j
         )
       ){
 
@@ -1364,9 +1540,9 @@ export function getLegalCombineActions(
           type:
             "combine",
 
-          ids: [
-            a.id,
-            b.id
+          indexes: [
+            i,
+            j
           ]
 
         });
@@ -1385,15 +1561,13 @@ export function getLegalCombineActions(
 
 
 
-
-
 // ============================================================
-// 获取所有合法约分
+// 所有合法约分
 // ============================================================
 
 export function getLegalReduceActions(
   state
-) {
+){
 
 
   if(
@@ -1412,31 +1586,43 @@ export function getLegalReduceActions(
 
   for(
     let i = 0;
-    i < state.numbers.length;
+    i < BOARD_CONFIG.SIZE;
     i++
   ){
 
 
+    if(
+      !state.board[i]
+    ){
+
+      continue;
+
+    }
+
+
+
     for(
       let j = i + 1;
-      j < state.numbers.length;
+      j < BOARD_CONFIG.SIZE;
       j++
     ){
 
 
-      const a =
-        state.numbers[i];
+      if(
+        !state.board[j]
+      ){
 
+        continue;
 
-      const b =
-        state.numbers[j];
+      }
 
 
 
       if(
-        canReduce(
-          a,
-          b
+        canReduceCells(
+          state,
+          i,
+          j
         )
       ){
 
@@ -1446,9 +1632,9 @@ export function getLegalReduceActions(
           type:
             "reduce",
 
-          ids: [
-            a.id,
-            b.id
+          indexes: [
+            i,
+            j
           ]
 
         });
@@ -1467,15 +1653,13 @@ export function getLegalReduceActions(
 
 
 
-
-
 // ============================================================
-// 获取所有可消除1
+// 所有可消除1
 // ============================================================
 
 export function getLegalRemoveActions(
   state
-) {
+){
 
 
   if(
@@ -1488,42 +1672,50 @@ export function getLegalRemoveActions(
 
 
 
-  return state.numbers
+  const actions = [];
 
-    .filter(
 
-      item =>
-        item.value === 1
 
-    )
+  for(
+    let index = 0;
+    index < BOARD_CONFIG.SIZE;
+    index++
+  ){
 
-    .map(
 
-      item => ({
+    if(
+      state.board[index]?.value === 1
+    ){
+
+
+      actions.push({
 
         type:
           "remove",
 
-        id:
-          item.id
+        index
 
-      })
+      });
 
-    );
+    }
+
+  }
+
+
+
+  return actions;
 
 }
 
 
 
-
-
 // ============================================================
-// 获取所有合法Action
+// 所有合法动作
 // ============================================================
 
 export function getLegalActions(
   state
-) {
+){
 
 
   if(
@@ -1556,16 +1748,14 @@ export function getLegalActions(
 
 
 
-
-
 // ============================================================
-// 执行标准Action
+// 执行动作
 // ============================================================
 
 export function applyAction(
   state,
   action
-) {
+){
 
 
   if(
@@ -1585,13 +1775,13 @@ export function applyAction(
 
     case "combine":
 
-      return combineNumbers(
+      return combineCells(
 
         state,
 
-        action.ids[0],
+        action.indexes?.[0],
 
-        action.ids[1]
+        action.indexes?.[1]
 
       );
 
@@ -1599,13 +1789,13 @@ export function applyAction(
 
     case "reduce":
 
-      return reduceNumbers(
+      return reduceCells(
 
         state,
 
-        action.ids[0],
+        action.indexes?.[0],
 
-        action.ids[1]
+        action.indexes?.[1]
 
       );
 
@@ -1617,7 +1807,7 @@ export function applyAction(
 
         state,
 
-        action.id
+        action.index
 
       );
 

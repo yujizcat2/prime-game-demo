@@ -7,8 +7,6 @@ import {
 } from "../utils/math";
 
 import {
-  canReduce,
-  canCombine,
   combineValue,
   combineFoodType
 } from "../game/rules";
@@ -22,25 +20,26 @@ import {
 import {
   createGameState,
 
-  combineNumbers as engineCombineNumbers,
+  getBoardPieces,
+  getPieceAt,
+  getOrderedPair,
 
-  reduceNumbers as engineReduceNumbers,
+  canCombineCells,
+  canReduceCells,
 
+  combineCells as engineCombineCells,
+  reduceCells as engineReduceCells,
   removeOne as engineRemoveOne
 
 } from "../game/gameEngine";
 
 
 
-// ============================================================
-// Hook
-// ============================================================
-
 export default function useGame(){
 
 
   // ==========================================================
-  // Engine核心状态
+  // Engine状态
   // ==========================================================
 
   const [
@@ -53,7 +52,7 @@ export default function useGame(){
 
 
   // ==========================================================
-  // UI状态
+  // 游戏开始
   // ==========================================================
 
   const [
@@ -63,9 +62,13 @@ export default function useGame(){
 
 
 
+  // ==========================================================
+  // 选择的是格子index
+  // ==========================================================
+
   const [
-    selected,
-    setSelected
+    selectedIndexes,
+    setSelectedIndexes
   ] = useState([]);
 
 
@@ -82,9 +85,11 @@ export default function useGame(){
 
 
     const state =
+
       createGameState(
         values
       );
+
 
 
     setGameState(
@@ -92,10 +97,14 @@ export default function useGame(){
     );
 
 
-    setSelected([]);
+    setSelectedIndexes(
+      []
+    );
 
 
-    setStarted(true);
+    setStarted(
+      true
+    );
 
   }
 
@@ -104,83 +113,62 @@ export default function useGame(){
 
 
   // ==========================================================
-  // 没开始时的默认数据
+  // 九宫格
+  // ==========================================================
+
+  const board =
+
+    gameState?.board
+
+    ?? Array.from(
+      {
+        length: 9
+      },
+      () => null
+    );
+
+
+
+  // ==========================================================
+  // 普通棋子数组
+  //
+  // 仅用于旧统计系统兼容。
   // ==========================================================
 
   const numbers =
-    gameState?.numbers ?? [];
+
+    getBoardPieces(
+      board
+    );
 
 
-
-  // ==========================================================
-  // 调料盘
-  //
-  // 当前调料暂时只展示，
-  // 不允许使用。
-  // ==========================================================
 
   const seasoningTray =
     gameState?.seasoningTray ?? [];
-
 
 
   const collection =
     gameState?.collection ?? [];
 
 
-
-  // ==========================================================
-  // 当前收藏UI使用的父系单线路径
-  // ==========================================================
-
   const collectionPaths =
     gameState?.collectionPaths ?? {};
 
-
-
-  // ==========================================================
-  // 完整来源树
-  //
-  // 当前UI暂时不用。
-  // ==========================================================
 
   const collectionOrigins =
     gameState?.collectionOrigins ?? {};
 
 
-
-  // ==========================================================
-  // 最新一次收藏
-  // ==========================================================
-
   const latestCollection =
     gameState?.latestCollection ?? null;
 
-
-
-  // ==========================================================
-  // 分数
-  //
-  // 后续UI换皮为金钱。
-  // ==========================================================
 
   const score =
     gameState?.score ?? 0;
 
 
-
-  // ==========================================================
-  // 时间
-  //
-  // 底层暂时继续叫steps。
-  //
-  // 不再存在stepLimit。
-  // steps可以无限增长。
-  // ==========================================================
-
   const steps =
     gameState?.steps ?? 0;
-
 
 
   const gameOver =
@@ -191,25 +179,31 @@ export default function useGame(){
 
 
   // ==========================================================
-  // 当前棋盘质数状态
+  // 质数状态
   // ==========================================================
 
   const primeEnergy =
+
     getPrimeEnergy(
       numbers
     );
 
 
   const primeDensity =
+
     getPrimeDensity(
       numbers
     );
 
 
   const primeState =
+
     getPrimeState(
+
       primeEnergy,
+
       primeDensity
+
     );
 
 
@@ -217,11 +211,123 @@ export default function useGame(){
 
 
   // ==========================================================
-  // 选择数字
+  // 获取格子
   // ==========================================================
 
-  function selectNumber(
-    id
+  function getCell(
+    index
+  ){
+
+
+    if(
+      !gameState
+    ){
+
+      return null;
+
+    }
+
+
+
+    return getPieceAt(
+
+      gameState,
+
+      index
+
+    );
+
+  }
+
+
+
+
+
+  // ==========================================================
+  // 获取选中格
+  // ==========================================================
+
+  function getSelectedCells(){
+
+
+    if(
+      !gameState
+    ){
+
+      return [];
+
+    }
+
+
+
+    return [
+
+      ...selectedIndexes
+
+    ]
+
+      .sort(
+        (
+          a,
+          b
+        ) =>
+          a - b
+      )
+
+      .map(
+
+        index => ({
+
+          index,
+
+          piece:
+
+            getPieceAt(
+              gameState,
+              index
+            )
+
+        })
+
+      )
+
+      .filter(
+
+        item =>
+          item.piece
+
+      );
+
+  }
+
+
+
+
+
+  const selectedCells =
+    getSelectedCells();
+
+
+
+  const selectedNumbers =
+
+    selectedCells.map(
+
+      item =>
+        item.piece
+
+    );
+
+
+
+
+
+  // ==========================================================
+  // 选择格子
+  // ==========================================================
+
+  function selectCell(
+    index
   ){
 
 
@@ -238,14 +344,16 @@ export default function useGame(){
 
     const target =
 
-      numbers.find(
-
-        item =>
-          item.id === id
-
+      getPieceAt(
+        gameState,
+        index
       );
 
 
+
+    // ========================================================
+    // 空格不能选择
+    // ========================================================
 
     if(
       !target
@@ -257,108 +365,39 @@ export default function useGame(){
 
 
 
-
-
     // ========================================================
-    // 当前是否已经选择了1
-    // ========================================================
-
-    const selectedOne =
-
-      selected
-
-        .map(
-
-          selectedId =>
-
-            numbers.find(
-
-              item =>
-                item.id === selectedId
-
-            )
-
-        )
-
-        .find(
-
-          item =>
-            item?.value === 1
-
-        );
-
-
-
-    // ========================================================
-    // 已经选择1
+    // 1由Board直接触发removeOne
     //
-    // 1只能单独选择。
-    // ========================================================
-
-    if(
-      selectedOne
-    ){
-
-
-      if(
-        selectedOne.id === id
-      ){
-
-
-        setSelected([]);
-
-
-        return;
-
-      }
-
-
-
-      return;
-
-    }
-
-
-
-
-
-    // ========================================================
-    // 当前点击的是1
+    // 不进入普通选择逻辑。
     // ========================================================
 
     if(
       target.value === 1
     ){
 
-
-      setSelected([
-        id
-      ]);
-
-
       return;
 
     }
 
 
 
-
-
     // ========================================================
-    // 已选择 -> 取消
+    // 已选 → 取消
     // ========================================================
 
     if(
-      selected.includes(id)
+      selectedIndexes.includes(
+        index
+      )
     ){
 
 
-      setSelected(
+      setSelectedIndexes(
 
-        selected.filter(
+        selectedIndexes.filter(
 
-          itemId =>
-            itemId !== id
+          selectedIndex =>
+            selectedIndex !== index
 
         )
 
@@ -371,24 +410,32 @@ export default function useGame(){
 
 
 
-
-
     // ========================================================
     // 少于两个
     // ========================================================
 
     if(
-      selected.length < 2
+      selectedIndexes.length < 2
     ){
 
 
-      setSelected([
+      setSelectedIndexes(
 
-        ...selected,
+        [
 
-        id
+          ...selectedIndexes,
 
-      ]);
+          index
+
+        ].sort(
+          (
+            a,
+            b
+          ) =>
+            a - b
+        )
+
+      );
 
 
       return;
@@ -397,50 +444,30 @@ export default function useGame(){
 
 
 
-
-
     // ========================================================
-    // 第三个数字
+    // 第三个
     //
-    // 删除第一个
-    // 保留第二个
-    // 加入新的
+    // 保留旧操作：
+    // 删除第一个，
+    // 保留第二个，
+    // 加入新的。
     // ========================================================
 
-    setSelected([
+    setSelectedIndexes(
 
-      selected[1],
+      [
 
-      id
+        selectedIndexes[1],
 
-    ]);
+        index
 
-  }
-
-
-
-
-
-  // ==========================================================
-  // 当前选择数字
-  //
-  // numbers.filter会按照主菜盘实际顺序返回。
-  //
-  // list[0] = front
-  // list[1] = back
-  //
-  // 不受玩家点击顺序影响。
-  // ==========================================================
-
-  function getSelectedNumbers(){
-
-
-    return numbers.filter(
-
-      item =>
-        selected.includes(
-          item.id
-        )
+      ].sort(
+        (
+          a,
+          b
+        ) =>
+          a - b
+      )
 
     );
 
@@ -457,13 +484,8 @@ export default function useGame(){
   function getPreviewResult(){
 
 
-    const list =
-      getSelectedNumbers();
-
-
-
     if(
-      list.length !== 2
+      !gameState
     ){
 
       return null;
@@ -472,55 +494,91 @@ export default function useGame(){
 
 
 
-    // ========================================================
-    // 当前list已经按主菜盘位置排序
-    // ========================================================
-
-    const front =
-      list[0];
-
-
-    const back =
-      list[1];
+    const cells =
+      getSelectedCells();
 
 
 
     if(
-      front.value === 1 ||
-      back.value === 1
+      cells.length !== 2
     ){
 
       return null;
 
     }
+
+
+
+    const first =
+      cells[0];
+
+
+    const second =
+      cells[1];
 
 
 
     const divisor =
 
       gcd(
-        front.value,
-        back.value
+
+        first.piece.value,
+
+        second.piece.value
+
       );
 
 
 
     const combineAllowed =
 
-      canCombine(
-        front,
-        back,
-        numbers
+      canCombineCells(
+
+        gameState,
+
+        first.index,
+
+        second.index
+
       );
 
 
 
     const reduceAllowed =
 
-      canReduce(
-        front,
-        back
+      canReduceCells(
+
+        gameState,
+
+        first.index,
+
+        second.index
+
       );
+
+
+
+    const orderedPair =
+
+      getOrderedPair(
+
+        gameState,
+
+        first.index,
+
+        second.index
+
+      );
+
+
+
+    if(
+      !orderedPair
+    ){
+
+      return null;
+
+    }
 
 
 
@@ -531,52 +589,57 @@ export default function useGame(){
 
         combineAllowed
 
-        ?
+          ?
 
-        {
+          {
 
-          value:
+            value:
 
-            combineValue(
-              front.value,
-              back.value
-            ),
+              combineValue(
+
+                orderedPair.front.value,
+
+                orderedPair.back.value
+
+              ),
 
 
-          foodType:
+            foodType:
 
-            combineFoodType(
-              front,
-              back
-            )
+              combineFoodType(
 
-        }
+                orderedPair.front,
 
-        :
+                orderedPair.back
 
-        null,
+              )
 
+          }
+
+          :
+
+          null,
 
 
       reduce:
 
         reduceAllowed
 
-        ?
+          ?
 
-        [
+          [
 
-          front.value /
-          divisor,
+            first.piece.value /
+            divisor,
 
-          back.value /
-          divisor
+            second.piece.value /
+            divisor
 
-        ]
+          ]
 
-        :
+          :
 
-        null
+          null
 
     };
 
@@ -586,8 +649,19 @@ export default function useGame(){
 
 
 
+  const preview =
+    getPreviewResult();
+
+
+
+
+
   // ==========================================================
-  // 合成
+  // 搭配
+  //
+  // 点击后立即：
+  //
+  // C → 下一个空格
   // ==========================================================
 
   function combineNumbers(){
@@ -604,24 +678,13 @@ export default function useGame(){
 
 
 
-    const list =
-      getSelectedNumbers();
+    const cells =
+      getSelectedCells();
 
 
 
     if(
-      list.length !== 2
-    ){
-
-      return;
-
-    }
-
-
-
-    if(
-      list[0].value === 1 ||
-      list[1].value === 1
+      cells.length !== 2
     ){
 
       return;
@@ -632,13 +695,13 @@ export default function useGame(){
 
     const nextState =
 
-      engineCombineNumbers(
+      engineCombineCells(
 
         gameState,
 
-        list[0].id,
+        cells[0].index,
 
-        list[1].id
+        cells[1].index
 
       );
 
@@ -659,7 +722,9 @@ export default function useGame(){
     );
 
 
-    setSelected([]);
+    setSelectedIndexes(
+      []
+    );
 
   }
 
@@ -668,7 +733,7 @@ export default function useGame(){
 
 
   // ==========================================================
-  // 约分
+  // 处理
   // ==========================================================
 
   function reduceNumbers(){
@@ -685,24 +750,13 @@ export default function useGame(){
 
 
 
-    const list =
-      getSelectedNumbers();
+    const cells =
+      getSelectedCells();
 
 
 
     if(
-      list.length !== 2
-    ){
-
-      return;
-
-    }
-
-
-
-    if(
-      list[0].value === 1 ||
-      list[1].value === 1
+      cells.length !== 2
     ){
 
       return;
@@ -713,13 +767,13 @@ export default function useGame(){
 
     const nextState =
 
-      engineReduceNumbers(
+      engineReduceCells(
 
         gameState,
 
-        list[0].id,
+        cells[0].index,
 
-        list[1].id
+        cells[1].index
 
       );
 
@@ -740,7 +794,9 @@ export default function useGame(){
     );
 
 
-    setSelected([]);
+    setSelectedIndexes(
+      []
+    );
 
   }
 
@@ -750,16 +806,10 @@ export default function useGame(){
 
   // ==========================================================
   // 消除1
-  //
-  // Engine会自动完成：
-  //
-  // 收藏
-  // +
-  // 对应编号调料进入调料盘
   // ==========================================================
 
   function removeOne(
-    id
+    index
   ){
 
 
@@ -774,35 +824,13 @@ export default function useGame(){
 
 
 
-    const target =
-
-      numbers.find(
-
-        item =>
-          item.id === id
-
-      );
-
-
-
-    if(
-      !target ||
-      target.value !== 1
-    ){
-
-      return;
-
-    }
-
-
-
     const nextState =
 
       engineRemoveOne(
 
         gameState,
 
-        id
+        index
 
       );
 
@@ -824,14 +852,14 @@ export default function useGame(){
 
 
 
-    setSelected(
+    setSelectedIndexes(
 
       prev =>
 
         prev.filter(
 
-          selectedId =>
-            selectedId !== id
+          selectedIndex =>
+            selectedIndex !== index
 
         )
 
@@ -844,46 +872,38 @@ export default function useGame(){
 
 
   // ==========================================================
-  // Preview
+  // UI辅助
   // ==========================================================
 
-  const selectedNumbers =
-    getSelectedNumbers();
+  function isCellSelected(
+    index
+  ){
 
 
-  const preview =
-    getPreviewResult();
+    return selectedIndexes.includes(
+      index
+    );
+
+  }
 
 
 
 
-
-  // ==========================================================
-  // 对外提供
-  // ==========================================================
 
   return {
 
 
-    // ========================================================
-    // 主菜盘
-    // ========================================================
+    board,
 
     numbers,
 
 
-    // ========================================================
-    // 调料盘
-    // ========================================================
-
     seasoningTray,
 
 
-    selected,
+    selectedIndexes,
 
-
-    started,
-
+    selectedCells,
 
     selectedNumbers,
 
@@ -891,33 +911,24 @@ export default function useGame(){
     preview,
 
 
-    collection,
+    started,
 
+    gameOver,
+
+
+    collection,
 
     collectionPaths,
 
-
     collectionOrigins,
-
 
     latestCollection,
 
-
-    // ========================================================
-    // 营业数据
-    //
-    // score 后续显示为金钱
-    // steps 后续显示为时间
-    // ========================================================
 
     score,
 
     steps,
 
-
-    // ========================================================
-    // 环境
-    // ========================================================
 
     primeEnergy,
 
@@ -926,26 +937,20 @@ export default function useGame(){
     primeState,
 
 
-    // ========================================================
-    // 状态
-    // ========================================================
-
-    gameOver,
-
-
-    // ========================================================
-    // 操作
-    // ========================================================
-
     startGame,
 
-    selectNumber,
+    selectCell,
 
     combineNumbers,
 
     reduceNumbers,
 
-    removeOne
+    removeOne,
+
+
+    getCell,
+
+    isCellSelected
 
   };
 
