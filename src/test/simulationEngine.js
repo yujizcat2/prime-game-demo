@@ -16,6 +16,10 @@ import {
   createMazeStateKey
 } from "../game/mazeHistory";
 
+import {
+  applyCollection
+} from "../game/collectionRules";
+
 
 
 
@@ -594,8 +598,7 @@ function canReduceIndexes(
 
 
   if(
-    indexA ===
-    indexB
+    indexA === indexB
   ){
 
 
@@ -1132,17 +1135,22 @@ function applyRemove(
 
 
 
-  if(
-    target.previousValue !=
-    null
-  ){
+  // ==========================================================
+  // 收藏规则
+  //
+  // V0：
+  //
+  // 这里只负责调用 collectionRules。
+  // 是否形成收藏由 collectionRules 统一判断。
+  //
+  // 即使没有产生收藏，
+  // 1 依旧和旧版本一样正常被处理掉。
+  // ==========================================================
 
-
-    state.collection.add(
-      target.previousValue
-    );
-
-  }
+  applyCollection(
+    state,
+    target
+  );
 
 
 
