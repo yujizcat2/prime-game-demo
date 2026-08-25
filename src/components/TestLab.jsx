@@ -15,12 +15,6 @@ import "./TestLab.css";
 
 
 
-
-
-// ============================================================
-// 模式
-// ============================================================
-
 const TEST_MODES = {
 
   RANDOM:
@@ -35,12 +29,6 @@ const TEST_MODES = {
 };
 
 
-
-
-
-// ============================================================
-// 测试局数
-// ============================================================
 
 const RANDOM_GAME_OPTIONS = [
 
@@ -62,12 +50,6 @@ const SMART_GAME_OPTIONS = [
 
 
 
-
-
-// ============================================================
-// AI 参数
-// ============================================================
-
 const SMART_DEPTH =
   4;
 
@@ -82,8 +64,6 @@ const COLLECTION_MAX_ACTIONS =
 
 const SURVIVAL_MAX_ACTIONS =
   10000;
-
-
 
 
 
@@ -143,8 +123,6 @@ export default function TestLab({
 
 
 
-
-
   const isSmartMode =
 
     mode !==
@@ -161,21 +139,11 @@ export default function TestLab({
 
     isSmartMode
 
-      ?
+      ? SMART_GAME_OPTIONS
 
-        SMART_GAME_OPTIONS
-
-      :
-
-        RANDOM_GAME_OPTIONS;
+      : RANDOM_GAME_OPTIONS;
 
 
-
-
-
-  // ==========================================================
-  // 切换模式
-  // ==========================================================
 
   function changeMode(
     nextMode
@@ -185,7 +153,6 @@ export default function TestLab({
     if(
       running
     ){
-
 
       return;
 
@@ -218,13 +185,9 @@ export default function TestLab({
       nextMode ===
       TEST_MODES.RANDOM
 
-        ?
+        ? 100
 
-          100
-
-        :
-
-          1
+        : 1
 
     );
 
@@ -234,17 +197,12 @@ export default function TestLab({
 
 
 
-  // ==========================================================
-  // 开始测试
-  // ==========================================================
-
   async function runTest(){
 
 
     if(
       running
     ){
-
 
       return;
 
@@ -280,10 +238,6 @@ export default function TestLab({
 
 
 
-      // ======================================================
-      // Random
-      // ======================================================
-
       if(
         mode ===
         TEST_MODES.RANDOM
@@ -310,12 +264,6 @@ export default function TestLab({
       }
 
 
-
-
-
-      // ======================================================
-      // Survival
-      // ======================================================
 
       else if(
         mode ===
@@ -349,12 +297,6 @@ export default function TestLab({
       }
 
 
-
-
-
-      // ======================================================
-      // Collection V4
-      // ======================================================
 
       else{
 
@@ -502,8 +444,6 @@ export default function TestLab({
 
 
 
-
-
         <section
           className="
             test-lab-control
@@ -611,8 +551,6 @@ export default function TestLab({
 
 
 
-
-
         <div
           className="
             test-lab-description
@@ -640,7 +578,7 @@ export default function TestLab({
 
               {" · "}
 
-              三系平衡 V4
+              三系平衡 V5
 
             </>
 
@@ -656,15 +594,11 @@ export default function TestLab({
 
               <br />
 
-              Depth {
-                SMART_DEPTH
-              }
+              Depth {SMART_DEPTH}
 
               {" · "}
 
-              Beam {
-                SMART_BEAM_WIDTH
-              }
+              Beam {SMART_BEAM_WIDTH}
 
               {" · "}
 
@@ -672,15 +606,11 @@ export default function TestLab({
 
                 isCollectionMode
 
-                  ?
-
-                    formatNumber(
+                  ? formatNumber(
                       COLLECTION_MAX_ACTIONS
                     )
 
-                  :
-
-                    formatNumber(
+                  : formatNumber(
                       SURVIVAL_MAX_ACTIONS
                     )
 
@@ -692,8 +622,6 @@ export default function TestLab({
 
 
         </div>
-
-
 
 
 
@@ -741,13 +669,9 @@ export default function TestLab({
 
                       games === value
 
-                        ?
+                        ? "test-lab-option is-active"
 
-                          "test-lab-option is-active"
-
-                        :
-
-                          "test-lab-option"
+                        : "test-lab-option"
 
                     }
 
@@ -801,22 +725,12 @@ export default function TestLab({
           >
 
             {
-
               running
-
-                ?
-
-                  "测试中..."
-
-                :
-
-                  "开始测试"
-
+                ? "测试中..."
+                : "开始测试"
             }
 
           </button>
-
-
 
 
 
@@ -845,8 +759,6 @@ export default function TestLab({
 
 
 
-
-
           {
 
             error &&
@@ -857,9 +769,7 @@ export default function TestLab({
               "
             >
 
-              {
-                error
-              }
+              {error}
 
             </div>
 
@@ -867,8 +777,6 @@ export default function TestLab({
 
 
         </section>
-
-
 
 
 
@@ -908,10 +816,6 @@ export default function TestLab({
 
 
 
-// ============================================================
-// Mode Button
-// ============================================================
-
 function ModeButton({
 
   active,
@@ -935,13 +839,9 @@ function ModeButton({
 
         active
 
-          ?
+          ? "test-lab-option is-active"
 
-            "test-lab-option is-active"
-
-          :
-
-            "test-lab-option"
+          : "test-lab-option"
 
       }
 
@@ -955,9 +855,7 @@ function ModeButton({
 
     >
 
-      {
-        children
-      }
+      {children}
 
     </button>
 
@@ -968,10 +866,6 @@ function ModeButton({
 
 
 
-
-// ============================================================
-// Progress
-// ============================================================
 
 function ProgressPanel({
 
@@ -984,23 +878,23 @@ function ProgressPanel({
 }){
 
 
-  const meat =
-    progress.currentCollectionMeatCount
+  const dog =
+    progress.currentCollectionDogCount
     ?? 0;
 
 
-  const vegetable =
-    progress.currentCollectionVegetableCount
+  const cat =
+    progress.currentCollectionCatCount
     ?? 0;
 
 
-  const seasoning =
-    progress.currentCollectionSeasoningCount
+  const mammal =
+    progress.currentCollectionMammalCount
     ?? 0;
 
 
-  const dessert =
-    progress.currentCollectionDessertCount
+  const bird =
+    progress.currentCollectionBirdCount
     ?? 0;
 
 
@@ -1016,25 +910,15 @@ function ProgressPanel({
 
       <div>
 
-        {
-          formatNumber(
-            progress.completed
-          )
-        }
+        {formatNumber(progress.completed)}
 
         {" / "}
 
-        {
-          formatNumber(
-            progress.total
-          )
-        }
+        {formatNumber(progress.total)}
 
         {" 局"}
 
       </div>
-
-
 
 
 
@@ -1048,45 +932,27 @@ function ProgressPanel({
 
           <div>
 
-            操作
+            操作{" "}
 
-            {" "}
-
-            {
-              formatNumber(
-                progress.currentActions
-              )
-            }
+            {formatNumber(progress.currentActions)}
 
             {" · "}
 
-            Step
+            Step{" "}
 
-            {" "}
-
-            {
-              formatNumber(
-                progress.currentSteps
-              )
-            }
+            {formatNumber(progress.currentSteps)}
 
             {" · "}
 
-            收藏
-
-            {" "}
+            收藏{" "}
 
             <strong>
 
-              {
-                progress.currentCollection
-              }
+              {progress.currentCollection}
 
             </strong>
 
           </div>
-
-
 
 
 
@@ -1099,27 +965,19 @@ function ProgressPanel({
 
               <div>
 
-                荤 {
-                  meat
-                }
+                狗 {dog}
 
                 {" / "}
 
-                素 {
-                  vegetable
-                }
+                猫 {cat}
 
                 {" / "}
 
-                调 {
-                  seasoning
-                }
+                哺乳 {mammal}
 
                 {" / "}
 
-                甜 {
-                  dessert
-                }
+                鸟 {bird}
 
                 {" · "}
 
@@ -1137,17 +995,17 @@ function ProgressPanel({
                 {
                   describeBalanceState({
 
-                    meatCount:
-                      meat,
+                    dogCount:
+                      dog,
 
-                    vegetableCount:
-                      vegetable,
+                    catCount:
+                      cat,
 
-                    seasoningCount:
-                      seasoning,
+                    mammalCount:
+                      mammal,
 
-                    dessertCount:
-                      dessert
+                    birdCount:
+                      bird
 
                   })
                 }
@@ -1174,10 +1032,6 @@ function ProgressPanel({
 
 
 
-
-// ============================================================
-// Results
-// ============================================================
 
 function TestResults({
 
@@ -1221,8 +1075,6 @@ function TestResults({
 
 
 
-
-
       <ResultGrid
 
         result={
@@ -1238,8 +1090,6 @@ function TestResults({
         }
 
       />
-
-
 
 
 
@@ -1263,8 +1113,6 @@ function TestResults({
 
 
 
-
-
       {
 
         collectionMode &&
@@ -1279,8 +1127,6 @@ function TestResults({
         />
 
       }
-
-
 
 
 
@@ -1309,10 +1155,6 @@ function TestResults({
 
 
 
-
-// ============================================================
-// Result Grid
-// ============================================================
 
 function ResultGrid({
 
@@ -1391,8 +1233,6 @@ function ResultGrid({
 
 
 
-
-
       {
 
         collectionMode &&
@@ -1452,8 +1292,6 @@ function ResultGrid({
 
 
 
-
-
       <ResultItem
         label="达到保护上限"
         value={
@@ -1461,8 +1299,6 @@ function ResultGrid({
           ?? 0
         }
       />
-
-
 
 
 
@@ -1491,10 +1327,6 @@ function ResultGrid({
 
 
 
-// ============================================================
-// Result Item
-// ============================================================
-
 function ResultItem({
 
   label,
@@ -1513,13 +1345,9 @@ function ResultItem({
 
         highlight
 
-          ?
+          ? "test-lab-result-item is-highlight"
 
-            "test-lab-result-item is-highlight"
-
-          :
-
-            "test-lab-result-item"
+          : "test-lab-result-item"
 
       }
     >
@@ -1531,9 +1359,7 @@ function ResultItem({
         "
       >
 
-        {
-          label
-        }
+        {label}
 
       </div>
 
@@ -1544,9 +1370,7 @@ function ResultItem({
         "
       >
 
-        {
-          value
-        }
+        {value}
 
       </div>
 
@@ -1560,10 +1384,6 @@ function ResultItem({
 
 
 
-
-// ============================================================
-// Best Game
-// ============================================================
 
 function BestGameCard({
 
@@ -1579,7 +1399,7 @@ function BestGameCard({
 
 
   const typeCounts =
-    game.collectionTypeCounts;
+    game.collectionAnimalTypeCounts;
 
 
 
@@ -1599,17 +1419,9 @@ function BestGameCard({
       >
 
         {
-
           collectionMode
-
-            ?
-
-              "最多收藏纪录"
-
-            :
-
-              "最长步数纪录"
-
+            ? "最多收藏纪录"
+            : "最长步数纪录"
         }
 
       </div>
@@ -1618,9 +1430,7 @@ function BestGameCard({
 
       <div>
 
-        第 {
-          game.gameIndex
-        } 局
+        第 {game.gameIndex} 局
 
         {" · "}
 
@@ -1639,55 +1449,29 @@ function BestGameCard({
 
       <div>
 
-        Step
-
-        {" "}
+        Step{" "}
 
         <strong>
-
-          {
-            formatNumber(
-              game.steps
-            )
-          }
-
+          {formatNumber(game.steps)}
         </strong>
 
         {" · "}
 
-        操作
+        操作{" "}
 
-        {" "}
-
-        {
-          formatNumber(
-            game.actions
-          )
-        }
+        {formatNumber(game.actions)}
 
         {" · "}
 
-        收藏
-
-        {" "}
+        收藏{" "}
 
         <strong>
-
-          {
-            game.collectionCount
-          }
-
+          {game.collectionCount}
         </strong>
 
       </div>
 
 
-
-
-
-      {/* =====================================================
-          整局收藏类型总数
-          ===================================================== */}
 
       {
 
@@ -1702,29 +1486,29 @@ function BestGameCard({
 
           <strong>
 
-            荤 {
-              typeCounts.meat
+            狗 {
+              typeCounts.dog
               ?? 0
             }
 
             {" / "}
 
-            素 {
-              typeCounts.vegetable
+            猫 {
+              typeCounts.cat
               ?? 0
             }
 
             {" / "}
 
-            调料 {
-              typeCounts.seasoning
+            哺乳 {
+              typeCounts.mammal
               ?? 0
             }
 
             {" / "}
 
-            甜 {
-              typeCounts.dessert
+            鸟 {
+              typeCounts.bird
               ?? 0
             }
 
@@ -1733,8 +1517,6 @@ function BestGameCard({
         </div>
 
       }
-
-
 
 
 
@@ -1754,27 +1536,19 @@ function BestGameCard({
 
             <strong>
 
-              荤 {
-                balance.meatCount
-              }
+              狗 {balance.dogCount}
 
               {" / "}
 
-              素 {
-                balance.vegetableCount
-              }
+              猫 {balance.catCount}
 
               {" / "}
 
-              调料 {
-                balance.seasoningCount
-              }
+              哺乳 {balance.mammalCount}
 
               {" / "}
 
-              甜 {
-                balance.dessertCount
-              }
+              鸟 {balance.birdCount}
 
             </strong>
 
@@ -1789,11 +1563,7 @@ function BestGameCard({
             {" "}
 
             <strong>
-
-              {
-                balance.imbalance
-              }
-
+              {balance.imbalance}
             </strong>
 
           </div>
@@ -1837,8 +1607,6 @@ function BestGameCard({
 
 
 
-
-
       <div>
 
         结束：
@@ -1866,9 +1634,7 @@ function BestGameCard({
 
 
 
-// ============================================================
-// Collection Timeline
-// ============================================================
+
 
 function CollectionTimeline({
 
@@ -1883,20 +1649,15 @@ function CollectionTimeline({
       game?.collectionTimeline
     )
 
-      ?
+      ? game.collectionTimeline
 
-        game.collectionTimeline
-
-      :
-
-        [];
+      : [];
 
 
 
   if(
     timeline.length === 0
   ){
-
 
     return null;
 
@@ -1932,21 +1693,13 @@ function CollectionTimeline({
         }}
       >
 
-        共
-
-        {" "}
+        共{" "}
 
         <strong>
-
-          {
-            timeline.length
-          }
-
+          {timeline.length}
         </strong>
 
-        {" "}
-
-        个收藏
+        {" "}个收藏
 
       </div>
 
@@ -2005,10 +1758,6 @@ function CollectionTimeline({
 
 
 
-
-// ============================================================
-// Collection Timeline Item
-// ============================================================
 
 function CollectionTimelineItem({
 
@@ -2110,9 +1859,7 @@ function CollectionTimelineItem({
           }}
         >
 
-          #{
-            entry.order
-          }
+          #{entry.order}
 
         </span>
 
@@ -2122,11 +1869,7 @@ function CollectionTimelineItem({
 
 
           <strong>
-
-            {
-              entry.value
-            }
-
+            {entry.value}
           </strong>
 
 
@@ -2144,8 +1887,8 @@ function CollectionTimelineItem({
           >
 
             {
-              formatFoodType(
-                entry.foodType
+              formatAnimalType(
+                entry.animalType
               )
             }
 
@@ -2167,19 +1910,11 @@ function CollectionTimelineItem({
         >
 
 
-          第 {
-            formatNumber(
-              entry.actionNumber
-            )
-          } 操作
+          第 {formatNumber(entry.actionNumber)} 操作
 
           {" · "}
 
-          Step {
-            formatNumber(
-              entry.steps
-            )
-          }
+          Step {formatNumber(entry.steps)}
 
 
 
@@ -2191,33 +1926,23 @@ function CollectionTimelineItem({
 
               <br />
 
-              荤 {
-                balance.meatCount
-              }
+              狗 {balance.dogCount}
 
               {" / "}
 
-              素 {
-                balance.vegetableCount
-              }
+              猫 {balance.catCount}
 
               {" / "}
 
-              调 {
-                balance.seasoningCount
-              }
+              哺乳 {balance.mammalCount}
 
               {" / "}
 
-              甜 {
-                balance.dessertCount
-              }
+              鸟 {balance.birdCount}
 
               {" · "}
 
-              失衡 {
-                balance.imbalance
-              }
+              失衡 {balance.imbalance}
 
 
               <br />
@@ -2246,22 +1971,14 @@ function CollectionTimelineItem({
 
           {
             open
-
-              ?
-
-                "▴"
-
-              :
-
-                "▾"
+              ? "▴"
+              : "▾"
           }
 
         </span>
 
 
       </button>
-
-
 
 
 
@@ -2290,10 +2007,6 @@ function CollectionTimelineItem({
 
 
 
-// ============================================================
-// Collection Route Detail
-// ============================================================
-
 function CollectionRouteDetail({
 
   entry
@@ -2307,13 +2020,9 @@ function CollectionRouteDetail({
       entry.routeWindow
     )
 
-      ?
+      ? entry.routeWindow
 
-        entry.routeWindow
-
-      :
-
-        [];
+      : [];
 
 
 
@@ -2345,16 +2054,12 @@ function CollectionRouteDetail({
         <div>
 
           <strong>
-
             前一步：
-
           </strong>
 
           {" "}
 
-          {
-            entry.previousAction.text
-          }
+          {entry.previousAction.text}
 
         </div>
 
@@ -2374,22 +2079,16 @@ function CollectionRouteDetail({
         >
 
           <strong>
-
             收藏：
-
           </strong>
 
           {" "}
 
-          {
-            entry.triggerAction.text
-          }
+          {entry.triggerAction.text}
 
         </div>
 
       }
-
-
 
 
 
@@ -2401,9 +2100,7 @@ function CollectionRouteDetail({
 
 
           <strong>
-
             最近路线
-
           </strong>
 
 
@@ -2436,15 +2133,11 @@ function CollectionRouteDetail({
                     }
                   >
 
-                    {
-                      item.actionNumber
-                    }
+                    {item.actionNumber}
 
                     {" "}
 
-                    {
-                      item.text
-                    }
+                    {item.text}
 
 
 
@@ -2488,10 +2181,6 @@ function CollectionRouteDetail({
 
 
 
-// ============================================================
-// Maze Summary
-// ============================================================
-
 function MazeTurnSummary({
 
   game
@@ -2505,20 +2194,15 @@ function MazeTurnSummary({
       game?.mazeTurns
     )
 
-      ?
+      ? game.mazeTurns
 
-        game.mazeTurns
-
-      :
-
-        [];
+      : [];
 
 
 
   if(
     turns.length === 0
   ){
-
 
     return null;
 
@@ -2559,25 +2243,15 @@ function MazeTurnSummary({
               }
             >
 
-              ↻ #{
-                turn.turnNumber
-              }
+              ↻ #{turn.turnNumber}
 
               {" · "}
 
-              操作 {
-                formatNumber(
-                  turn.actionNumber
-                )
-              }
+              操作 {formatNumber(turn.actionNumber)}
 
               {" · "}
 
-              Step {
-                formatNumber(
-                  turn.triggerSteps
-                )
-              }
+              Step {formatNumber(turn.triggerSteps)}
 
             </div>
 
@@ -2598,10 +2272,6 @@ function MazeTurnSummary({
 
 
 
-// ============================================================
-// 平衡状态文字说明
-// ============================================================
-
 function describeBalanceState(
   balance
 ){
@@ -2611,41 +2281,40 @@ function describeBalanceState(
     !balance
   ){
 
-
     return "无类型状态";
 
   }
 
 
 
-  const meat =
+  const dog =
 
     Number(
-      balance.meatCount
+      balance.dogCount
       ?? 0
     );
 
 
-  const vegetable =
+  const cat =
 
     Number(
-      balance.vegetableCount
+      balance.catCount
       ?? 0
     );
 
 
-  const seasoning =
+  const mammal =
 
     Number(
-      balance.seasoningCount
+      balance.mammalCount
       ?? 0
     );
 
 
-  const dessert =
+  const bird =
 
     Number(
-      balance.dessertCount
+      balance.birdCount
       ?? 0
     );
 
@@ -2655,40 +2324,38 @@ function describeBalanceState(
 
     {
       key:
-        "meat",
+        "dog",
 
       label:
-        "荤",
+        "狗",
 
       count:
-        meat
+        dog
     },
 
     {
       key:
-        "vegetable",
+        "cat",
 
       label:
-        "素",
+        "猫",
 
       count:
-        vegetable
+        cat
     },
 
     {
       key:
-        "seasoning",
+        "mammal",
 
       label:
-        "调料",
+        "哺乳",
 
       count:
-        seasoning
+        mammal
     }
 
   ];
-
-
 
 
 
@@ -2703,18 +2370,10 @@ function describeBalanceState(
 
 
 
-
-
   let text =
     "";
 
 
-
-
-
-  // ==========================================================
-  // 三系全部缺失
-  // ==========================================================
 
   if(
     active.length === 0
@@ -2728,12 +2387,6 @@ function describeBalanceState(
 
 
 
-
-
-  // ==========================================================
-  // 只有一系
-  // ==========================================================
-
   else if(
     active.length === 1
   ){
@@ -2746,12 +2399,6 @@ function describeBalanceState(
   }
 
 
-
-
-
-  // ==========================================================
-  // 两系参与
-  // ==========================================================
 
   else if(
     active.length === 2
@@ -2798,13 +2445,9 @@ function describeBalanceState(
         first.count >
         second.count
 
-          ?
+          ? first
 
-            first
-
-          :
-
-            second;
+          : second;
 
 
 
@@ -2817,12 +2460,6 @@ function describeBalanceState(
   }
 
 
-
-
-
-  // ==========================================================
-  // 三系全部参与
-  // ==========================================================
 
   else{
 
@@ -2850,12 +2487,6 @@ function describeBalanceState(
       );
 
 
-
-
-
-    // ========================================================
-    // 完全均衡
-    // ========================================================
 
     if(
       maxCount ===
@@ -2891,12 +2522,6 @@ function describeBalanceState(
 
 
 
-
-
-      // ======================================================
-      // 唯一优势系
-      // ======================================================
-
       if(
         dominant.length === 1
       ){
@@ -2926,13 +2551,6 @@ function describeBalanceState(
       }
 
 
-
-
-
-      // ======================================================
-      // 两个并列优势
-      // ======================================================
-
       else{
 
 
@@ -2955,37 +2573,27 @@ function describeBalanceState(
 
 
 
-
-
-  // ==========================================================
-  // 甜食提示
-  // ==========================================================
-
   if(
-    dessert > 0
+    bird > 0
   ){
 
 
     if(
-      meat === 0
+      dog === 0
       &&
-      vegetable === 0
+      cat === 0
       &&
-      seasoning === 0
+      mammal === 0
     ){
 
 
       text +=
 
-        dessert >= 6
+        bird >= 6
 
-          ?
+          ? " · 鸟系占满"
 
-            " · 全甜"
-
-          :
-
-            " · 含甜食";
+          : " · 含鸟系";
 
     }
 
@@ -2994,7 +2602,7 @@ function describeBalanceState(
 
 
       text +=
-        " · 含甜食";
+        " · 含鸟系";
 
     }
 
@@ -3009,10 +2617,6 @@ function describeBalanceState(
 
 
 
-
-// ============================================================
-// Helpers
-// ============================================================
 
 function getModeTitle(
   mode
@@ -3037,7 +2641,7 @@ function getModeTitle(
   ){
 
 
-    return "最多收藏 AI V4";
+    return "最多收藏 AI V5";
 
   }
 
@@ -3051,34 +2655,34 @@ function getModeTitle(
 
 
 
-function formatFoodType(
-  foodType
+function formatAnimalType(
+  animalType
 ){
 
 
   switch(
-    foodType
+    animalType
   ){
 
 
-    case "meat":
+    case "dog":
 
-      return "荤";
-
-
-    case "vegetable":
-
-      return "素";
+      return "狗";
 
 
-    case "seasoning":
+    case "cat":
 
-      return "调料";
+      return "猫";
 
 
-    case "dessert":
+    case "mammal":
 
-      return "甜";
+      return "哺乳";
+
+
+    case "bird":
+
+      return "鸟";
 
 
     default:
@@ -3115,7 +2719,7 @@ function formatTypeSequence(
 
   return sequence
     .map(
-      formatFoodType
+      formatAnimalType
     )
     .join(
       " → "

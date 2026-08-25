@@ -3,20 +3,12 @@ import {
 } from "../game/actionStatus";
 
 import {
-  combineFoodType
+  combineAnimalType
 } from "../game/rules";
 
 import {
-  getMeatName
-} from "../data/food/meatData";
-
-import {
-  getVegetableName
-} from "../data/food/vegetableData";
-
-import {
-  getDessertName
-} from "../data/food/dessertData";
+  getAnimalName
+} from "../data/animal/animalRegistry";
 
 import {
   getEmptyText,
@@ -34,12 +26,12 @@ import {
 
 
 // ============================================================
-// 根据料理类型获取名称
+// 根据动物类型获取名称
 // ============================================================
 
-function getFoodName(
+function getDisplayName(
   value,
-  foodType
+  animalType
 ) {
 
 
@@ -54,44 +46,12 @@ function getFoodName(
 
 
 
-  if(
-    foodType === "meat"
-  ){
+  return getAnimalName(
 
-    return getMeatName(
-      value
-    );
+    value,
 
-  }
+    animalType
 
-
-
-  if(
-    foodType === "vegetable"
-  ){
-
-    return getVegetableName(
-      value
-    );
-
-  }
-
-
-
-  if(
-    foodType === "dessert"
-  ){
-
-    return getDessertName(
-      value
-    );
-
-  }
-
-
-
-  return String(
-    value
   );
 
 }
@@ -129,7 +89,7 @@ export default function ActionHintPanel({
 
 
   // ==========================================================
-  // 获取某个节点对应的料理名称
+  // 获取某个节点对应的动物名称
   // ==========================================================
 
   function getItemName(
@@ -147,11 +107,11 @@ export default function ActionHintPanel({
 
 
 
-    return getFoodName(
+    return getDisplayName(
 
       item.value,
 
-      item.foodType
+      item.animalType
 
     );
 
@@ -206,17 +166,13 @@ export default function ActionHintPanel({
 
 
 
-    // ========================================================
-    // 来源料理类型
-    // ========================================================
+    const previousAnimalType =
 
-    const previousFoodType =
-
-      previousRecord?.foodType
+      previousRecord?.animalType
 
       ??
 
-      oneItem?.foodType
+      oneItem?.animalType
 
       ??
 
@@ -224,15 +180,15 @@ export default function ActionHintPanel({
 
 
 
-    const previousFoodName =
+    const previousAnimalName =
 
       previousValue !== null
 
-        ? getFoodName(
+        ? getDisplayName(
 
             previousValue,
 
-            previousFoodType
+            previousAnimalType
 
           )
 
@@ -244,7 +200,7 @@ export default function ActionHintPanel({
 
       getWaterText(
 
-        previousFoodName
+        previousAnimalName
 
       );
 
@@ -255,7 +211,7 @@ export default function ActionHintPanel({
 
 
   // ==========================================================
-  // 只选择一个普通料理
+  // 只选择一个普通动物
   // ==========================================================
 
   else if(
@@ -303,7 +259,7 @@ export default function ActionHintPanel({
 
 
   // ==========================================================
-  // 选择两个料理
+  // 选择两个动物
   // ==========================================================
 
   else if(
@@ -360,12 +316,12 @@ export default function ActionHintPanel({
 
 
 
-    const resultFoodType =
+    const resultAnimalType =
 
       firstItem &&
       secondItem
 
-        ? combineFoodType(
+        ? combineAnimalType(
 
             firstItem,
 
@@ -373,7 +329,7 @@ export default function ActionHintPanel({
 
           )
 
-        : firstItem?.foodType ?? null;
+        : firstItem?.animalType ?? null;
 
 
 
@@ -384,11 +340,11 @@ export default function ActionHintPanel({
       combine?.result !== null &&
       combine?.result !== undefined
 
-        ? getFoodName(
+        ? getDisplayName(
 
             combine.result,
 
-            resultFoodType
+            resultAnimalType
 
           )
 
@@ -404,11 +360,11 @@ export default function ActionHintPanel({
       reduce.firstResult !== null &&
       firstItem
 
-        ? getFoodName(
+        ? getDisplayName(
 
             reduce.firstResult,
 
-            firstItem.foodType
+            firstItem.animalType
 
           )
 
@@ -424,11 +380,11 @@ export default function ActionHintPanel({
       reduce.secondResult !== null &&
       secondItem
 
-        ? getFoodName(
+        ? getDisplayName(
 
             reduce.secondResult,
 
-            secondItem.foodType
+            secondItem.animalType
 
           )
 
@@ -590,10 +546,6 @@ export default function ActionHintPanel({
 
 
 
-      {/* =========================
-          TIP
-          ========================= */}
-
       <div
 
         className="
@@ -625,43 +577,29 @@ export default function ActionHintPanel({
 
 
         <span
-
           className="
             text-[12px]
             leading-none
           "
-
         >
-
           ✦
-
         </span>
 
 
         <span
-
           className="
             text-[9px]
-
             font-bold
-
             tracking-[0.14em]
           "
-
         >
-
           TIP
-
         </span>
 
 
       </div>
 
 
-
-      {/* =========================
-          提示文字
-          ========================= */}
 
       <div
 

@@ -1,14 +1,14 @@
 // ============================================================
-// 料理世界语言层
+// 动物世界语言层
 //
 // 这里只负责把底层游戏状态
-// 翻译成玩家看到的料理语言。
+// 翻译成玩家看到的动物语言。
 //
 // 不参与：
 // - 合成判断
 // - 约分判断
 // - 数值计算
-// - foodType 规则
+// - animalType 规则
 // ============================================================
 
 
@@ -19,7 +19,7 @@
 
 export function getEmptyText() {
 
-  return "选择两道料理";
+  return "选择两只动物";
 
 }
 
@@ -28,7 +28,7 @@ export function getEmptyText() {
 
 
 // ============================================================
-// 只选择一道料理
+// 只选择一只动物
 // ============================================================
 
 export function getSingleText(
@@ -39,13 +39,13 @@ export function getSingleText(
     !name
   ){
 
-    return "再选一道料理";
+    return "再选一只动物";
 
   }
 
 
   return (
-    `已选择「${name}」，再选一道料理`
+    `已选择「${name}」，再选一只动物`
   );
 
 }
@@ -57,11 +57,8 @@ export function getSingleText(
 // ============================================================
 // 获得1
 //
-// 当前料理世界里：
-// 数字1暂时表现为“原汁”
-//
-// 后续如果决定换成其他名称，
-// 只需要修改这里的文字层。
+// 当前动物世界里：
+// 数字1继续表现为“水”。
 // ============================================================
 
 export function getWaterText(
@@ -73,13 +70,13 @@ export function getWaterText(
   ){
 
     return (
-      `从「${sourceName}」中处理出了原汁`
+      `从「${sourceName}」中处理出了水`
     );
 
   }
 
 
-  return "处理出了原汁";
+  return "处理出了水";
 
 }
 
@@ -88,17 +85,17 @@ export function getWaterText(
 
 
 // ============================================================
-// 可以组成三拼
+// 可以组合
 //
 // 数学：
 //
 // A + B = C
 //
-// 料理世界：
+// 动物世界：
 //
-// A、B、C形成一个固定三拼关系。
+// A、B、C形成固定组合关系。
 //
-// C不是A和B“制作出来”的。
+// C不是A和B现实意义上的“后代”。
 // ============================================================
 
 export function getCombineText({
@@ -118,14 +115,14 @@ export function getCombineText({
   ){
 
     return (
-      `「${firstName}」＋「${secondName}」可与「${resultName}」组成三拼`
+      `「${firstName}」＋「${secondName}」可组合出「${resultName}」`
     );
 
   }
 
 
   return (
-    "这两道料理可以组成一组三拼"
+    "这两只动物可以组合"
   );
 
 }
@@ -139,9 +136,9 @@ export function getCombineText({
 //
 // 数学底层：约分
 //
-// 料理世界：
-// 两道料理一起处理，
-// 分别得到新的料理状态。
+// 动物世界：
+// 两只动物一起处理，
+// 分别得到新的动物状态。
 // ============================================================
 
 export function getReduceText({
@@ -171,7 +168,7 @@ export function getReduceText({
 
 
   return (
-    "这两道料理可以一起处理"
+    "这两只动物可以一起处理"
   );
 
 }
@@ -181,7 +178,7 @@ export function getReduceText({
 
 
 // ============================================================
-// 既可以组成三拼，也可以处理
+// 既可以组合，也可以处理
 // ============================================================
 
 export function getCombineAndReduceText({
@@ -207,14 +204,14 @@ export function getCombineAndReduceText({
   ){
 
     return (
-      `可与「${combineResultName}」组成三拼，或处理为「${firstReduceResultName}」和「${secondReduceResultName}」`
+      `可组合出「${combineResultName}」，或处理为「${firstReduceResultName}」和「${secondReduceResultName}」`
     );
 
   }
 
 
   return (
-    "可以组成三拼，也可以一起处理"
+    "可以组合，也可以一起处理"
   );
 
 }
@@ -224,7 +221,7 @@ export function getCombineAndReduceText({
 
 
 // ============================================================
-// 三拼失败原因
+// 组合失败原因
 //
 // 这里直接接收 actionStatus.js
 // 当前返回的 reason。
@@ -242,7 +239,7 @@ export function getCombineBlockedText({
 
 
   // ==========================================================
-  // 主菜盘已满
+  // 棋盘已满
   // ==========================================================
 
   if(
@@ -251,7 +248,7 @@ export function getCombineBlockedText({
   ){
 
     return (
-      "主菜盘已经放满了，先处理一些料理"
+      "棋盘已经放满了，先处理一些动物"
     );
 
   }
@@ -261,7 +258,7 @@ export function getCombineBlockedText({
 
 
   // ==========================================================
-  // 不能再和自己的直接来源组成新的三拼
+  // 不能再和自己的直接来源组合
   // ==========================================================
 
   if(
@@ -275,14 +272,14 @@ export function getCombineBlockedText({
     ){
 
       return (
-        `「${firstName}」和「${secondName}」已有直接拼盘关系`
+        `「${firstName}」和「${secondName}」已有直接来源关系`
       );
 
     }
 
 
     return (
-      "这两道料理已有直接拼盘关系"
+      "这两只动物已有直接来源关系"
     );
 
   }
@@ -292,7 +289,7 @@ export function getCombineBlockedText({
 
 
   // ==========================================================
-  // 这两个数字已经合成过
+  // 这两个数字已经组合过
   // ==========================================================
 
   if(
@@ -306,14 +303,14 @@ export function getCombineBlockedText({
     ){
 
       return (
-        `「${firstName}」和「${secondName}」的三拼已经搭配过了`
+        `「${firstName}」和「${secondName}」已经组合过了`
       );
 
     }
 
 
     return (
-      "这组三拼已经搭配过了"
+      "这个组合已经出现过了"
     );
 
   }
@@ -323,7 +320,7 @@ export function getCombineBlockedText({
 
 
   // ==========================================================
-  // 原汁不能参与普通料理
+  // 水不能参与普通组合
   // ==========================================================
 
   if(
@@ -332,7 +329,7 @@ export function getCombineBlockedText({
   ){
 
     return (
-      "原汁不能参与三拼"
+      "水不能参与组合"
     );
 
   }
@@ -356,14 +353,14 @@ export function getCombineBlockedText({
     ){
 
       return (
-        `「${firstName}」和「${secondName}」目前无法组成三拼`
+        `「${firstName}」和「${secondName}」目前无法组合`
       );
 
     }
 
 
     return (
-      "这两道料理目前无法组成三拼"
+      "这两只动物目前无法组合"
     );
 
   }
@@ -382,14 +379,14 @@ export function getCombineBlockedText({
   ){
 
     return (
-      `「${firstName}」和「${secondName}」目前没有可用的三拼`
+      `「${firstName}」和「${secondName}」目前没有可用组合`
     );
 
   }
 
 
   return (
-    "这两道料理目前没有可用的三拼"
+    "这两只动物目前没有可用组合"
   );
 
 }
@@ -399,7 +396,7 @@ export function getCombineBlockedText({
 
 
 // ============================================================
-// 不能组成三拼，但还能处理
+// 不能组合，但还能处理
 // ============================================================
 
 export function getBlockedButReducibleText({
@@ -436,7 +433,7 @@ export function getBlockedButReducibleText({
 
 
   return (
-    "不能组成三拼，但可以一起处理"
+    "不能组合，但可以一起处理"
   );
 
 }

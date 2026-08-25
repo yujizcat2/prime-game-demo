@@ -9,21 +9,21 @@
 //
 //    当前分别为：
 //
-//    荤
-//    素
-//    调料
+//    狗
+//    猫
+//    哺乳
 //
 //    且默认都是 pure。
 //
 //
 //
-// 2. 合成
+// 2. 组合
 //
 //    A + B = C
 //
-//    底层保存A、B完整来源。
+//    底层保存 A、B 完整来源。
 //
-//    同时指定一个mainParent
+//    同时指定一个 mainParent
 //    作为玩家默认看到的“父系”。
 //
 //    当前规则：
@@ -36,10 +36,10 @@
 //
 //    A → B
 //
-//    B只继承A自身的历史。
+//    B 只继承 A 自身的历史。
 //
 //    另一边参与约分的数字
-//    不进入B的主路径。
+//    不进入 B 的主路径。
 //
 //
 //
@@ -52,13 +52,13 @@
 //    其中：
 //
 //    ←  = 约分
-//    ⇐  = 合成
+//    ⇐  = 组合
 //
 //
 //
 // 5. 完整父母树仍然保留
 //
-//    当前UI暂时不显示完整树，
+//    当前 UI 暂时不显示完整树，
 //    但底层数据继续保存。
 //
 //
@@ -66,14 +66,14 @@
 // 6. 每一个历史节点同时保存：
 //
 //    value
-//    foodType
+//    animalType
 //    purity
 //    origin
 //
 //    因此未来可以完整恢复：
 //
 //    数字
-//    类型
+//    动物类型
 //    纯度
 //    历史来源。
 // ============================================================
@@ -88,7 +88,7 @@
 // 保存当前数字：
 //
 // value
-// foodType
+// animalType
 // purity
 // origin
 //
@@ -100,7 +100,7 @@
 //
 // {
 //   value: 40,
-//   foodType: "meat",
+//   animalType: "dog",
 //   purity: "mixed",
 //   origin: ...
 // }
@@ -128,8 +128,8 @@ export function createOriginSnapshot(
       number.value,
 
 
-    foodType:
-      number.foodType ?? null,
+    animalType:
+      number.animalType ?? null,
 
 
     purity:
@@ -151,10 +151,10 @@ export function createOriginSnapshot(
 
 
 // ============================================================
-// 创建合成来源
+// 创建组合来源
 //
 // resultValue：
-// 合成后的新数字
+// 组合后的新数字
 //
 // father：
 // 父系来源
@@ -168,29 +168,29 @@ export function createOriginSnapshot(
 //
 // 20 + 18 = 38
 //
-// 如果20是棋盘靠前的一方：
+// 如果 20 是棋盘靠前的一方：
 //
-// 38的mainParent = 20
+// 38 的 mainParent = 20
 //
 // 玩家默认主线：
 //
 // 38 ⇐ 20
 //
-// 18仍然完整保存在parents中。
+// 18 仍然完整保存在 parents 中。
 //
 //
 // ------------------------------------------------------------
 // 类型 / 纯度
 //
-// father和otherParent的快照
+// father 和 otherParent 的快照
 // 都会完整保存：
 //
 // value
-// foodType
+// animalType
 // purity
 // origin
 //
-// 因此以后可以恢复完整料理族谱。
+// 因此以后可以恢复完整动物族谱。
 // ============================================================
 
 export function createCombineOrigin(
@@ -234,11 +234,11 @@ export function createCombineOrigin(
     // 保存双方：
     //
     // value
-    // foodType
+    // animalType
     // purity
     // origin
     //
-    // 当前简化UI暂时不全部展示。
+    // 当前简化 UI 暂时不全部展示。
     // ========================================================
 
     parents: [
@@ -282,31 +282,31 @@ export function createCombineOrigin(
 //
 // 38 → 19
 //
-// 19来源：
+// 19 来源：
 //
 // 19 ← 38
 //
 // 参与约分的另一边数字
-// 不进入19的来源。
+// 不进入 19 的来源。
 //
 //
 // ------------------------------------------------------------
 // 类型 / 纯度
 //
-// previousNumber的：
+// previousNumber 的：
 //
-// foodType
+// animalType
 // purity
 //
 // 都会一起进入历史快照。
 //
 // 因此：
 //
-// 半纯肉38
+// 半纯狗38
 // ↓约分
-// 半纯肉19
+// 半纯狗19
 //
-// 历史仍然知道38也是半纯肉。
+// 历史仍然知道 38 也是半纯狗。
 // ============================================================
 
 export function createReduceOrigin(
@@ -359,7 +359,7 @@ export function cloneOrigin(
 
 
   // ==========================================================
-  // 合成
+  // 组合
   // ==========================================================
 
   if(
@@ -486,7 +486,7 @@ export function cloneOrigin(
 // 每一个来源记录现在保存：
 //
 // value
-// foodType
+// animalType
 // purity
 // origin
 // ============================================================
@@ -512,8 +512,8 @@ function cloneRecord(
       record.value,
 
 
-    foodType:
-      record.foodType ?? null,
+    animalType:
+      record.animalType ?? null,
 
 
     purity:
@@ -539,13 +539,13 @@ function cloneRecord(
 //
 // 【完整来源树接口】
 //
-// 当前简化UI暂时不直接使用。
+// 当前简化 UI 暂时不直接使用。
 //
 // 未来完整族谱 / 高级详情
 // 可以直接通过这里读取：
 //
 // value
-// foodType
+// animalType
 // purity
 // origin
 // ============================================================
@@ -568,7 +568,7 @@ export function getNumberOriginRecord(
 // ============================================================
 // 获取父系主路径
 //
-// 【当前CollectionPanel主要使用的数据来源】
+// 【当前 CollectionPanel 主要使用的数据来源】
 //
 // ------------------------------------------------------------
 //
@@ -577,21 +577,21 @@ export function getNumberOriginRecord(
 // [
 //   {
 //     value: 19,
-//     foodType: "meat",
+//     animalType: "dog",
 //     purity: "mixed",
 //     fromType: "reduce"
 //   },
 //
 //   {
 //     value: 38,
-//     foodType: "meat",
+//     animalType: "dog",
 //     purity: "mixed",
 //     fromType: "combine"
 //   },
 //
 //   {
 //     value: 20,
-//     foodType: "vegetable",
+//     animalType: "cat",
 //     purity: "pure",
 //     fromType: null
 //   }
@@ -600,7 +600,7 @@ export function getNumberOriginRecord(
 //
 // ------------------------------------------------------------
 //
-// fromType含义：
+// fromType 含义：
 //
 // 当前这个数字
 // 是通过什么方式从“下一个历史数字”变来的。
@@ -616,14 +616,14 @@ export function getNumberOriginRecord(
 //
 // {
 //   value: 19,
-//   foodType: "meat",
+//   animalType: "dog",
 //   purity: "mixed",
 //   fromType: "reduce"
 // }
 //
-// UI未来可以显示：
+// UI 未来可以显示：
 //
-// 半纯肉19 ← 半纯肉38
+// 半纯狗19 ← 半纯狗38
 //
 //
 // ------------------------------------------------------------
@@ -632,20 +632,20 @@ export function getNumberOriginRecord(
 //
 // 20 + 18 = 38
 //
-// 且20是父系：
+// 且 20 是父系：
 //
 // 38：
 //
 // {
 //   value: 38,
-//   foodType: "meat",
+//   animalType: "dog",
 //   purity: "mixed",
 //   fromType: "combine"
 // }
 //
-// UI未来可以显示：
+// UI 未来可以显示：
 //
-// 半纯肉38 ⇐ 纯素20
+// 半纯狗38 ⇐ 纯猫20
 //
 // ============================================================
 
@@ -684,10 +684,6 @@ export function getMainLineage(
 
     // ========================================================
     // 原生数字
-    //
-    // 没有更早来源
-    //
-    // 所以fromType = null
     // ========================================================
 
     if(
@@ -701,8 +697,8 @@ export function getMainLineage(
           current.value,
 
 
-        foodType:
-          current.foodType ?? null,
+        animalType:
+          current.animalType ?? null,
 
 
         purity:
@@ -723,12 +719,6 @@ export function getMainLineage(
 
     // ========================================================
     // 约分
-    //
-    // 当前数字是由parent约分得到
-    //
-    // UI：
-    //
-    // 当前 ← parent
     // ========================================================
 
     if(
@@ -743,8 +733,8 @@ export function getMainLineage(
           current.value,
 
 
-        foodType:
-          current.foodType ?? null,
+        animalType:
+          current.animalType ?? null,
 
 
         purity:
@@ -769,13 +759,7 @@ export function getMainLineage(
 
 
     // ========================================================
-    // 合成
-    //
-    // 当前数字是由mainParent参与合成得到
-    //
-    // UI：
-    //
-    // 当前 ⇐ mainParent
+    // 组合
     // ========================================================
 
     if(
@@ -790,8 +774,8 @@ export function getMainLineage(
           current.value,
 
 
-        foodType:
-          current.foodType ?? null,
+        animalType:
+          current.animalType ?? null,
 
 
         purity:
@@ -825,8 +809,8 @@ export function getMainLineage(
         current.value,
 
 
-      foodType:
-        current.foodType ?? null,
+      animalType:
+        current.animalType ?? null,
 
 
       purity:
@@ -854,18 +838,18 @@ export function getMainLineage(
 
 
 // ============================================================
-// 获取完整合成父母
+// 获取完整组合父母
 //
-// 【当前简化UI暂时不用】
+// 【当前简化 UI 暂时不用】
 // 【保留，不要删除】
 //
 // 未来如果要查看完整族谱，
 // 可以从这里取得双方来源。
 //
-// 每个parent都包含：
+// 每个 parent 都包含：
 //
 // value
-// foodType
+// animalType
 // purity
 // origin
 // ============================================================

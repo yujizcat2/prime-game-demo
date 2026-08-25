@@ -4,8 +4,8 @@ import {
 
 import {
   combineValue,
-  combineFoodType,
-  combineFoodPurity,
+  combineAnimalType,
+  combineAnimalPurity,
   canReduce,
   canCombine
 } from "./rules";
@@ -37,7 +37,7 @@ import {
 
 
 // ============================================================
-// 两格能否合成
+// 两格能否组合
 // ============================================================
 
 export function canCombineCells(
@@ -231,7 +231,7 @@ export function canReduceCells(
 
 
 // ============================================================
-// 合成
+// 组合
 // ============================================================
 
 export function combineCells(
@@ -355,9 +355,9 @@ export function combineCells(
 
 
 
-  const foodType =
+  const animalType =
 
-    combineFoodType(
+    combineAnimalType(
 
       front,
 
@@ -368,7 +368,7 @@ export function combineCells(
 
 
   if(
-    !foodType
+    !animalType
   ){
 
 
@@ -382,7 +382,7 @@ export function combineCells(
 
   const purity =
 
-    combineFoodPurity(
+    combineAnimalPurity(
 
       front,
 
@@ -405,7 +405,7 @@ export function combineCells(
       result,
 
 
-    foodType,
+    animalType,
 
 
     purity,
@@ -420,15 +420,15 @@ export function combineCells(
     ],
 
 
-    parentFoods: [
+    parentAnimals: [
 
       {
 
         value:
           front.value,
 
-        foodType:
-          front.foodType,
+        animalType:
+          front.animalType,
 
         purity:
           front.purity
@@ -441,8 +441,8 @@ export function combineCells(
         value:
           back.value,
 
-        foodType:
-          back.foodType,
+        animalType:
+          back.animalType,
 
         purity:
           back.purity
@@ -518,6 +518,9 @@ export function combineCells(
 
 // ============================================================
 // 约分
+//
+// 约分不改变 animalType / purity。
+// 只改变 value，并清除当前这一代的组合父母。
 // ============================================================
 
 export function reduceCells(
@@ -653,7 +656,7 @@ export function reduceCells(
     parents:
       null,
 
-    parentFoods:
+    parentAnimals:
       null,
 
     origin:
@@ -675,7 +678,7 @@ export function reduceCells(
     parents:
       null,
 
-    parentFoods:
+    parentAnimals:
       null,
 
     origin:
@@ -715,7 +718,7 @@ export function reduceCells(
 // ============================================================
 // 处理1
 //
-// 收藏逻辑已经交给 collectionRules。
+// 收藏逻辑交给 collectionRules。
 // 这里只负责：
 //
 // 1. 找到目标1
@@ -805,7 +808,7 @@ export function removeOne(
 
 
 // ============================================================
-// 所有合法合成
+// 所有合法组合
 // ============================================================
 
 export function getLegalCombineActions(

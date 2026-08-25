@@ -3,99 +3,10 @@ import {
 } from "../game/prime";
 
 import {
-  getMeatName
-} from "../data/food/meatData";
-
-import {
-  getVegetableName
-} from "../data/food/vegetableData";
-
-import {
-  getDessertName
-} from "../data/food/dessertData";
-
-import {
-  getSeasoningName
-} from "../data/food/seasoningData";
+  getAnimalName
+} from "../data/animal/animalRegistry";
 
 import "./Board.css";
-
-
-
-// ============================================================
-// 料理名称
-// ============================================================
-
-function getFoodName(
-  value,
-  foodType
-){
-
-
-  if(
-    value === null ||
-    value === undefined
-  ){
-
-    return null;
-
-  }
-
-
-
-  if(
-    foodType === "meat"
-  ){
-
-    return getMeatName(
-      value
-    );
-
-  }
-
-
-
-  if(
-    foodType === "vegetable"
-  ){
-
-    return getVegetableName(
-      value
-    );
-
-  }
-
-
-
-  if(
-    foodType === "seasoning"
-  ){
-
-    return getSeasoningName(
-      value
-    );
-
-  }
-
-
-
-  if(
-    foodType === "dessert"
-  ){
-
-    return getDessertName(
-      value
-    );
-
-  }
-
-
-
-  return String(
-    value
-  );
-
-}
 
 
 
@@ -186,24 +97,24 @@ export default function BoardCell({
     piece.value;
 
 
-  const foodType =
-    piece.foodType ?? null;
+  const animalType =
+    piece.animalType ?? null;
 
 
-  const isMeat =
-    foodType === "meat";
+  const isDog =
+    animalType === "dog";
 
 
-  const isVegetable =
-    foodType === "vegetable";
+  const isCat =
+    animalType === "cat";
 
 
-  const isSeasoning =
-    foodType === "seasoning";
+  const isMammal =
+    animalType === "mammal";
 
 
-  const isDessert =
-    foodType === "dessert";
+  const isBird =
+    animalType === "bird";
 
 
   const isOne =
@@ -226,7 +137,14 @@ export default function BoardCell({
   // ==========================================================
   // 是否为纯系
   //
-  // ◆ = pure
+  // 当前普通三系：
+  //
+  // dog
+  // cat
+  // mammal
+  //
+  // bird 为特殊系，
+  // 当前 purity = null。
   // ==========================================================
 
   const isPure =
@@ -236,9 +154,9 @@ export default function BoardCell({
     &&
 
     (
-      isMeat ||
-      isVegetable ||
-      isSeasoning
+      isDog ||
+      isCat ||
+      isMammal
     )
 
     &&
@@ -250,20 +168,20 @@ export default function BoardCell({
 
 
   // ==========================================================
-  // 当前料理名
+  // 当前动物名称
   //
-  // 1 = 水
+  // 1 当前继续表现为“水”
   // ==========================================================
 
-  const foodName =
+  const animalName =
 
     isOne
 
       ? "水"
 
-      : getFoodName(
+      : getAnimalName(
           value,
-          foodType
+          animalType
         );
 
 
@@ -271,74 +189,68 @@ export default function BoardCell({
 
 
   // ==========================================================
-  // 约分后的料理名
+  // 约分后的动物名称
+  //
+  // 约分不改变 animalType。
   // ==========================================================
 
-  const reduceFoodName =
+  const reduceAnimalName =
 
     reducing &&
     reducePreview !== 1
 
-      ?
+      ? getAnimalName(
+          reducePreview,
+          animalType
+        )
 
-      getFoodName(
-        reducePreview,
-        foodType
-      )
-
-      :
-
-      null;
+      : null;
 
 
 
 
 
   // ==========================================================
-  // 合成来源
+  // 组合来源
   //
-  // A + B
+  // parentAnimals 保存当前节点的两个直接来源。
   // ==========================================================
 
-  const parentFoodNames =
+  const parentAnimalNames =
 
     Array.isArray(
-      piece.parentFoods
+      piece.parentAnimals
     ) &&
-    piece.parentFoods.length >= 2
+    piece.parentAnimals.length >= 2
 
-      ?
+      ? piece.parentAnimals.map(
 
-      piece.parentFoods.map(
-
-        parent => {
+          parent => {
 
 
-          if(
-            !parent
-          ){
+            if(
+              !parent
+            ){
 
-            return null;
+              return null;
+
+            }
+
+
+
+            return getAnimalName(
+
+              parent.value,
+
+              parent.animalType
+
+            );
 
           }
 
+        )
 
-
-          return getFoodName(
-
-            parent.value,
-
-            parent.foodType
-
-          );
-
-        }
-
-      )
-
-      :
-
-      null;
+      : null;
 
 
 
@@ -346,29 +258,15 @@ export default function BoardCell({
 
   // ==========================================================
   // 普通约分来源
-  //
-  // 例如：
-  //
-  // 牛肉12
-  // ↓
-  // 牛肉3
-  //
-  // 当前3卡片底部显示：
-  //
-  // 牛肉
   // ==========================================================
 
   const reducePreviousRecord =
 
     piece.origin?.type === "reduce"
 
-      ?
+      ? piece.origin.parent
 
-      piece.origin.parent
-
-      :
-
-      null;
+      : null;
 
 
 
@@ -379,13 +277,13 @@ export default function BoardCell({
 
 
 
-  const reducePreviousFoodType =
+  const reducePreviousAnimalType =
 
-    reducePreviousRecord?.foodType
+    reducePreviousRecord?.animalType
 
     ??
 
-    foodType
+    animalType
 
     ??
 
@@ -393,23 +291,19 @@ export default function BoardCell({
 
 
 
-  const reducePreviousFoodName =
+  const reducePreviousAnimalName =
 
     reducePreviousValue !== null
 
-      ?
+      ? getAnimalName(
 
-      getFoodName(
+          reducePreviousValue,
 
-        reducePreviousValue,
+          reducePreviousAnimalType
 
-        reducePreviousFoodType
+        )
 
-      )
-
-      :
-
-      null;
+      : null;
 
 
 
@@ -417,16 +311,6 @@ export default function BoardCell({
 
   // ==========================================================
   // 水的直接来源
-  //
-  // 例如：
-  //
-  // 牛肉6
-  // ↓
-  // 水1
-  //
-  // 显示：
-  //
-  // 牛肉 · 6
   // ==========================================================
 
   const onePreviousRecord =
@@ -434,13 +318,9 @@ export default function BoardCell({
     isOne &&
     piece.origin?.type === "reduce"
 
-      ?
+      ? piece.origin.parent
 
-      piece.origin.parent
-
-      :
-
-      null;
+      : null;
 
 
 
@@ -451,13 +331,13 @@ export default function BoardCell({
 
 
 
-  const onePreviousFoodType =
+  const onePreviousAnimalType =
 
-    onePreviousRecord?.foodType
+    onePreviousRecord?.animalType
 
     ??
 
-    foodType
+    animalType
 
     ??
 
@@ -465,30 +345,31 @@ export default function BoardCell({
 
 
 
-  const onePreviousFoodName =
+  const onePreviousAnimalName =
 
     onePreviousValue !== null
 
-      ?
+      ? getAnimalName(
 
-      getFoodName(
+          onePreviousValue,
 
-        onePreviousValue,
+          onePreviousAnimalType
 
-        onePreviousFoodType
+        )
 
-      )
-
-      :
-
-      null;
+      : null;
 
 
 
 
 
   // ==========================================================
-  // 类型class
+  // 动物类型 class
+  //
+  // dog     = 狗系
+  // cat     = 猫系
+  // mammal  = 哺乳系
+  // bird    = 鸟系
   // ==========================================================
 
   const typeClass =
@@ -497,21 +378,21 @@ export default function BoardCell({
 
       ? "board-piece--one"
 
-      : isVegetable
+      : isDog
 
-      ? "board-piece--vegetable"
+      ? "board-piece--dog"
 
-      : isMeat
+      : isCat
 
-      ? "board-piece--meat"
+      ? "board-piece--cat"
 
-      : isSeasoning
+      : isMammal
 
-      ? "board-piece--seasoning"
+      ? "board-piece--mammal"
 
-      : isDessert
+      : isBird
 
-      ? "board-piece--dessert"
+      ? "board-piece--bird"
 
       : "board-piece--default";
 
@@ -520,7 +401,7 @@ export default function BoardCell({
 
 
   // ==========================================================
-  // 可约分候选
+  // 单选时的约分候选提示
   // ==========================================================
 
   const showReduceCandidate =
@@ -544,17 +425,13 @@ export default function BoardCell({
 
         ${
           selected
-
             ? "board-cell--selected"
-
             : ""
         }
 
         ${
           removing
-
             ? "board-cell--removing"
-
             : ""
         }
       `}
@@ -585,7 +462,7 @@ export default function BoardCell({
 
 
         {/* ====================================================
-            得分
+            分数预览
         ==================================================== */}
 
         {
@@ -616,9 +493,7 @@ export default function BoardCell({
             `}
 
           >
-
             +{scorePreview}
-
           </div>
 
         }
@@ -628,7 +503,7 @@ export default function BoardCell({
 
 
         {/* ====================================================
-            消除闪光
+            移除闪光
         ==================================================== */}
 
         {
@@ -646,10 +521,6 @@ export default function BoardCell({
 
 
 
-
-        {/* ====================================================
-            正式棋子
-        ==================================================== */}
 
         <button
 
@@ -712,7 +583,7 @@ export default function BoardCell({
 
 
           {/* ==================================================
-              选中边框
+              选中环
           ================================================== */}
 
           {
@@ -733,7 +604,7 @@ export default function BoardCell({
 
 
           {/* ==================================================
-              类型色条
+              动物系颜色条
           ================================================== */}
 
           <div
@@ -763,9 +634,7 @@ export default function BoardCell({
               aria-label="纯系"
 
             >
-
               ◆
-
             </div>
 
           }
@@ -803,7 +672,7 @@ export default function BoardCell({
 
 
           {/* ==================================================
-              质数
+              质数标记
           ================================================== */}
 
           {
@@ -823,12 +692,8 @@ export default function BoardCell({
 
 
 
-
-
-
-
           {/* ==================================================
-              料理名 / 水
+              当前动物名称
           ================================================== */}
 
           <div
@@ -854,7 +719,7 @@ export default function BoardCell({
 
             >
 
-              {foodName}
+              {animalName}
 
             </span>
 
@@ -866,7 +731,7 @@ export default function BoardCell({
 
 
           {/* ==================================================
-              约分Preview
+              约分 Preview
           ================================================== */}
 
           {
@@ -892,7 +757,7 @@ export default function BoardCell({
 
                     ? "水"
 
-                    : reduceFoodName
+                    : reduceAnimalName
                 }
 
               </span>
@@ -903,9 +768,7 @@ export default function BoardCell({
                   board-piece-reduce-number
                 "
               >
-
                 {reducePreview}
-
               </span>
 
 
@@ -918,25 +781,13 @@ export default function BoardCell({
 
 
           {/* ==================================================
-              原材料
-              ==================================================
-
-              真正没有合成来源、
-              也没有约分来源的初始棋子：
-
-              不再显示：
-
-              荤 / 素 / 调 / 甜
-
-              统一显示：
-
-              原材料
+              原生节点
           ================================================== */}
 
           {
 
             !isOne &&
-            !parentFoodNames &&
+            !parentAnimalNames &&
             !reducePreviousRecord &&
 
             <div
@@ -945,13 +796,9 @@ export default function BoardCell({
               "
             >
 
-
               <span>
-
-                原材料
-
+                原生
               </span>
-
 
             </div>
 
@@ -962,22 +809,15 @@ export default function BoardCell({
 
 
           {/* ==================================================
-              合成来源
-              ==================================================
-
-              A + B
-
-              例如：
-
-              牛肉 + 白菜
+              组合来源
           ================================================== */}
 
           {
 
             !isOne &&
-            parentFoodNames &&
-            parentFoodNames[0] &&
-            parentFoodNames[1] &&
+            parentAnimalNames &&
+            parentAnimalNames[0] &&
+            parentAnimalNames[1] &&
 
             <div
               className="
@@ -987,9 +827,7 @@ export default function BoardCell({
 
 
               <span>
-
-                {parentFoodNames[0]}
-
+                {parentAnimalNames[0]}
               </span>
 
 
@@ -998,16 +836,12 @@ export default function BoardCell({
                   board-piece-origin-plus
                 "
               >
-
                 +
-
               </span>
 
 
               <span>
-
-                {parentFoodNames[1]}
-
+                {parentAnimalNames[1]}
               </span>
 
 
@@ -1020,27 +854,14 @@ export default function BoardCell({
 
 
           {/* ==================================================
-              普通约分来源
-              ==================================================
-
-              只显示一个直接来源。
-
-              例如：
-
-              牛肉12
-              ↓
-              牛肉3
-
-              当前牛肉3下面显示：
-
-              牛肉
+              约分来源
           ================================================== */}
 
           {
 
             !isOne &&
             reducePreviousRecord &&
-            reducePreviousFoodName &&
+            reducePreviousAnimalName &&
 
             <div
               className="
@@ -1048,13 +869,9 @@ export default function BoardCell({
               "
             >
 
-
               <span>
-
-                {reducePreviousFoodName}
-
+                {reducePreviousAnimalName}
               </span>
-
 
             </div>
 
@@ -1065,7 +882,7 @@ export default function BoardCell({
 
 
           {/* ==================================================
-              水的来源
+              水的直接来源
           ================================================== */}
 
           {
@@ -1083,7 +900,7 @@ export default function BoardCell({
               <span>
 
                 {
-                  onePreviousFoodName
+                  onePreviousAnimalName
                   ?? "来源"
                 }
 
@@ -1095,16 +912,12 @@ export default function BoardCell({
                   board-piece-origin-plus
                 "
               >
-
                 ·
-
               </span>
 
 
               <strong>
-
                 {onePreviousValue}
-
               </strong>
 
 

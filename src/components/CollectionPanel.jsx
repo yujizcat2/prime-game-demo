@@ -2,6 +2,13 @@ import {
   useState
 } from "react";
 
+import {
+  getAnimalTypeShortName
+} from "../data/animal/animalRegistry";
+
+
+
+
 
 export default function CollectionPanel({
 
@@ -14,10 +21,6 @@ export default function CollectionPanel({
 }) {
 
 
-  // ==========================================================
-  // 当前打开的收藏数字
-  // ==========================================================
-
   const [
     selectedValue,
     setSelectedValue
@@ -27,10 +30,6 @@ export default function CollectionPanel({
 
 
 
-  // ==========================================================
-  // 当前打开的第几条收藏记录
-  // ==========================================================
-
   const [
     selectedPathIndex,
     setSelectedPathIndex
@@ -39,10 +38,6 @@ export default function CollectionPanel({
   );
 
 
-
-  // ==========================================================
-  // 当前数字所有父系路径
-  // ==========================================================
 
   const paths =
 
@@ -55,10 +50,6 @@ export default function CollectionPanel({
       : [];
 
 
-
-  // ==========================================================
-  // 当前具体路径
-  // ==========================================================
 
   const selectedPath =
 
@@ -73,10 +64,6 @@ export default function CollectionPanel({
 
 
 
-
-  // ==========================================================
-  // 打开某个收藏数字
-  // ==========================================================
 
   function openCollection(
     value
@@ -119,10 +106,6 @@ export default function CollectionPanel({
 
 
 
-  // ==========================================================
-  // 关闭弹窗
-  // ==========================================================
-
   function closeModal(){
 
 
@@ -140,10 +123,6 @@ export default function CollectionPanel({
 
 
 
-
-  // ==========================================================
-  // 点击某一次收藏
-  // ==========================================================
 
   function selectPath(
     index
@@ -175,13 +154,6 @@ export default function CollectionPanel({
 
 
 
-
-  // ==========================================================
-  // 根据来源类型显示箭头
-  //
-  // ← = 约分
-  // ⇐ = 合成
-  // ==========================================================
 
   function getArrow(
     fromType
@@ -217,85 +189,25 @@ export default function CollectionPanel({
 
 
   // ==========================================================
-  // 食物类型名称
+  // 动物状态名称
+  //
+  // dog / cat / mammal：
+  //
+  // pure  → 纯狗 / 纯猫 / 纯哺乳
+  // mixed → 半纯狗 / 半纯猫 / 半纯哺乳
+  //
+  // bird：
+  //
+  // 鸟系当前不参与 purity。
   // ==========================================================
 
-  function getFoodTypeName(
-    foodType
-  ){
-
-
-    if(
-      foodType === "meat"
-    ){
-
-      return "肉";
-
-    }
-
-
-
-    if(
-      foodType === "vegetable"
-    ){
-
-      return "素";
-
-    }
-
-
-
-    if(
-      foodType === "seasoning"
-    ){
-
-      return "调料";
-
-    }
-
-
-
-    if(
-      foodType === "dessert"
-    ){
-
-      return "甜食";
-
-    }
-
-
-
-    return null;
-
-  }
-
-
-
-
-
-  // ==========================================================
-  // 获取状态名称
-  //
-  // pure + meat
-  // → 纯肉
-  //
-  // mixed + meat
-  // → 半纯肉
-  //
-  // dessert
-  // → 甜食
-  //
-  // 旧历史没有foodType时：
-  // → 不显示状态
-  // ==========================================================
-
-  function getFoodStateName(
+  function getAnimalStateName(
     item
   ){
 
 
     if(
-      !item?.foodType
+      !item?.animalType
     ){
 
       return null;
@@ -305,25 +217,25 @@ export default function CollectionPanel({
 
 
     if(
-      item.foodType === "dessert"
+      item.animalType === "bird"
     ){
 
-      return "甜食";
+      return "鸟系";
 
     }
 
 
 
-    const foodTypeName =
+    const animalTypeName =
 
-      getFoodTypeName(
-        item.foodType
+      getAnimalTypeShortName(
+        item.animalType
       );
 
 
 
     if(
-      !foodTypeName
+      !animalTypeName
     ){
 
       return null;
@@ -336,7 +248,7 @@ export default function CollectionPanel({
       item.purity === "pure"
     ){
 
-      return `纯${foodTypeName}`;
+      return `纯${animalTypeName}`;
 
     }
 
@@ -346,13 +258,13 @@ export default function CollectionPanel({
       item.purity === "mixed"
     ){
 
-      return `半纯${foodTypeName}`;
+      return `半纯${animalTypeName}`;
 
     }
 
 
 
-    return foodTypeName;
+    return animalTypeName;
 
   }
 
@@ -363,49 +275,38 @@ export default function CollectionPanel({
   return (
 
     <div
-
       className="
         mt-7
         px-1
       "
-
     >
 
 
-      {/* =====================================================
-          标题
-          ===================================================== */}
-
       <div
-
         className="
           flex
           items-center
           justify-between
-
           mb-3
         "
-
       >
 
-        <div
 
+        <div
           className="
             flex
             items-center
             gap-2
           "
-
         >
 
-          <span
 
+          <span
             className="
               text-sm
               font-bold
               text-gray-600
             "
-
           >
 
             发现记录
@@ -414,50 +315,41 @@ export default function CollectionPanel({
 
 
           <span
-
             className="
               px-2
               py-0.5
-
               rounded-full
-
               bg-white
-
               text-[10px]
               font-bold
               text-gray-400
             "
-
           >
 
             {collection.length}
 
           </span>
 
+
         </div>
 
 
         <span
-
           className="
             text-[10px]
             tracking-wider
             text-gray-300
           "
-
         >
 
           DISCOVERY
 
         </span>
 
+
       </div>
 
 
-
-      {/* =====================================================
-          没有收藏
-          ===================================================== */}
 
       {
 
@@ -466,24 +358,18 @@ export default function CollectionPanel({
         ?
 
         <div
-
           className="
             h-20
-
             rounded-2xl
-
             border
             border-dashed
             border-gray-200
-
             flex
             items-center
             justify-center
-
             text-xs
             text-gray-300
           "
-
         >
 
           尚未发现新的数字
@@ -494,19 +380,14 @@ export default function CollectionPanel({
         :
 
 
-        // ====================================================
-        // 收藏数字
-        // ====================================================
-
         <div
-
           className="
             flex
             flex-wrap
             gap-2
           "
-
         >
+
 
           {
 
@@ -554,31 +435,21 @@ export default function CollectionPanel({
 
                     className="
                       collection-item
-
                       relative
-
                       min-w-12
                       h-11
-
                       px-3
-
                       rounded-xl
-
                       bg-white
-
                       border
                       border-gray-100
-
                       shadow-sm
-
                       flex
                       items-center
                       justify-center
-
                       text-sm
                       font-black
                       text-gray-700
-
                       cursor-pointer
                     "
 
@@ -588,24 +459,16 @@ export default function CollectionPanel({
                     {value}
 
 
-
                     <span
-
                       className="
                         absolute
-
                         top-0.5
                         right-1
-
                         text-[7px]
-
                         text-amber-400
                       "
-
                     >
-
                       ✦
-
                     </span>
 
 
@@ -615,19 +478,14 @@ export default function CollectionPanel({
                       count > 0 &&
 
                       <span
-
                         className="
                           absolute
-
                           bottom-0.5
                           right-1
-
                           text-[8px]
                           font-bold
-
                           text-gray-400
                         "
-
                       >
 
                         {count}
@@ -643,21 +501,15 @@ export default function CollectionPanel({
                       isLatestValue &&
 
                       <span
-
                         className="
                           absolute
-
                           -top-0.5
                           -left-0.5
-
                           w-1.5
                           h-1.5
-
                           rounded-full
-
                           bg-rose-500
                         "
-
                       />
 
                     }
@@ -673,6 +525,7 @@ export default function CollectionPanel({
 
           }
 
+
         </div>
 
       }
@@ -680,10 +533,6 @@ export default function CollectionPanel({
 
 
 
-
-      {/* =====================================================
-          弹窗
-          ===================================================== */}
 
       {
 
@@ -694,15 +543,11 @@ export default function CollectionPanel({
           className="
             fixed
             inset-0
-
             z-50
-
             bg-black/20
-
             flex
             items-center
             justify-center
-
             px-5
           "
 
@@ -718,20 +563,13 @@ export default function CollectionPanel({
             className="
               w-full
               max-w-sm
-
               max-h-[80vh]
-
               overflow-y-auto
-
               rounded-3xl
-
               bg-white
-
               px-5
               py-5
-
               shadow-xl
-
               border
               border-gray-100
             "
@@ -744,41 +582,31 @@ export default function CollectionPanel({
           >
 
 
-            {/* ===============================================
-                顶部
-                =============================================== */}
-
             <div
-
               className="
                 flex
                 items-center
                 justify-between
-
                 mb-5
               "
-
             >
 
 
               <div
-
                 className="
                   flex
                   items-end
                   gap-1
                 "
-
               >
 
-                <span
 
+                <span
                   className="
                     text-2xl
                     font-black
                     text-gray-700
                   "
-
                 >
 
                   {selectedValue}
@@ -787,20 +615,18 @@ export default function CollectionPanel({
 
 
                 <span
-
                   className="
                     mb-0.5
-
                     text-[10px]
                     font-bold
                     text-gray-400
                   "
-
                 >
 
                   {paths.length}
 
                 </span>
+
 
               </div>
 
@@ -817,15 +643,11 @@ export default function CollectionPanel({
                 className="
                   w-8
                   h-8
-
                   rounded-full
-
                   bg-gray-50
-
                   flex
                   items-center
                   justify-center
-
                   text-sm
                   text-gray-400
                 "
@@ -841,19 +663,14 @@ export default function CollectionPanel({
 
 
 
-            {/* ===============================================
-                同数字所有收藏记录
-                =============================================== */}
-
             <div
-
               className="
                 flex
                 flex-wrap
                 gap-2
               "
-
             >
+
 
               {
 
@@ -882,12 +699,6 @@ export default function CollectionPanel({
 
 
 
-                    // =========================================
-                    // 每次收藏的最终状态
-                    //
-                    // path[0]就是这次被收藏数字本身。
-                    // =========================================
-
                     const finalState =
 
                       Array.isArray(
@@ -902,7 +713,7 @@ export default function CollectionPanel({
 
                     const finalStateName =
 
-                      getFoodStateName(
+                      getAnimalStateName(
                         finalState
                       );
 
@@ -927,14 +738,10 @@ export default function CollectionPanel({
 
                         className={`
                           relative
-
                           min-w-14
                           h-12
-
                           px-3
-
                           rounded-xl
-
                           border
 
                           ${
@@ -955,7 +762,6 @@ export default function CollectionPanel({
                           flex-col
                           items-center
                           justify-center
-
                           text-gray-600
                         `}
 
@@ -963,13 +769,11 @@ export default function CollectionPanel({
 
 
                         <span
-
                           className="
                             text-sm
                             font-black
                             leading-none
                           "
-
                         >
 
                           {selectedValue}
@@ -983,17 +787,13 @@ export default function CollectionPanel({
                           finalStateName &&
 
                           <span
-
                             className="
                               mt-1
-
                               text-[8px]
                               font-bold
                               leading-none
-
                               text-gray-400
                             "
-
                           >
 
                             {finalStateName}
@@ -1005,18 +805,14 @@ export default function CollectionPanel({
 
 
                         <span
-
                           className="
                             absolute
-
                             bottom-0.5
                             right-1
-
                             text-[7px]
                             font-bold
                             text-gray-300
                           "
-
                         >
 
                           {index + 1}
@@ -1030,21 +826,15 @@ export default function CollectionPanel({
                           isLatestPath &&
 
                           <span
-
                             className="
                               absolute
-
                               -top-0.5
                               -left-0.5
-
                               w-1.5
                               h-1.5
-
                               rounded-full
-
                               bg-rose-500
                             "
-
                           />
 
                         }
@@ -1060,42 +850,34 @@ export default function CollectionPanel({
 
               }
 
+
             </div>
 
 
-
-            {/* ===============================================
-                父系单线路径
-                =============================================== */}
 
             {
 
               selectedPath.length > 0 &&
 
               <div
-
                 className="
                   mt-5
                   pt-5
-
                   border-t
                   border-gray-100
                 "
-
               >
 
 
                 <div
-
                   className="
                     flex
                     flex-wrap
                     items-center
-
                     gap-y-2
                   "
-
                 >
+
 
                   {
 
@@ -1117,7 +899,7 @@ export default function CollectionPanel({
 
                         const stateName =
 
-                          getFoodStateName(
+                          getAnimalStateName(
                             item
                           );
 
@@ -1140,41 +922,30 @@ export default function CollectionPanel({
 
 
                             <div
-
                               className="
                                 min-w-14
                                 h-12
-
                                 px-2
-
                                 rounded-xl
-
                                 bg-gray-50
-
                                 border
                                 border-gray-100
-
                                 flex
                                 flex-col
                                 items-center
                                 justify-center
-
                                 text-gray-700
-
                                 shrink-0
                               "
-
                             >
 
 
                               <span
-
                                 className="
                                   text-sm
                                   font-black
                                   leading-none
                                 "
-
                               >
 
                                 {item.value}
@@ -1188,17 +959,13 @@ export default function CollectionPanel({
                                 stateName &&
 
                                 <span
-
                                   className="
                                     mt-1
-
                                     text-[8px]
                                     font-bold
                                     leading-none
-
                                     text-gray-400
                                   "
-
                                 >
 
                                   {stateName}
@@ -1227,13 +994,10 @@ export default function CollectionPanel({
 
                                 className={`
                                   w-7
-
                                   flex
                                   items-center
                                   justify-center
-
                                   text-sm
-
                                   shrink-0
 
                                   ${

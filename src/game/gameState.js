@@ -3,8 +3,8 @@ import {
 } from "./config";
 
 import {
-  FOOD_TYPES,
-  FOOD_PURITY
+  ANIMAL_TYPES,
+  ANIMAL_PURITY
 } from "./rules";
 
 import {
@@ -12,7 +12,6 @@ import {
 } from "./mazeHistory";
 
 import {
-  BOARD_CONFIG,
   createEmptyBoard
 } from "./boardRules";
 
@@ -25,36 +24,36 @@ import {
 //
 // 新版开局：
 //
-// 荤   素   调料
+// 狗   猫   哺乳
 // ·    ·    ·
 // ·    ·    ·
 //
-// 初始三个棋子均视为原生食材。
+// 初始三个棋子均视为原生动物。
 //
 // 因此：
 //
-// 荤   → pure
-// 素   → pure
-// 调料 → pure
+// 狗   → pure
+// 猫   → pure
+// 哺乳 → pure
 //
 // ------------------------------------------------------------
 //
-// collectionTypeHistory
+// collectionAnimalTypeHistory
 //
-// 只记录“首次新收藏”的真实 foodType 顺序。
+// 只记录“首次新收藏”的真实 animalType 顺序。
 //
 // 例如：
 //
 // [
-//   "seasoning",
-//   "meat",
-//   "vegetable",
-//   "meat"
+//   "mammal",
+//   "dog",
+//   "cat",
+//   "dog"
 // ]
 //
 // 重复处理旧收藏时，不应追加。
 //
-// 当前 V1 只用于研究荤素失衡度。
+// 当前 V1 只用于研究三系失衡度。
 // 暂时不产生任何惩罚。
 // ------------------------------------------------------------
 //
@@ -92,13 +91,13 @@ export function createGameState(
 
 
 
-  const initialFoodTypes = [
+  const initialAnimalTypes = [
 
-    FOOD_TYPES.MEAT,
+    ANIMAL_TYPES.DOG,
 
-    FOOD_TYPES.VEGETABLE,
+    ANIMAL_TYPES.CAT,
 
-    FOOD_TYPES.SEASONING
+    ANIMAL_TYPES.MAMMAL
 
   ];
 
@@ -122,24 +121,24 @@ export function createGameState(
         value,
 
 
-        foodType:
+        animalType:
 
-          initialFoodTypes[index]
+          initialAnimalTypes[index]
 
           ??
 
-          FOOD_TYPES.MEAT,
+          ANIMAL_TYPES.DOG,
 
 
         purity:
-          FOOD_PURITY.PURE,
+          ANIMAL_PURITY.PURE,
 
 
         parents:
           null,
 
 
-        parentFoods:
+        parentAnimals:
           null,
 
 
@@ -180,17 +179,17 @@ export function createGameState(
 
 
     // ========================================================
-    // 首次收藏类型历史
+    // 首次收藏动物类型历史
     //
     // 注意：
     //
-    // 这里记录的是收藏发生时棋子的真实 foodType，
+    // 这里记录的是收藏发生时棋子的真实 animalType，
     // 不是根据数字推断类型。
     //
     // 只有“首次收藏”才会加入。
     // ========================================================
 
-    collectionTypeHistory:
+    collectionAnimalTypeHistory:
       [],
 
 

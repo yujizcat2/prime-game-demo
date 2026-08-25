@@ -9,16 +9,10 @@ import {
 } from "../game/initialValues";
 
 import {
-  getMeatName
-} from "../data/food/meatData";
-
-import {
-  getVegetableName
-} from "../data/food/vegetableData";
-
-import {
-  getSeasoningName
-} from "../data/food/seasoningData";
+  getAnimalName,
+  getAnimalTypeIcon,
+  getAnimalTypeName
+} from "../data/animal/animalRegistry";
 
 
 
@@ -35,35 +29,47 @@ const START_VALUES = [
 
 
 
-const FOOD_GROUPS = {
+const ANIMAL_GROUPS = {
 
-  meat: {
+  dog: {
 
     label:
-      "荤",
+      getAnimalTypeName(
+        "dog"
+      ),
 
-    getName:
-      getMeatName
+    icon:
+      getAnimalTypeIcon(
+        "dog"
+      )
 
   },
 
-  vegetable: {
+  cat: {
 
     label:
-      "素",
+      getAnimalTypeName(
+        "cat"
+      ),
 
-    getName:
-      getVegetableName
+    icon:
+      getAnimalTypeIcon(
+        "cat"
+      )
 
   },
 
-  seasoning: {
+  mammal: {
 
     label:
-      "调料",
+      getAnimalTypeName(
+        "mammal"
+      ),
 
-    getName:
-      getSeasoningName
+    icon:
+      getAnimalTypeIcon(
+        "mammal"
+      )
 
   }
 
@@ -83,9 +89,9 @@ export default function StartScreen({
   // =========================
   // 自选开局
   //
-  // 第1个 → 荤
-  // 第2个 → 素
-  // 第3个 → 调料
+  // 第1个 → 狗系
+  // 第2个 → 猫系
+  // 第3个 → 哺乳系
   // =========================
 
   const [
@@ -96,13 +102,13 @@ export default function StartScreen({
 
   ] = useState({
 
-    meat:
+    dog:
       null,
 
-    vegetable:
+    cat:
       null,
 
-    seasoning:
+    mammal:
       null
 
   });
@@ -165,9 +171,6 @@ export default function StartScreen({
 
   // =========================
   // 判断数字是否已经被其他类型使用
-  //
-  // 保留原来的规则：
-  // 开局三个数字互不相同
   // =========================
 
   function isValueUsed(
@@ -213,12 +216,12 @@ export default function StartScreen({
   ) {
 
 
-    if (
+    if(
       isValueUsed(
         value,
         group
       )
-    ) {
+    ){
 
       return;
 
@@ -253,24 +256,32 @@ export default function StartScreen({
 
   const canCustomStart =
 
-    selected.meat !== null &&
+    selected.dog !== null &&
 
-    selected.vegetable !== null &&
+    selected.cat !== null &&
 
-    selected.seasoning !== null;
+    selected.mammal !== null;
 
 
 
   // =========================
   // 自选开始
+  //
+  // createGameState 会按：
+  //
+  // 第0个 → dog
+  // 第1个 → cat
+  // 第2个 → mammal
+  //
+  // 自动赋予 animalType。
   // =========================
 
   function customStart() {
 
 
-    if (
+    if(
       !canCustomStart
-    ) {
+    ){
 
       return;
 
@@ -279,11 +290,11 @@ export default function StartScreen({
 
     onStart([
 
-      selected.meat,
+      selected.dog,
 
-      selected.vegetable,
+      selected.cat,
 
-      selected.seasoning
+      selected.mammal
 
     ]);
 
@@ -298,7 +309,7 @@ export default function StartScreen({
   const activeConfig =
 
     activeGroup
-      ? FOOD_GROUPS[
+      ? ANIMAL_GROUPS[
           activeGroup
         ]
       : null;
@@ -314,10 +325,6 @@ export default function StartScreen({
     >
 
 
-      {/* =========================
-          背景装饰
-          ========================= */}
-
       <div
         className="
           start-background
@@ -326,12 +333,7 @@ export default function StartScreen({
       >
 
 
-        <div
-          className="
-            start-glow
-          "
-        />
-
+        <div className="start-glow" />
 
         <div
           className="
@@ -340,14 +342,12 @@ export default function StartScreen({
           "
         />
 
-
         <div
           className="
             start-orbit
             start-orbit--two
           "
         />
-
 
         <div
           className="
@@ -356,14 +356,12 @@ export default function StartScreen({
           "
         />
 
-
         <div
           className="
             start-path
             start-path--left
           "
         />
-
 
         <div
           className="
@@ -372,14 +370,12 @@ export default function StartScreen({
           "
         />
 
-
         <span
           className="
             start-background-dot
             start-background-dot--one
           "
         />
-
 
         <span
           className="
@@ -388,14 +384,12 @@ export default function StartScreen({
           "
         />
 
-
         <span
           className="
             start-background-dot
             start-background-dot--three
           "
         />
-
 
         <span
           className="
@@ -409,20 +403,12 @@ export default function StartScreen({
 
 
 
-      {/* =========================
-          主内容
-          ========================= */}
-
       <main
         className="
           start-content
         "
       >
 
-
-        {/* =========================
-            Logo
-            ========================= */}
 
         <div
           className="
@@ -443,9 +429,7 @@ export default function StartScreen({
                 start-logo
               "
             >
-
               ✦
-
             </div>
 
 
@@ -457,19 +441,13 @@ export default function StartScreen({
               start-logo-caption
             "
           >
-
             PRIME SYSTEM
-
           </div>
 
 
         </div>
 
 
-
-        {/* =========================
-            标题
-            ========================= */}
 
         <div
           className="
@@ -483,9 +461,7 @@ export default function StartScreen({
               start-title
             "
           >
-
-            料理迷宫
-
+            动物迷宫
           </h1>
 
 
@@ -494,19 +470,13 @@ export default function StartScreen({
               start-title-en
             "
           >
-
-            CULINARY LABYRINTH
-
+            ANIMAL LABYRINTH
           </div>
 
 
         </div>
 
 
-
-        {/* =========================
-            简介
-            ========================= */}
 
         <p
           className="
@@ -518,15 +488,11 @@ export default function StartScreen({
 
           <br />
 
-          走进不断变化的料理迷宫
+          走进不断变化的动物迷宫
 
         </p>
 
 
-
-        {/* =========================
-            中央装饰
-            ========================= */}
 
         <div
           className="
@@ -535,24 +501,19 @@ export default function StartScreen({
           aria-hidden="true"
         >
 
-
           <span
             className="
               start-divider-line
             "
           />
-
 
           <span
             className="
               start-divider-symbol
             "
           >
-
             ✦
-
           </span>
-
 
           <span
             className="
@@ -560,14 +521,9 @@ export default function StartScreen({
             "
           />
 
-
         </div>
 
 
-
-        {/* =========================
-            自选开局
-            ========================= */}
 
         <section
           className="
@@ -581,16 +537,10 @@ export default function StartScreen({
               start-picker-title
             "
           >
-
             自选开局
-
           </div>
 
 
-
-          {/* =========================
-              三个类型槽
-              ========================= */}
 
           <div
             className="
@@ -600,7 +550,7 @@ export default function StartScreen({
 
 
             {Object.entries(
-              FOOD_GROUPS
+              ANIMAL_GROUPS
             )
               .map(
                 ([
@@ -661,9 +611,11 @@ export default function StartScreen({
                         "
                       >
 
-                        {
-                          config.label
-                        }
+                        {config.icon}
+
+                        {" "}
+
+                        {config.label}
 
                       </span>
 
@@ -677,9 +629,7 @@ export default function StartScreen({
                                 start-picker-empty
                               "
                             >
-
                               请选择
-
                             </span>
 
                           )
@@ -695,8 +645,9 @@ export default function StartScreen({
                               >
 
                                 {
-                                  config.getName(
-                                    value
+                                  getAnimalName(
+                                    value,
+                                    group
                                   )
                                 }
 
@@ -708,11 +659,7 @@ export default function StartScreen({
                                   start-picker-number
                                 "
                               >
-
-                                {
-                                  value
-                                }
-
+                                {value}
                               </span>
 
 
@@ -733,10 +680,6 @@ export default function StartScreen({
           </div>
 
 
-
-          {/* =========================
-              2～9 选择面板
-              ========================= */}
 
           {
             activeConfig && (
@@ -815,11 +758,8 @@ export default function StartScreen({
                           onClick={
                             () =>
                               chooseValue(
-
                                 activeGroup,
-
                                 value
-
                               )
                           }
 
@@ -831,11 +771,7 @@ export default function StartScreen({
                               start-value-number
                             "
                           >
-
-                            {
-                              value
-                            }
-
+                            {value}
                           </span>
 
 
@@ -846,8 +782,9 @@ export default function StartScreen({
                           >
 
                             {
-                              activeConfig.getName(
-                                value
+                              getAnimalName(
+                                value,
+                                activeGroup
                               )
                             }
 
@@ -872,10 +809,6 @@ export default function StartScreen({
 
 
 
-          {/* =========================
-              自选开始
-              ========================= */}
-
           <button
 
             type="button"
@@ -895,20 +828,15 @@ export default function StartScreen({
           >
 
             <span>
-
               使用自选开局
-
             </span>
-
 
             <span
               className="
                 start-custom-button-arrow
               "
             >
-
               →
-
             </span>
 
           </button>
@@ -917,10 +845,6 @@ export default function StartScreen({
         </section>
 
 
-
-        {/* =========================
-            随机入口
-            ========================= */}
 
         <button
 
@@ -949,9 +873,7 @@ export default function StartScreen({
               start-button-label
             "
           >
-
             随机探索
-
           </span>
 
 
@@ -960,19 +882,13 @@ export default function StartScreen({
               start-button-arrow
             "
           >
-
             →
-
           </span>
 
 
         </button>
 
 
-
-        {/* =========================
-            测试实验室入口
-            ========================= */}
 
         <button
 
@@ -987,25 +903,17 @@ export default function StartScreen({
           }
 
         >
-
           TEST LAB
-
         </button>
 
 
-
-        {/* =========================
-            Footer
-            ========================= */}
 
         <div
           className="
             start-footer
           "
         >
-
           EVERY PATH IS UNIQUE
-
         </div>
 
 

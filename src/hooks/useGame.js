@@ -8,8 +8,8 @@ import {
 
 import {
   combineValue,
-  combineFoodType,
-  combineFoodPurity
+  combineAnimalType,
+  combineAnimalPurity
 } from "../game/rules";
 
 import {
@@ -40,7 +40,7 @@ export default function useGame(){
 
 
   // ==========================================================
-  // Engine状态
+  // Engine 状态
   // ==========================================================
 
   const [
@@ -72,7 +72,7 @@ export default function useGame(){
 
 
   // ==========================================================
-  // 选择的是格子index
+  // 选择的是格子 index
   // ==========================================================
 
   const [
@@ -90,13 +90,13 @@ export default function useGame(){
   // ==========================================================
   // 开始游戏
   //
-  // values只需要3个数字。
+  // values 只需要 3 个数字。
   //
-  // gameEngine会自动赋予：
+  // gameEngine 会自动赋予：
   //
-  // 第0格 → 荤 / pure
-  // 第1格 → 素 / pure
-  // 第2格 → 调料 / pure
+  // 第0格 → 狗系 / pure
+  // 第1格 → 猫系 / pure
+  // 第2格 → 哺乳系 / pure
   //
   // 同时：
   //
@@ -165,10 +165,10 @@ export default function useGame(){
   //
   // 当前所有正式棋子统一存在主棋盘：
   //
-  // meat
-  // vegetable
-  // seasoning
-  // dessert
+  // dog
+  // cat
+  // mammal
+  // bird
   //
   // 每个普通棋子还可以拥有：
   //
@@ -177,7 +177,7 @@ export default function useGame(){
   // pure
   // mixed
   //
-  // dessert当前purity为null。
+  // bird 当前 purity 为 null。
   // ==========================================================
 
   const numbers =
@@ -277,7 +277,7 @@ export default function useGame(){
   // = 最近一次回转事件
   //
   // 目前先对外暴露，
-  // 后面UI提示可以直接读取。
+  // 后面 UI 提示可以直接读取。
   // ==========================================================
 
   const mazeTurn =
@@ -318,7 +318,7 @@ export default function useGame(){
   // ==========================================================
   // 质数状态
   //
-  // purity目前不影响：
+  // purity 目前不影响：
   //
   // primeEnergy
   // primeDensity
@@ -514,7 +514,7 @@ export default function useGame(){
 
 
     // ========================================================
-    // 1由Board直接触发removeOne
+    // 1 由 Board 直接触发 removeOne
     //
     // 不进入普通选择逻辑。
     // ========================================================
@@ -635,22 +635,22 @@ export default function useGame(){
   // 合成预览现在同时计算：
   //
   // value
-  // foodType
+  // animalType
   // purity
   //
   // 例：
   //
-  // 肉 + 肉
-  // → 肉 / pure
+  // 狗 + 狗
+  // → 狗系 / pure
   //
-  // 肉 + 素
-  // → 调料 / mixed
+  // 狗 + 猫
+  // → 哺乳系 / mixed
   //
-  // 普通跨101
-  // → 甜食 / null
+  // 普通跨 101
+  // → 鸟系 / null
   //
-  // 甜食 + 普通
-  // → 普通 / mixed
+  // 鸟 + 普通
+  // → 普通动物系 / mixed
   // ==========================================================
 
   function getPreviewResult(){
@@ -781,9 +781,9 @@ export default function useGame(){
                 ),
 
 
-              foodType:
+              animalType:
 
-                combineFoodType(
+                combineAnimalType(
 
                   orderedPair.front,
 
@@ -794,7 +794,7 @@ export default function useGame(){
 
               purity:
 
-                combineFoodPurity(
+                combineAnimalPurity(
 
                   orderedPair.front,
 
@@ -846,7 +846,7 @@ export default function useGame(){
 
 
   // ==========================================================
-  // 搭配
+  // 组合
   //
   // 所有正式玩家动作统一通过：
   //
@@ -854,11 +854,11 @@ export default function useGame(){
   //
   // 因此动作完成后会继续执行：
   //
-  // mazeHistory检测
+  // mazeHistory 检测
   // ↓
   // 必要时触发迷宫回转
   //
-  // useGame不再直接调用combineCells。
+  // useGame 不再直接调用 combineCells。
   // ==========================================================
 
   function combineNumbers(){
@@ -949,14 +949,14 @@ export default function useGame(){
   // ==========================================================
   // 处理 / 约分
   //
-  // 同样统一走applyAction。
+  // 同样统一走 applyAction。
   //
-  // gameEngine负责：
+  // gameEngine 负责：
   //
   // 数字变化
-  // foodType保留
-  // purity保留
-  // mazeHistory检测
+  // animalType 保留
+  // purity 保留
+  // mazeHistory 检测
   // 迷宫回转
   // ==========================================================
 
@@ -1046,16 +1046,16 @@ export default function useGame(){
 
 
   // ==========================================================
-  // 消除1
+  // 消除 1
   //
-  // 同样统一走applyAction。
+  // 同样统一走 applyAction。
   //
   // 这一步尤其重要：
   //
-  // 很多循环都是在最后一次处理1后
+  // 很多循环都是在最后一次处理 1 后
   // 回到过去的第二层状态。
   //
-  // 因此如果这里绕过applyAction，
+  // 因此如果这里绕过 applyAction，
   // 迷宫回转就永远不会触发。
   // ==========================================================
 
@@ -1133,7 +1133,7 @@ export default function useGame(){
 
 
   // ==========================================================
-  // UI辅助
+  // UI 辅助
   // ==========================================================
 
   function isCellSelected(
@@ -1218,15 +1218,6 @@ export default function useGame(){
 
     // ========================================================
     // 迷宫回转
-    //
-    // 先暴露给外部。
-    //
-    // 下一步UI可以直接显示：
-    //
-    // mazeTurn?.triggered
-    // mazeTurn.count
-    // mazeTurn.beforeValues
-    // mazeTurn.afterValues
     // ========================================================
 
     mazeTurn,
@@ -1263,7 +1254,7 @@ export default function useGame(){
 
 
     // ========================================================
-    // UI辅助
+    // UI 辅助
     // ========================================================
 
     getCell,

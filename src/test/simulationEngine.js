@@ -3,11 +3,11 @@ import {
 } from "../utils/math";
 
 import {
-  FOOD_TYPES,
-  FOOD_PURITY,
+  ANIMAL_TYPES,
+  ANIMAL_PURITY,
   combineValue,
-  combineFoodType,
-  combineFoodPurity,
+  combineAnimalType,
+  combineAnimalPurity,
   canReduce,
   canCombine
 } from "../game/rules";
@@ -31,15 +31,10 @@ import {
 //
 // 不保存完整 mazeHistory.entries。
 // 使用持久化 prototype 链记录访问状态。
-//
-// clone 时：
-//
-// Object.create(parentVisited)
-//
-// 不再复制整条历史。
 // ============================================================
 
-export const SIM_BOARD_SIZE = 9;
+export const SIM_BOARD_SIZE =
+  9;
 
 
 
@@ -47,9 +42,6 @@ export const SIM_BOARD_SIZE = 9;
 
 // ============================================================
 // 快速字符串 Hash
-//
-// 只用于 Beam Search 历史签名。
-// 不用于真正的回转判断。
 // ============================================================
 
 function hashString(
@@ -95,10 +87,6 @@ function hashString(
 
 
 
-// ============================================================
-// 持久化历史 Key
-// ============================================================
-
 function toVisitedKey(
   stateKey
 ){
@@ -111,10 +99,6 @@ function toVisitedKey(
 
 
 
-
-// ============================================================
-// 当前状态是否曾经出现
-// ============================================================
 
 function getVisitedEntry(
   state,
@@ -148,13 +132,6 @@ function getVisitedEntry(
 
 
 
-
-// ============================================================
-// 记录状态
-//
-// mazeVisited 使用 prototype chain。
-// 当前分支只写自己的这一层。
-// ============================================================
 
 function recordVisitedState(
   state,
@@ -282,26 +259,22 @@ export function createSimulationState(
       values
     )
 
-      ?
-
-        values.slice(
+      ? values.slice(
           0,
           3
         )
 
-      :
-
-        [];
+      : [];
 
 
 
   const types = [
 
-    FOOD_TYPES.MEAT,
+    ANIMAL_TYPES.DOG,
 
-    FOOD_TYPES.VEGETABLE,
+    ANIMAL_TYPES.CAT,
 
-    FOOD_TYPES.SEASONING
+    ANIMAL_TYPES.MAMMAL
 
   ];
 
@@ -319,16 +292,16 @@ export function createSimulationState(
 
         value,
 
-        foodType:
+        animalType:
           types[index],
 
         purity:
-          FOOD_PURITY.PURE,
+          ANIMAL_PURITY.PURE,
 
         parents:
           null,
 
-        parentFoods:
+        parentAnimals:
           null,
 
         previousValue:
@@ -349,55 +322,17 @@ export function createSimulationState(
     board,
 
 
-
-
-
-    // ========================================================
-    // 已收藏的不同数字
-    //
-    // Simulation 使用 Set。
-    // ========================================================
-
     collection:
       new Set(),
 
 
-
-
-
-    // ========================================================
-    // 首次收藏类型历史
-    //
-    // 只记录第一次获得某个数字时，
-    // 那张 1 的真实 foodType。
-    //
-    // 例如：
-    //
-    // [
-    //   "meat",
-    //   "vegetable",
-    //   "seasoning",
-    //   "meat"
-    // ]
-    //
-    // 当前只用于研究荤素失衡。
-    // 暂时不产生任何惩罚。
-    // ========================================================
-
-    collectionTypeHistory:
+    collectionAnimalTypeHistory:
       [],
-
-
-
 
 
     steps:
       0,
 
-
-    // ========================================================
-    // 快速迷宫历史
-    // ========================================================
 
     mazeVisited:
       Object.create(
@@ -425,10 +360,6 @@ export function createSimulationState(
 
 
 
-  // ==========================================================
-  // 开局必须记录
-  // ==========================================================
-
   recordVisitedState(
 
     state,
@@ -451,10 +382,6 @@ export function createSimulationState(
 
 
 
-// ============================================================
-// 当前棋子
-// ============================================================
-
 function getPieces(
   board
 ){
@@ -469,10 +396,6 @@ function getPieces(
 
 
 
-
-// ============================================================
-// 是否满盘
-// ============================================================
 
 function isBoardFull(
   board
@@ -520,10 +443,6 @@ function isBoardFull(
 
 
 
-// ============================================================
-// 第一个空格
-// ============================================================
-
 function getNextEmptyIndex(
   board
 ){
@@ -557,10 +476,6 @@ function getNextEmptyIndex(
 
 
 
-
-// ============================================================
-// 合成合法
-// ============================================================
 
 function canCombineIndexes(
   state,
@@ -624,10 +539,6 @@ function canCombineIndexes(
 
 
 
-// ============================================================
-// 约分合法
-// ============================================================
-
 function canReduceIndexes(
   state,
   indexA,
@@ -680,10 +591,6 @@ function canReduceIndexes(
 
 
 
-// ============================================================
-// 所有合法动作
-// ============================================================
-
 export function getSimulationLegalActions(
   state
 ){
@@ -706,10 +613,6 @@ export function getSimulationLegalActions(
 
 
 
-
-  // ==========================================================
-  // 处理1
-  // ==========================================================
 
   for(
     let i = 0;
@@ -741,10 +644,6 @@ export function getSimulationLegalActions(
 
 
 
-
-  // ==========================================================
-  // 两两动作
-  // ==========================================================
 
   for(
     let i = 0;
@@ -858,7 +757,7 @@ export function getSimulationLegalActions(
 
 
 // ============================================================
-// 合成
+// 组合
 // ============================================================
 
 function applyCombine(
@@ -877,8 +776,7 @@ function applyCombine(
 
 
   if(
-    targetIndex ===
-    -1
+    targetIndex === -1
   ){
 
 
@@ -937,9 +835,9 @@ function applyCombine(
 
 
 
-  const foodType =
+  const animalType =
 
-    combineFoodType(
+    combineAnimalType(
 
       front,
 
@@ -950,7 +848,7 @@ function applyCombine(
 
 
   if(
-    !foodType
+    !animalType
   ){
 
 
@@ -966,11 +864,11 @@ function applyCombine(
 
     value,
 
-    foodType,
+    animalType,
 
     purity:
 
-      combineFoodPurity(
+      combineAnimalPurity(
         front,
         back
       ),
@@ -983,15 +881,15 @@ function applyCombine(
 
     ],
 
-    parentFoods: [
+    parentAnimals: [
 
       {
 
         value:
           front.value,
 
-        foodType:
-          front.foodType,
+        animalType:
+          front.animalType,
 
         purity:
           front.purity
@@ -1004,8 +902,8 @@ function applyCombine(
         value:
           back.value,
 
-        foodType:
-          back.foodType,
+        animalType:
+          back.animalType,
 
         purity:
           back.purity
@@ -1108,32 +1006,21 @@ function applyReduce(
 
 
 
-  // ==========================================================
-  // 约分不改变 foodType。
-  //
-  // 所以以后变成1时，
-  // 这张棋子的真实收藏类型仍然存在。
-  // ==========================================================
-
-
-
-  // 约分后直接父母清空
+  // animalType / purity 保留
 
   first.parents =
     null;
 
-  first.parentFoods =
+  first.parentAnimals =
     null;
 
   second.parents =
     null;
 
-  second.parentFoods =
+  second.parentAnimals =
     null;
 
 
-
-  // 模拟 origin.parent.value
 
   first.previousValue =
     oldA;
@@ -1182,21 +1069,6 @@ function applyRemove(
 
 
 
-
-
-  // ==========================================================
-  // 收藏
-  //
-  // collectionRules 现在会自动：
-  //
-  // 1. 判断是否首次收藏
-  // 2. collection.add(value)
-  // 3. 首次收藏时把 target.foodType
-  //    写入 collectionTypeHistory
-  //
-  // 重复收藏不会追加类型历史。
-  // ==========================================================
-
   applyCollection(
     state,
     target
@@ -1217,10 +1089,6 @@ function applyRemove(
 
 
 
-// ============================================================
-// 迷宫回转数值
-// ============================================================
-
 function mazeTurnValue(
   value
 ){
@@ -1230,13 +1098,9 @@ function mazeTurnValue(
 
     value === 101
 
-      ?
+      ? 2
 
-        2
-
-      :
-
-        value + 1
+      : value + 1
 
   );
 
@@ -1245,10 +1109,6 @@ function mazeTurnValue(
 
 
 
-
-// ============================================================
-// 全盘迷宫回转
-// ============================================================
 
 function applyMazeTurn(
   state
@@ -1288,12 +1148,6 @@ function applyMazeTurn(
 
 
 
-// ============================================================
-// 动作后的迷宫检测
-//
-// 每次动作最多触发一次。
-// ============================================================
-
 function resolveMaze(
   state
 ){
@@ -1315,12 +1169,6 @@ function resolveMaze(
     );
 
 
-
-
-
-  // ==========================================================
-  // 新状态
-  // ==========================================================
 
   if(
     !previous
@@ -1349,10 +1197,6 @@ function resolveMaze(
 
 
 
-
-  // ==========================================================
-  // 触发回转
-  // ==========================================================
 
   const beforeValues =
 
@@ -1415,13 +1259,6 @@ function resolveMaze(
 
 
 
-  // ==========================================================
-  // 记录回转后的状态
-  //
-  // 如果它以前已经存在，
-  // 第一版仍不连续触发第二次。
-  // ==========================================================
-
   const turnedKey =
 
     createMazeStateKey(
@@ -1455,10 +1292,6 @@ function resolveMaze(
 
 
 
-
-// ============================================================
-// 执行动作
-// ============================================================
 
 export function applySimulationAction(
   state,
@@ -1580,10 +1413,6 @@ export function applySimulationAction(
 
 
 
-// ============================================================
-// 克隆棋子
-// ============================================================
-
 function clonePiece(
   piece
 ){
@@ -1605,8 +1434,8 @@ function clonePiece(
     value:
       piece.value,
 
-    foodType:
-      piece.foodType,
+    animalType:
+      piece.animalType,
 
     purity:
       piece.purity,
@@ -1615,42 +1444,34 @@ function clonePiece(
 
       piece.parents
 
-        ?
-
-          [
+        ? [
             ...piece.parents
           ]
 
-        :
+        : null,
 
-          null,
+    parentAnimals:
 
-    parentFoods:
+      piece.parentAnimals
 
-      piece.parentFoods
+        ? piece.parentAnimals.map(
 
-        ?
-
-          piece.parentFoods.map(
-
-            food => ({
+            animal => ({
 
               value:
-                food.value,
+                animal.value,
 
-              foodType:
-                food.foodType,
+              animalType:
+                animal.animalType,
 
               purity:
-                food.purity
+                animal.purity
 
             })
 
           )
 
-        :
-
-          null,
+        : null,
 
     previousValue:
       piece.previousValue
@@ -1663,15 +1484,6 @@ function clonePiece(
 
 
 
-
-// ============================================================
-// 高速 clone
-//
-// 关键：
-//
-// mazeVisited 不复制整个历史。
-// 新建一层 prototype。
-// ============================================================
 
 export function cloneSimulationState(
   state
@@ -1687,13 +1499,6 @@ export function cloneSimulationState(
       ),
 
 
-
-
-
-    // ========================================================
-    // 已收藏数字
-    // ========================================================
-
     collection:
 
       new Set(
@@ -1701,40 +1506,19 @@ export function cloneSimulationState(
       ),
 
 
-
-
-
-    // ========================================================
-    // 首次收藏类型历史
-    //
-    // Beam 每一个候选分支都必须拥有自己独立的数组。
-    //
-    // 如果这里不复制：
-//
-// 不同 Beam 分支会共享 / 丢失收藏类型历史，
-// 后面的荤素失衡计算就会错误。
-// ========================================================
-
-    collectionTypeHistory:
+    collectionAnimalTypeHistory:
 
       [
         ...(
-          state.collectionTypeHistory
+          state.collectionAnimalTypeHistory
           ?? []
         )
       ],
 
 
-
-
-
     steps:
       state.steps,
 
-
-    // ========================================================
-    // O(1) 历史分支
-    // ========================================================
 
     mazeVisited:
 
@@ -1764,18 +1548,6 @@ export function cloneSimulationState(
 
 
 
-
-// ============================================================
-// Beam 快速历史签名
-//
-// 不需要重新：
-//
-// Set
-// sort
-// join
-//
-// O(1)
-// ============================================================
 
 export function getSimulationHistorySignature(
   state

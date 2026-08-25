@@ -15,11 +15,6 @@ export default function BoardStatus({
 
   primeState = "沉寂",
 
-
-  // =========================
-  // 活性
-  // =========================
-
   activity = 0,
 
   activityLegal = 0,
@@ -39,10 +34,6 @@ export default function BoardStatus({
 }) {
 
 
-  // =========================
-  // 活性详情开关
-  // =========================
-
   const [
 
     showActivityDetail,
@@ -53,18 +44,10 @@ export default function BoardStatus({
 
 
 
-  // =========================
-  // 活性区域引用
-  // =========================
-
   const activityRef =
     useRef(null);
 
 
-
-  // =========================
-  // 点击外部关闭
-  // =========================
 
   useEffect(
     () => {
@@ -97,7 +80,6 @@ export default function BoardStatus({
 
         }
 
-
       }
 
 
@@ -126,10 +108,6 @@ export default function BoardStatus({
   );
 
 
-
-  // =========================
-  // 活性文字状态
-  // =========================
 
   function getActivityText() {
 
@@ -197,10 +175,6 @@ export default function BoardStatus({
 
       >
 
-
-        {/* =========================
-            外部状态
-            ========================= */}
 
         <button
 
@@ -272,10 +246,6 @@ export default function BoardStatus({
 
 
 
-        {/* =========================
-            活性详情
-            ========================= */}
-
         {
 
           showActivityDetail && (
@@ -286,10 +256,6 @@ export default function BoardStatus({
               "
             >
 
-
-              {/* =====================
-                  顶部
-                  ===================== */}
 
               <div
                 className="
@@ -352,10 +318,6 @@ export default function BoardStatus({
 
 
 
-              {/* =====================
-                  基础环境参数
-                  ===================== */}
-
               <div
                 className="
                   activity-detail-separator
@@ -381,17 +343,14 @@ export default function BoardStatus({
                 "
               >
 
-
                 <span>
                   质能
                 </span>
-
 
                 <span>
                   {primeEnergy}
                 </span>
 
-
               </div>
 
 
@@ -401,17 +360,14 @@ export default function BoardStatus({
                   activity-detail-row
                 "
               >
-
 
                 <span>
                   质密
                 </span>
 
-
                 <span>
                   {primeDensity}
                 </span>
-
 
               </div>
 
@@ -423,24 +379,17 @@ export default function BoardStatus({
                 "
               >
 
-
                 <span>
                   质态
                 </span>
-
 
                 <span>
                   {primeState}
                 </span>
 
-
               </div>
 
 
-
-              {/* =====================
-                  动作空间
-                  ===================== */}
 
               <div
                 className="
@@ -468,20 +417,14 @@ export default function BoardStatus({
                 "
               >
 
-
                 <span>
-
                   可行动作
-
                 </span>
-
 
                 <span>
 
                   <strong>
-
                     {activityLegal}
-
                   </strong>
 
                   {" / "}
@@ -489,7 +432,6 @@ export default function BoardStatus({
                   {activityTotal}
 
                 </span>
-
 
               </div>
 
@@ -501,13 +443,9 @@ export default function BoardStatus({
                 "
               >
 
-
                 <span>
-
-                  可以搭配
-
+                  可以组合
                 </span>
-
 
                 <span>
 
@@ -519,7 +457,6 @@ export default function BoardStatus({
 
                 </span>
 
-
               </div>
 
 
@@ -530,13 +467,9 @@ export default function BoardStatus({
                 "
               >
 
-
                 <span>
-
                   可以处理
-
                 </span>
-
 
                 <span>
 
@@ -548,14 +481,9 @@ export default function BoardStatus({
 
                 </span>
 
-
               </div>
 
 
-
-              {/* =====================
-                  额外提示
-                  ===================== */}
 
               {
 
@@ -567,7 +495,7 @@ export default function BoardStatus({
                     "
                   >
 
-                    当前有部分搭配会生成质数，
+                    当前有部分组合会生成质数，
                     后续变化空间可能进一步收紧。
 
                   </div>

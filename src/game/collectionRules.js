@@ -19,16 +19,16 @@ import {
 //
 // 新增 / 更新：
 //
-// 1. collectionTypeHistory
+// 1. collectionAnimalTypeHistory
 // 2. 最近6个新收藏的三系平衡计算
 //
 // 三系：
 //
-// meat
-// vegetable
-// seasoning
+// dog
+// cat
+// mammal
 //
-// dessert 暂时作为特殊类型，
+// bird 暂时作为特殊类型，
 // 不参与三系计数。
 //
 // ------------------------------------------------------------
@@ -276,17 +276,17 @@ export function canCollect(
 
 
 // ============================================================
-// 获取收藏类型历史
+// 获取收藏动物类型历史
 // ============================================================
 
-export function getCollectionTypeHistory(
+export function getCollectionAnimalTypeHistory(
   state
 ){
 
 
   if(
     !Array.isArray(
-      state?.collectionTypeHistory
+      state?.collectionAnimalTypeHistory
     )
   ){
 
@@ -299,7 +299,7 @@ export function getCollectionTypeHistory(
 
   return [
 
-    ...state.collectionTypeHistory
+    ...state.collectionAnimalTypeHistory
 
   ];
 
@@ -318,14 +318,14 @@ export function getCollectionTypeHistory(
 //
 // 统计：
 //
-// meat
-// vegetable
-// seasoning
+// dog
+// cat
+// mammal
 //
-// dessert：
+// bird：
 //
 // 会占据窗口位置，
-// 但不计入三系数量。
+// 但不计入普通三系数量。
 //
 // ------------------------------------------------------------
 //
@@ -337,9 +337,9 @@ export function getCollectionTypeHistory(
 //
 // 例1：
 //
-// meat       = 2
-// vegetable  = 2
-// seasoning  = 2
+// dog     = 2
+// cat     = 2
+// mammal  = 2
 //
 // imbalance = 0
 //
@@ -347,9 +347,9 @@ export function getCollectionTypeHistory(
 //
 // 例2：
 //
-// meat       = 3
-// vegetable  = 2
-// seasoning  = 1
+// dog     = 3
+// cat     = 2
+// mammal  = 1
 //
 // imbalance = 2
 //
@@ -357,13 +357,13 @@ export function getCollectionTypeHistory(
 //
 // 例3：
 //
-// dessert x6
+// bird x6
 //
-// meat       = 0
-// vegetable  = 0
-// seasoning  = 0
+// dog     = 0
+// cat     = 0
+// mammal  = 0
 //
-// imbalance   = 0
+// imbalance    = 0
 // regularCount = 0
 //
 // 这不是“真正平衡”，
@@ -377,7 +377,7 @@ export function getCollectionBalanceState(
 
   const history =
 
-    getCollectionTypeHistory(
+    getCollectionAnimalTypeHistory(
       state
     );
 
@@ -391,71 +391,71 @@ export function getCollectionBalanceState(
 
 
 
-  let meatCount =
+  let dogCount =
     0;
 
 
-  let vegetableCount =
+  let catCount =
     0;
 
 
-  let seasoningCount =
+  let mammalCount =
     0;
 
 
-  let dessertCount =
+  let birdCount =
     0;
 
 
 
   for(
-    const foodType
+    const animalType
     of recent
   ){
 
 
     if(
-      foodType === "meat"
+      animalType === "dog"
     ){
 
 
-      meatCount++;
+      dogCount++;
 
     }
 
 
 
     else if(
-      foodType ===
-      "vegetable"
+      animalType ===
+      "cat"
     ){
 
 
-      vegetableCount++;
+      catCount++;
 
     }
 
 
 
     else if(
-      foodType ===
-      "seasoning"
+      animalType ===
+      "mammal"
     ){
 
 
-      seasoningCount++;
+      mammalCount++;
 
     }
 
 
 
     else if(
-      foodType ===
-      "dessert"
+      animalType ===
+      "bird"
     ){
 
 
-      dessertCount++;
+      birdCount++;
 
     }
 
@@ -467,15 +467,15 @@ export function getCollectionBalanceState(
 
   const regularCount =
 
-    meatCount
+    dogCount
 
     +
 
-    vegetableCount
+    catCount
 
     +
 
-    seasoningCount;
+    mammalCount;
 
 
 
@@ -483,11 +483,11 @@ export function getCollectionBalanceState(
 
   const counts = [
 
-    meatCount,
+    dogCount,
 
-    vegetableCount,
+    catCount,
 
-    seasoningCount
+    mammalCount
 
   ];
 
@@ -519,12 +519,12 @@ export function getCollectionBalanceState(
 
 
   // ==========================================================
-  // 主导类型
+  // 主导动物类型
   //
-  // 如果存在并列最高，则 dominantType = null。
+  // 如果存在并列最高，则 dominantAnimalType = null。
   // ==========================================================
 
-  let dominantType =
+  let dominantAnimalType =
     null;
 
 
@@ -534,13 +534,13 @@ export function getCollectionBalanceState(
 
 
   if(
-    meatCount ===
+    dogCount ===
     maxCount
   ){
 
 
     maxTypes.push(
-      "meat"
+      "dog"
     );
 
   }
@@ -548,13 +548,13 @@ export function getCollectionBalanceState(
 
 
   if(
-    vegetableCount ===
+    catCount ===
     maxCount
   ){
 
 
     maxTypes.push(
-      "vegetable"
+      "cat"
     );
 
   }
@@ -562,13 +562,13 @@ export function getCollectionBalanceState(
 
 
   if(
-    seasoningCount ===
+    mammalCount ===
     maxCount
   ){
 
 
     maxTypes.push(
-      "seasoning"
+      "mammal"
     );
 
   }
@@ -582,7 +582,7 @@ export function getCollectionBalanceState(
   ){
 
 
-    dominantType =
+    dominantAnimalType =
       maxTypes[0];
 
   }
@@ -592,15 +592,15 @@ export function getCollectionBalanceState(
 
 
   // ==========================================================
-  // 三系参与率
+  // 普通三系参与率
   //
   // 0 ~ 1
   //
-  // 6个窗口全部是常规三系：
+  // 6个窗口全部是普通三系：
   //
   // regularParticipation = 1
   //
-  // 全甜：
+  // 全鸟系：
   //
   // regularParticipation = 0
   // ==========================================================
@@ -636,13 +636,13 @@ export function getCollectionBalanceState(
 
 
 
-    meatCount,
+    dogCount,
 
-    vegetableCount,
+    catCount,
 
-    seasoningCount,
+    mammalCount,
 
-    dessertCount,
+    birdCount,
 
 
 
@@ -662,7 +662,7 @@ export function getCollectionBalanceState(
 
     imbalance,
 
-    dominantType
+    dominantAnimalType
 
   };
 
@@ -722,7 +722,7 @@ function applySimulationCollection(
 
 
   // ==========================================================
-  // 首次新收藏才记录真实类型
+  // 首次新收藏才记录真实动物类型
   // ==========================================================
 
   if(
@@ -732,21 +732,21 @@ function applySimulationCollection(
 
     if(
       !Array.isArray(
-        state.collectionTypeHistory
+        state.collectionAnimalTypeHistory
       )
     ){
 
 
-      state.collectionTypeHistory =
+      state.collectionAnimalTypeHistory =
         [];
 
     }
 
 
 
-    state.collectionTypeHistory.push(
+    state.collectionAnimalTypeHistory.push(
 
-      piece.foodType
+      piece.animalType
 
       ??
 
@@ -855,9 +855,9 @@ function applyGameCollection(
     null;
 
 
-  let nextCollectionTypeHistory =
+  let nextCollectionAnimalTypeHistory =
 
-    getCollectionTypeHistory(
+    getCollectionAnimalTypeHistory(
       state
     );
 
@@ -1022,14 +1022,14 @@ function applyGameCollection(
 
 
     // ========================================================
-    // 首次收藏真实类型历史
+    // 首次收藏真实动物类型历史
     // ========================================================
 
-    nextCollectionTypeHistory = [
+    nextCollectionAnimalTypeHistory = [
 
-      ...nextCollectionTypeHistory,
+      ...nextCollectionAnimalTypeHistory,
 
-      piece.foodType
+      piece.animalType
 
       ??
 
@@ -1071,8 +1071,8 @@ function applyGameCollection(
     collection:
       nextCollection,
 
-    collectionTypeHistory:
-      nextCollectionTypeHistory,
+    collectionAnimalTypeHistory:
+      nextCollectionAnimalTypeHistory,
 
     collectionOrigins:
       nextCollectionOrigins,

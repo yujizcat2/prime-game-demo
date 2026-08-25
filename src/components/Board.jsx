@@ -7,108 +7,12 @@ import {
 } from "../game/scoreConfig";
 
 import {
-  getMeatName
-} from "../data/food/meatData";
-
-import {
-  getVegetableName
-} from "../data/food/vegetableData";
-
-import {
-  getDessertName
-} from "../data/food/dessertData";
-
-import {
-  getSeasoningName
-} from "../data/food/seasoningData";
+  getAnimalName
+} from "../data/animal/animalRegistry";
 
 import BoardCell from "./BoardCell";
 
 import "./Board.css";
-
-
-
-
-
-// ============================================================
-// 获取料理名称
-// ============================================================
-
-function getFoodName(
-  value,
-  foodType
-){
-
-
-  if(
-    value === null ||
-    value === undefined
-  ){
-
-
-    return null;
-
-  }
-
-
-
-  if(
-    foodType === "meat"
-  ){
-
-
-    return getMeatName(
-      value
-    );
-
-  }
-
-
-
-  if(
-    foodType === "vegetable"
-  ){
-
-
-    return getVegetableName(
-      value
-    );
-
-  }
-
-
-
-  if(
-    foodType === "seasoning"
-  ){
-
-
-    return getSeasoningName(
-      value
-    );
-
-  }
-
-
-
-  if(
-    foodType === "dessert"
-  ){
-
-
-    return getDessertName(
-      value
-    );
-
-  }
-
-
-
-  return String(
-    value
-  );
-
-}
 
 
 
@@ -136,19 +40,10 @@ export default function Board({
 
   preview = null,
 
-
-  // ==========================================================
-  // 迷宫回转事件
-  // ==========================================================
-
   mazeTurn = null,
 
 }) {
 
-
-  // ==========================================================
-  // 固定9格
-  // ==========================================================
 
   const cells =
 
@@ -173,31 +68,19 @@ export default function Board({
 
 
 
-  // ==========================================================
-  // selected安全处理
-  // ==========================================================
-
   const selected =
 
     Array.isArray(
       selectedIndexes
     )
 
-      ?
+      ? selectedIndexes
 
-        selectedIndexes
-
-      :
-
-        [];
+      : [];
 
 
 
 
-
-  // ==========================================================
-  // 当前选择棋子
-  // ==========================================================
 
   const selectedCells =
 
@@ -264,7 +147,6 @@ export default function Board({
           !piece
         ){
 
-
           return;
 
         }
@@ -272,10 +154,8 @@ export default function Board({
 
 
         if(
-          index ===
-          selectedEntry.index
+          index === selectedEntry.index
         ){
-
 
           return;
 
@@ -287,7 +167,6 @@ export default function Board({
           piece.value === 1 ||
           selectedPiece.value === 1
         ){
-
 
           return;
 
@@ -311,7 +190,6 @@ export default function Board({
           divisor > 1
         ){
 
-
           reduceCandidateIndexes.add(
             index
           );
@@ -329,7 +207,7 @@ export default function Board({
 
 
   // ==========================================================
-  // 双选约分Preview
+  // 双选约分 Preview
   // ==========================================================
 
   const reducePreviewMap = {};
@@ -425,7 +303,7 @@ export default function Board({
 
 
   // ==========================================================
-  // 合成Preview
+  // 组合 Preview
   // ==========================================================
 
   const combinePreview =
@@ -439,59 +317,52 @@ export default function Board({
 
     combinePreview
 
-      ?
-
-        getFoodName(
+      ? getAnimalName(
 
           combinePreview.value,
 
-          combinePreview.foodType
+          combinePreview.animalType
 
         )
 
-      :
-
-        null;
+      : null;
 
 
 
 
 
   // ==========================================================
-  // 合成Preview类型
+  // Preview 动物类型 CSS
+  //
+  // dog     → 狗系
+  // cat     → 猫系
+  // mammal  → 哺乳系
+  // bird    → 鸟系
   // ==========================================================
 
   const combinePreviewTypeClass =
 
-    combinePreview?.foodType === "meat"
+    combinePreview?.animalType === "dog"
 
-      ?
-
-        "board-preview--meat"
+      ? "board-preview--dog"
 
       :
 
-    combinePreview?.foodType === "vegetable"
+    combinePreview?.animalType === "cat"
 
-      ?
-
-        "board-preview--vegetable"
+      ? "board-preview--cat"
 
       :
 
-    combinePreview?.foodType === "seasoning"
+    combinePreview?.animalType === "mammal"
 
-      ?
-
-        "board-preview--seasoning"
+      ? "board-preview--mammal"
 
       :
 
-    combinePreview?.foodType === "dessert"
+    combinePreview?.animalType === "bird"
 
-      ?
-
-        "board-preview--dessert"
+      ? "board-preview--bird"
 
       :
 
@@ -502,17 +373,11 @@ export default function Board({
 
 
   // ==========================================================
-  // Preview是否为纯系
+  // 是否显示纯系标记
   //
-  // ◆ = pure
-  //
-  // 只允许：
-  //
-  // meat
-  // vegetable
-  // seasoning
-  //
-  // dessert不显示。
+  // 鸟系属于特殊系，
+  // 当前 purity 为 null，
+  // 因此不显示纯系 ◆。
   // ==========================================================
 
   const combinePreviewPure =
@@ -522,11 +387,11 @@ export default function Board({
     &&
 
     (
-      combinePreview?.foodType === "meat"
+      combinePreview?.animalType === "dog"
       ||
-      combinePreview?.foodType === "vegetable"
+      combinePreview?.animalType === "cat"
       ||
-      combinePreview?.foodType === "seasoning"
+      combinePreview?.animalType === "mammal"
     );
 
 
@@ -534,7 +399,7 @@ export default function Board({
 
 
   // ==========================================================
-  // 是否正在显示迷宫回转
+  // 迷宫回转
   // ==========================================================
 
   const mazeTurnActive =
@@ -564,9 +429,9 @@ export default function Board({
 
 
 
-      {/* =====================================================
-          迷宫回转提示
-          ===================================================== */}
+      {/* ======================================================
+          迷宫回转
+      ====================================================== */}
 
       {
 
@@ -587,21 +452,12 @@ export default function Board({
         >
 
 
-          {/* ===============================================
-              棋盘闪光
-              =============================================== */}
-
           <div
             className="
               board-maze-turn-flash
             "
           />
 
-
-
-          {/* ===============================================
-              中央提示
-              =============================================== */}
 
           <div
             className="
@@ -615,9 +471,7 @@ export default function Board({
                 board-maze-turn-title
               "
             >
-
               迷宫回转
-
             </div>
 
 
@@ -626,9 +480,7 @@ export default function Board({
                 board-maze-turn-subtitle
               "
             >
-
               MAZE TURN
-
             </div>
 
 
@@ -637,9 +489,7 @@ export default function Board({
                 board-maze-turn-change
               "
             >
-
               全盘 +1
-
             </div>
 
 
@@ -654,9 +504,9 @@ export default function Board({
 
 
 
-      {/* =====================================================
+      {/* ======================================================
           九宫格
-          ===================================================== */}
+      ====================================================== */}
 
       {
 
@@ -669,7 +519,7 @@ export default function Board({
 
 
             // ==================================================
-            // 合成Preview
+            // 新动物组合 Preview
             // ==================================================
 
             if(
@@ -718,7 +568,7 @@ export default function Board({
                     `}
 
                     aria-label={
-                      `点击搭配 ${
+                      `点击组合 ${
                         combinePreviewName
                         ?? combinePreview.value
                       }`
@@ -735,10 +585,6 @@ export default function Board({
 
 
 
-                    {/* =======================================
-                        纯系Preview标记
-                        ======================================= */}
-
                     {
 
                       combinePreviewPure &&
@@ -752,9 +598,7 @@ export default function Board({
                         aria-label="纯系"
 
                       >
-
                         ◆
-
                       </div>
 
                     }
@@ -766,9 +610,7 @@ export default function Board({
                         board-preview-status
                       "
                     >
-
                       NEW
-
                     </div>
 
 
@@ -778,11 +620,7 @@ export default function Board({
                         board-preview-number
                       "
                     >
-
-                      {
-                        combinePreview.value
-                      }
-
+                      {combinePreview.value}
                     </div>
 
 
@@ -793,19 +631,13 @@ export default function Board({
                       "
                     >
 
-
                       <span
                         className="
                           board-preview-name
                         "
                       >
-
-                        {
-                          combinePreviewName
-                        }
-
+                        {combinePreviewName}
                       </span>
-
 
                     </div>
 
@@ -816,9 +648,7 @@ export default function Board({
                         board-preview-action
                       "
                     >
-
-                      + 搭配
-
+                      + 组合
                     </div>
 
 
@@ -836,7 +666,7 @@ export default function Board({
 
 
             // ==================================================
-            // 正式棋子状态
+            // 是否选中
             // ==================================================
 
             const isSelected =
@@ -847,6 +677,10 @@ export default function Board({
 
 
 
+            // ==================================================
+            // 是否为可约分候选
+            // ==================================================
+
             const reduceCandidate =
 
               reduceCandidateIndexes.has(
@@ -854,6 +688,10 @@ export default function Board({
               );
 
 
+
+            // ==================================================
+            // 约分预览
+            // ==================================================
 
             const reducePreview =
 
@@ -865,6 +703,10 @@ export default function Board({
 
 
 
+            // ==================================================
+            // 是否正在移除
+            // ==================================================
+
             const removing =
 
               removingIndex ===
@@ -872,10 +714,8 @@ export default function Board({
 
 
 
-
-
             // ==================================================
-            // 已发现
+            // 是否已经发现
             // ==================================================
 
             const discovered =
@@ -890,10 +730,8 @@ export default function Board({
 
 
 
-
-
             // ==================================================
-            // 1的来源
+            // 数字1的直接来源
             // ==================================================
 
             const reduceFrom =
@@ -902,9 +740,7 @@ export default function Board({
 
               piece.origin?.type === "reduce"
 
-                ?
-
-                  (
+                ? (
                     piece.origin
                       ?.parent
                       ?.value
@@ -912,16 +748,12 @@ export default function Board({
                     ?? null
                   )
 
-                :
-
-                  null;
-
-
+                : null;
 
 
 
             // ==================================================
-            // 是否新发现
+            // 是否为新发现
             // ==================================================
 
             const isNewDiscovery =
@@ -936,10 +768,8 @@ export default function Board({
 
 
 
-
-
             // ==================================================
-            // 分数Preview
+            // 分数 Preview
             // ==================================================
 
             let scorePreview =
@@ -992,7 +822,7 @@ export default function Board({
 
 
             // ==================================================
-            // 点击
+            // 点击棋子
             // ==================================================
 
             function handlePieceClick(){
@@ -1001,7 +831,6 @@ export default function Board({
               if(
                 !piece
               ){
-
 
                 return;
 

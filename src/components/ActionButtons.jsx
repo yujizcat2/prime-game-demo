@@ -58,7 +58,7 @@ export default function ActionButtons({
 
 
       {/* ======================================================
-          搭配
+          组合
       ====================================================== */}
 
       <button
@@ -111,7 +111,7 @@ export default function ActionButtons({
           "
         >
 
-          搭配
+          组合
 
         </span>
 
