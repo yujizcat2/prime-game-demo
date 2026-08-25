@@ -11,7 +11,9 @@ import {
 } from "../game/mazeHistory";
 
 import {
-  getCollectionBalanceState
+  getCollectionBalanceState,
+  getSimulationCollectionKey,
+  isCollectibleAnimalType
 } from "../game/collectionRules";
 
 
@@ -190,6 +192,138 @@ function gcdSimple(
 
 
   return x;
+
+}
+
+
+
+
+
+// ============================================================
+// 收藏槽辅助
+// ============================================================
+
+function hasCollectionSlot(
+  state,
+  value,
+  animalType
+){
+
+
+  const key =
+
+    getSimulationCollectionKey(
+
+      value,
+
+      animalType
+
+    );
+
+
+
+  if(
+    !key
+  ){
+
+
+    return false;
+
+  }
+
+
+
+  return state.collection.has(
+    key
+  );
+
+}
+
+
+
+
+
+function parseCollectionKey(
+  key
+){
+
+
+  if(
+    typeof key !==
+    "string"
+  ){
+
+
+    return null;
+
+  }
+
+
+
+  const separatorIndex =
+
+    key.lastIndexOf(
+      ":"
+    );
+
+
+
+  if(
+    separatorIndex <= 0
+  ){
+
+
+    return null;
+
+  }
+
+
+
+  const value =
+
+    Number(
+
+      key.slice(
+        0,
+        separatorIndex
+      )
+
+    );
+
+
+
+  const animalType =
+
+    key.slice(
+      separatorIndex + 1
+    );
+
+
+
+  if(
+    !Number.isFinite(
+      value
+    )
+    ||
+    !isCollectibleAnimalType(
+      animalType
+    )
+  ){
+
+
+    return null;
+
+  }
+
+
+
+  return {
+
+    value,
+
+    animalType
+
+  };
 
 }
 
@@ -452,15 +586,20 @@ function scoreSurvival(
 
 
 
+// ============================================================
+// 收藏潜力分析
+//
+// 新版所有判断都按：
+//
+// value + animalType
+//
+// 而不是只按 value。
+// ============================================================
+
 function analyzeCollectionPotential(
   state,
   info
 ){
-
-
-  const collected =
-    state.collection;
-
 
 
   let directNewCollection =
@@ -472,12 +611,14 @@ function analyzeCollectionPotential(
 
 
 
-  const unseenValues =
+  const unseenSlots =
     new Set();
 
 
-  const reducibleUnseenValues =
+  const reducibleUnseenSlots =
     new Set();
+
+
 
 
 
@@ -489,6 +630,19 @@ function analyzeCollectionPotential(
 
     if(
       !piece
+    ){
+
+
+      continue;
+
+    }
+
+
+
+    if(
+      !isCollectibleAnimalType(
+        piece.animalType
+      )
     ){
 
 
@@ -511,8 +665,14 @@ function analyzeCollectionPotential(
       if(
         source != null
         &&
-        !collected.has(
-          source
+        !hasCollectionSlot(
+
+          state,
+
+          source,
+
+          piece.animalType
+
         )
       ){
 
@@ -529,20 +689,38 @@ function analyzeCollectionPotential(
 
 
 
+
+
+    const boardKey =
+
+      getSimulationCollectionKey(
+
+        piece.value,
+
+        piece.animalType
+
+      );
+
+
+
     if(
-      !collected.has(
-        piece.value
+      boardKey
+      &&
+      !state.collection.has(
+        boardKey
       )
     ){
 
 
-      unseenValues.add(
-        piece.value
+      unseenSlots.add(
+        boardKey
       );
 
     }
 
   }
+
+
 
 
 
@@ -621,61 +799,115 @@ function analyzeCollectionPotential(
 
 
 
+
+
     if(
-      nextA === 1
-      &&
-      !collected.has(
-        a.value
+      isCollectibleAnimalType(
+        a.animalType
       )
     ){
 
 
-      oneReduceAway++;
+      const keyA =
+
+        getSimulationCollectionKey(
+
+          a.value,
+
+          a.animalType
+
+        );
+
+
+
+      if(
+        nextA === 1
+        &&
+        keyA
+        &&
+        !state.collection.has(
+          keyA
+        )
+      ){
+
+
+        oneReduceAway++;
+
+      }
+
+
+
+      if(
+        keyA
+        &&
+        !state.collection.has(
+          keyA
+        )
+      ){
+
+
+        reducibleUnseenSlots.add(
+          keyA
+        );
+
+      }
 
     }
 
 
 
+
+
     if(
-      nextB === 1
-      &&
-      !collected.has(
-        b.value
+      isCollectibleAnimalType(
+        b.animalType
       )
     ){
 
 
-      oneReduceAway++;
+      const keyB =
 
-    }
+        getSimulationCollectionKey(
 
+          b.value,
 
+          b.animalType
 
-    if(
-      !collected.has(
-        a.value
-      )
-    ){
-
-
-      reducibleUnseenValues.add(
-        a.value
-      );
-
-    }
+        );
 
 
 
-    if(
-      !collected.has(
-        b.value
-      )
-    ){
+      if(
+        nextB === 1
+        &&
+        keyB
+        &&
+        !state.collection.has(
+          keyB
+        )
+      ){
 
 
-      reducibleUnseenValues.add(
-        b.value
-      );
+        oneReduceAway++;
+
+      }
+
+
+
+      if(
+        keyB
+        &&
+        !state.collection.has(
+          keyB
+        )
+      ){
+
+
+        reducibleUnseenSlots.add(
+          keyB
+        );
+
+      }
 
     }
 
@@ -690,10 +922,10 @@ function analyzeCollectionPotential(
     oneReduceAway,
 
     unseenBoardValues:
-      unseenValues.size,
+      unseenSlots.size,
 
     unseenReducibleValues:
-      reducibleUnseenValues.size
+      reducibleUnseenSlots.size
 
   };
 
@@ -758,16 +990,6 @@ function countCollectionAnimalTypes(
 
 
       counts.mammal++;
-
-    }
-
-
-    else if(
-      animalType === "bird"
-    ){
-
-
-      counts.bird++;
 
     }
 
@@ -2170,11 +2392,23 @@ export async function runSmartGame({
 
 
 
+
+
       if(
         removedSource != null
         &&
-        state.collection.has(
-          removedSource
+        isCollectibleAnimalType(
+          removedAnimalType
+        )
+        &&
+        hasCollectionSlot(
+
+          state,
+
+          removedSource,
+
+          removedAnimalType
+
         )
       ){
 
@@ -2185,6 +2419,8 @@ export async function runSmartGame({
       }
 
     }
+
+
 
 
 
@@ -2225,6 +2461,8 @@ export async function runSmartGame({
 
 
 
+
+
     if(
       isRepeatCollectionRemoval
     ){
@@ -2235,6 +2473,8 @@ export async function runSmartGame({
       repeatRemovalsSincePreviousCollection++;
 
     }
+
+
 
 
 
@@ -2271,6 +2511,8 @@ export async function runSmartGame({
 
 
 
+
+
     if(
       recentActions.length >
       ROUTE_WINDOW_SIZE
@@ -2283,6 +2525,12 @@ export async function runSmartGame({
 
 
 
+
+
+    // ========================================================
+    // 检测首次新增收藏槽
+    // ========================================================
+
     if(
       state.collection.size >
       previousCollection.size
@@ -2290,15 +2538,36 @@ export async function runSmartGame({
 
 
       for(
-        const value
+        const collectionKey
         of state.collection
       ){
 
 
         if(
           previousCollection.has(
-            value
+            collectionKey
           )
+        ){
+
+
+          continue;
+
+        }
+
+
+
+
+
+        const parsed =
+
+          parseCollectionKey(
+            collectionKey
+          );
+
+
+
+        if(
+          !parsed
         ){
 
 
@@ -2336,6 +2605,8 @@ export async function runSmartGame({
 
 
 
+
+
         maxCollectionImbalance =
 
           Math.max(
@@ -2353,19 +2624,20 @@ export async function runSmartGame({
 
 
 
+
+
         collectionTimeline.push({
 
           order:
             collectionTimeline.length + 1,
 
-          value,
+          value:
+            parsed.value,
 
           animalType:
+            parsed.animalType,
 
-            triggerAction
-              ?.removedAnimalType
-
-            ?? null,
+          collectionKey,
 
           actionNumber:
             actions,
@@ -2390,7 +2662,7 @@ export async function runSmartGame({
               balanceState.mammalCount,
 
             birdCount:
-              balanceState.birdCount,
+              0,
 
             imbalance:
               balanceState.imbalance,
@@ -2502,6 +2774,8 @@ export async function runSmartGame({
 
 
 
+
+
     if(
       state.mazeTurnCount >
       beforeTurnCount
@@ -2564,6 +2838,8 @@ export async function runSmartGame({
 
 
 
+
+
     if(
       actions %
       yieldEvery === 0
@@ -2619,7 +2895,7 @@ export async function runSmartGame({
           balanceState.mammalCount,
 
         collectionBirdCount:
-          balanceState.birdCount
+          0
 
       });
 
@@ -2630,6 +2906,8 @@ export async function runSmartGame({
     }
 
   }
+
+
 
 
 
@@ -2665,6 +2943,8 @@ export async function runSmartGame({
 
 
 
+
+
   return {
 
     mode,
@@ -2680,11 +2960,15 @@ export async function runSmartGame({
 
     actions,
 
+
+
     collection:
 
       Array.from(
         state.collection
       ),
+
+
 
     collectionCount:
       state.collection.size,
@@ -2718,7 +3002,7 @@ export async function runSmartGame({
         finalBalance.mammalCount,
 
       birdCount:
-        finalBalance.birdCount,
+        0,
 
       imbalance:
         finalBalance.imbalance,
@@ -2754,6 +3038,8 @@ export async function runSmartGame({
     totalRemoveActions,
 
     repeatCollectionRemovals,
+
+
 
     averageRepeatRemovalsPerCollection:
 
@@ -2979,7 +3265,7 @@ export async function runSmartExplorer({
                 current.collectionMammalCount,
 
               currentCollectionBirdCount:
-                current.collectionBirdCount,
+                0,
 
               maxSteps,
 
@@ -3203,6 +3489,8 @@ export async function runSmartExplorer({
     await yieldToBrowser();
 
   }
+
+
 
 
 

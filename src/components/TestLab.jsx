@@ -59,7 +59,7 @@ const SMART_BEAM_WIDTH =
 
 
 const COLLECTION_MAX_ACTIONS =
-  1000;
+  3000;
 
 
 const SURVIVAL_MAX_ACTIONS =
@@ -578,7 +578,7 @@ export default function TestLab({
 
               {" · "}
 
-              三系平衡 V5
+              三槽收藏
 
             </>
 
@@ -893,11 +893,6 @@ function ProgressPanel({
     ?? 0;
 
 
-  const bird =
-    progress.currentCollectionBirdCount
-    ?? 0;
-
-
 
   return (
 
@@ -944,7 +939,7 @@ function ProgressPanel({
 
             {" · "}
 
-            收藏{" "}
+            收藏槽{" "}
 
             <strong>
 
@@ -975,10 +970,6 @@ function ProgressPanel({
 
                 哺乳 {mammal}
 
-                {" / "}
-
-                鸟 {bird}
-
                 {" · "}
 
                 失衡 {
@@ -1002,10 +993,7 @@ function ProgressPanel({
                       cat,
 
                     mammalCount:
-                      mammal,
-
-                    birdCount:
-                      bird
+                      mammal
 
                   })
                 }
@@ -1210,7 +1198,7 @@ function ResultGrid({
 
 
       <ResultItem
-        label="平均收藏"
+        label="平均收藏槽"
         value={
           Number(
             result.averageCollection
@@ -1223,7 +1211,7 @@ function ResultGrid({
 
 
       <ResultItem
-        label="最多收藏"
+        label="最多收藏槽"
         value={
           result.maxCollection
           ?? 0
@@ -1263,7 +1251,7 @@ function ResultGrid({
 
 
           <ResultItem
-            label="重复旧收藏"
+            label="重复旧槽"
             value={
               formatNumber(
                 result.totalRepeatCollectionRemovals
@@ -1274,7 +1262,7 @@ function ResultGrid({
 
 
           <ResultItem
-            label="每收藏平均重复"
+            label="每新槽平均重复"
             value={
               Number(
                 result.averageRepeatRemovalsPerCollection
@@ -1420,7 +1408,7 @@ function BestGameCard({
 
         {
           collectionMode
-            ? "最多收藏纪录"
+            ? "最多收藏槽纪录"
             : "最长步数纪录"
         }
 
@@ -1463,7 +1451,7 @@ function BestGameCard({
 
         {" · "}
 
-        收藏{" "}
+        收藏槽{" "}
 
         <strong>
           {game.collectionCount}
@@ -1480,7 +1468,7 @@ function BestGameCard({
 
         <div>
 
-          收藏类型总数：
+          收藏槽类型：
 
           {" "}
 
@@ -1502,13 +1490,6 @@ function BestGameCard({
 
             哺乳 {
               typeCounts.mammal
-              ?? 0
-            }
-
-            {" / "}
-
-            鸟 {
-              typeCounts.bird
               ?? 0
             }
 
@@ -1545,10 +1526,6 @@ function BestGameCard({
               {" / "}
 
               哺乳 {balance.mammalCount}
-
-              {" / "}
-
-              鸟 {balance.birdCount}
 
             </strong>
 
@@ -1699,7 +1676,7 @@ function CollectionTimeline({
           {timeline.length}
         </strong>
 
-        {" "}个收藏
+        {" "}个新收藏槽
 
       </div>
 
@@ -1730,7 +1707,7 @@ function CollectionTimeline({
               <CollectionTimelineItem
 
                 key={
-                  `${entry.order}-${entry.value}`
+                  `${entry.order}-${entry.value}-${entry.animalType}`
                 }
 
                 entry={
@@ -1936,10 +1913,6 @@ function CollectionTimelineItem({
 
               哺乳 {balance.mammalCount}
 
-              {" / "}
-
-              鸟 {balance.birdCount}
-
               {" · "}
 
               失衡 {balance.imbalance}
@@ -2079,7 +2052,7 @@ function CollectionRouteDetail({
         >
 
           <strong>
-            收藏：
+            收藏槽：
           </strong>
 
           {" "}
@@ -2147,7 +2120,7 @@ function CollectionRouteDetail({
 
                       <strong>
 
-                        {" [重复]"}
+                        {" [重复槽]"}
 
                       </strong>
 
@@ -2311,14 +2284,6 @@ function describeBalanceState(
     );
 
 
-  const bird =
-
-    Number(
-      balance.birdCount
-      ?? 0
-    );
-
-
 
   const regular = [
 
@@ -2381,7 +2346,7 @@ function describeBalanceState(
 
 
     text =
-      "常规三系均缺失";
+      "三系均缺失";
 
   }
 
@@ -2573,43 +2538,6 @@ function describeBalanceState(
 
 
 
-  if(
-    bird > 0
-  ){
-
-
-    if(
-      dog === 0
-      &&
-      cat === 0
-      &&
-      mammal === 0
-    ){
-
-
-      text +=
-
-        bird >= 6
-
-          ? " · 鸟系占满"
-
-          : " · 含鸟系";
-
-    }
-
-
-    else{
-
-
-      text +=
-        " · 含鸟系";
-
-    }
-
-  }
-
-
-
   return text;
 
 }
@@ -2641,7 +2569,7 @@ function getModeTitle(
   ){
 
 
-    return "最多收藏 AI V5";
+    return "最多收藏 AI";
 
   }
 
@@ -2678,11 +2606,6 @@ function formatAnimalType(
     case "mammal":
 
       return "哺乳";
-
-
-    case "bird":
-
-      return "鸟";
 
 
     default:

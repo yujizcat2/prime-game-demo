@@ -10,67 +10,205 @@ import {
 
 
 
+const COLLECTION_TYPES = [
+
+  {
+    key:
+      "dog",
+
+    label:
+      "狗"
+  },
+
+  {
+    key:
+      "cat",
+
+    label:
+      "猫"
+  },
+
+  {
+    key:
+      "mammal",
+
+    label:
+      "哺乳"
+  }
+
+];
+
+
+
+
+
 export default function CollectionPanel({
 
-  collection,
+  collection = [],
 
   collectionPaths = {},
+
+  collectionParents = {},
 
   latestCollection = null
 
 }) {
 
 
+  // ==========================================================
+  // 当前展开的数字
+  // ==========================================================
+
   const [
+
     selectedValue,
+
     setSelectedValue
+
   ] = useState(
     null
   );
 
 
+
+
+
+  // ==========================================================
+  // 当前展开的收藏槽
+  //
+  // dog
+  // cat
+  // mammal
+  // ==========================================================
 
   const [
-    selectedPathIndex,
-    setSelectedPathIndex
+
+    selectedAnimalType,
+
+    setSelectedAnimalType
+
   ] = useState(
     null
   );
 
 
 
-  const paths =
+
+
+  // ==========================================================
+  // 当前数字三个路径槽
+  // ==========================================================
+
+  const selectedSlots =
 
     selectedValue !== null
 
-      ? collectionPaths[
+      ?
+
+        collectionPaths[
           selectedValue
-        ] ?? []
+        ]
 
-      : [];
+        ??
+
+        {}
+
+      :
+
+        {};
 
 
+
+
+
+  // ==========================================================
+  // 当前数字三个父母槽
+  // ==========================================================
+
+  const selectedParentSlots =
+
+    selectedValue !== null
+
+      ?
+
+        collectionParents[
+          selectedValue
+        ]
+
+        ??
+
+        {}
+
+      :
+
+        {};
+
+
+
+
+
+  // ==========================================================
+  // 当前选中槽路径
+  // ==========================================================
 
   const selectedPath =
 
-    selectedPathIndex !== null
+    selectedAnimalType !== null
 
-      ? paths[
-          selectedPathIndex
-        ] ?? []
+      ?
 
-      : [];
+        selectedSlots[
+          selectedAnimalType
+        ]
+
+        ??
+
+        []
+
+      :
+
+        [];
 
 
 
 
+
+  // ==========================================================
+  // 当前选中槽父母
+  // ==========================================================
+
+  const selectedParents =
+
+    selectedAnimalType !== null
+
+      ?
+
+        selectedParentSlots[
+          selectedAnimalType
+        ]
+
+        ??
+
+        null
+
+      :
+
+        null;
+
+
+
+
+
+  // ==========================================================
+  // 打开数字
+  // ==========================================================
 
   function openCollection(
     value
   ){
 
 
-    const valuePaths =
+    const valueSlots =
 
       collectionPaths[
         value
@@ -79,11 +217,12 @@ export default function CollectionPanel({
 
 
     if(
-      !Array.isArray(
-        valuePaths
-      ) ||
-      valuePaths.length === 0
+      !valueSlots ||
+      Array.isArray(
+        valueSlots
+      )
     ){
+
 
       return;
 
@@ -96,7 +235,7 @@ export default function CollectionPanel({
     );
 
 
-    setSelectedPathIndex(
+    setSelectedAnimalType(
       null
     );
 
@@ -105,6 +244,10 @@ export default function CollectionPanel({
 
 
 
+
+  // ==========================================================
+  // 关闭弹窗
+  // ==========================================================
 
   function closeModal(){
 
@@ -114,7 +257,7 @@ export default function CollectionPanel({
     );
 
 
-    setSelectedPathIndex(
+    setSelectedAnimalType(
       null
     );
 
@@ -124,17 +267,44 @@ export default function CollectionPanel({
 
 
 
-  function selectPath(
-    index
+  // ==========================================================
+  // 选择收藏槽
+  // ==========================================================
+
+  function selectAnimalType(
+    animalType
   ){
 
 
+    const path =
+
+      selectedSlots[
+        animalType
+      ];
+
+
+
     if(
-      selectedPathIndex === index
+      !Array.isArray(
+        path
+      ) ||
+      path.length === 0
     ){
 
 
-      setSelectedPathIndex(
+      return;
+
+    }
+
+
+
+    if(
+      selectedAnimalType ===
+      animalType
+    ){
+
+
+      setSelectedAnimalType(
         null
       );
 
@@ -145,8 +315,8 @@ export default function CollectionPanel({
 
 
 
-    setSelectedPathIndex(
-      index
+    setSelectedAnimalType(
+      animalType
     );
 
   }
@@ -155,14 +325,20 @@ export default function CollectionPanel({
 
 
 
+  // ==========================================================
+  // 路径箭头
+  // ==========================================================
+
   function getArrow(
     fromType
   ){
 
 
     if(
-      fromType === "combine"
+      fromType ===
+      "combine"
     ){
+
 
       return "⇐";
 
@@ -171,8 +347,10 @@ export default function CollectionPanel({
 
 
     if(
-      fromType === "reduce"
+      fromType ===
+      "reduce"
     ){
+
 
       return "←";
 
@@ -190,15 +368,6 @@ export default function CollectionPanel({
 
   // ==========================================================
   // 动物状态名称
-  //
-  // dog / cat / mammal：
-  //
-  // pure  → 纯狗 / 纯猫 / 纯哺乳
-  // mixed → 半纯狗 / 半纯猫 / 半纯哺乳
-  //
-  // bird：
-  //
-  // 鸟系当前不参与 purity。
   // ==========================================================
 
   function getAnimalStateName(
@@ -210,6 +379,7 @@ export default function CollectionPanel({
       !item?.animalType
     ){
 
+
       return null;
 
     }
@@ -217,8 +387,10 @@ export default function CollectionPanel({
 
 
     if(
-      item.animalType === "bird"
+      item.animalType ===
+      "bird"
     ){
+
 
       return "鸟系";
 
@@ -238,6 +410,7 @@ export default function CollectionPanel({
       !animalTypeName
     ){
 
+
       return null;
 
     }
@@ -245,8 +418,10 @@ export default function CollectionPanel({
 
 
     if(
-      item.purity === "pure"
+      item.purity ===
+      "pure"
     ){
+
 
       return `纯${animalTypeName}`;
 
@@ -255,8 +430,10 @@ export default function CollectionPanel({
 
 
     if(
-      item.purity === "mixed"
+      item.purity ===
+      "mixed"
     ){
+
 
       return `半纯${animalTypeName}`;
 
@@ -272,6 +449,156 @@ export default function CollectionPanel({
 
 
 
+  // ==========================================================
+  // 获取某数字收藏槽数量
+  // ==========================================================
+
+  function getSlotCount(
+    value
+  ){
+
+
+    const slots =
+
+      collectionPaths[
+        value
+      ];
+
+
+
+    if(
+      !slots ||
+      Array.isArray(
+        slots
+      )
+    ){
+
+
+      return 0;
+
+    }
+
+
+
+    let count =
+      0;
+
+
+
+    for(
+      const type
+      of COLLECTION_TYPES
+    ){
+
+
+      const path =
+
+        slots[
+          type.key
+        ];
+
+
+
+      if(
+        Array.isArray(
+          path
+        )
+        &&
+        path.length > 0
+      ){
+
+
+        count++;
+
+      }
+
+    }
+
+
+
+    return count;
+
+  }
+
+
+
+
+
+  // ==========================================================
+  // 总收藏槽数量
+  // ==========================================================
+
+  const totalSlotCount =
+
+    collection.reduce(
+
+      (
+        total,
+        value
+      ) =>
+
+        total
+
+        +
+
+        getSlotCount(
+          value
+        ),
+
+      0
+
+    );
+
+
+
+
+
+  // ==========================================================
+  // 三槽完成数量
+  // ==========================================================
+
+  const completedCount =
+
+    collection.reduce(
+
+      (
+        total,
+        value
+      ) => {
+
+
+        return (
+
+          total
+
+          +
+
+          (
+            getSlotCount(
+              value
+            )
+
+            ===
+
+            3
+
+              ? 1
+
+              : 0
+          )
+
+        );
+
+      },
+
+      0
+
+    );
+
+
+
+
+
   return (
 
     <div
@@ -281,6 +608,10 @@ export default function CollectionPanel({
       "
     >
 
+
+      {/* ======================================================
+          标题
+      ====================================================== */}
 
       <div
         className="
@@ -309,9 +640,10 @@ export default function CollectionPanel({
             "
           >
 
-            发现记录
+            收藏
 
           </span>
+
 
 
           <span
@@ -326,12 +658,31 @@ export default function CollectionPanel({
             "
           >
 
-            {collection.length}
+            {totalSlotCount}
+
+          </span>
+
+
+
+          <span
+            className="
+              px-2
+              py-0.5
+              rounded-full
+              bg-gray-50
+              text-[9px]
+              font-bold
+              text-gray-400
+            "
+          >
+
+            完成 {completedCount}
 
           </span>
 
 
         </div>
+
 
 
         <span
@@ -342,7 +693,7 @@ export default function CollectionPanel({
           "
         >
 
-          DISCOVERY
+          COLLECTION
 
         </span>
 
@@ -351,9 +702,16 @@ export default function CollectionPanel({
 
 
 
+
+
+      {/* ======================================================
+          空收藏
+      ====================================================== */}
+
       {
 
-        collection.length === 0
+        collection.length ===
+        0
 
         ?
 
@@ -372,10 +730,9 @@ export default function CollectionPanel({
           "
         >
 
-          尚未发现新的数字
+          尚未获得收藏
 
         </div>
-
 
         :
 
@@ -396,22 +753,39 @@ export default function CollectionPanel({
               value => {
 
 
-                const valuePaths =
+                const slots =
 
                   collectionPaths[
                     value
-                  ] ?? [];
+                  ]
+
+                  ??
+
+                  {};
 
 
 
-                const count =
-                  valuePaths.length;
+                const slotCount =
+
+                  getSlotCount(
+                    value
+                  );
+
+
+
+                const isComplete =
+
+                  slotCount ===
+                  3;
 
 
 
                 const isLatestValue =
 
-                  latestCollection?.value ===
+                  latestCollection?.value
+
+                  ===
+
                   value;
 
 
@@ -433,66 +807,175 @@ export default function CollectionPanel({
                         )
                     }
 
-                    className="
+                    className={`
                       collection-item
                       relative
-                      min-w-12
-                      h-11
-                      px-3
+                      min-w-[72px]
+                      h-[58px]
+                      px-2
                       rounded-xl
-                      bg-white
                       border
-                      border-gray-100
                       shadow-sm
                       flex
+                      flex-col
                       items-center
                       justify-center
-                      text-sm
-                      font-black
-                      text-gray-700
                       cursor-pointer
-                    "
+
+                      ${
+                        isComplete
+
+                          ? `
+                            bg-amber-50
+                            border-amber-200
+                          `
+
+                          : `
+                            bg-white
+                            border-gray-100
+                          `
+                      }
+                    `}
 
                   >
 
 
-                    {value}
-
-
                     <span
                       className="
-                        absolute
-                        top-0.5
-                        right-1
-                        text-[7px]
-                        text-amber-400
+                        text-sm
+                        font-black
+                        text-gray-700
+                        leading-none
                       "
                     >
-                      ✦
+
+                      {value}
+
                     </span>
+
+
+
+
+
+                    <div
+                      className="
+                        mt-1.5
+                        flex
+                        items-center
+                        gap-1
+                      "
+                    >
+
+
+                      {
+
+                        COLLECTION_TYPES.map(
+
+                          type => {
+
+
+                            const path =
+
+                              slots[
+                                type.key
+                              ];
+
+
+
+                            const filled =
+
+                              Array.isArray(
+                                path
+                              )
+
+                              &&
+
+                              path.length > 0;
+
+
+
+                            return (
+
+                              <span
+
+                                key={
+                                  type.key
+                                }
+
+                                className={`
+                                  w-3
+                                  h-3
+                                  rounded-full
+                                  border
+                                  flex
+                                  items-center
+                                  justify-center
+                                  text-[6px]
+                                  font-black
+
+                                  ${
+                                    filled
+
+                                      ? `
+                                        bg-gray-700
+                                        border-gray-700
+                                        text-white
+                                      `
+
+                                      : `
+                                        bg-white
+                                        border-gray-200
+                                        text-gray-300
+                                      `
+                                  }
+                                `}
+
+                              >
+
+                                {
+                                  type.label[
+                                    0
+                                  ]
+                                }
+
+                              </span>
+
+                            );
+
+                          }
+
+                        )
+
+                      }
+
+
+                    </div>
+
+
 
 
 
                     {
 
-                      count > 0 &&
+                      isComplete &&
 
                       <span
                         className="
                           absolute
-                          bottom-0.5
-                          right-1
+                          top-1
+                          right-1.5
                           text-[8px]
-                          font-bold
-                          text-gray-400
+                          text-amber-400
                         "
                       >
 
-                        {count}
+                        ★
 
                       </span>
 
                     }
+
+
 
 
 
@@ -534,9 +1017,16 @@ export default function CollectionPanel({
 
 
 
+      {/* ======================================================
+          收藏详情
+      ====================================================== */}
+
       {
 
-        selectedValue !== null &&
+        selectedValue !==
+        null
+
+        &&
 
         <div
 
@@ -582,6 +1072,10 @@ export default function CollectionPanel({
           >
 
 
+            {/* ==================================================
+                标题
+            ================================================== */}
+
             <div
               className="
                 flex
@@ -596,7 +1090,7 @@ export default function CollectionPanel({
                 className="
                   flex
                   items-end
-                  gap-1
+                  gap-2
                 "
               >
 
@@ -614,6 +1108,7 @@ export default function CollectionPanel({
                 </span>
 
 
+
                 <span
                   className="
                     mb-0.5
@@ -623,7 +1118,13 @@ export default function CollectionPanel({
                   "
                 >
 
-                  {paths.length}
+                  {
+                    getSlotCount(
+                      selectedValue
+                    )
+                  }
+
+                  {" / 3"}
 
                 </span>
 
@@ -663,10 +1164,16 @@ export default function CollectionPanel({
 
 
 
+
+
+            {/* ==================================================
+                三槽
+            ================================================== */}
+
             <div
               className="
-                flex
-                flex-wrap
+                grid
+                grid-cols-3
                 gap-2
               "
             >
@@ -674,36 +1181,63 @@ export default function CollectionPanel({
 
               {
 
-                paths.map(
+                COLLECTION_TYPES.map(
 
-                  (
-                    path,
-                    index
-                  ) => {
+                  type => {
+
+
+                    const path =
+
+                      selectedSlots[
+                        type.key
+                      ];
+
+
+
+                    const filled =
+
+                      Array.isArray(
+                        path
+                      )
+
+                      &&
+
+                      path.length >
+                      0;
+
 
 
                     const active =
 
-                      selectedPathIndex ===
-                      index;
+                      selectedAnimalType
+
+                      ===
+
+                      type.key;
 
 
 
-                    const isLatestPath =
+                    const isLatestSlot =
 
-                      latestCollection?.value ===
-                        selectedValue &&
+                      latestCollection?.value
 
-                      latestCollection?.index ===
-                        index;
+                      ===
+
+                      selectedValue
+
+                      &&
+
+                      latestCollection?.animalType
+
+                      ===
+
+                      type.key;
 
 
 
                     const finalState =
 
-                      Array.isArray(
-                        path
-                      )
+                      filled
 
                         ? path[0]
 
@@ -711,11 +1245,35 @@ export default function CollectionPanel({
 
 
 
-                    const finalStateName =
+                    const stateName =
 
                       getAnimalStateName(
                         finalState
                       );
+
+
+
+                    const parentInfo =
+
+                      selectedParentSlots[
+                        type.key
+                      ]
+
+                      ??
+
+                      null;
+
+
+
+                    const parentCount =
+
+                      Array.isArray(
+                        parentInfo?.parents
+                      )
+
+                        ? parentInfo.parents.length
+
+                        : 0;
 
 
 
@@ -724,59 +1282,119 @@ export default function CollectionPanel({
                       <button
 
                         key={
-                          `${selectedValue}-${index}`
+                          type.key
                         }
 
                         type="button"
 
+                        disabled={
+                          !filled
+                        }
+
                         onClick={
                           () =>
-                            selectPath(
-                              index
+                            selectAnimalType(
+                              type.key
                             )
                         }
 
                         className={`
                           relative
-                          min-w-14
-                          h-12
-                          px-3
-                          rounded-xl
+                          min-h-[82px]
+                          px-2
+                          py-3
+                          rounded-2xl
                           border
-
-                          ${
-                            active
-
-                              ? `
-                                bg-gray-100
-                                border-gray-300
-                              `
-
-                              : `
-                                bg-gray-50
-                                border-gray-100
-                              `
-                          }
-
                           flex
                           flex-col
                           items-center
                           justify-center
-                          text-gray-600
+                          transition
+
+                          ${
+                            filled
+
+                              ?
+
+                                active
+
+                                  ? `
+                                    bg-gray-100
+                                    border-gray-300
+                                    cursor-pointer
+                                  `
+
+                                  : `
+                                    bg-gray-50
+                                    border-gray-100
+                                    cursor-pointer
+                                  `
+
+                              : `
+                                bg-white
+                                border-dashed
+                                border-gray-200
+                                cursor-default
+                              `
+                          }
                         `}
 
                       >
 
 
                         <span
-                          className="
-                            text-sm
-                            font-black
-                            leading-none
-                          "
+                          className={`
+                            text-[10px]
+                            font-bold
+
+                            ${
+                              filled
+
+                                ? `
+                                  text-gray-500
+                                `
+
+                                : `
+                                  text-gray-300
+                                `
+                            }
+                          `}
                         >
 
-                          {selectedValue}
+                          {type.label}
+
+                        </span>
+
+
+
+                        <span
+                          className={`
+                            mt-1
+                            text-lg
+                            font-black
+                            leading-none
+
+                            ${
+                              filled
+
+                                ? `
+                                  text-gray-700
+                                `
+
+                                : `
+                                  text-gray-200
+                                `
+                            }
+                          `}
+                        >
+
+                          {
+                            filled
+
+                              ? selectedValue
+
+                              : "—"
+                          }
 
                         </span>
 
@@ -784,7 +1402,10 @@ export default function CollectionPanel({
 
                         {
 
-                          finalStateName &&
+                          filled
+                          &&
+                          stateName
+                          &&
 
                           <span
                             className="
@@ -796,7 +1417,7 @@ export default function CollectionPanel({
                             "
                           >
 
-                            {finalStateName}
+                            {stateName}
 
                           </span>
 
@@ -804,26 +1425,40 @@ export default function CollectionPanel({
 
 
 
-                        <span
-                          className="
-                            absolute
-                            bottom-0.5
-                            right-1
-                            text-[7px]
-                            font-bold
-                            text-gray-300
-                          "
-                        >
+                        {
 
-                          {index + 1}
+                          filled
+                          &&
+                          parentCount > 0
+                          &&
 
-                        </span>
+                          <span
+                            className="
+                              mt-1
+                              text-[7px]
+                              font-bold
+                              leading-none
+                              text-gray-300
+                            "
+                          >
+
+                            父母 {
+
+                              parentInfo.parents.join(
+                                " + "
+                              )
+
+                            }
+
+                          </span>
+
+                        }
 
 
 
                         {
 
-                          isLatestPath &&
+                          isLatestSlot &&
 
                           <span
                             className="
@@ -855,9 +1490,61 @@ export default function CollectionPanel({
 
 
 
+
+
+            {/* ==================================================
+                三槽完成
+            ================================================== */}
+
             {
 
-              selectedPath.length > 0 &&
+              getSlotCount(
+                selectedValue
+              )
+
+              ===
+
+              3
+
+              &&
+
+              <div
+                className="
+                  mt-4
+                  h-9
+                  rounded-xl
+                  bg-amber-50
+                  border
+                  border-amber-100
+                  flex
+                  items-center
+                  justify-center
+                  text-[10px]
+                  font-bold
+                  text-amber-600
+                "
+              >
+
+                ★ 三系收藏完成
+
+              </div>
+
+            }
+
+
+
+
+
+            {/* ==================================================
+                当前槽详情
+            ================================================== */}
+
+            {
+
+              selectedPath.length >
+              0
+
+              &&
 
               <div
                 className="
@@ -869,170 +1556,516 @@ export default function CollectionPanel({
               >
 
 
+                {/* ==============================================
+                    首次父母
+                ============================================== */}
+
                 <div
                   className="
-                    flex
-                    flex-wrap
-                    items-center
-                    gap-y-2
+                    mb-5
                   "
                 >
 
 
+                  <div
+                    className="
+                      mb-3
+                      flex
+                      items-center
+                      justify-between
+                    "
+                  >
+
+
+                    <span
+                      className="
+                        text-[10px]
+                        font-bold
+                        text-gray-400
+                      "
+                    >
+
+                      首次父母
+
+                    </span>
+
+
+
+                    <span
+                      className="
+                        text-[9px]
+                        font-bold
+                        text-gray-300
+                      "
+                    >
+
+                      {
+                        COLLECTION_TYPES.find(
+
+                          type =>
+                            type.key ===
+                            selectedAnimalType
+
+                        )?.label
+
+                        ??
+
+                        ""
+                      }
+
+                    </span>
+
+
+                  </div>
+
+
+
+
+
                   {
 
-                    selectedPath.map(
+                    Array.isArray(
+                      selectedParents?.parentAnimals
+                    )
 
-                      (
-                        item,
-                        index
-                      ) => {
+                    &&
 
+                    selectedParents.parentAnimals.length >
+                    0
 
-                        const arrow =
+                    ?
 
-                          getArrow(
-                            item.fromType
-                          );
-
-
-
-                        const stateName =
-
-                          getAnimalStateName(
-                            item
-                          );
+                    <div
+                      className="
+                        flex
+                        items-center
+                        gap-2
+                      "
+                    >
 
 
+                      {
 
-                        return (
+                        selectedParents.parentAnimals.map(
 
-                          <div
+                          (
+                            parent,
+                            index
+                          ) => {
 
-                            key={
-                              `${item.value}-${index}`
-                            }
 
-                            className="
-                              flex
-                              items-center
-                            "
+                            const parentStateName =
 
-                          >
+                              getAnimalStateName(
+                                parent
+                              );
 
+
+
+                            return (
+
+                              <div
+
+                                key={
+                                  `${parent.value}-${index}`
+                                }
+
+                                className="
+                                  flex
+                                  items-center
+                                "
+
+                              >
+
+
+                                <div
+                                  className="
+                                    min-w-16
+                                    h-14
+                                    px-2
+                                    rounded-xl
+                                    bg-gray-50
+                                    border
+                                    border-gray-100
+                                    flex
+                                    flex-col
+                                    items-center
+                                    justify-center
+                                  "
+                                >
+
+
+                                  <span
+                                    className="
+                                      text-base
+                                      font-black
+                                      text-gray-700
+                                      leading-none
+                                    "
+                                  >
+
+                                    {parent.value}
+
+                                  </span>
+
+
+
+                                  {
+
+                                    parentStateName &&
+
+                                    <span
+                                      className="
+                                        mt-1
+                                        text-[8px]
+                                        font-bold
+                                        text-gray-400
+                                      "
+                                    >
+
+                                      {parentStateName}
+
+                                    </span>
+
+                                  }
+
+
+                                </div>
+
+
+
+                                {
+
+                                  index === 0
+
+                                  &&
+
+                                  <span
+                                    className="
+                                      mx-2
+                                      text-xs
+                                      font-bold
+                                      text-gray-300
+                                    "
+                                  >
+
+                                    +
+
+                                  </span>
+
+                                }
+
+
+                              </div>
+
+                            );
+
+                          }
+
+                        )
+
+                      }
+
+
+                    </div>
+
+                    :
+
+                    Array.isArray(
+                      selectedParents?.parents
+                    )
+
+                    &&
+
+                    selectedParents.parents.length >
+                    0
+
+                    ?
+
+                    <div
+                      className="
+                        text-sm
+                        font-black
+                        text-gray-600
+                      "
+                    >
+
+                      {
+                        selectedParents.parents.join(
+                          " + "
+                        )
+                      }
+
+                    </div>
+
+                    :
+
+                    <div
+                      className="
+                        text-[10px]
+                        font-bold
+                        text-gray-300
+                      "
+                    >
+
+                      单路径
+
+                    </div>
+
+                  }
+
+
+                </div>
+
+
+
+
+
+                {/* ==============================================
+                    首次收藏路径
+                ============================================== */}
+
+                <div
+                  className="
+                    pt-5
+                    border-t
+                    border-gray-100
+                  "
+                >
+
+
+                  <div
+                    className="
+                      mb-3
+                      flex
+                      items-center
+                      justify-between
+                    "
+                  >
+
+
+                    <span
+                      className="
+                        text-[10px]
+                        font-bold
+                        text-gray-400
+                      "
+                    >
+
+                      首次收藏路径
+
+                    </span>
+
+
+
+                    <span
+                      className="
+                        text-[9px]
+                        font-bold
+                        text-gray-300
+                      "
+                    >
+
+                      {
+                        COLLECTION_TYPES.find(
+
+                          type =>
+                            type.key ===
+                            selectedAnimalType
+
+                        )?.label
+
+                        ??
+
+                        ""
+                      }
+
+                    </span>
+
+
+                  </div>
+
+
+
+                  <div
+                    className="
+                      flex
+                      flex-wrap
+                      items-center
+                      gap-y-2
+                    "
+                  >
+
+
+                    {
+
+                      selectedPath.map(
+
+                        (
+                          item,
+                          index
+                        ) => {
+
+
+                          const arrow =
+
+                            getArrow(
+                              item.fromType
+                            );
+
+
+
+                          const stateName =
+
+                            getAnimalStateName(
+                              item
+                            );
+
+
+
+                          return (
 
                             <div
+
+                              key={
+                                `${item.value}-${index}`
+                              }
+
                               className="
-                                min-w-14
-                                h-12
-                                px-2
-                                rounded-xl
-                                bg-gray-50
-                                border
-                                border-gray-100
                                 flex
-                                flex-col
                                 items-center
-                                justify-center
-                                text-gray-700
-                                shrink-0
                               "
+
                             >
 
 
-                              <span
+                              <div
                                 className="
-                                  text-sm
-                                  font-black
-                                  leading-none
+                                  min-w-14
+                                  h-12
+                                  px-2
+                                  rounded-xl
+                                  bg-gray-50
+                                  border
+                                  border-gray-100
+                                  flex
+                                  flex-col
+                                  items-center
+                                  justify-center
+                                  text-gray-700
+                                  shrink-0
                                 "
                               >
 
-                                {item.value}
 
-                              </span>
+                                <span
+                                  className="
+                                    text-sm
+                                    font-black
+                                    leading-none
+                                  "
+                                >
+
+                                  {item.value}
+
+                                </span>
+
+
+
+                                {
+
+                                  stateName
+
+                                  &&
+
+                                  <span
+                                    className="
+                                      mt-1
+                                      text-[8px]
+                                      font-bold
+                                      leading-none
+                                      text-gray-400
+                                    "
+                                  >
+
+                                    {stateName}
+
+                                  </span>
+
+                                }
+
+
+                              </div>
+
+
 
 
 
                               {
 
-                                stateName &&
+                                index
 
-                                <span
-                                  className="
-                                    mt-1
-                                    text-[8px]
-                                    font-bold
-                                    leading-none
-                                    text-gray-400
-                                  "
+                                <
+
+                                selectedPath.length -
+                                1
+
+                                &&
+
+                                arrow
+
+                                &&
+
+                                <div
+
+                                  className={`
+                                    w-7
+                                    flex
+                                    items-center
+                                    justify-center
+                                    text-sm
+                                    shrink-0
+
+                                    ${
+                                      item.fromType
+
+                                      ===
+
+                                      "combine"
+
+                                        ? `
+                                          text-gray-500
+                                          font-bold
+                                        `
+
+                                        : `
+                                          text-gray-300
+                                          font-normal
+                                        `
+                                    }
+                                  `}
+
                                 >
 
-                                  {stateName}
+                                  {arrow}
 
-                                </span>
+                                </div>
 
                               }
 
 
                             </div>
 
+                          );
+
+                        }
+
+                      )
+
+                    }
 
 
-                            {
-
-                              index <
-                              selectedPath.length - 1
-
-                              &&
-
-                              arrow
-
-                              &&
-
-                              <div
-
-                                className={`
-                                  w-7
-                                  flex
-                                  items-center
-                                  justify-center
-                                  text-sm
-                                  shrink-0
-
-                                  ${
-                                    item.fromType === "combine"
-
-                                      ? `
-                                        text-gray-500
-                                        font-bold
-                                      `
-
-                                      : `
-                                        text-gray-300
-                                        font-normal
-                                      `
-                                  }
-                                `}
-
-                              >
-
-                                {arrow}
-
-                              </div>
-
-                            }
-
-
-                          </div>
-
-                        );
-
-                      }
-
-                    )
-
-                  }
+                  </div>
 
 
                 </div>

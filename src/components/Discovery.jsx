@@ -1,27 +1,77 @@
 import "./Discovery.css";
 
 
+const COLLECTION_TYPES = [
+  "dog",
+  "cat",
+  "mammal"
+];
+
+
 export default function Discovery({
 
-  collection = []
+  collection = [],
+
+  collectionPaths = {}
 
 }) {
 
 
-  // =========================
-  // 当前发现数量
-  // =========================
+  let discoveredCount =
+    0;
 
-  const discoveredCount =
 
+  if(
     Array.isArray(
       collection
     )
+  ){
 
-      ? collection.length
 
-      : 0;
+    for(
+      const value
+      of collection
+    ){
 
+
+      const slots =
+        collectionPaths[value];
+
+
+      if(
+        !slots ||
+        Array.isArray(slots)
+      ){
+
+        continue;
+
+      }
+
+
+      for(
+        const animalType
+        of COLLECTION_TYPES
+      ){
+
+
+        const path =
+          slots[animalType];
+
+
+        if(
+          Array.isArray(path) &&
+          path.length > 0
+        ){
+
+          discoveredCount++;
+
+        }
+
+      }
+
+    }
+
+  }
 
 
   return (
@@ -32,15 +82,12 @@ export default function Discovery({
       "
     >
 
-
       <span
         className="
           discovery-label
         "
       >
-
-        探索
-
+        收藏
       </span>
 
 
@@ -49,11 +96,8 @@ export default function Discovery({
           discovery-value
         "
       >
-
         {discoveredCount}
-
       </strong>
-
 
     </div>
 

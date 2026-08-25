@@ -1,6 +1,6 @@
 /* ============================================================
    Discovery
-   探索 HUD
+   收藏进度 HUD
    ============================================================ */
 
 .discovery-panel {
@@ -24,24 +24,30 @@
     center;
 
   gap:
-    8px;
+    7px;
 
   border:
     1px solid
-    rgba(15,23,42,.035);
+    rgba(15, 23, 42, .045);
 
   border-radius:
-    17px;
+    16px;
 
   background:
-    rgba(255,255,255,.72);
+    rgba(255, 255, 255, .76);
 
   box-shadow:
-    0 5px 18px
-    rgba(15,23,42,.035),
+    0 4px 14px
+    rgba(15, 23, 42, .035),
 
     inset 0 1px 0
-    rgba(255,255,255,.72);
+    rgba(255, 255, 255, .82);
+
+  backdrop-filter:
+    blur(10px);
+
+  -webkit-backdrop-filter:
+    blur(10px);
 
 }
 
@@ -65,22 +71,34 @@
     800;
 
   letter-spacing:
-    .10em;
+    .12em;
+
+  text-transform:
+    uppercase;
 
   color:
-    #abb1b8;
+    #a7afb7;
 
 }
 
 
 /* ============================================================
-   数值
+   主数值
    ============================================================ */
 
 .discovery-value {
 
+  display:
+    inline-flex;
+
+  align-items:
+    baseline;
+
+  gap:
+    2px;
+
   font-size:
-    18px;
+    19px;
 
   line-height:
     1;
@@ -89,10 +107,79 @@
     900;
 
   letter-spacing:
-    -.035em;
+    -.045em;
 
   color:
-    #44514a;
+    #39463f;
+
+  font-variant-numeric:
+    tabular-nums;
+
+}
+
+
+/* ============================================================
+   总量
+   ============================================================ */
+
+.discovery-total {
+
+  font-size:
+    9px;
+
+  line-height:
+    1;
+
+  font-weight:
+    800;
+
+  letter-spacing:
+    -.02em;
+
+  color:
+    #aeb5bb;
+
+  opacity:
+    .85;
+
+}
+
+
+/* ============================================================
+   轻微 hover
+   ============================================================ */
+
+.discovery-panel {
+
+  transition:
+    transform .18s ease,
+    box-shadow .18s ease,
+    border-color .18s ease;
+
+}
+
+
+@media (
+  hover:
+    hover
+) {
+
+  .discovery-panel:hover {
+
+    transform:
+      translateY(-1px);
+
+    border-color:
+      rgba(15, 23, 42, .065);
+
+    box-shadow:
+      0 6px 18px
+      rgba(15, 23, 42, .05),
+
+      inset 0 1px 0
+      rgba(255, 255, 255, .9);
+
+  }
 
 }
 
@@ -118,7 +205,7 @@
       6px;
 
     border-radius:
-      15px;
+      14px;
 
   }
 
@@ -128,13 +215,24 @@
     font-size:
       7px;
 
+    letter-spacing:
+      .10em;
+
   }
 
 
   .discovery-value {
 
     font-size:
-      16px;
+      17px;
+
+  }
+
+
+  .discovery-total {
+
+    font-size:
+      8px;
 
   }
 
@@ -164,7 +262,15 @@
   .discovery-value {
 
     font-size:
-      15px;
+      16px;
+
+  }
+
+
+  .discovery-total {
+
+    font-size:
+      7px;
 
   }
 

@@ -6,50 +6,10 @@ import {
 
 
 
-// ============================================================
-// 随机探路测试
-//
-// 高速版：
-//
-// Random AI 本身只做一件事：
-//
-// 从当前所有合法动作中
-// 随机选择一个动作。
-//
-// 所有游戏规则全部交给
-// simulationEngine。
-//
-// 不使用正式 gameEngine，
-// 因此不会生成：
-//
-// origin
-// collectionOrigins
-// collectionPaths
-// latestCollection
-// score
-// UI历史
-//
-// 用于：
-//
-// 100局
-// 1000局
-// 10000局
-// 100000局
-// ============================================================
-
-
-
 
 
 // ============================================================
 // 随机生成开局
-//
-// 与当前正式游戏一致：
-//
-// 从 2～9 中
-// 随机选择 3 个不同数字。
-//
-// simulationEngine 会自动赋予：
 //
 // 第1个 → 狗
 // 第2个 → 猫
@@ -74,7 +34,6 @@ function createRandomInitialValues(){
 
 
 
-  // Fisher-Yates
   for(
     let i = pool.length - 1;
     i > 0;
@@ -95,16 +54,15 @@ function createRandomInitialValues(){
 
 
 
-    const temp =
-      pool[i];
+    [
+      pool[i],
+      pool[j]
+    ] = [
 
+      pool[j],
+      pool[i]
 
-    pool[i] =
-      pool[j];
-
-
-    pool[j] =
-      temp;
+    ];
 
   }
 
@@ -122,7 +80,7 @@ function createRandomInitialValues(){
 
 
 // ============================================================
-// 随机选择一个动作
+// 随机选择动作
 // ============================================================
 
 function randomChoice(
@@ -152,12 +110,7 @@ function randomChoice(
 
 
 // ============================================================
-// 让浏览器刷新
-//
-// 注意：
-//
-// 只在批次之间调用。
-// 单局内部完全不 await。
+// 浏览器让步
 // ============================================================
 
 function yieldToBrowser(){
@@ -187,30 +140,269 @@ function yieldToBrowser(){
 
 
 // ============================================================
+// 解析收藏 Key
+//
+// 例如：
+//
+// "17:dog"
+// "17:cat"
+// "17:mammal"
+//
+// →
+//
+// {
+//   value: 17,
+//   animalType: "dog"
+// }
+// ============================================================
+
+function parseCollectionKey(
+  key
+){
+
+
+  if(
+    typeof key !==
+    "string"
+  ){
+
+
+    return null;
+
+  }
+
+
+
+  const separatorIndex =
+
+    key.lastIndexOf(
+      ":"
+    );
+
+
+
+  if(
+    separatorIndex <= 0
+  ){
+
+
+    return null;
+
+  }
+
+
+
+  const value =
+
+    Number(
+
+      key.slice(
+        0,
+        separatorIndex
+      )
+
+    );
+
+
+
+  const animalType =
+
+    key.slice(
+      separatorIndex + 1
+    );
+
+
+
+  if(
+    !Number.isFinite(
+      value
+    )
+  ){
+
+
+    return null;
+
+  }
+
+
+
+  if(
+    animalType !== "dog"
+    &&
+    animalType !== "cat"
+    &&
+    animalType !== "mammal"
+  ){
+
+
+    return null;
+
+  }
+
+
+
+  return {
+
+    value,
+
+    animalType
+
+  };
+
+}
+
+
+
+
+
+// ============================================================
+// 分析收藏槽
+//
+// 返回：
+//
+// slotCount
+//   总收藏槽数
+//
+// numberCount
+//   至少拥有一个槽的数字数量
+//
+// completeNumberCount
+//   狗 / 猫 / 哺乳三个槽全部集齐的数字数量
+//
+// partialNumberCount
+//   只收集了1～2槽的数字数量
+// ============================================================
+
+function analyzeCollection(
+  collection
+){
+
+
+  const numberMap =
+    new Map();
+
+
+
+  for(
+    const key
+    of collection
+  ){
+
+
+    const parsed =
+
+      parseCollectionKey(
+        key
+      );
+
+
+
+    if(
+      !parsed
+    ){
+
+
+      continue;
+
+    }
+
+
+
+    if(
+      !numberMap.has(
+        parsed.value
+      )
+    ){
+
+
+      numberMap.set(
+
+        parsed.value,
+
+        new Set()
+
+      );
+
+    }
+
+
+
+    numberMap
+      .get(
+        parsed.value
+      )
+      .add(
+        parsed.animalType
+      );
+
+  }
+
+
+
+
+
+  let completeNumberCount =
+    0;
+
+
+  let partialNumberCount =
+    0;
+
+
+
+  for(
+    const types
+    of numberMap.values()
+  ){
+
+
+    if(
+      types.size === 3
+    ){
+
+
+      completeNumberCount++;
+
+    }
+
+
+    else if(
+      types.size > 0
+    ){
+
+
+      partialNumberCount++;
+
+    }
+
+  }
+
+
+
+
+
+  return {
+
+    slotCount:
+      collection.size,
+
+    numberCount:
+      numberMap.size,
+
+    completeNumberCount,
+
+    partialNumberCount
+
+  };
+
+}
+
+
+
+
+
+// ============================================================
 // 随机玩一局
-//
-// 这是最核心的随机 AI。
-//
-// 流程：
-//
-// 开局
-// ↓
-// 获取合法动作
-// ↓
-// 随机选一个
-// ↓
-// 执行
-// ↓
-// 再获取合法动作
-// ↓
-// ...
-// ↓
-// 无合法动作
-// ↓
-// 游戏结束
-//
-// maxActions 只是测试保护阀。
-// 不是正式游戏步数限制。
 // ============================================================
 
 export function runRandomGame({
@@ -220,19 +412,11 @@ export function runRandomGame({
 } = {}){
 
 
-  // ==========================================================
-  // 随机开局
-  // ==========================================================
-
   const initialValues =
 
     createRandomInitialValues();
 
 
-
-  // ==========================================================
-  // 创建轻量模拟状态
-  // ==========================================================
 
   const state =
 
@@ -242,36 +426,16 @@ export function runRandomGame({
 
 
 
-  // ==========================================================
-  // 实际操作次数
-  //
-  // 与 steps 不一样。
-  //
-  // 因为：
-  //
-  // combine → actions +1 / steps +1
-  // reduce  → actions +1 / steps +1
-  // remove1 → actions +1 / steps +0
-  // ==========================================================
-
   let actions =
     0;
 
 
-
-  // ==========================================================
-  // 开始随机探路
-  // ==========================================================
 
   while(
     actions <
     maxActions
   ){
 
-
-    // ========================================================
-    // 当前所有合法动作
-    // ========================================================
 
     const legalActions =
 
@@ -280,12 +444,6 @@ export function runRandomGame({
       );
 
 
-
-    // ========================================================
-    // 没有任何合法动作
-    //
-    // 本局自然结束。
-    // ========================================================
 
     if(
       legalActions.length === 0
@@ -298,10 +456,6 @@ export function runRandomGame({
 
 
 
-    // ========================================================
-    // 随机选择一个合法动作
-    // ========================================================
-
     const action =
 
       randomChoice(
@@ -310,20 +464,26 @@ export function runRandomGame({
 
 
 
-    // ========================================================
-    // 执行动作
-    //
-    // simulationEngine 原地修改 state，
-    // 不创建新的完整 state。
-    // ========================================================
+    const applied =
 
-    applySimulationAction(
+      applySimulationAction(
 
-      state,
+        state,
 
-      action
+        action
 
-    );
+      );
+
+
+
+    if(
+      !applied
+    ){
+
+
+      break;
+
+    }
 
 
 
@@ -335,12 +495,6 @@ export function runRandomGame({
 
 
 
-  // ==========================================================
-  // 收藏 Set → Array
-  //
-  // 只在一局结束以后转换一次。
-  // ==========================================================
-
   const collection =
 
     Array.from(
@@ -349,57 +503,74 @@ export function runRandomGame({
 
 
 
+  const collectionStats =
+
+    analyzeCollection(
+      state.collection
+    );
 
 
-  // ==========================================================
-  // 返回单局结果
-  // ==========================================================
+
+
 
   return {
 
     initialValues,
 
-
-
-    // ========================================================
-    // 正式游戏步数
-    //
-    // remove 1 不计。
-    // ========================================================
-
     steps:
       state.steps,
-
-
-
-    // ========================================================
-    // AI总操作次数
-    // ========================================================
 
     actions,
 
 
 
     // ========================================================
-    // 收藏
+    // 原始收藏槽
     // ========================================================
 
     collection,
 
 
 
-    collectionCount:
-      state.collection.size,
-
-
-
     // ========================================================
-    // 是否达到测试保护上限
+    // 收藏槽总数
     //
-    // 如果这里为 true，
-    // 说明这一局没有自然结束，
-    // 数据需要特别观察。
+    // 17:dog + 17:cat = 2
     // ========================================================
+
+    collectionCount:
+      collectionStats.slotCount,
+
+
+
+    // ========================================================
+    // 已覆盖数字数量
+    //
+    // 17:dog + 17:cat = 1个数字
+    // ========================================================
+
+    collectionNumberCount:
+      collectionStats.numberCount,
+
+
+
+    // ========================================================
+    // 三槽全部集齐的数字
+    // ========================================================
+
+    completeCollectionCount:
+      collectionStats.completeNumberCount,
+
+
+
+    // ========================================================
+    // 尚未集齐三槽的数字
+    // ========================================================
+
+    partialCollectionCount:
+      collectionStats.partialNumberCount,
+
+
 
     hitLimit:
 
@@ -416,27 +587,6 @@ export function runRandomGame({
 
 // ============================================================
 // 批量随机探路
-//
-// games:
-//
-// 要测试多少局。
-//
-//
-// maxActionsPerGame:
-//
-// 单局最大操作保护阀。
-//
-//
-// batchSize:
-//
-// 每跑多少局刷新一次UI。
-//
-// 例如：
-//
-// games = 100000
-// batchSize = 1000
-//
-// 浏览器只刷新约100次。
 // ============================================================
 
 export async function runRandomExplorer({
@@ -451,10 +601,6 @@ export async function runRandomExplorer({
 
 } = {}){
 
-
-  // ==========================================================
-  // 参数保护
-  // ==========================================================
 
   const safeGames =
 
@@ -486,71 +632,62 @@ export async function runRandomExplorer({
 
 
 
-  // ==========================================================
-  // 总步数
-  // ==========================================================
-
   let totalSteps =
     0;
 
-
-
-  // ==========================================================
-  // 总收藏数
-  // ==========================================================
 
   let totalCollection =
     0;
 
 
+  let totalCollectionNumbers =
+    0;
+
+
+  let totalCompleteCollections =
+    0;
+
+
+  let totalPartialCollections =
+    0;
 
 
 
-  // ==========================================================
-  // 当前最长步数
-  // ==========================================================
+
 
   let maxSteps =
     0;
 
 
-
-  // ==========================================================
-  // 当前最多收藏
-  // ==========================================================
-
   let maxCollection =
+    0;
+
+
+  let maxCollectionNumbers =
+    0;
+
+
+  let maxCompleteCollections =
     0;
 
 
 
 
 
-  // ==========================================================
-  // 最长步数纪录
-  // ==========================================================
-
   let bestStepGame =
     null;
 
-
-
-
-
-  // ==========================================================
-  // 最多收藏纪录
-  // ==========================================================
 
   let bestCollectionGame =
     null;
 
 
+  let bestCompleteCollectionGame =
+    null;
 
 
 
-  // ==========================================================
-  // 达到保护上限次数
-  // ==========================================================
+
 
   let hitLimitCount =
     0;
@@ -559,20 +696,12 @@ export async function runRandomExplorer({
 
 
 
-  // ==========================================================
-  // 开始批量测试
-  // ==========================================================
-
   for(
     let gameIndex = 0;
     gameIndex < safeGames;
     gameIndex++
   ){
 
-
-    // ========================================================
-    // 全速跑完一局
-    // ========================================================
 
     const result =
 
@@ -587,31 +716,28 @@ export async function runRandomExplorer({
 
 
 
-    // ========================================================
-    // 累计步数
-    // ========================================================
-
     totalSteps +=
       result.steps;
 
-
-
-
-
-    // ========================================================
-    // 累计收藏
-    // ========================================================
 
     totalCollection +=
       result.collectionCount;
 
 
+    totalCollectionNumbers +=
+      result.collectionNumberCount;
+
+
+    totalCompleteCollections +=
+      result.completeCollectionCount;
+
+
+    totalPartialCollections +=
+      result.partialCollectionCount;
 
 
 
-    // ========================================================
-    // 最长步数纪录
-    // ========================================================
+
 
     if(
       result.steps >
@@ -639,10 +765,6 @@ export async function runRandomExplorer({
 
 
 
-    // ========================================================
-    // 最多收藏纪录
-    // ========================================================
-
     if(
       result.collectionCount >
       maxCollection
@@ -669,9 +791,46 @@ export async function runRandomExplorer({
 
 
 
-    // ========================================================
-    // 保护上限
-    // ========================================================
+    if(
+      result.collectionNumberCount >
+      maxCollectionNumbers
+    ){
+
+
+      maxCollectionNumbers =
+        result.collectionNumberCount;
+
+    }
+
+
+
+
+
+    if(
+      result.completeCollectionCount >
+      maxCompleteCollections
+    ){
+
+
+      maxCompleteCollections =
+        result.completeCollectionCount;
+
+
+
+      bestCompleteCollectionGame = {
+
+        gameIndex:
+          gameIndex + 1,
+
+        ...result
+
+      };
+
+    }
+
+
+
+
 
     if(
       result.hitLimit
@@ -685,10 +844,6 @@ export async function runRandomExplorer({
 
 
 
-
-    // ========================================================
-    // 批量刷新
-    // ========================================================
 
     const completed =
       gameIndex + 1;
@@ -712,10 +867,6 @@ export async function runRandomExplorer({
     ){
 
 
-      // ======================================================
-      // 更新TestLab
-      // ======================================================
-
       if(
         typeof onProgress ===
         "function"
@@ -733,6 +884,10 @@ export async function runRandomExplorer({
 
           maxCollection,
 
+          maxCollectionNumbers,
+
+          maxCompleteCollections,
+
           hitLimitCount
 
         });
@@ -740,10 +895,6 @@ export async function runRandomExplorer({
       }
 
 
-
-      // ======================================================
-      // 把控制权还给浏览器
-      // ======================================================
 
       await yieldToBrowser();
 
@@ -755,10 +906,6 @@ export async function runRandomExplorer({
 
 
 
-  // ==========================================================
-  // 最终统计
-  // ==========================================================
-
   return {
 
     games:
@@ -766,27 +913,17 @@ export async function runRandomExplorer({
 
 
 
-    // ========================================================
-    // 平均步数
-    // ========================================================
-
     averageSteps:
 
       totalSteps /
       safeGames,
-
-
-
-    // ========================================================
-    // 最长步数
-    // ========================================================
 
     maxSteps,
 
 
 
     // ========================================================
-    // 平均收藏
+    // 槽数量
     // ========================================================
 
     averageCollection:
@@ -794,31 +931,56 @@ export async function runRandomExplorer({
       totalCollection /
       safeGames,
 
-
-
-    // ========================================================
-    // 最多收藏
-    // ========================================================
-
     maxCollection,
 
 
 
     // ========================================================
-    // 保护上限命中
+    // 数字覆盖
     // ========================================================
+
+    averageCollectionNumbers:
+
+      totalCollectionNumbers /
+      safeGames,
+
+    maxCollectionNumbers,
+
+
+
+    // ========================================================
+    // 三槽完成
+    // ========================================================
+
+    averageCompleteCollections:
+
+      totalCompleteCollections /
+      safeGames,
+
+    maxCompleteCollections,
+
+
+
+    // ========================================================
+    // 部分完成
+    // ========================================================
+
+    averagePartialCollections:
+
+      totalPartialCollections /
+      safeGames,
+
+
 
     hitLimitCount,
 
 
 
-    // ========================================================
-    // 两项纪录
-    // ========================================================
-
     bestStepGame,
 
-    bestCollectionGame
+    bestCollectionGame,
+
+    bestCompleteCollectionGame
 
   };
 

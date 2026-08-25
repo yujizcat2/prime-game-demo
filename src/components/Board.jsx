@@ -7,6 +7,12 @@ import {
 } from "../game/scoreConfig";
 
 import {
+  ANIMAL_TYPES,
+  getBirdMutationAnimalType,
+  isNormalAnimalType
+} from "../game/rules";
+
+import {
   getAnimalName
 } from "../data/animal/animalRegistry";
 
@@ -154,7 +160,8 @@ export default function Board({
 
 
         if(
-          index === selectedEntry.index
+          index ===
+          selectedEntry.index
         ){
 
           return;
@@ -190,6 +197,7 @@ export default function Board({
           divisor > 1
         ){
 
+
           reduceCandidateIndexes.add(
             index
           );
@@ -208,9 +216,40 @@ export default function Board({
 
   // ==========================================================
   // 双选约分 Preview
+  //
+  // reducePreviewMap
+  //
+  // {
+  //   [index]: resultValue
+  // }
+  //
+  //
+  // mutationPreviewMap
+  //
+  // {
+  //   [index]: {
+  //
+  //     triggered: true,
+  //
+  //     role:
+  //       "target" | "bird",
+  //
+  //     fromType,
+  //     toType,
+  //
+  //     resultValue
+  //
+  //   }
+  // }
+  //
   // ==========================================================
 
-  const reducePreviewMap = {};
+  const reducePreviewMap =
+    {};
+
+
+  const mutationPreviewMap =
+    {};
 
 
 
@@ -259,21 +298,215 @@ export default function Board({
       ){
 
 
-        reducePreviewMap[
-          firstEntry.index
-        ] =
+        const firstResult =
 
           firstPiece.value /
           divisor;
 
 
 
-        reducePreviewMap[
-          secondEntry.index
-        ] =
+        const secondResult =
 
           secondPiece.value /
           divisor;
+
+
+
+
+
+        reducePreviewMap[
+          firstEntry.index
+        ] =
+          firstResult;
+
+
+
+        reducePreviewMap[
+          secondEntry.index
+        ] =
+          secondResult;
+
+
+
+
+
+        // ======================================================
+        // 情况 A
+        //
+        // first = 鸟
+        // firstResult = 1
+        //
+        // second 发生变种
+        // ======================================================
+
+        if(
+          firstPiece.animalType ===
+          ANIMAL_TYPES.BIRD
+
+          &&
+
+          firstResult ===
+          1
+
+          &&
+
+          isNormalAnimalType(
+            secondPiece.animalType
+          )
+        ){
+
+
+          const mutatedType =
+
+            getBirdMutationAnimalType(
+              secondPiece.animalType
+            );
+
+
+
+          if(
+            mutatedType
+          ){
+
+
+            mutationPreviewMap[
+              firstEntry.index
+            ] = {
+
+              triggered:
+                true,
+
+              role:
+                "bird",
+
+              fromType:
+                ANIMAL_TYPES.BIRD,
+
+              toType:
+                ANIMAL_TYPES.BIRD,
+
+              resultValue:
+                firstResult
+
+            };
+
+
+
+            mutationPreviewMap[
+              secondEntry.index
+            ] = {
+
+              triggered:
+                true,
+
+              role:
+                "target",
+
+              fromType:
+                secondPiece.animalType,
+
+              toType:
+                mutatedType,
+
+              resultValue:
+                secondResult
+
+            };
+
+          }
+
+        }
+
+
+
+
+
+        // ======================================================
+        // 情况 B
+        //
+        // second = 鸟
+        // secondResult = 1
+        //
+        // first 发生变种
+        // ======================================================
+
+        else if(
+          secondPiece.animalType ===
+          ANIMAL_TYPES.BIRD
+
+          &&
+
+          secondResult ===
+          1
+
+          &&
+
+          isNormalAnimalType(
+            firstPiece.animalType
+          )
+        ){
+
+
+          const mutatedType =
+
+            getBirdMutationAnimalType(
+              firstPiece.animalType
+            );
+
+
+
+          if(
+            mutatedType
+          ){
+
+
+            mutationPreviewMap[
+              secondEntry.index
+            ] = {
+
+              triggered:
+                true,
+
+              role:
+                "bird",
+
+              fromType:
+                ANIMAL_TYPES.BIRD,
+
+              toType:
+                ANIMAL_TYPES.BIRD,
+
+              resultValue:
+                secondResult
+
+            };
+
+
+
+            mutationPreviewMap[
+              firstEntry.index
+            ] = {
+
+              triggered:
+                true,
+
+              role:
+                "target",
+
+              fromType:
+                firstPiece.animalType,
+
+              toType:
+                mutatedType,
+
+              resultValue:
+                firstResult
+
+            };
+
+          }
+
+        }
 
       }
 
@@ -333,11 +566,6 @@ export default function Board({
 
   // ==========================================================
   // Preview 动物类型 CSS
-  //
-  // dog     → 狗系
-  // cat     → 猫系
-  // mammal  → 哺乳系
-  // bird    → 鸟系
   // ==========================================================
 
   const combinePreviewTypeClass =
@@ -374,10 +602,6 @@ export default function Board({
 
   // ==========================================================
   // 是否显示纯系标记
-  //
-  // 鸟系属于特殊系，
-  // 当前 purity 为 null，
-  // 因此不显示纯系 ◆。
   // ==========================================================
 
   const combinePreviewPure =
@@ -528,7 +752,8 @@ export default function Board({
 
               combinePreview &&
 
-              index === nextEmptyIndex
+              index ===
+              nextEmptyIndex
 
             ){
 
@@ -665,10 +890,6 @@ export default function Board({
 
 
 
-            // ==================================================
-            // 是否选中
-            // ==================================================
-
             const isSelected =
 
               selected.includes(
@@ -677,9 +898,7 @@ export default function Board({
 
 
 
-            // ==================================================
-            // 是否为可约分候选
-            // ==================================================
+
 
             const reduceCandidate =
 
@@ -689,9 +908,7 @@ export default function Board({
 
 
 
-            // ==================================================
-            // 约分预览
-            // ==================================================
+
 
             const reducePreview =
 
@@ -703,9 +920,23 @@ export default function Board({
 
 
 
+
+
             // ==================================================
-            // 是否正在移除
+            // 鸟变种 Preview
             // ==================================================
+
+            const mutationPreview =
+
+              mutationPreviewMap[
+                index
+              ]
+
+              ?? null;
+
+
+
+
 
             const removing =
 
@@ -714,19 +945,24 @@ export default function Board({
 
 
 
-            // ==================================================
-            // 是否已经发现
-            // ==================================================
+
 
             const discovered =
 
-              piece?.value !== undefined &&
+              piece?.value !==
+              undefined
 
-              piece.value !== 1 &&
+              &&
+
+              piece.value !== 1
+
+              &&
 
               collection.includes(
                 piece.value
               );
+
+
 
 
 
@@ -752,9 +988,7 @@ export default function Board({
 
 
 
-            // ==================================================
-            // 是否为新发现
-            // ==================================================
+
 
             const isNewDiscovery =
 
@@ -768,9 +1002,7 @@ export default function Board({
 
 
 
-            // ==================================================
-            // 分数 Preview
-            // ==================================================
+
 
             let scorePreview =
               null;
@@ -821,16 +1053,13 @@ export default function Board({
 
 
 
-            // ==================================================
-            // 点击棋子
-            // ==================================================
-
             function handlePieceClick(){
 
 
               if(
                 !piece
               ){
+
 
                 return;
 
@@ -895,6 +1124,10 @@ export default function Board({
 
                 reducePreview={
                   reducePreview
+                }
+
+                mutationPreview={
+                  mutationPreview
                 }
 
                 isNewDiscovery={

@@ -270,6 +270,10 @@ function App(){
               game.collection
             }
 
+            collectionPaths={
+              game.collectionPaths
+            }
+
           />
 
 

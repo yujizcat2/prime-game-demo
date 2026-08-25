@@ -3,6 +3,7 @@ import {
 } from "../game/prime";
 
 import {
+  getAnimalTypeShortName,
   getAnimalName
 } from "../data/animal/animalRegistry";
 
@@ -23,6 +24,8 @@ export default function BoardCell({
   reduceCandidate = false,
 
   reducePreview = null,
+
+  mutationPreview = null,
 
   isNewDiscovery = false,
 
@@ -98,7 +101,8 @@ export default function BoardCell({
 
 
   const animalType =
-    piece.animalType ?? null;
+    piece.animalType
+    ?? null;
 
 
   const isDog =
@@ -135,16 +139,158 @@ export default function BoardCell({
 
 
   // ==========================================================
+  // 鸟变种 Preview
+  // ==========================================================
+
+  const mutationTriggered =
+
+    mutationPreview?.triggered ===
+    true;
+
+
+
+  const mutationRole =
+
+    mutationPreview?.role
+
+    ??
+
+    null;
+
+
+
+  const isMutationTarget =
+
+    mutationTriggered
+
+    &&
+
+    mutationRole ===
+    "target";
+
+
+
+  const isMutationBird =
+
+    mutationTriggered
+
+    &&
+
+    mutationRole ===
+    "bird";
+
+
+
+  const mutationFromType =
+
+    mutationPreview?.fromType
+
+    ??
+
+    null;
+
+
+
+  const mutationToType =
+
+    mutationPreview?.toType
+
+    ??
+
+    null;
+
+
+
+
+
+  // ==========================================================
+  // 变种文字
+  // ==========================================================
+
+  const mutationFromName =
+
+    mutationFromType
+
+      ?
+
+        getAnimalTypeShortName(
+          mutationFromType
+        )
+
+      :
+
+        null;
+
+
+
+  const mutationToName =
+
+    mutationToType
+
+      ?
+
+        getAnimalTypeShortName(
+          mutationToType
+        )
+
+      :
+
+        null;
+
+
+
+
+
+  // ==========================================================
+  // 即将变成的目标类型 class
+  //
+  // 例：
+  //
+  // 当前狗：
+  // board-piece--dog
+  //
+  // 即将变猫：
+  // board-piece--mutation-to-cat
+  //
+  // CSS 会强制目标颜色覆盖当前颜色。
+  // ==========================================================
+
+  const mutationTargetTypeClass =
+
+    isMutationTarget
+
+      ?
+
+        mutationToType === "dog"
+
+          ? "board-piece--mutation-to-dog"
+
+          :
+
+        mutationToType === "cat"
+
+          ? "board-piece--mutation-to-cat"
+
+          :
+
+        mutationToType === "mammal"
+
+          ? "board-piece--mutation-to-mammal"
+
+          :
+
+            ""
+
+      :
+
+        "";
+
+
+
+
+
+  // ==========================================================
   // 是否为纯系
-  //
-  // 当前普通三系：
-  //
-  // dog
-  // cat
-  // mammal
-  //
-  // bird 为特殊系，
-  // 当前 purity = null。
   // ==========================================================
 
   const isPure =
@@ -169,8 +315,6 @@ export default function BoardCell({
 
   // ==========================================================
   // 当前动物名称
-  //
-  // 1 当前继续表现为“水”
   // ==========================================================
 
   const animalName =
@@ -180,8 +324,11 @@ export default function BoardCell({
       ? "水"
 
       : getAnimalName(
+
           value,
+
           animalType
+
         );
 
 
@@ -189,9 +336,27 @@ export default function BoardCell({
 
 
   // ==========================================================
+  // 约分后的真实 animalType
+  // ==========================================================
+
+  const reduceResultAnimalType =
+
+    isMutationTarget
+
+      ?
+
+        mutationToType
+
+      :
+
+        animalType;
+
+
+
+
+
+  // ==========================================================
   // 约分后的动物名称
-  //
-  // 约分不改变 animalType。
   // ==========================================================
 
   const reduceAnimalName =
@@ -199,12 +364,19 @@ export default function BoardCell({
     reducing &&
     reducePreview !== 1
 
-      ? getAnimalName(
+      ?
+
+        getAnimalName(
+
           reducePreview,
-          animalType
+
+          reduceResultAnimalType
+
         )
 
-      : null;
+      :
+
+        null;
 
 
 
@@ -212,18 +384,22 @@ export default function BoardCell({
 
   // ==========================================================
   // 组合来源
-  //
-  // parentAnimals 保存当前节点的两个直接来源。
   // ==========================================================
 
   const parentAnimalNames =
 
     Array.isArray(
       piece.parentAnimals
-    ) &&
-    piece.parentAnimals.length >= 2
+    )
 
-      ? piece.parentAnimals.map(
+    &&
+
+    piece.parentAnimals.length >=
+    2
+
+      ?
+
+        piece.parentAnimals.map(
 
           parent => {
 
@@ -231,6 +407,7 @@ export default function BoardCell({
             if(
               !parent
             ){
+
 
               return null;
 
@@ -250,30 +427,40 @@ export default function BoardCell({
 
         )
 
-      : null;
+      :
+
+        null;
 
 
 
 
 
   // ==========================================================
-  // 普通约分来源
+  // 约分来源
   // ==========================================================
 
   const reducePreviousRecord =
 
-    piece.origin?.type === "reduce"
+    piece.origin?.type ===
+    "reduce"
 
-      ? piece.origin.parent
+      ?
 
-      : null;
+        piece.origin.parent
+
+      :
+
+        null;
 
 
 
   const reducePreviousValue =
 
     reducePreviousRecord?.value
-    ?? null;
+
+    ??
+
+    null;
 
 
 
@@ -293,9 +480,12 @@ export default function BoardCell({
 
   const reducePreviousAnimalName =
 
-    reducePreviousValue !== null
+    reducePreviousValue !==
+    null
 
-      ? getAnimalName(
+      ?
+
+        getAnimalName(
 
           reducePreviousValue,
 
@@ -303,7 +493,9 @@ export default function BoardCell({
 
         )
 
-      : null;
+      :
+
+        null;
 
 
 
@@ -316,18 +508,26 @@ export default function BoardCell({
   const onePreviousRecord =
 
     isOne &&
-    piece.origin?.type === "reduce"
+    piece.origin?.type ===
+    "reduce"
 
-      ? piece.origin.parent
+      ?
 
-      : null;
+        piece.origin.parent
+
+      :
+
+        null;
 
 
 
   const onePreviousValue =
 
     onePreviousRecord?.value
-    ?? null;
+
+    ??
+
+    null;
 
 
 
@@ -347,9 +547,12 @@ export default function BoardCell({
 
   const onePreviousAnimalName =
 
-    onePreviousValue !== null
+    onePreviousValue !==
+    null
 
-      ? getAnimalName(
+      ?
+
+        getAnimalName(
 
           onePreviousValue,
 
@@ -357,19 +560,16 @@ export default function BoardCell({
 
         )
 
-      : null;
+      :
+
+        null;
 
 
 
 
 
   // ==========================================================
-  // 动物类型 class
-  //
-  // dog     = 狗系
-  // cat     = 猫系
-  // mammal  = 哺乳系
-  // bird    = 鸟系
+  // 当前真实类型 class
   // ==========================================================
 
   const typeClass =
@@ -400,15 +600,20 @@ export default function BoardCell({
 
 
 
-  // ==========================================================
-  // 单选时的约分候选提示
-  // ==========================================================
-
   const showReduceCandidate =
 
-    reduceCandidate &&
-    !selected &&
-    !removing &&
+    reduceCandidate
+
+    &&
+
+    !selected
+
+    &&
+
+    !removing
+
+    &&
+
     !reducing;
 
 
@@ -432,6 +637,18 @@ export default function BoardCell({
         ${
           removing
             ? "board-cell--removing"
+            : ""
+        }
+
+        ${
+          isMutationTarget
+            ? "board-cell--mutation-target"
+            : ""
+        }
+
+        ${
+          isMutationBird
+            ? "board-cell--mutation-bird"
             : ""
         }
       `}
@@ -461,14 +678,11 @@ export default function BoardCell({
 
 
 
-        {/* ====================================================
-            分数预览
-        ==================================================== */}
-
         {
 
           isOne &&
-          scorePreview !== null &&
+          scorePreview !==
+          null &&
 
           <div
 
@@ -493,7 +707,9 @@ export default function BoardCell({
             `}
 
           >
+
             +{scorePreview}
+
           </div>
 
         }
@@ -501,10 +717,6 @@ export default function BoardCell({
 
 
 
-
-        {/* ====================================================
-            移除闪光
-        ==================================================== */}
 
         {
 
@@ -543,6 +755,8 @@ export default function BoardCell({
 
             ${typeClass}
 
+            ${mutationTargetTypeClass}
+
             ${
               selected &&
               !removing
@@ -577,14 +791,28 @@ export default function BoardCell({
 
                 : ""
             }
+
+            ${
+              isMutationTarget &&
+              !removing
+
+                ? "board-piece--mutation-target"
+
+                : ""
+            }
+
+            ${
+              isMutationBird &&
+              !removing
+
+                ? "board-piece--mutation-bird"
+
+                : ""
+            }
           `}
 
         >
 
-
-          {/* ==================================================
-              选中环
-          ================================================== */}
 
           {
 
@@ -603,10 +831,6 @@ export default function BoardCell({
 
 
 
-          {/* ==================================================
-              动物系颜色条
-          ================================================== */}
-
           <div
             className="
               board-piece-type-bar
@@ -616,10 +840,6 @@ export default function BoardCell({
 
 
 
-
-          {/* ==================================================
-              纯系标记
-          ================================================== */}
 
           {
 
@@ -634,7 +854,9 @@ export default function BoardCell({
               aria-label="纯系"
 
             >
+
               ◆
+
             </div>
 
           }
@@ -643,9 +865,77 @@ export default function BoardCell({
 
 
 
-          {/* ==================================================
-              数字
-          ================================================== */}
+          {
+
+            isMutationTarget &&
+            mutationFromName &&
+            mutationToName &&
+            !removing &&
+
+            <div
+              className="
+                board-piece-mutation-preview
+              "
+            >
+
+
+              <span
+                className="
+                  board-piece-mutation-label
+                "
+              >
+
+                变种
+
+              </span>
+
+
+
+              <strong
+                className="
+                  board-piece-mutation-change
+                "
+              >
+
+                {mutationFromName}
+
+                <span>
+                  →
+                </span>
+
+                {mutationToName}
+
+              </strong>
+
+
+            </div>
+
+          }
+
+
+
+
+
+          {
+
+            isMutationBird &&
+            !removing &&
+
+            <div
+              className="
+                board-piece-bird-trigger
+              "
+            >
+
+              鸟归1
+
+            </div>
+
+          }
+
+
+
+
 
           <div
 
@@ -671,10 +961,6 @@ export default function BoardCell({
 
 
 
-          {/* ==================================================
-              质数标记
-          ================================================== */}
-
           {
 
             prime &&
@@ -691,10 +977,6 @@ export default function BoardCell({
 
 
 
-
-          {/* ==================================================
-              当前动物名称
-          ================================================== */}
 
           <div
             className="
@@ -730,10 +1012,6 @@ export default function BoardCell({
 
 
 
-          {/* ==================================================
-              约分 Preview
-          ================================================== */}
-
           {
 
             reducing &&
@@ -753,7 +1031,8 @@ export default function BoardCell({
               >
 
                 {
-                  reducePreview === 1
+                  reducePreview ===
+                  1
 
                     ? "水"
 
@@ -763,12 +1042,15 @@ export default function BoardCell({
               </span>
 
 
+
               <span
                 className="
                   board-piece-reduce-number
                 "
               >
+
                 {reducePreview}
+
               </span>
 
 
@@ -779,10 +1061,6 @@ export default function BoardCell({
 
 
 
-
-          {/* ==================================================
-              原生节点
-          ================================================== */}
 
           {
 
@@ -807,10 +1085,6 @@ export default function BoardCell({
 
 
 
-
-          {/* ==================================================
-              组合来源
-          ================================================== */}
 
           {
 
@@ -853,10 +1127,6 @@ export default function BoardCell({
 
 
 
-          {/* ==================================================
-              约分来源
-          ================================================== */}
-
           {
 
             !isOne &&
@@ -881,14 +1151,11 @@ export default function BoardCell({
 
 
 
-          {/* ==================================================
-              水的直接来源
-          ================================================== */}
-
           {
 
             isOne &&
-            onePreviousValue !== null &&
+            onePreviousValue !==
+            null &&
 
             <div
               className="

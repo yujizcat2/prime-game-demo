@@ -9,7 +9,8 @@ import {
   combineAnimalType,
   combineAnimalPurity,
   canReduce,
-  canCombine
+  canCombine,
+  getBirdMutationAnimalType
 } from "../game/rules";
 
 import {
@@ -27,10 +28,46 @@ import {
 // ============================================================
 // Simulation
 //
-// 高速版本：
+// 高速模拟版本。
 //
-// 不保存完整 mazeHistory.entries。
-// 使用持久化 prototype 链记录访问状态。
+// ------------------------------------------------------------
+//
+// 当前支持：
+//
+// 狗 / 猫 / 哺乳
+// → 三槽收藏
+//
+// 鸟
+// → 不进入收藏
+//
+// ------------------------------------------------------------
+//
+// 鸟系变种规则：
+//
+// 普通动物 + 鸟
+// ↓
+// 约分
+//
+// 如果鸟这一侧结果 === 1：
+//
+// 狗
+// ↓
+// 猫
+// ↓
+// 哺乳
+// ↓
+// 狗
+//
+// ------------------------------------------------------------
+//
+// Simulation 不保存正式：
+//
+// origin
+// collectionOrigins
+// collectionPaths
+// collectionParents
+//
+// 只保留测试真正需要的数据。
 // ============================================================
 
 export const SIM_BOARD_SIZE =
@@ -119,7 +156,9 @@ function getVisitedEntry(
   ){
 
 
-    return state.mazeVisited[key];
+    return state.mazeVisited[
+      key
+    ];
 
   }
 
@@ -233,6 +272,12 @@ function recordVisitedState(
 
 // ============================================================
 // 创建模拟状态
+//
+// 开局：
+//
+// 第1个 → 狗
+// 第2个 → 猫
+// 第3个 → 哺乳
 // ============================================================
 
 export function createSimulationState(
@@ -259,12 +304,16 @@ export function createSimulationState(
       values
     )
 
-      ? values.slice(
+      ?
+
+        values.slice(
           0,
           3
         )
 
-      : [];
+      :
+
+        [];
 
 
 
@@ -288,12 +337,16 @@ export function createSimulationState(
     ) => {
 
 
-      board[index] = {
+      board[
+        index
+      ] = {
 
         value,
 
         animalType:
-          types[index],
+          types[
+            index
+          ],
 
         purity:
           ANIMAL_PURITY.PURE,
@@ -322,34 +375,66 @@ export function createSimulationState(
     board,
 
 
+
+
+
+    // ========================================================
+    // 收藏槽
+    //
+    // Set 内格式：
+    //
+    // 17:dog
+    // 17:cat
+    // 17:mammal
+    // ========================================================
+
     collection:
       new Set(),
 
 
+
+
+
+    // ========================================================
+    // 首次获得新收藏槽的动物类型历史
+    // ========================================================
+
     collectionAnimalTypeHistory:
       [],
+
+
+
 
 
     steps:
       0,
 
 
+
+
+
     mazeVisited:
+
       Object.create(
         null
       ),
 
+
     mazeVisitedCount:
       0,
+
 
     mazeHashXor:
       0,
 
+
     mazeHashSum:
       0,
 
+
     mazeTurnCount:
       0,
+
 
     lastMazeTurn:
       null
@@ -382,6 +467,10 @@ export function createSimulationState(
 
 
 
+// ============================================================
+// 获取所有棋子
+// ============================================================
+
 function getPieces(
   board
 ){
@@ -397,21 +486,31 @@ function getPieces(
 
 
 
+// ============================================================
+// 棋盘是否已满
+// ============================================================
+
 function isBoardFull(
   board
 ){
 
 
+  let count =
+    0;
+
+
+
   for(
-    let i = 0,
-        count = 0;
+    let i = 0;
     i < SIM_BOARD_SIZE;
     i++
   ){
 
 
     if(
-      board[i]
+      board[
+        i
+      ]
     ){
 
 
@@ -443,6 +542,10 @@ function isBoardFull(
 
 
 
+// ============================================================
+// 下一个空位
+// ============================================================
+
 function getNextEmptyIndex(
   board
 ){
@@ -456,7 +559,12 @@ function getNextEmptyIndex(
 
 
     if(
-      board[i] ===
+      board[
+        i
+      ]
+
+      ===
+
       null
     ){
 
@@ -477,6 +585,10 @@ function getNextEmptyIndex(
 
 
 
+// ============================================================
+// 能否组合
+// ============================================================
+
 function canCombineIndexes(
   state,
   indexA,
@@ -485,7 +597,9 @@ function canCombineIndexes(
 
 
   if(
-    indexA === indexB ||
+    indexA ===
+    indexB
+    ||
     isBoardFull(
       state.board
     )
@@ -499,11 +613,17 @@ function canCombineIndexes(
 
 
   const a =
-    state.board[indexA];
+
+    state.board[
+      indexA
+    ];
 
 
   const b =
-    state.board[indexB];
+
+    state.board[
+      indexB
+    ];
 
 
 
@@ -539,6 +659,10 @@ function canCombineIndexes(
 
 
 
+// ============================================================
+// 能否约分
+// ============================================================
+
 function canReduceIndexes(
   state,
   indexA,
@@ -547,7 +671,8 @@ function canReduceIndexes(
 
 
   if(
-    indexA === indexB
+    indexA ===
+    indexB
   ){
 
 
@@ -558,11 +683,17 @@ function canReduceIndexes(
 
 
   const a =
-    state.board[indexA];
+
+    state.board[
+      indexA
+    ];
 
 
   const b =
-    state.board[indexB];
+
+    state.board[
+      indexB
+    ];
 
 
 
@@ -591,6 +722,10 @@ function canReduceIndexes(
 
 
 
+// ============================================================
+// 获取全部合法动作
+// ============================================================
+
 export function getSimulationLegalActions(
   state
 ){
@@ -614,6 +749,10 @@ export function getSimulationLegalActions(
 
 
 
+  // ==========================================================
+  // 处理1
+  // ==========================================================
+
   for(
     let i = 0;
     i < SIM_BOARD_SIZE;
@@ -622,7 +761,9 @@ export function getSimulationLegalActions(
 
 
     if(
-      board[i]?.value ===
+      board[
+        i
+      ]?.value ===
       1
     ){
 
@@ -645,6 +786,10 @@ export function getSimulationLegalActions(
 
 
 
+  // ==========================================================
+  // 合成 / 约分
+  // ==========================================================
+
   for(
     let i = 0;
     i < SIM_BOARD_SIZE;
@@ -653,7 +798,10 @@ export function getSimulationLegalActions(
 
 
     const a =
-      board[i];
+
+      board[
+        i
+      ];
 
 
 
@@ -677,7 +825,10 @@ export function getSimulationLegalActions(
 
 
       const b =
-        board[j];
+
+        board[
+          j
+        ];
 
 
 
@@ -694,7 +845,8 @@ export function getSimulationLegalActions(
 
 
       if(
-        !full &&
+        !full
+        &&
         canCombineIndexes(
           state,
           i,
@@ -776,7 +928,8 @@ function applyCombine(
 
 
   if(
-    targetIndex === -1
+    targetIndex ===
+    -1
   ){
 
 
@@ -787,11 +940,17 @@ function applyCombine(
 
 
   const a =
-    state.board[indexA];
+
+    state.board[
+      indexA
+    ];
 
 
   const b =
-    state.board[indexB];
+
+    state.board[
+      indexB
+    ];
 
 
 
@@ -809,17 +968,33 @@ function applyCombine(
 
   const front =
 
-    indexA < indexB
-      ? a
-      : b;
+    indexA <
+    indexB
+
+      ?
+
+        a
+
+      :
+
+        b;
 
 
 
   const back =
 
-    indexA < indexB
-      ? b
-      : a;
+    indexA <
+    indexB
+
+      ?
+
+        b
+
+      :
+
+        a;
+
+
 
 
 
@@ -832,6 +1007,8 @@ function applyCombine(
       back.value
 
     );
+
+
 
 
 
@@ -858,6 +1035,8 @@ function applyCombine(
 
 
 
+
+
   state.board[
     targetIndex
   ] = {
@@ -869,8 +1048,11 @@ function applyCombine(
     purity:
 
       combineAnimalPurity(
+
         front,
+
         back
+
       ),
 
     parents: [
@@ -934,6 +1116,65 @@ function applyCombine(
 
 // ============================================================
 // 约分
+//
+// ============================================================
+// 普通规则
+// ============================================================
+//
+// value 改变。
+//
+// animalType / purity
+// 默认保持。
+//
+// parents / parentAnimals
+// 清除。
+//
+// previousValue
+// 保存约分前数字，用于 Simulation 收藏。
+//
+//
+// ============================================================
+// 鸟系变种
+// ============================================================
+//
+// 如果：
+//
+// 鸟 + 普通动物
+//
+// 进行约分，
+//
+// 且鸟这一侧结果 === 1，
+//
+// 则另一侧普通动物发生三角变种：
+//
+// 狗
+// ↓
+// 猫
+// ↓
+// 哺乳
+// ↓
+// 狗
+//
+//
+// ------------------------------------------------------------
+//
+// 例：
+//
+// 狗14 + 鸟7
+// ÷7
+//
+// → 狗2 + 鸟1
+//
+// → 猫2 + 鸟1
+//
+// ------------------------------------------------------------
+//
+// 当前：
+//
+// - 数字不改变
+// - purity 不改变
+// - 不检测灭绝
+// - 鸟 + 鸟 不触发
 // ============================================================
 
 function applyReduce(
@@ -944,11 +1185,17 @@ function applyReduce(
 
 
   const first =
-    state.board[indexA];
+
+    state.board[
+      indexA
+    ];
 
 
   const second =
-    state.board[indexB];
+
+    state.board[
+      indexB
+    ];
 
 
 
@@ -961,6 +1208,8 @@ function applyReduce(
     return false;
 
   }
+
+
 
 
 
@@ -988,6 +1237,8 @@ function applyReduce(
 
 
 
+
+
   const oldA =
     first.value;
 
@@ -997,38 +1248,181 @@ function applyReduce(
 
 
 
+  const firstResult =
+
+    oldA /
+    divisor;
+
+
+  const secondResult =
+
+    oldB /
+    divisor;
+
+
+
+
+
+  // ==========================================================
+  // 默认类型保持
+  // ==========================================================
+
+  let firstAnimalType =
+
+    first.animalType;
+
+
+  let secondAnimalType =
+
+    second.animalType;
+
+
+
+
+
+  // ==========================================================
+  // first 是鸟
+  //
+  // first → 1
+  //
+  // second 发生变种
+  // ==========================================================
+
+  if(
+    first.animalType ===
+    ANIMAL_TYPES.BIRD
+
+    &&
+
+    firstResult ===
+    1
+  ){
+
+
+    const mutatedType =
+
+      getBirdMutationAnimalType(
+        second.animalType
+      );
+
+
+
+    if(
+      mutatedType
+    ){
+
+
+      secondAnimalType =
+        mutatedType;
+
+    }
+
+  }
+
+
+
+
+
+  // ==========================================================
+  // second 是鸟
+  //
+  // second → 1
+  //
+  // first 发生变种
+  // ==========================================================
+
+  if(
+    second.animalType ===
+    ANIMAL_TYPES.BIRD
+
+    &&
+
+    secondResult ===
+    1
+  ){
+
+
+    const mutatedType =
+
+      getBirdMutationAnimalType(
+        first.animalType
+      );
+
+
+
+    if(
+      mutatedType
+    ){
+
+
+      firstAnimalType =
+        mutatedType;
+
+    }
+
+  }
+
+
+
+
+
+  // ==========================================================
+  // 更新 first
+  // ==========================================================
+
   first.value =
-    oldA / divisor;
+    firstResult;
 
 
-  second.value =
-    oldB / divisor;
+  first.animalType =
+    firstAnimalType;
 
-
-
-  // animalType / purity 保留
 
   first.parents =
     null;
 
+
   first.parentAnimals =
     null;
-
-  second.parents =
-    null;
-
-  second.parentAnimals =
-    null;
-
 
 
   first.previousValue =
     oldA;
 
+
+
+
+
+  // ==========================================================
+  // 更新 second
+  // ==========================================================
+
+  second.value =
+    secondResult;
+
+
+  second.animalType =
+    secondAnimalType;
+
+
+  second.parents =
+    null;
+
+
+  second.parentAnimals =
+    null;
+
+
   second.previousValue =
     oldB;
 
 
+
+
+
+  // ==========================================================
+  // purity 当前保持不变
+  // ==========================================================
 
   state.steps++;
 
@@ -1044,6 +1438,16 @@ function applyReduce(
 
 // ============================================================
 // 处理1
+//
+// 普通三系1：
+//
+// → applyCollection
+//
+// 鸟1：
+//
+// → applyCollection 会自动忽略
+//
+// 最后删除棋子。
 // ============================================================
 
 function applyRemove(
@@ -1053,13 +1457,17 @@ function applyRemove(
 
 
   const target =
-    state.board[index];
+
+    state.board[
+      index
+    ];
 
 
 
   if(
     !target ||
-    target.value !== 1
+    target.value !==
+    1
   ){
 
 
@@ -1069,14 +1477,23 @@ function applyRemove(
 
 
 
+
+
   applyCollection(
+
     state,
+
     target
+
   );
 
 
 
-  state.board[index] =
+
+
+  state.board[
+    index
+  ] =
     null;
 
 
@@ -1089,6 +1506,10 @@ function applyRemove(
 
 
 
+// ============================================================
+// 迷宫回转数值
+// ============================================================
+
 function mazeTurnValue(
   value
 ){
@@ -1096,11 +1517,16 @@ function mazeTurnValue(
 
   return (
 
-    value === 101
+    value ===
+    101
 
-      ? 2
+      ?
 
-      : value + 1
+        2
+
+      :
+
+        value + 1
 
   );
 
@@ -1109,6 +1535,13 @@ function mazeTurnValue(
 
 
 
+
+// ============================================================
+// 应用迷宫回转
+//
+// 只改变 value。
+// animalType / purity 不改变。
+// ============================================================
 
 function applyMazeTurn(
   state
@@ -1123,7 +1556,10 @@ function applyMazeTurn(
 
 
     const piece =
-      state.board[i];
+
+      state.board[
+        i
+      ];
 
 
 
@@ -1148,6 +1584,10 @@ function applyMazeTurn(
 
 
 
+// ============================================================
+// 迷宫重复检测
+// ============================================================
+
 function resolveMaze(
   state
 ){
@@ -1169,6 +1609,12 @@ function resolveMaze(
     );
 
 
+
+
+
+  // ==========================================================
+  // 新状态
+  // ==========================================================
 
   if(
     !previous
@@ -1198,15 +1644,25 @@ function resolveMaze(
 
 
 
+  // ==========================================================
+  // 重复状态
+  // ==========================================================
+
   const beforeValues =
 
     state.board.map(
 
       piece =>
+
         piece?.value
-        ?? null
+
+        ??
+
+        null
 
     );
+
+
 
 
 
@@ -1216,7 +1672,11 @@ function resolveMaze(
 
 
 
+
+
   state.mazeTurnCount++;
+
+
 
 
 
@@ -1225,10 +1685,16 @@ function resolveMaze(
     state.board.map(
 
       piece =>
+
         piece?.value
-        ?? null
+
+        ??
+
+        null
 
     );
+
+
 
 
 
@@ -1267,6 +1733,8 @@ function resolveMaze(
 
 
 
+
+
   if(
     !getVisitedEntry(
       state,
@@ -1293,6 +1761,10 @@ function resolveMaze(
 
 
 
+// ============================================================
+// 应用动作
+// ============================================================
+
 export function applySimulationAction(
   state,
   action
@@ -1316,6 +1788,8 @@ export function applySimulationAction(
 
 
 
+
+
   switch(
     action.type
   ){
@@ -1330,14 +1804,20 @@ export function applySimulationAction(
 
           state,
 
-          action.indexes[0],
+          action.indexes[
+            0
+          ],
 
-          action.indexes[1]
+          action.indexes[
+            1
+          ]
 
         );
 
 
       break;
+
+
 
 
 
@@ -1350,14 +1830,20 @@ export function applySimulationAction(
 
           state,
 
-          action.indexes[0],
+          action.indexes[
+            0
+          ],
 
-          action.indexes[1]
+          action.indexes[
+            1
+          ]
 
         );
 
 
       break;
+
+
 
 
 
@@ -1379,12 +1865,16 @@ export function applySimulationAction(
 
 
 
+
+
     default:
 
 
       return false;
 
   }
+
+
 
 
 
@@ -1396,6 +1886,8 @@ export function applySimulationAction(
     return false;
 
   }
+
+
 
 
 
@@ -1412,6 +1904,10 @@ export function applySimulationAction(
 
 
 
+
+// ============================================================
+// Clone Piece
+// ============================================================
 
 function clonePiece(
   piece
@@ -1444,17 +1940,23 @@ function clonePiece(
 
       piece.parents
 
-        ? [
+        ?
+
+          [
             ...piece.parents
           ]
 
-        : null,
+        :
+
+          null,
 
     parentAnimals:
 
       piece.parentAnimals
 
-        ? piece.parentAnimals.map(
+        ?
+
+          piece.parentAnimals.map(
 
             animal => ({
 
@@ -1471,7 +1973,9 @@ function clonePiece(
 
           )
 
-        : null,
+        :
+
+          null,
 
     previousValue:
       piece.previousValue
@@ -1484,6 +1988,10 @@ function clonePiece(
 
 
 
+
+// ============================================================
+// Clone Simulation State
+// ============================================================
 
 export function cloneSimulationState(
   state
@@ -1499,11 +2007,17 @@ export function cloneSimulationState(
       ),
 
 
+
+
+
     collection:
 
       new Set(
         state.collection
       ),
+
+
+
 
 
     collectionAnimalTypeHistory:
@@ -1516,8 +2030,14 @@ export function cloneSimulationState(
       ],
 
 
+
+
+
     steps:
       state.steps,
+
+
+
 
 
     mazeVisited:
@@ -1526,17 +2046,37 @@ export function cloneSimulationState(
         state.mazeVisited
       ),
 
+
+
+
+
     mazeVisitedCount:
       state.mazeVisitedCount,
+
+
+
+
 
     mazeHashXor:
       state.mazeHashXor,
 
+
+
+
+
     mazeHashSum:
       state.mazeHashSum,
 
+
+
+
+
     mazeTurnCount:
       state.mazeTurnCount,
+
+
+
+
 
     lastMazeTurn:
       null
@@ -1548,6 +2088,10 @@ export function cloneSimulationState(
 
 
 
+
+// ============================================================
+// Simulation 历史签名
+// ============================================================
 
 export function getSimulationHistorySignature(
   state

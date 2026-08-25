@@ -11,45 +11,22 @@ import {
 
 
 // ============================================================
-// Collection Rules
-//
-// V1-B 基础阶段
-//
-// 当前仍保持原有收藏规则不变。
-//
-// 新增 / 更新：
-//
-// 1. collectionAnimalTypeHistory
-// 2. 最近6个新收藏的三系平衡计算
-//
-// 三系：
-//
-// dog
-// cat
-// mammal
-//
-// bird 暂时作为特殊类型，
-// 不参与三系计数。
-//
-// ------------------------------------------------------------
-//
-// 当前 balance 只是“状态指标”。
-// 暂时不会：
-//
-// - 禁止收藏
-// - 修改得分
-// - 修改合法动作
-// - 修改棋盘
-//
+// 正式收藏动物类型
 // ============================================================
 
+export const COLLECTIBLE_ANIMAL_TYPES = [
+
+  "dog",
+
+  "cat",
+
+  "mammal"
+
+];
 
 
 
 
-// ============================================================
-// 三系平衡观察窗口
-// ============================================================
 
 export const COLLECTION_BALANCE_WINDOW =
   6;
@@ -59,7 +36,58 @@ export const COLLECTION_BALANCE_WINDOW =
 
 
 // ============================================================
-// 是否为正式游戏收藏状态
+// 类型判断
+// ============================================================
+
+export function isCollectibleAnimalType(
+  animalType
+){
+
+
+  return COLLECTIBLE_ANIMAL_TYPES.includes(
+    animalType
+  );
+
+}
+
+
+
+
+
+// ============================================================
+// Simulation 收藏 Key
+// ============================================================
+
+export function getSimulationCollectionKey(
+  value,
+  animalType
+){
+
+
+  if(
+    value == null ||
+    !isCollectibleAnimalType(
+      animalType
+    )
+  ){
+
+
+    return null;
+
+  }
+
+
+
+  return `${value}:${animalType}`;
+
+}
+
+
+
+
+
+// ============================================================
+// 正式游戏 / Simulation 状态判断
 // ============================================================
 
 function isGameCollectionState(
@@ -76,10 +104,6 @@ function isGameCollectionState(
 
 
 
-
-// ============================================================
-// 是否为 Simulation 收藏状态
-// ============================================================
 
 function isSimulationCollectionState(
   state
@@ -100,7 +124,7 @@ function isSimulationCollectionState(
 
 
 // ============================================================
-// 获取正式游戏收藏来源记录
+// 获取正式收藏来源
 // ============================================================
 
 export function getCollectionRecord(
@@ -149,13 +173,7 @@ export function getCollectionRecord(
 
 
 // ============================================================
-// 获取收藏值
-//
-// 正式游戏：
-// origin.parent.value
-//
-// Simulation：
-// previousValue
+// 获取收藏数字
 // ============================================================
 
 export function getCollectionValue(
@@ -172,8 +190,6 @@ export function getCollectionValue(
     return null;
 
   }
-
-
 
 
 
@@ -196,8 +212,6 @@ export function getCollectionValue(
 
 
 
-
-
   if(
     piece.previousValue != null
   ){
@@ -206,8 +220,6 @@ export function getCollectionValue(
     return piece.previousValue;
 
   }
-
-
 
 
 
@@ -220,9 +232,7 @@ export function getCollectionValue(
 
 
 // ============================================================
-// 是否能够形成收藏
-//
-// V1-B 当前不增加额外收藏资格。
+// 是否允许收藏
 // ============================================================
 
 export function canCollect(
@@ -259,6 +269,19 @@ export function canCollect(
 
 
 
+  if(
+    !isCollectibleAnimalType(
+      piece?.animalType
+    )
+  ){
+
+
+    return false;
+
+  }
+
+
+
   return (
 
     getCollectionValue(
@@ -276,7 +299,7 @@ export function canCollect(
 
 
 // ============================================================
-// 获取收藏动物类型历史
+// 收藏类型历史
 // ============================================================
 
 export function getCollectionAnimalTypeHistory(
@@ -310,64 +333,297 @@ export function getCollectionAnimalTypeHistory(
 
 
 // ============================================================
-// 计算最近收藏的三系平衡状态
-//
-// ------------------------------------------------------------
-//
-// 最近6个首次新收藏。
-//
-// 统计：
-//
-// dog
-// cat
-// mammal
-//
-// bird：
-//
-// 会占据窗口位置，
-// 但不计入普通三系数量。
-//
-// ------------------------------------------------------------
-//
-// imbalance：
-//
-// maxCount - minCount
-//
-// ------------------------------------------------------------
-//
-// 例1：
-//
-// dog     = 2
-// cat     = 2
-// mammal  = 2
-//
-// imbalance = 0
-//
-// ------------------------------------------------------------
-//
-// 例2：
-//
-// dog     = 3
-// cat     = 2
-// mammal  = 1
-//
-// imbalance = 2
-//
-// ------------------------------------------------------------
-//
-// 例3：
-//
-// bird x6
-//
-// dog     = 0
-// cat     = 0
-// mammal  = 0
-//
-// imbalance    = 0
-// regularCount = 0
-//
-// 这不是“真正平衡”，
-// 所以后续 AI / 防御规则必须同时看 regularCount。
+// 获取路径槽
+// ============================================================
+
+export function getCollectionSlots(
+  state,
+  value
+){
+
+
+  const slots =
+
+    state?.collectionPaths?.[
+      value
+    ];
+
+
+
+  if(
+    !slots ||
+    Array.isArray(
+      slots
+    )
+  ){
+
+
+    return {
+
+      dog:
+        null,
+
+      cat:
+        null,
+
+      mammal:
+        null
+
+    };
+
+  }
+
+
+
+  return {
+
+    dog:
+      slots.dog
+      ?? null,
+
+    cat:
+      slots.cat
+      ?? null,
+
+    mammal:
+      slots.mammal
+      ?? null
+
+  };
+
+}
+
+
+
+
+
+// ============================================================
+// 是否已有某槽
+// ============================================================
+
+export function hasCollectionSlot(
+  state,
+  value,
+  animalType
+){
+
+
+  if(
+    !isCollectibleAnimalType(
+      animalType
+    )
+  ){
+
+
+    return false;
+
+  }
+
+
+
+  const slots =
+
+    getCollectionSlots(
+      state,
+      value
+    );
+
+
+
+  return Boolean(
+    slots[animalType]
+  );
+
+}
+
+
+
+
+
+// ============================================================
+// 已收藏槽数量
+// ============================================================
+
+export function getCollectionSlotCount(
+  state,
+  value
+){
+
+
+  const slots =
+
+    getCollectionSlots(
+      state,
+      value
+    );
+
+
+
+  let count =
+    0;
+
+
+
+  if(
+    slots.dog
+  ){
+    count++;
+  }
+
+
+
+  if(
+    slots.cat
+  ){
+    count++;
+  }
+
+
+
+  if(
+    slots.mammal
+  ){
+    count++;
+  }
+
+
+
+  return count;
+
+}
+
+
+
+
+
+export function isCollectionComplete(
+  state,
+  value
+){
+
+
+  return (
+
+    getCollectionSlotCount(
+      state,
+      value
+    )
+
+    ===
+
+    3
+
+  );
+
+}
+
+
+
+
+
+export function getTotalCollectionSlotCount(
+  state
+){
+
+
+  if(
+    !Array.isArray(
+      state?.collection
+    )
+  ){
+
+
+    return 0;
+
+  }
+
+
+
+  let total =
+    0;
+
+
+
+  for(
+    const value
+    of state.collection
+  ){
+
+
+    total +=
+
+      getCollectionSlotCount(
+        state,
+        value
+      );
+
+  }
+
+
+
+  return total;
+
+}
+
+
+
+
+
+export function getCompletedCollectionCount(
+  state
+){
+
+
+  if(
+    !Array.isArray(
+      state?.collection
+    )
+  ){
+
+
+    return 0;
+
+  }
+
+
+
+  let total =
+    0;
+
+
+
+  for(
+    const value
+    of state.collection
+  ){
+
+
+    if(
+      isCollectionComplete(
+        state,
+        value
+      )
+    ){
+
+
+      total++;
+
+    }
+
+  }
+
+
+
+  return total;
+
+}
+
+
+
+
+
+// ============================================================
+// 三系平衡
 // ============================================================
 
 export function getCollectionBalanceState(
@@ -403,10 +659,6 @@ export function getCollectionBalanceState(
     0;
 
 
-  let birdCount =
-    0;
-
-
 
   for(
     const animalType
@@ -417,46 +669,21 @@ export function getCollectionBalanceState(
     if(
       animalType === "dog"
     ){
-
-
       dogCount++;
-
     }
 
 
-
     else if(
-      animalType ===
-      "cat"
+      animalType === "cat"
     ){
-
-
       catCount++;
-
     }
 
 
-
     else if(
-      animalType ===
-      "mammal"
+      animalType === "mammal"
     ){
-
-
       mammalCount++;
-
-    }
-
-
-
-    else if(
-      animalType ===
-      "bird"
-    ){
-
-
-      birdCount++;
-
     }
 
   }
@@ -467,17 +694,9 @@ export function getCollectionBalanceState(
 
   const regularCount =
 
-    dogCount
-
-    +
-
-    catCount
-
-    +
-
+    dogCount +
+    catCount +
     mammalCount;
-
-
 
 
 
@@ -516,68 +735,42 @@ export function getCollectionBalanceState(
 
 
 
-
-
-  // ==========================================================
-  // 主导动物类型
-  //
-  // 如果存在并列最高，则 dominantAnimalType = null。
-  // ==========================================================
-
   let dominantAnimalType =
     null;
 
 
 
-  const maxTypes = [];
+  const maxTypes =
+    [];
 
 
 
   if(
-    dogCount ===
-    maxCount
+    dogCount === maxCount
   ){
-
-
-    maxTypes.push(
-      "dog"
-    );
-
+    maxTypes.push("dog");
   }
 
 
 
   if(
-    catCount ===
-    maxCount
+    catCount === maxCount
   ){
-
-
-    maxTypes.push(
-      "cat"
-    );
-
+    maxTypes.push("cat");
   }
 
 
 
   if(
-    mammalCount ===
-    maxCount
+    mammalCount === maxCount
   ){
-
-
-    maxTypes.push(
-      "mammal"
-    );
-
+    maxTypes.push("mammal");
   }
 
 
 
   if(
-    maxTypes.length === 1
-    &&
+    maxTypes.length === 1 &&
     maxCount > 0
   ){
 
@@ -586,39 +779,6 @@ export function getCollectionBalanceState(
       maxTypes[0];
 
   }
-
-
-
-
-
-  // ==========================================================
-  // 普通三系参与率
-  //
-  // 0 ~ 1
-  //
-  // 6个窗口全部是普通三系：
-  //
-  // regularParticipation = 1
-  //
-  // 全鸟系：
-  //
-  // regularParticipation = 0
-  // ==========================================================
-
-  const regularParticipation =
-
-    recent.length > 0
-
-      ?
-
-        regularCount /
-        recent.length
-
-      :
-
-        0;
-
-
 
 
 
@@ -632,29 +792,25 @@ export function getCollectionBalanceState(
 
     recent,
 
-
-
-
-
     dogCount,
 
     catCount,
 
     mammalCount,
 
-    birdCount,
-
-
-
-
+    birdCount:
+      0,
 
     regularCount,
 
-    regularParticipation,
+    regularParticipation:
 
+      recent.length > 0
 
+        ? regularCount /
+          recent.length
 
-
+        : 0,
 
     maxCount,
 
@@ -690,8 +846,21 @@ function applySimulationCollection(
 
 
 
+  const animalType =
+
+    piece?.animalType
+
+    ??
+
+    null;
+
+
+
   if(
-    value == null
+    value == null ||
+    !isCollectibleAnimalType(
+      animalType
+    )
   ){
 
 
@@ -701,66 +870,160 @@ function applySimulationCollection(
 
 
 
+  const key =
 
+    getSimulationCollectionKey(
 
-  const isFirstTime =
+      value,
 
-    !state.collection.has(
-      value
+      animalType
+
     );
 
 
 
-
-
-  state.collection.add(
-    value
-  );
-
-
-
-
-
-  // ==========================================================
-  // 首次新收藏才记录真实动物类型
-  // ==========================================================
-
   if(
-    isFirstTime
+    !key
   ){
 
 
-    if(
-      !Array.isArray(
-        state.collectionAnimalTypeHistory
-      )
-    ){
-
-
-      state.collectionAnimalTypeHistory =
-        [];
-
-    }
-
-
-
-    state.collectionAnimalTypeHistory.push(
-
-      piece.animalType
-
-      ??
-
-      null
-
-    );
+    return state;
 
   }
 
 
 
+  if(
+    state.collection.has(
+      key
+    )
+  ){
+
+
+    return state;
+
+  }
+
+
+
+  state.collection.add(
+    key
+  );
+
+
+
+  if(
+    !Array.isArray(
+      state.collectionAnimalTypeHistory
+    )
+  ){
+
+
+    state.collectionAnimalTypeHistory =
+      [];
+
+  }
+
+
+
+  state.collectionAnimalTypeHistory.push(
+    animalType
+  );
+
 
 
   return state;
+
+}
+
+
+
+
+
+// ============================================================
+// 父母快照
+//
+// 注意：
+//
+// 收藏数字本身是 previousRecord。
+// 所以父母应读取 previousRecord.parents / parentAnimals，
+// 而不是读取已经变成1的 piece.parents。
+// ============================================================
+
+function createCollectionParentSnapshot(
+  previousRecord
+){
+
+
+  if(
+    !previousRecord
+  ){
+
+
+    return {
+
+      parents:
+        null,
+
+      parentAnimals:
+        null
+
+    };
+
+  }
+
+
+
+  const parents =
+
+    Array.isArray(
+      previousRecord.parents
+    )
+
+      ? [
+          ...previousRecord.parents
+        ]
+
+      : null;
+
+
+
+  const parentAnimals =
+
+    Array.isArray(
+      previousRecord.parentAnimals
+    )
+
+      ? previousRecord.parentAnimals.map(
+
+          parent => ({
+
+            value:
+              parent.value,
+
+            animalType:
+              parent.animalType
+              ?? null,
+
+            purity:
+              parent.purity
+              ?? null
+
+          })
+
+        )
+
+      : null;
+
+
+
+  return {
+
+    parents,
+
+    parentAnimals
+
+  };
 
 }
 
@@ -776,6 +1039,29 @@ function applyGameCollection(
   state,
   piece
 ){
+
+
+  const animalType =
+
+    piece?.animalType
+
+    ??
+
+    null;
+
+
+
+  if(
+    !isCollectibleAnimalType(
+      animalType
+    )
+  ){
+
+
+    return state;
+
+  }
+
 
 
   const previousRecord =
@@ -820,12 +1106,92 @@ function applyGameCollection(
 
 
 
+  // ==========================================================
+  // 当前数字是否首次出现
+  // ==========================================================
+
+  const isFirstNumber =
+
+    !state.collection.includes(
+      discoveredValue
+    );
+
+
+
+
+
+  // ==========================================================
+  // 当前路径槽
+  // ==========================================================
+
+  const existingPaths =
+
+    state.collectionPaths?.[
+      discoveredValue
+    ]
+
+    ??
+
+    {};
+
+
+
+  const normalizedPaths =
+
+    existingPaths &&
+    !Array.isArray(
+      existingPaths
+    )
+
+      ? existingPaths
+
+      : {};
+
+
+
+
+
+  // ==========================================================
+  // 同数字 + 同类型已经收藏
+  //
+  // 不覆盖任何首次数据。
+  // ==========================================================
+
+  if(
+    normalizedPaths[
+      animalType
+    ]
+  ){
+
+
+    return {
+
+      ...state,
+
+      score:
+
+        state.score
+
+        +
+
+        SCORE_CONFIG.REPEAT_SCORE
+
+    };
+
+  }
+
+
+
+
+
   let nextScore =
     state.score;
 
 
+
   let nextCollection =
     state.collection;
+
 
 
   let nextCollectionOrigins =
@@ -837,6 +1203,7 @@ function applyGameCollection(
     {};
 
 
+
   let nextCollectionPaths =
 
     state.collectionPaths
@@ -846,13 +1213,15 @@ function applyGameCollection(
     {};
 
 
-  let nextLatestCollection =
 
-    state.latestCollection
+  let nextCollectionParents =
+
+    state.collectionParents
 
     ??
 
-    null;
+    {};
+
 
 
   let nextCollectionAnimalTypeHistory =
@@ -865,29 +1234,30 @@ function applyGameCollection(
 
 
 
-  const isFirstTime =
-
-    !state.collection.includes(
-      discoveredValue
-    );
-
-
-
-
-
   // ==========================================================
-  // 收藏来源
+  // 来源槽
   // ==========================================================
 
   const oldOrigins =
 
     nextCollectionOrigins[
       discoveredValue
-    ]
+    ];
 
-    ??
 
-    [];
+
+  const normalizedOrigins =
+
+    oldOrigins &&
+    !Array.isArray(
+      oldOrigins
+    )
+
+      ? oldOrigins
+
+      : {};
+
+
 
 
 
@@ -895,13 +1265,14 @@ function applyGameCollection(
 
     ...nextCollectionOrigins,
 
-    [discoveredValue]: [
+    [discoveredValue]: {
 
-      ...oldOrigins,
+      ...normalizedOrigins,
 
-      previousRecord
+      [animalType]:
+        previousRecord
 
-    ]
+    }
 
   };
 
@@ -910,7 +1281,7 @@ function applyGameCollection(
 
 
   // ==========================================================
-  // 收藏路径
+  // 路径槽
   // ==========================================================
 
   const mainLineage =
@@ -921,34 +1292,18 @@ function applyGameCollection(
 
 
 
-  const oldPaths =
-
-    nextCollectionPaths[
-      discoveredValue
-    ]
-
-    ??
-
-    [];
-
-
-
-  const latestPathIndex =
-    oldPaths.length;
-
-
-
   nextCollectionPaths = {
 
     ...nextCollectionPaths,
 
-    [discoveredValue]: [
+    [discoveredValue]: {
 
-      ...oldPaths,
+      ...normalizedPaths,
 
-      mainLineage
+      [animalType]:
+        mainLineage
 
-    ]
+    }
 
   };
 
@@ -957,16 +1312,69 @@ function applyGameCollection(
 
 
   // ==========================================================
-  // 最新收藏
+  // 父母槽
+  //
+  // 每个 animalType 独立保存第一次收藏的父母。
   // ==========================================================
 
-  nextLatestCollection = {
+  const oldParents =
+
+    nextCollectionParents[
+      discoveredValue
+    ];
+
+
+
+  const normalizedParents =
+
+    oldParents &&
+    !Array.isArray(
+      oldParents
+    )
+
+      ? oldParents
+
+      : {};
+
+
+
+  const parentSnapshot =
+
+    createCollectionParentSnapshot(
+      previousRecord
+    );
+
+
+
+  nextCollectionParents = {
+
+    ...nextCollectionParents,
+
+    [discoveredValue]: {
+
+      ...normalizedParents,
+
+      [animalType]:
+        parentSnapshot
+
+    }
+
+  };
+
+
+
+
+
+  // ==========================================================
+  // 最新新槽
+  // ==========================================================
+
+  const nextLatestCollection = {
 
     value:
       discoveredValue,
 
-    index:
-      latestPathIndex
+    animalType
 
   };
 
@@ -975,17 +1383,37 @@ function applyGameCollection(
 
 
   // ==========================================================
-  // 首次收藏
+  // 新槽历史
+  // ==========================================================
+
+  nextCollectionAnimalTypeHistory = [
+
+    ...nextCollectionAnimalTypeHistory,
+
+    animalType
+
+  ];
+
+
+
+
+
+  // ==========================================================
+  // 第一次发现这个数字
   // ==========================================================
 
   if(
-    isFirstTime
+    isFirstNumber
   ){
 
 
     const newNumberCount =
 
-      state.collection.length + 1;
+      state.collection.length
+
+      +
+
+      1;
 
 
 
@@ -1017,26 +1445,6 @@ function applyGameCollection(
 
     ];
 
-
-
-
-
-    // ========================================================
-    // 首次收藏真实动物类型历史
-    // ========================================================
-
-    nextCollectionAnimalTypeHistory = [
-
-      ...nextCollectionAnimalTypeHistory,
-
-      piece.animalType
-
-      ??
-
-      null
-
-    ];
-
   }
 
 
@@ -1044,7 +1452,7 @@ function applyGameCollection(
 
 
   // ==========================================================
-  // 重复收藏
+  // 同数字的新类型槽
   // ==========================================================
 
   else{
@@ -1079,6 +1487,9 @@ function applyGameCollection(
 
     collectionPaths:
       nextCollectionPaths,
+
+    collectionParents:
+      nextCollectionParents,
 
     latestCollection:
       nextLatestCollection,
@@ -1118,8 +1529,6 @@ export function applyCollection(
 
 
 
-
-
   if(
     isSimulationCollectionState(
       state
@@ -1139,8 +1548,6 @@ export function applyCollection(
 
 
 
-
-
   if(
     isGameCollectionState(
       state
@@ -1157,8 +1564,6 @@ export function applyCollection(
     );
 
   }
-
-
 
 
 

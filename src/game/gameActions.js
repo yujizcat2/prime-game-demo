@@ -3,11 +3,13 @@ import {
 } from "../utils/math";
 
 import {
+  ANIMAL_TYPES,
   combineValue,
   combineAnimalType,
   combineAnimalPurity,
   canReduce,
-  canCombine
+  canCombine,
+  getBirdMutationAnimalType
 } from "./rules";
 
 import {
@@ -519,8 +521,69 @@ export function combineCells(
 // ============================================================
 // 约分
 //
-// 约分不改变 animalType / purity。
-// 只改变 value，并清除当前这一代的组合父母。
+// 基础规则：
+//
+// 约分：
+//
+// - 改变 value
+// - 默认不改变 animalType
+// - 默认不改变 purity
+// - 清除当前这一代的组合父母
+//
+//
+// ============================================================
+// 鸟系变种规则
+// ============================================================
+//
+// 如果：
+//
+// 普通动物 + 鸟
+//
+// 进行约分，
+//
+// 并且鸟这一侧约分后的结果 === 1，
+//
+// 那么另一侧普通动物发生一次三角变种：
+//
+// 狗
+// ↓
+// 猫
+// ↓
+// 哺乳
+// ↓
+// 狗
+//
+//
+// ------------------------------------------------------------
+//
+// 例如：
+//
+// 狗14 + 鸟7
+//
+// ÷7
+//
+// → 狗2 + 鸟1
+//
+// 鸟变成1，因此：
+//
+// 狗2 → 猫2
+//
+//
+// 最终：
+//
+// 猫2 + 鸟1
+//
+//
+// ------------------------------------------------------------
+//
+// 当前 V1：
+//
+// - 不检测是否灭绝
+// - 不随机
+// - 不允许玩家选择
+// - 不改变数字
+// - 不改变 purity
+// - 鸟 + 鸟 不触发变种
 // ============================================================
 
 export function reduceCells(
@@ -612,6 +675,21 @@ export function reduceCells(
 
 
 
+
+
+  // ==========================================================
+  // 先记录约分来源
+  //
+  // 注意：
+  //
+  // origin 保存的是“变种之前”的真实父节点。
+  //
+  // 这样以后仍然可以知道：
+  //
+  // 这个猫2原本其实是狗14，
+  // 因为鸟系约分而发生了变种。
+  // ==========================================================
+
   const firstOrigin =
 
     createReduceOrigin(
@@ -636,6 +714,121 @@ export function reduceCells(
 
 
 
+
+
+  // ==========================================================
+  // 默认 animalType
+  //
+  // 普通约分保持原类型。
+  // ==========================================================
+
+  let firstAnimalType =
+    first.animalType;
+
+
+  let secondAnimalType =
+    second.animalType;
+
+
+
+
+
+  // ==========================================================
+  // 情况 A
+  //
+  // first 是鸟
+  // second 是普通动物
+  //
+  // 如果 firstResult === 1：
+  //
+  // second 发生变种。
+  // ==========================================================
+
+  if(
+    first.animalType ===
+    ANIMAL_TYPES.BIRD
+
+    &&
+
+    firstResult ===
+    1
+  ){
+
+
+    const mutatedType =
+
+      getBirdMutationAnimalType(
+        second.animalType
+      );
+
+
+
+    if(
+      mutatedType
+    ){
+
+
+      secondAnimalType =
+        mutatedType;
+
+    }
+
+  }
+
+
+
+
+
+  // ==========================================================
+  // 情况 B
+  //
+  // second 是鸟
+  // first 是普通动物
+  //
+  // 如果 secondResult === 1：
+  //
+  // first 发生变种。
+  // ==========================================================
+
+  if(
+    second.animalType ===
+    ANIMAL_TYPES.BIRD
+
+    &&
+
+    secondResult ===
+    1
+  ){
+
+
+    const mutatedType =
+
+      getBirdMutationAnimalType(
+        first.animalType
+      );
+
+
+
+    if(
+      mutatedType
+    ){
+
+
+      firstAnimalType =
+        mutatedType;
+
+    }
+
+  }
+
+
+
+
+
+  // ==========================================================
+  // 更新棋盘
+  // ==========================================================
+
   const nextBoard = [
 
     ...state.board
@@ -652,6 +845,18 @@ export function reduceCells(
 
     value:
       firstResult,
+
+    animalType:
+      firstAnimalType,
+
+    // ========================================================
+    // 当前 V1：
+    //
+    // 鸟变种不改变 purity。
+    // ========================================================
+
+    purity:
+      first.purity,
 
     parents:
       null,
@@ -675,6 +880,12 @@ export function reduceCells(
     value:
       secondResult,
 
+    animalType:
+      secondAnimalType,
+
+    purity:
+      second.purity,
+
     parents:
       null,
 
@@ -685,6 +896,8 @@ export function reduceCells(
       secondOrigin
 
   };
+
+
 
 
 
@@ -719,11 +932,20 @@ export function reduceCells(
 // 处理1
 //
 // 收藏逻辑交给 collectionRules。
-// 这里只负责：
 //
-// 1. 找到目标1
-// 2. 结算收藏
-// 3. 删除棋子
+// 普通三系1：
+//
+// dog
+// cat
+// mammal
+//
+// → 正常进入三槽收藏。
+//
+//
+// bird 1：
+//
+// → collectionRules 会自动忽略。
+// → 删除棋子。
 // ============================================================
 
 export function removeOne(
