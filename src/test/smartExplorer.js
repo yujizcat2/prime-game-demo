@@ -13,7 +13,7 @@ import {
 import {
   getCollectionBalanceState,
   getSimulationCollectionKey,
-  isCollectibleAnimalType
+  isCollectibleFoodType
 } from "../game/collectionRules";
 
 
@@ -206,7 +206,7 @@ function gcdSimple(
 function hasCollectionSlot(
   state,
   value,
-  animalType
+  foodType
 ){
 
 
@@ -216,7 +216,7 @@ function hasCollectionSlot(
 
       value,
 
-      animalType
+      foodType
 
     );
 
@@ -292,7 +292,7 @@ function parseCollectionKey(
 
 
 
-  const animalType =
+  const foodType =
 
     key.slice(
       separatorIndex + 1
@@ -305,8 +305,8 @@ function parseCollectionKey(
       value
     )
     ||
-    !isCollectibleAnimalType(
-      animalType
+    !isCollectibleFoodType(
+      foodType
     )
   ){
 
@@ -321,7 +321,7 @@ function parseCollectionKey(
 
     value,
 
-    animalType
+    foodType
 
   };
 
@@ -348,19 +348,19 @@ function analyzeState(
     0;
 
 
-  let dogPieces =
+  let meatPieces =
     0;
 
 
-  let catPieces =
+  let vegetablePieces =
     0;
 
 
-  let mammalPieces =
+  let seasoningPieces =
     0;
 
 
-  let birdPieces =
+  let dessertPieces =
     0;
 
 
@@ -396,41 +396,41 @@ function analyzeState(
 
 
     if(
-      piece.animalType === "dog"
+      piece.foodType === "meat"
     ){
 
 
-      dogPieces++;
+      meatPieces++;
 
     }
 
 
     else if(
-      piece.animalType === "cat"
+      piece.foodType === "vegetable"
     ){
 
 
-      catPieces++;
+      vegetablePieces++;
 
     }
 
 
     else if(
-      piece.animalType === "mammal"
+      piece.foodType === "seasoning"
     ){
 
 
-      mammalPieces++;
+      seasoningPieces++;
 
     }
 
 
     else if(
-      piece.animalType === "bird"
+      piece.foodType === "dessert"
     ){
 
 
-      birdPieces++;
+      dessertPieces++;
 
     }
 
@@ -499,13 +499,13 @@ function analyzeState(
 
     ones,
 
-    dogPieces,
+    meatPieces,
 
-    catPieces,
+    vegetablePieces,
 
-    mammalPieces,
+    seasoningPieces,
 
-    birdPieces
+    dessertPieces
 
   };
 
@@ -591,7 +591,7 @@ function scoreSurvival(
 //
 // 新版所有判断都按：
 //
-// value + animalType
+// value + foodType
 //
 // 而不是只按 value。
 // ============================================================
@@ -640,8 +640,8 @@ function analyzeCollectionPotential(
 
 
     if(
-      !isCollectibleAnimalType(
-        piece.animalType
+      !isCollectibleFoodType(
+        piece.foodType
       )
     ){
 
@@ -671,7 +671,7 @@ function analyzeCollectionPotential(
 
           source,
 
-          piece.animalType
+          piece.foodType
 
         )
       ){
@@ -697,7 +697,7 @@ function analyzeCollectionPotential(
 
         piece.value,
 
-        piece.animalType
+        piece.foodType
 
       );
 
@@ -802,8 +802,8 @@ function analyzeCollectionPotential(
 
 
     if(
-      isCollectibleAnimalType(
-        a.animalType
+      isCollectibleFoodType(
+        a.foodType
       )
     ){
 
@@ -814,7 +814,7 @@ function analyzeCollectionPotential(
 
           a.value,
 
-          a.animalType
+          a.foodType
 
         );
 
@@ -859,8 +859,8 @@ function analyzeCollectionPotential(
 
 
     if(
-      isCollectibleAnimalType(
-        b.animalType
+      isCollectibleFoodType(
+        b.foodType
       )
     ){
 
@@ -871,7 +871,7 @@ function analyzeCollectionPotential(
 
           b.value,
 
-          b.animalType
+          b.foodType
 
         );
 
@@ -935,23 +935,23 @@ function analyzeCollectionPotential(
 
 
 
-function countCollectionAnimalTypes(
+function countCollectionFoodTypes(
   history
 ){
 
 
   const counts = {
 
-    dog:
+    meat:
       0,
 
-    cat:
+    vegetable:
       0,
 
-    mammal:
+    seasoning:
       0,
 
-    bird:
+    dessert:
       0
 
   };
@@ -959,37 +959,37 @@ function countCollectionAnimalTypes(
 
 
   for(
-    const animalType
+    const foodType
     of history ?? []
   ){
 
 
     if(
-      animalType === "dog"
+      foodType === "meat"
     ){
 
 
-      counts.dog++;
+      counts.meat++;
 
     }
 
 
     else if(
-      animalType === "cat"
+      foodType === "vegetable"
     ){
 
 
-      counts.cat++;
+      counts.vegetable++;
 
     }
 
 
     else if(
-      animalType === "mammal"
+      foodType === "seasoning"
     ){
 
 
-      counts.mammal++;
+      counts.seasoning++;
 
     }
 
@@ -1012,9 +1012,9 @@ function getGlobalTypeImbalance(
 
   const counts =
 
-    countCollectionAnimalTypes(
+    countCollectionFoodTypes(
 
-      state.collectionAnimalTypeHistory
+      state.collectionFoodTypeHistory
 
     );
 
@@ -1022,11 +1022,11 @@ function getGlobalTypeImbalance(
 
   const regular = [
 
-    counts.dog,
+    counts.meat,
 
-    counts.cat,
+    counts.vegetable,
 
-    counts.mammal
+    counts.seasoning
 
   ];
 
@@ -1069,7 +1069,7 @@ function getSameTypeStreak(
 
   const history =
 
-    state.collectionAnimalTypeHistory
+    state.collectionFoodTypeHistory
 
     ??
 
@@ -1155,14 +1155,14 @@ function analyzeBoardTypeCoverage(
 
   const present = {
 
-    dog:
-      info.dogPieces > 0,
+    meat:
+      info.meatPieces > 0,
 
-    cat:
-      info.catPieces > 0,
+    vegetable:
+      info.vegetablePieces > 0,
 
-    mammal:
-      info.mammalPieces > 0
+    seasoning:
+      info.seasoningPieces > 0
 
   };
 
@@ -1174,7 +1174,7 @@ function analyzeBoardTypeCoverage(
 
 
   if(
-    present.dog
+    present.meat
   ){
 
 
@@ -1184,7 +1184,7 @@ function analyzeBoardTypeCoverage(
 
 
   if(
-    present.cat
+    present.vegetable
   ){
 
 
@@ -1194,7 +1194,7 @@ function analyzeBoardTypeCoverage(
 
 
   if(
-    present.mammal
+    present.seasoning
   ){
 
 
@@ -1228,16 +1228,16 @@ function analyzeRecoveryPotential(
 ){
 
 
-  const hasDog =
-    info.dogPieces > 0;
+  const hasMeat =
+    info.meatPieces > 0;
 
 
-  const hasCat =
-    info.catPieces > 0;
+  const hasVegetable =
+    info.vegetablePieces > 0;
 
 
-  const hasMammal =
-    info.mammalPieces > 0;
+  const hasSeasoning =
+    info.seasoningPieces > 0;
 
 
 
@@ -1247,8 +1247,8 @@ function analyzeRecoveryPotential(
 
 
   if(
-    hasDog &&
-    hasCat
+    hasMeat &&
+    hasVegetable
   ){
 
 
@@ -1259,8 +1259,8 @@ function analyzeRecoveryPotential(
 
 
   if(
-    hasCat &&
-    hasMammal
+    hasVegetable &&
+    hasSeasoning
   ){
 
 
@@ -1271,8 +1271,8 @@ function analyzeRecoveryPotential(
 
 
   if(
-    hasMammal &&
-    hasDog
+    hasSeasoning &&
+    hasMeat
   ){
 
 
@@ -1415,13 +1415,13 @@ function scoreTypeEcology(
     recent.imbalance === 0
 
     &&
-    recent.dogCount > 0
+    recent.meatCount > 0
 
     &&
-    recent.catCount > 0
+    recent.vegetableCount > 0
 
     &&
-    recent.mammalCount > 0
+    recent.seasoningCount > 0
 
       ? PERFECT_RECENT_BALANCE_BONUS
 
@@ -2068,8 +2068,8 @@ function snapshotBoard(
         value:
           piece.value,
 
-        animalType:
-          piece.animalType,
+        foodType:
+          piece.foodType,
 
         purity:
           piece.purity
@@ -2356,7 +2356,7 @@ export async function runSmartGame({
       null;
 
 
-    let removedAnimalType =
+    let removedFoodType =
       null;
 
 
@@ -2381,9 +2381,9 @@ export async function runSmartGame({
 
 
 
-      removedAnimalType =
+      removedFoodType =
 
-        piece?.animalType
+        piece?.foodType
         ?? null;
 
 
@@ -2397,8 +2397,8 @@ export async function runSmartGame({
       if(
         removedSource != null
         &&
-        isCollectibleAnimalType(
-          removedAnimalType
+        isCollectibleFoodType(
+          removedFoodType
         )
         &&
         hasCollectionSlot(
@@ -2407,7 +2407,7 @@ export async function runSmartGame({
 
           removedSource,
 
-          removedAnimalType
+          removedFoodType
 
         )
       ){
@@ -2494,7 +2494,7 @@ export async function runSmartGame({
 
       removedSource,
 
-      removedAnimalType,
+      removedFoodType,
 
       repeatCollectionRemoval:
         isRepeatCollectionRemoval,
@@ -2634,8 +2634,8 @@ export async function runSmartGame({
           value:
             parsed.value,
 
-          animalType:
-            parsed.animalType,
+          foodType:
+            parsed.foodType,
 
           collectionKey,
 
@@ -2652,23 +2652,23 @@ export async function runSmartGame({
 
           balance: {
 
-            dogCount:
-              balanceState.dogCount,
+            meatCount:
+              balanceState.meatCount,
 
-            catCount:
-              balanceState.catCount,
+            vegetableCount:
+              balanceState.vegetableCount,
 
-            mammalCount:
-              balanceState.mammalCount,
+            seasoningCount:
+              balanceState.seasoningCount,
 
-            birdCount:
+            dessertCount:
               0,
 
             imbalance:
               balanceState.imbalance,
 
-            dominantAnimalType:
-              balanceState.dominantAnimalType,
+            dominantFoodType:
+              balanceState.dominantFoodType,
 
             recent:
 
@@ -2743,8 +2743,8 @@ export async function runSmartGame({
                 removedSource:
                   item.removedSource,
 
-                removedAnimalType:
-                  item.removedAnimalType,
+                removedFoodType:
+                  item.removedFoodType,
 
                 repeatCollectionRemoval:
                   item.repeatCollectionRemoval
@@ -2885,16 +2885,16 @@ export async function runSmartGame({
         collectionImbalance:
           balanceState.imbalance,
 
-        collectionDogCount:
-          balanceState.dogCount,
+        collectionMeatCount:
+          balanceState.meatCount,
 
-        collectionCatCount:
-          balanceState.catCount,
+        collectionVegetableCount:
+          balanceState.vegetableCount,
 
-        collectionMammalCount:
-          balanceState.mammalCount,
+        collectionSeasoningCount:
+          balanceState.seasoningCount,
 
-        collectionBirdCount:
+        collectionDessertCount:
           0
 
       });
@@ -2933,11 +2933,11 @@ export async function runSmartGame({
 
 
 
-  const collectionAnimalTypeCounts =
+  const collectionFoodTypeCounts =
 
-    countCollectionAnimalTypes(
+    countCollectionFoodTypes(
 
-      state.collectionAnimalTypeHistory
+      state.collectionFoodTypeHistory
 
     );
 
@@ -2975,40 +2975,40 @@ export async function runSmartGame({
 
 
 
-    collectionAnimalTypeHistory:
+    collectionFoodTypeHistory:
 
       [
         ...(
-          state.collectionAnimalTypeHistory
+          state.collectionFoodTypeHistory
           ?? []
         )
       ],
 
 
 
-    collectionAnimalTypeCounts,
+    collectionFoodTypeCounts,
 
 
 
     collectionBalance: {
 
-      dogCount:
-        finalBalance.dogCount,
+      meatCount:
+        finalBalance.meatCount,
 
-      catCount:
-        finalBalance.catCount,
+      vegetableCount:
+        finalBalance.vegetableCount,
 
-      mammalCount:
-        finalBalance.mammalCount,
+      seasoningCount:
+        finalBalance.seasoningCount,
 
-      birdCount:
+      dessertCount:
         0,
 
       imbalance:
         finalBalance.imbalance,
 
-      dominantAnimalType:
-        finalBalance.dominantAnimalType,
+      dominantFoodType:
+        finalBalance.dominantFoodType,
 
       recent:
 
@@ -3255,16 +3255,16 @@ export async function runSmartExplorer({
               currentCollectionImbalance:
                 current.collectionImbalance,
 
-              currentCollectionDogCount:
-                current.collectionDogCount,
+              currentCollectionMeatCount:
+                current.collectionMeatCount,
 
-              currentCollectionCatCount:
-                current.collectionCatCount,
+              currentCollectionVegetableCount:
+                current.collectionVegetableCount,
 
-              currentCollectionMammalCount:
-                current.collectionMammalCount,
+              currentCollectionSeasoningCount:
+                current.collectionSeasoningCount,
 
-              currentCollectionBirdCount:
+              currentCollectionDessertCount:
                 0,
 
               maxSteps,
@@ -3458,16 +3458,16 @@ export async function runSmartExplorer({
       currentCollectionImbalance:
         0,
 
-      currentCollectionDogCount:
+      currentCollectionMeatCount:
         0,
 
-      currentCollectionCatCount:
+      currentCollectionVegetableCount:
         0,
 
-      currentCollectionMammalCount:
+      currentCollectionSeasoningCount:
         0,
 
-      currentCollectionBirdCount:
+      currentCollectionDessertCount:
         0,
 
       maxSteps,

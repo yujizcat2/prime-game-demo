@@ -9,10 +9,10 @@ import {
 } from "../game/initialValues";
 
 import {
-  getAnimalName,
-  getAnimalTypeIcon,
-  getAnimalTypeName
-} from "../data/animal/animalRegistry";
+  getFoodName,
+  getFoodTypeIcon,
+  getFoodTypeName
+} from "../data/food/foodRegistry";
 
 
 
@@ -29,46 +29,46 @@ const START_VALUES = [
 
 
 
-const ANIMAL_GROUPS = {
+const FOOD_GROUPS = {
 
-  dog: {
+  meat: {
 
     label:
-      getAnimalTypeName(
-        "dog"
+      getFoodTypeName(
+        "meat"
       ),
 
     icon:
-      getAnimalTypeIcon(
-        "dog"
+      getFoodTypeIcon(
+        "meat"
       )
 
   },
 
-  cat: {
+  vegetable: {
 
     label:
-      getAnimalTypeName(
-        "cat"
+      getFoodTypeName(
+        "vegetable"
       ),
 
     icon:
-      getAnimalTypeIcon(
-        "cat"
+      getFoodTypeIcon(
+        "vegetable"
       )
 
   },
 
-  mammal: {
+  seasoning: {
 
     label:
-      getAnimalTypeName(
-        "mammal"
+      getFoodTypeName(
+        "seasoning"
       ),
 
     icon:
-      getAnimalTypeIcon(
-        "mammal"
+      getFoodTypeIcon(
+        "seasoning"
       )
 
   }
@@ -89,9 +89,9 @@ export default function StartScreen({
   // =========================
   // 自选开局
   //
-  // 第1个 → 狗系
-  // 第2个 → 猫系
-  // 第3个 → 哺乳系
+  // 第1个 → 荤系
+  // 第2个 → 素系
+  // 第3个 → 调料系
   // =========================
 
   const [
@@ -102,13 +102,13 @@ export default function StartScreen({
 
   ] = useState({
 
-    dog:
+    meat:
       null,
 
-    cat:
+    vegetable:
       null,
 
-    mammal:
+    seasoning:
       null
 
   });
@@ -256,11 +256,11 @@ export default function StartScreen({
 
   const canCustomStart =
 
-    selected.dog !== null &&
+    selected.meat !== null &&
 
-    selected.cat !== null &&
+    selected.vegetable !== null &&
 
-    selected.mammal !== null;
+    selected.seasoning !== null;
 
 
 
@@ -269,11 +269,11 @@ export default function StartScreen({
   //
   // createGameState 会按：
   //
-  // 第0个 → dog
-  // 第1个 → cat
-  // 第2个 → mammal
+  // 第0个 → meat
+  // 第1个 → vegetable
+  // 第2个 → seasoning
   //
-  // 自动赋予 animalType。
+  // 自动赋予 foodType。
   // =========================
 
   function customStart() {
@@ -290,11 +290,11 @@ export default function StartScreen({
 
     onStart([
 
-      selected.dog,
+      selected.meat,
 
-      selected.cat,
+      selected.vegetable,
 
-      selected.mammal
+      selected.seasoning
 
     ]);
 
@@ -309,7 +309,7 @@ export default function StartScreen({
   const activeConfig =
 
     activeGroup
-      ? ANIMAL_GROUPS[
+      ? FOOD_GROUPS[
           activeGroup
         ]
       : null;
@@ -461,7 +461,7 @@ export default function StartScreen({
               start-title
             "
           >
-            动物迷宫
+            料理迷宫
           </h1>
 
 
@@ -470,7 +470,7 @@ export default function StartScreen({
               start-title-en
             "
           >
-            ANIMAL LABYRINTH
+            FOOD LABYRINTH
           </div>
 
 
@@ -488,7 +488,7 @@ export default function StartScreen({
 
           <br />
 
-          走进不断变化的动物迷宫
+          走进不断变化的料理迷宫
 
         </p>
 
@@ -550,7 +550,7 @@ export default function StartScreen({
 
 
             {Object.entries(
-              ANIMAL_GROUPS
+              FOOD_GROUPS
             )
               .map(
                 ([
@@ -645,7 +645,7 @@ export default function StartScreen({
                               >
 
                                 {
-                                  getAnimalName(
+                                  getFoodName(
                                     value,
                                     group
                                   )
@@ -782,7 +782,7 @@ export default function StartScreen({
                           >
 
                             {
-                              getAnimalName(
+                              getFoodName(
                                 value,
                                 activeGroup
                               )

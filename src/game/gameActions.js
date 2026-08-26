@@ -3,13 +3,13 @@ import {
 } from "../utils/math";
 
 import {
-  ANIMAL_TYPES,
+  FOOD_TYPES,
   combineValue,
-  combineAnimalType,
-  combineAnimalPurity,
+  combineFoodType,
+  combineFoodPurity,
   canReduce,
   canCombine,
-  getBirdMutationAnimalType
+  getDessertMutationFoodType
 } from "./rules";
 
 import {
@@ -357,9 +357,9 @@ export function combineCells(
 
 
 
-  const animalType =
+  const foodType =
 
-    combineAnimalType(
+    combineFoodType(
 
       front,
 
@@ -370,7 +370,7 @@ export function combineCells(
 
 
   if(
-    !animalType
+    !foodType
   ){
 
 
@@ -384,7 +384,7 @@ export function combineCells(
 
   const purity =
 
-    combineAnimalPurity(
+    combineFoodPurity(
 
       front,
 
@@ -407,7 +407,7 @@ export function combineCells(
       result,
 
 
-    animalType,
+    foodType,
 
 
     purity,
@@ -422,15 +422,15 @@ export function combineCells(
     ],
 
 
-    parentAnimals: [
+    parentFoods: [
 
       {
 
         value:
           front.value,
 
-        animalType:
-          front.animalType,
+        foodType:
+          front.foodType,
 
         purity:
           front.purity
@@ -443,8 +443,8 @@ export function combineCells(
         value:
           back.value,
 
-        animalType:
-          back.animalType,
+        foodType:
+          back.foodType,
 
         purity:
           back.purity
@@ -526,52 +526,52 @@ export function combineCells(
 // 约分：
 //
 // - 改变 value
-// - 默认不改变 animalType
+// - 默认不改变 foodType
 // - 默认不改变 purity
 // - 清除当前这一代的组合父母
 //
 //
 // ============================================================
-// 鸟系变种规则
+// 甜食系变种规则
 // ============================================================
 //
 // 如果：
 //
-// 普通动物 + 鸟
+// 普通食物 + 甜食
 //
 // 进行约分，
 //
-// 并且鸟这一侧约分后的结果 === 1，
+// 并且甜食这一侧约分后的结果 === 1，
 //
-// 那么另一侧普通动物发生一次三角变种：
+// 那么另一侧普通食物发生一次三角变种：
 //
-// 狗
+// 荤
 // ↓
-// 猫
+// 素
 // ↓
-// 哺乳
+// 调料
 // ↓
-// 狗
+// 荤
 //
 //
 // ------------------------------------------------------------
 //
 // 例如：
 //
-// 狗14 + 鸟7
+// 荤14 + 甜食7
 //
 // ÷7
 //
-// → 狗2 + 鸟1
+// → 荤2 + 甜食1
 //
-// 鸟变成1，因此：
+// 甜食变成1，因此：
 //
-// 狗2 → 猫2
+// 荤2 → 素2
 //
 //
 // 最终：
 //
-// 猫2 + 鸟1
+// 素2 + 甜食1
 //
 //
 // ------------------------------------------------------------
@@ -583,7 +583,7 @@ export function combineCells(
 // - 不允许玩家选择
 // - 不改变数字
 // - 不改变 purity
-// - 鸟 + 鸟 不触发变种
+// - 甜食 + 甜食 不触发变种
 // ============================================================
 
 export function reduceCells(
@@ -686,8 +686,8 @@ export function reduceCells(
   //
   // 这样以后仍然可以知道：
   //
-  // 这个猫2原本其实是狗14，
-  // 因为鸟系约分而发生了变种。
+  // 这个素2原本其实是荤14，
+  // 因为甜食系约分而发生了变种。
   // ==========================================================
 
   const firstOrigin =
@@ -717,17 +717,17 @@ export function reduceCells(
 
 
   // ==========================================================
-  // 默认 animalType
+  // 默认 foodType
   //
   // 普通约分保持原类型。
   // ==========================================================
 
-  let firstAnimalType =
-    first.animalType;
+  let firstFoodType =
+    first.foodType;
 
 
-  let secondAnimalType =
-    second.animalType;
+  let secondFoodType =
+    second.foodType;
 
 
 
@@ -736,8 +736,8 @@ export function reduceCells(
   // ==========================================================
   // 情况 A
   //
-  // first 是鸟
-  // second 是普通动物
+  // first 是甜食
+  // second 是普通食物
   //
   // 如果 firstResult === 1：
   //
@@ -745,8 +745,8 @@ export function reduceCells(
   // ==========================================================
 
   if(
-    first.animalType ===
-    ANIMAL_TYPES.BIRD
+    first.foodType ===
+    FOOD_TYPES.DESSERT
 
     &&
 
@@ -757,8 +757,8 @@ export function reduceCells(
 
     const mutatedType =
 
-      getBirdMutationAnimalType(
-        second.animalType
+      getDessertMutationFoodType(
+        second.foodType
       );
 
 
@@ -768,7 +768,7 @@ export function reduceCells(
     ){
 
 
-      secondAnimalType =
+      secondFoodType =
         mutatedType;
 
     }
@@ -782,8 +782,8 @@ export function reduceCells(
   // ==========================================================
   // 情况 B
   //
-  // second 是鸟
-  // first 是普通动物
+  // second 是甜食
+  // first 是普通食物
   //
   // 如果 secondResult === 1：
   //
@@ -791,8 +791,8 @@ export function reduceCells(
   // ==========================================================
 
   if(
-    second.animalType ===
-    ANIMAL_TYPES.BIRD
+    second.foodType ===
+    FOOD_TYPES.DESSERT
 
     &&
 
@@ -803,8 +803,8 @@ export function reduceCells(
 
     const mutatedType =
 
-      getBirdMutationAnimalType(
-        first.animalType
+      getDessertMutationFoodType(
+        first.foodType
       );
 
 
@@ -814,7 +814,7 @@ export function reduceCells(
     ){
 
 
-      firstAnimalType =
+      firstFoodType =
         mutatedType;
 
     }
@@ -846,13 +846,13 @@ export function reduceCells(
     value:
       firstResult,
 
-    animalType:
-      firstAnimalType,
+    foodType:
+      firstFoodType,
 
     // ========================================================
     // 当前 V1：
     //
-    // 鸟变种不改变 purity。
+    // 甜食变种不改变 purity。
     // ========================================================
 
     purity:
@@ -861,7 +861,7 @@ export function reduceCells(
     parents:
       null,
 
-    parentAnimals:
+    parentFoods:
       null,
 
     origin:
@@ -880,8 +880,8 @@ export function reduceCells(
     value:
       secondResult,
 
-    animalType:
-      secondAnimalType,
+    foodType:
+      secondFoodType,
 
     purity:
       second.purity,
@@ -889,7 +889,7 @@ export function reduceCells(
     parents:
       null,
 
-    parentAnimals:
+    parentFoods:
       null,
 
     origin:
@@ -935,14 +935,14 @@ export function reduceCells(
 //
 // 普通三系1：
 //
-// dog
-// cat
-// mammal
+// meat
+// vegetable
+// seasoning
 //
 // → 正常进入三槽收藏。
 //
 //
-// bird 1：
+// dessert 1：
 //
 // → collectionRules 会自动忽略。
 // → 删除棋子。

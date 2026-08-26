@@ -27,9 +27,9 @@ export const INITIAL_VALUE_POOL = [
 //
 // gameEngine 会自动解释为：
 //
-// 第0个 → 狗
-// 第1个 → 猫
-// 第2个 → 哺乳
+// 第0个 → 荤
+// 第1个 → 素
+// 第2个 → 调料
 // ============================================================
 
 export function createRandomInitialValues(){

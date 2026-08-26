@@ -9,9 +9,9 @@
 //
 //    当前分别为：
 //
-//    狗
-//    猫
-//    哺乳
+//    荤
+//    素
+//    调料
 //
 //    且默认都是 pure。
 //
@@ -66,14 +66,14 @@
 // 6. 每一个历史节点同时保存：
 //
 //    value
-//    animalType
+//    foodType
 //    purity
 //    origin
 //
 //    因此未来可以完整恢复：
 //
 //    数字
-//    动物类型
+//    食物类型
 //    纯度
 //    历史来源。
 // ============================================================
@@ -88,7 +88,7 @@
 // 保存当前数字：
 //
 // value
-// animalType
+// foodType
 // purity
 // origin
 //
@@ -100,7 +100,7 @@
 //
 // {
 //   value: 40,
-//   animalType: "dog",
+//   foodType: "meat",
 //   purity: "mixed",
 //   origin: ...
 // }
@@ -128,8 +128,8 @@ export function createOriginSnapshot(
       number.value,
 
 
-    animalType:
-      number.animalType ?? null,
+    foodType:
+      number.foodType ?? null,
 
 
     purity:
@@ -186,11 +186,11 @@ export function createOriginSnapshot(
 // 都会完整保存：
 //
 // value
-// animalType
+// foodType
 // purity
 // origin
 //
-// 因此以后可以恢复完整动物族谱。
+// 因此以后可以恢复完整食物族谱。
 // ============================================================
 
 export function createCombineOrigin(
@@ -234,7 +234,7 @@ export function createCombineOrigin(
     // 保存双方：
     //
     // value
-    // animalType
+    // foodType
     // purity
     // origin
     //
@@ -295,18 +295,18 @@ export function createCombineOrigin(
 //
 // previousNumber 的：
 //
-// animalType
+// foodType
 // purity
 //
 // 都会一起进入历史快照。
 //
 // 因此：
 //
-// 半纯狗38
+// 半纯荤38
 // ↓约分
-// 半纯狗19
+// 半纯荤19
 //
-// 历史仍然知道 38 也是半纯狗。
+// 历史仍然知道 38 也是半纯荤。
 // ============================================================
 
 export function createReduceOrigin(
@@ -486,7 +486,7 @@ export function cloneOrigin(
 // 每一个来源记录现在保存：
 //
 // value
-// animalType
+// foodType
 // purity
 // origin
 // ============================================================
@@ -512,8 +512,8 @@ function cloneRecord(
       record.value,
 
 
-    animalType:
-      record.animalType ?? null,
+    foodType:
+      record.foodType ?? null,
 
 
     purity:
@@ -545,7 +545,7 @@ function cloneRecord(
 // 可以直接通过这里读取：
 //
 // value
-// animalType
+// foodType
 // purity
 // origin
 // ============================================================
@@ -577,21 +577,21 @@ export function getNumberOriginRecord(
 // [
 //   {
 //     value: 19,
-//     animalType: "dog",
+//     foodType: "meat",
 //     purity: "mixed",
 //     fromType: "reduce"
 //   },
 //
 //   {
 //     value: 38,
-//     animalType: "dog",
+//     foodType: "meat",
 //     purity: "mixed",
 //     fromType: "combine"
 //   },
 //
 //   {
 //     value: 20,
-//     animalType: "cat",
+//     foodType: "vegetable",
 //     purity: "pure",
 //     fromType: null
 //   }
@@ -616,14 +616,14 @@ export function getNumberOriginRecord(
 //
 // {
 //   value: 19,
-//   animalType: "dog",
+//   foodType: "meat",
 //   purity: "mixed",
 //   fromType: "reduce"
 // }
 //
 // UI 未来可以显示：
 //
-// 半纯狗19 ← 半纯狗38
+// 半纯荤19 ← 半纯荤38
 //
 //
 // ------------------------------------------------------------
@@ -638,14 +638,14 @@ export function getNumberOriginRecord(
 //
 // {
 //   value: 38,
-//   animalType: "dog",
+//   foodType: "meat",
 //   purity: "mixed",
 //   fromType: "combine"
 // }
 //
 // UI 未来可以显示：
 //
-// 半纯狗38 ⇐ 纯猫20
+// 半纯荤38 ⇐ 纯素20
 //
 // ============================================================
 
@@ -697,8 +697,8 @@ export function getMainLineage(
           current.value,
 
 
-        animalType:
-          current.animalType ?? null,
+        foodType:
+          current.foodType ?? null,
 
 
         purity:
@@ -733,8 +733,8 @@ export function getMainLineage(
           current.value,
 
 
-        animalType:
-          current.animalType ?? null,
+        foodType:
+          current.foodType ?? null,
 
 
         purity:
@@ -774,8 +774,8 @@ export function getMainLineage(
           current.value,
 
 
-        animalType:
-          current.animalType ?? null,
+        foodType:
+          current.foodType ?? null,
 
 
         purity:
@@ -809,8 +809,8 @@ export function getMainLineage(
         current.value,
 
 
-      animalType:
-        current.animalType ?? null,
+      foodType:
+        current.foodType ?? null,
 
 
       purity:
@@ -849,7 +849,7 @@ export function getMainLineage(
 // 每个 parent 都包含：
 //
 // value
-// animalType
+// foodType
 // purity
 // origin
 // ============================================================

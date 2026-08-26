@@ -3,14 +3,14 @@ import {
 } from "../utils/math";
 
 import {
-  ANIMAL_TYPES,
-  ANIMAL_PURITY,
+  FOOD_TYPES,
+  FOOD_PURITY,
   combineValue,
-  combineAnimalType,
-  combineAnimalPurity,
+  combineFoodType,
+  combineFoodPurity,
   canReduce,
   canCombine,
-  getBirdMutationAnimalType
+  getDessertMutationFoodType
 } from "../game/rules";
 
 import {
@@ -34,29 +34,29 @@ import {
 //
 // 当前支持：
 //
-// 狗 / 猫 / 哺乳
+// 荤 / 素 / 调料
 // → 三槽收藏
 //
-// 鸟
+// 甜食
 // → 不进入收藏
 //
 // ------------------------------------------------------------
 //
-// 鸟系变种规则：
+// 甜食系变种规则：
 //
-// 普通动物 + 鸟
+// 普通食物 + 甜食
 // ↓
 // 约分
 //
-// 如果鸟这一侧结果 === 1：
+// 如果甜食这一侧结果 === 1：
 //
-// 狗
+// 荤
 // ↓
-// 猫
+// 素
 // ↓
-// 哺乳
+// 调料
 // ↓
-// 狗
+// 荤
 //
 // ------------------------------------------------------------
 //
@@ -275,9 +275,9 @@ function recordVisitedState(
 //
 // 开局：
 //
-// 第1个 → 狗
-// 第2个 → 猫
-// 第3个 → 哺乳
+// 第1个 → 荤
+// 第2个 → 素
+// 第3个 → 调料
 // ============================================================
 
 export function createSimulationState(
@@ -319,11 +319,11 @@ export function createSimulationState(
 
   const types = [
 
-    ANIMAL_TYPES.DOG,
+    FOOD_TYPES.MEAT,
 
-    ANIMAL_TYPES.CAT,
+    FOOD_TYPES.VEGETABLE,
 
-    ANIMAL_TYPES.MAMMAL
+    FOOD_TYPES.SEASONING
 
   ];
 
@@ -343,18 +343,18 @@ export function createSimulationState(
 
         value,
 
-        animalType:
+        foodType:
           types[
             index
           ],
 
         purity:
-          ANIMAL_PURITY.PURE,
+          FOOD_PURITY.PURE,
 
         parents:
           null,
 
-        parentAnimals:
+        parentFoods:
           null,
 
         previousValue:
@@ -383,9 +383,9 @@ export function createSimulationState(
     //
     // Set 内格式：
     //
-    // 17:dog
-    // 17:cat
-    // 17:mammal
+    // 17:meat
+    // 17:vegetable
+    // 17:seasoning
     // ========================================================
 
     collection:
@@ -396,10 +396,10 @@ export function createSimulationState(
 
 
     // ========================================================
-    // 首次获得新收藏槽的动物类型历史
+    // 首次获得新收藏槽的食物类型历史
     // ========================================================
 
-    collectionAnimalTypeHistory:
+    collectionFoodTypeHistory:
       [],
 
 
@@ -1012,9 +1012,9 @@ function applyCombine(
 
 
 
-  const animalType =
+  const foodType =
 
-    combineAnimalType(
+    combineFoodType(
 
       front,
 
@@ -1025,7 +1025,7 @@ function applyCombine(
 
 
   if(
-    !animalType
+    !foodType
   ){
 
 
@@ -1043,11 +1043,11 @@ function applyCombine(
 
     value,
 
-    animalType,
+    foodType,
 
     purity:
 
-      combineAnimalPurity(
+      combineFoodPurity(
 
         front,
 
@@ -1063,15 +1063,15 @@ function applyCombine(
 
     ],
 
-    parentAnimals: [
+    parentFoods: [
 
       {
 
         value:
           front.value,
 
-        animalType:
-          front.animalType,
+        foodType:
+          front.foodType,
 
         purity:
           front.purity
@@ -1084,8 +1084,8 @@ function applyCombine(
         value:
           back.value,
 
-        animalType:
-          back.animalType,
+        foodType:
+          back.foodType,
 
         purity:
           back.purity
@@ -1123,10 +1123,10 @@ function applyCombine(
 //
 // value 改变。
 //
-// animalType / purity
+// foodType / purity
 // 默认保持。
 //
-// parents / parentAnimals
+// parents / parentFoods
 // 清除。
 //
 // previousValue
@@ -1134,38 +1134,38 @@ function applyCombine(
 //
 //
 // ============================================================
-// 鸟系变种
+// 甜食系变种
 // ============================================================
 //
 // 如果：
 //
-// 鸟 + 普通动物
+// 甜食 + 普通食物
 //
 // 进行约分，
 //
-// 且鸟这一侧结果 === 1，
+// 且甜食这一侧结果 === 1，
 //
-// 则另一侧普通动物发生三角变种：
+// 则另一侧普通食物发生三角变种：
 //
-// 狗
+// 荤
 // ↓
-// 猫
+// 素
 // ↓
-// 哺乳
+// 调料
 // ↓
-// 狗
+// 荤
 //
 //
 // ------------------------------------------------------------
 //
 // 例：
 //
-// 狗14 + 鸟7
+// 荤14 + 甜食7
 // ÷7
 //
-// → 狗2 + 鸟1
+// → 荤2 + 甜食1
 //
-// → 猫2 + 鸟1
+// → 素2 + 甜食1
 //
 // ------------------------------------------------------------
 //
@@ -1174,7 +1174,7 @@ function applyCombine(
 // - 数字不改变
 // - purity 不改变
 // - 不检测灭绝
-// - 鸟 + 鸟 不触发
+// - 甜食 + 甜食 不触发
 // ============================================================
 
 function applyReduce(
@@ -1267,21 +1267,21 @@ function applyReduce(
   // 默认类型保持
   // ==========================================================
 
-  let firstAnimalType =
+  let firstFoodType =
 
-    first.animalType;
+    first.foodType;
 
 
-  let secondAnimalType =
+  let secondFoodType =
 
-    second.animalType;
+    second.foodType;
 
 
 
 
 
   // ==========================================================
-  // first 是鸟
+  // first 是甜食
   //
   // first → 1
   //
@@ -1289,8 +1289,8 @@ function applyReduce(
   // ==========================================================
 
   if(
-    first.animalType ===
-    ANIMAL_TYPES.BIRD
+    first.foodType ===
+    FOOD_TYPES.DESSERT
 
     &&
 
@@ -1301,8 +1301,8 @@ function applyReduce(
 
     const mutatedType =
 
-      getBirdMutationAnimalType(
-        second.animalType
+      getDessertMutationFoodType(
+        second.foodType
       );
 
 
@@ -1312,7 +1312,7 @@ function applyReduce(
     ){
 
 
-      secondAnimalType =
+      secondFoodType =
         mutatedType;
 
     }
@@ -1324,7 +1324,7 @@ function applyReduce(
 
 
   // ==========================================================
-  // second 是鸟
+  // second 是甜食
   //
   // second → 1
   //
@@ -1332,8 +1332,8 @@ function applyReduce(
   // ==========================================================
 
   if(
-    second.animalType ===
-    ANIMAL_TYPES.BIRD
+    second.foodType ===
+    FOOD_TYPES.DESSERT
 
     &&
 
@@ -1344,8 +1344,8 @@ function applyReduce(
 
     const mutatedType =
 
-      getBirdMutationAnimalType(
-        first.animalType
+      getDessertMutationFoodType(
+        first.foodType
       );
 
 
@@ -1355,7 +1355,7 @@ function applyReduce(
     ){
 
 
-      firstAnimalType =
+      firstFoodType =
         mutatedType;
 
     }
@@ -1374,15 +1374,15 @@ function applyReduce(
     firstResult;
 
 
-  first.animalType =
-    firstAnimalType;
+  first.foodType =
+    firstFoodType;
 
 
   first.parents =
     null;
 
 
-  first.parentAnimals =
+  first.parentFoods =
     null;
 
 
@@ -1401,15 +1401,15 @@ function applyReduce(
     secondResult;
 
 
-  second.animalType =
-    secondAnimalType;
+  second.foodType =
+    secondFoodType;
 
 
   second.parents =
     null;
 
 
-  second.parentAnimals =
+  second.parentFoods =
     null;
 
 
@@ -1443,7 +1443,7 @@ function applyReduce(
 //
 // → applyCollection
 //
-// 鸟1：
+// 甜食1：
 //
 // → applyCollection 会自动忽略
 //
@@ -1540,7 +1540,7 @@ function mazeTurnValue(
 // 应用迷宫回转
 //
 // 只改变 value。
-// animalType / purity 不改变。
+// foodType / purity 不改变。
 // ============================================================
 
 function applyMazeTurn(
@@ -1930,8 +1930,8 @@ function clonePiece(
     value:
       piece.value,
 
-    animalType:
-      piece.animalType,
+    foodType:
+      piece.foodType,
 
     purity:
       piece.purity,
@@ -1950,24 +1950,24 @@ function clonePiece(
 
           null,
 
-    parentAnimals:
+    parentFoods:
 
-      piece.parentAnimals
+      piece.parentFoods
 
         ?
 
-          piece.parentAnimals.map(
+          piece.parentFoods.map(
 
-            animal => ({
+            food => ({
 
               value:
-                animal.value,
+                food.value,
 
-              animalType:
-                animal.animalType,
+              foodType:
+                food.foodType,
 
               purity:
-                animal.purity
+                food.purity
 
             })
 
@@ -2020,11 +2020,11 @@ export function cloneSimulationState(
 
 
 
-    collectionAnimalTypeHistory:
+    collectionFoodTypeHistory:
 
       [
         ...(
-          state.collectionAnimalTypeHistory
+          state.collectionFoodTypeHistory
           ?? []
         )
       ],

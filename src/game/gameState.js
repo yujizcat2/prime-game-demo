@@ -3,8 +3,8 @@ import {
 } from "./config";
 
 import {
-  ANIMAL_TYPES,
-  ANIMAL_PURITY
+  FOOD_TYPES,
+  FOOD_PURITY
 } from "./rules";
 
 import {
@@ -24,31 +24,31 @@ import {
 //
 // 新版开局：
 //
-// 狗   猫   哺乳
+// 荤   素   调料
 // ·    ·    ·
 // ·    ·    ·
 //
-// 初始三个棋子均视为原生动物。
+// 初始三个棋子均视为原生食物。
 //
 // 因此：
 //
-// 狗   → pure
-// 猫   → pure
-// 哺乳 → pure
+// 荤   → pure
+// 素   → pure
+// 调料 → pure
 //
 // ------------------------------------------------------------
 //
-// collectionAnimalTypeHistory
+// collectionFoodTypeHistory
 //
-// 只记录“首次新收藏”的真实 animalType 顺序。
+// 只记录“首次新收藏”的真实 foodType 顺序。
 //
 // 例如：
 //
 // [
-//   "mammal",
-//   "dog",
-//   "cat",
-//   "dog"
+//   "seasoning",
+//   "meat",
+//   "vegetable",
+//   "meat"
 // ]
 //
 // 重复处理旧收藏时，不应追加。
@@ -91,13 +91,13 @@ export function createGameState(
 
 
 
-  const initialAnimalTypes = [
+  const initialFoodTypes = [
 
-    ANIMAL_TYPES.DOG,
+    FOOD_TYPES.MEAT,
 
-    ANIMAL_TYPES.CAT,
+    FOOD_TYPES.VEGETABLE,
 
-    ANIMAL_TYPES.MAMMAL
+    FOOD_TYPES.SEASONING
 
   ];
 
@@ -121,24 +121,24 @@ export function createGameState(
         value,
 
 
-        animalType:
+        foodType:
 
-          initialAnimalTypes[index]
+          initialFoodTypes[index]
 
           ??
 
-          ANIMAL_TYPES.DOG,
+          FOOD_TYPES.MEAT,
 
 
         purity:
-          ANIMAL_PURITY.PURE,
+          FOOD_PURITY.PURE,
 
 
         parents:
           null,
 
 
-        parentAnimals:
+        parentFoods:
           null,
 
 
@@ -179,17 +179,17 @@ export function createGameState(
 
 
     // ========================================================
-    // 首次收藏动物类型历史
+    // 首次收藏食物类型历史
     //
     // 注意：
     //
-    // 这里记录的是收藏发生时棋子的真实 animalType，
+    // 这里记录的是收藏发生时棋子的真实 foodType，
     // 不是根据数字推断类型。
     //
     // 只有“首次收藏”才会加入。
     // ========================================================
 
-    collectionAnimalTypeHistory:
+    collectionFoodTypeHistory:
       [],
 
 

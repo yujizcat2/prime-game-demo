@@ -1,5 +1,5 @@
 // ============================================================
-// 动物迷宫
+// 料理迷宫
 //
 // mazeHistory.js
 //
@@ -29,13 +29,13 @@
 //
 // board position
 // value
-// animalType
+// foodType
 // purity
 // parents
-// parentAnimals
+// parentFoods
 // 当前1的待收藏来源
 // collection
-// 最近6个首次收藏动物类型
+// 最近6个首次收藏食物类型
 //
 // ------------------------------------------------------------
 //
@@ -60,7 +60,7 @@
 
 
 // ============================================================
-// 收藏动物类型状态窗口
+// 收藏食物类型状态窗口
 //
 // 必须和 collectionRules.js 当前 V1 保持一致。
 //
@@ -71,7 +71,7 @@
 // 用于未来三系失衡判断。
 // ============================================================
 
-const COLLECTION_ANIMAL_TYPE_HISTORY_WINDOW =
+const COLLECTION_FOOD_TYPE_HISTORY_WINDOW =
   6;
 
 
@@ -158,14 +158,14 @@ function createCollectionSnapshot(
 
 
 // ============================================================
-// 创建收藏动物类型历史快照
+// 创建收藏食物类型历史快照
 //
 // 当前 V1 只关心：
 //
 // 最近6个首次新收藏类型。
 // ============================================================
 
-function createCollectionAnimalTypeHistorySnapshot(
+function createCollectionFoodTypeHistorySnapshot(
   history
 ){
 
@@ -184,7 +184,7 @@ function createCollectionAnimalTypeHistorySnapshot(
 
 
   return history.slice(
-    -COLLECTION_ANIMAL_TYPE_HISTORY_WINDOW
+    -COLLECTION_FOOD_TYPE_HISTORY_WINDOW
   );
 
 }
@@ -298,30 +298,30 @@ function createParentsSnapshot(
 
 
 // ============================================================
-// 标准化 parentAnimals
+// 标准化 parentFoods
 //
-// parentAnimals 会参与：
+// parentFoods 会参与：
 //
 // 不能与自己的真正父母再次组合
 // 已存在同父母孩子禁止再次生成
 //
-// 当前规则判断动物身份主要使用：
+// 当前规则判断食物身份主要使用：
 //
 // value
-// animalType
+// foodType
 //
 // purity 当前虽然不参与身份判断，
 // 但保留以便以后规则扩展。
 // ============================================================
 
-function createParentAnimalsSnapshot(
+function createParentFoodsSnapshot(
   piece
 ){
 
 
   if(
     !Array.isArray(
-      piece?.parentAnimals
+      piece?.parentFoods
     )
   ){
 
@@ -332,13 +332,13 @@ function createParentAnimalsSnapshot(
 
 
 
-  return piece.parentAnimals.map(
+  return piece.parentFoods.map(
 
-    animal => {
+    food => {
 
 
       if(
-        !animal
+        !food
       ){
 
 
@@ -351,15 +351,15 @@ function createParentAnimalsSnapshot(
       return {
 
         value:
-          animal.value
+          food.value
           ?? null,
 
-        animalType:
-          animal.animalType
+        foodType:
+          food.foodType
           ?? null,
 
         purity:
-          animal.purity
+          food.purity
           ?? null
 
       };
@@ -414,8 +414,8 @@ export function createMazePieceSnapshot(
       piece.value,
 
 
-    animalType:
-      piece.animalType
+    foodType:
+      piece.foodType
       ?? null,
 
 
@@ -431,9 +431,9 @@ export function createMazePieceSnapshot(
       ),
 
 
-    parentAnimals:
+    parentFoods:
 
-      createParentAnimalsSnapshot(
+      createParentFoodsSnapshot(
         piece
       ),
 
@@ -524,11 +524,11 @@ export function createMazeRuleState(
       ),
 
 
-    collectionAnimalTypeHistory:
+    collectionFoodTypeHistory:
 
-      createCollectionAnimalTypeHistorySnapshot(
+      createCollectionFoodTypeHistorySnapshot(
 
-        state?.collectionAnimalTypeHistory
+        state?.collectionFoodTypeHistory
 
       )
 

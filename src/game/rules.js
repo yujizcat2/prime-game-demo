@@ -5,32 +5,32 @@ import {
 
 
 // ============================================================
-// 动物类型
+// 食物类型
 //
-// dog     = 狗系
-// cat     = 猫系
-// mammal  = 哺乳系
-// bird    = 鸟系
+// meat     = 荤系
+// vegetable     = 素系
+// seasoning  = 调料系
+// dessert    = 甜食系
 //
-// 狗 / 猫 / 哺乳
+// 荤 / 素 / 调料
 // 三种全部存在于主棋盘。
 //
-// bird 为特殊类型。
+// dessert 为特殊类型。
 // ============================================================
 
-export const ANIMAL_TYPES = {
+export const FOOD_TYPES = {
 
-  DOG:
-    "dog",
+  MEAT:
+    "meat",
 
-  CAT:
-    "cat",
+  VEGETABLE:
+    "vegetable",
 
-  MAMMAL:
-    "mammal",
+  SEASONING:
+    "seasoning",
 
-  BIRD:
-    "bird"
+  DESSERT:
+    "dessert"
 
 };
 
@@ -51,7 +51,7 @@ export const ANIMAL_TYPES = {
 // 不追踪更早祖先。
 // ============================================================
 
-export const ANIMAL_PURITY = {
+export const FOOD_PURITY = {
 
   PURE:
     "pure",
@@ -157,28 +157,28 @@ export function combineValue(
 //
 // 普通三系：
 //
-// 狗
-// 猫
-// 哺乳
+// 荤
+// 素
+// 调料
 //
-// 鸟不属于普通三系。
+// 甜食不属于普通三系。
 // ============================================================
 
-export function isNormalAnimalType(
-  animalType
+export function isNormalFoodType(
+  foodType
 ) {
 
 
   return [
 
-    ANIMAL_TYPES.DOG,
+    FOOD_TYPES.MEAT,
 
-    ANIMAL_TYPES.CAT,
+    FOOD_TYPES.VEGETABLE,
 
-    ANIMAL_TYPES.MAMMAL
+    FOOD_TYPES.SEASONING
 
   ].includes(
-    animalType
+    foodType
   );
 
 }
@@ -188,84 +188,84 @@ export function isNormalAnimalType(
 
 
 // ============================================================
-// 鸟系变种三循环
+// 甜食系变种三循环
 //
-// 当普通动物与鸟参与约分，
-// 并且鸟这一侧约分后的结果 === 1 时，
+// 当普通食物与甜食参与约分，
+// 并且甜食这一侧约分后的结果 === 1 时，
 //
-// 与鸟一起约分的普通动物发生一次变种：
+// 与甜食一起约分的普通食物发生一次变种：
 //
-// 狗
+// 荤
 // ↓
-// 猫
+// 素
 // ↓
-// 哺乳
+// 调料
 // ↓
-// 狗
+// 荤
 //
 // ------------------------------------------------------------
 //
 // 注意：
 //
-// 1. 这里只负责计算“变种后的 animalType”。
-// 2. 不负责判断鸟是否约成1。
+// 1. 这里只负责计算“变种后的 foodType”。
+// 2. 不负责判断甜食是否约成1。
 // 3. 不负责修改棋盘。
 // 4. 不检测任何物种是否灭绝。
-// 5. 鸟本身不能进入这个循环。
+// 5. 甜食本身不能进入这个循环。
 // 6. 当前 V1 不在这里处理 purity。
 // ============================================================
 
-export function getBirdMutationAnimalType(
-  animalType
+export function getDessertMutationFoodType(
+  foodType
 ) {
 
 
   switch(
-    animalType
+    foodType
   ){
 
 
     // ========================================================
-    // 狗 → 猫
+    // 荤 → 素
     // ========================================================
 
-    case ANIMAL_TYPES.DOG:
+    case FOOD_TYPES.MEAT:
 
 
-      return ANIMAL_TYPES.CAT;
-
-
-
-
-
-    // ========================================================
-    // 猫 → 哺乳
-    // ========================================================
-
-    case ANIMAL_TYPES.CAT:
-
-
-      return ANIMAL_TYPES.MAMMAL;
+      return FOOD_TYPES.VEGETABLE;
 
 
 
 
 
     // ========================================================
-    // 哺乳 → 狗
+    // 素 → 调料
     // ========================================================
 
-    case ANIMAL_TYPES.MAMMAL:
+    case FOOD_TYPES.VEGETABLE:
 
 
-      return ANIMAL_TYPES.DOG;
+      return FOOD_TYPES.SEASONING;
 
 
 
 
 
     // ========================================================
-    // 鸟 / 未知类型
+    // 调料 → 荤
+    // ========================================================
+
+    case FOOD_TYPES.SEASONING:
+
+
+      return FOOD_TYPES.MEAT;
+
+
+
+
+
+    // ========================================================
+    // 甜食 / 未知类型
     //
     // 不参与普通三系变种。
     // ========================================================
@@ -284,23 +284,23 @@ export function getBirdMutationAnimalType(
 
 
 // ============================================================
-// 判断组合后的动物类型
+// 判断组合后的食物类型
 //
 // ============================================================
-// 第一层：鸟系规则
+// 第一层：甜食系规则
 // ============================================================
 //
-// 鸟 + 狗
-// → 狗
+// 甜食 + 荤
+// → 荤
 //
-// 鸟 + 猫
-// → 猫
+// 甜食 + 素
+// → 素
 //
-// 鸟 + 哺乳
-// → 哺乳
+// 甜食 + 调料
+// → 调料
 //
-// 鸟 + 鸟
-// → 鸟
+// 甜食 + 甜食
+// → 甜食
 //
 //
 // ============================================================
@@ -309,11 +309,11 @@ export function getBirdMutationAnimalType(
 //
 // 双方都属于：
 //
-// 狗 / 猫 / 哺乳
+// 荤 / 素 / 调料
 //
 // 且原始相加值 > 101：
 //
-// → 鸟
+// → 甜食
 //
 //
 // ============================================================
@@ -322,29 +322,29 @@ export function getBirdMutationAnimalType(
 //
 // 同类：
 //
-// 狗 + 狗
-// → 狗
+// 荤 + 荤
+// → 荤
 //
-// 猫 + 猫
-// → 猫
+// 素 + 素
+// → 素
 //
-// 哺乳 + 哺乳
-// → 哺乳
+// 调料 + 调料
+// → 调料
 //
 //
 // 异类：
 //
-// 狗 + 猫
-// → 哺乳
+// 荤 + 素
+// → 调料
 //
-// 猫 + 哺乳
-// → 狗
+// 素 + 调料
+// → 荤
 //
-// 哺乳 + 狗
-// → 猫
+// 调料 + 荤
+// → 素
 // ============================================================
 
-export function combineAnimalType(
+export function combineFoodType(
   front,
   back
 ) {
@@ -362,11 +362,11 @@ export function combineAnimalType(
 
 
   const frontType =
-    front.animalType;
+    front.foodType;
 
 
   const backType =
-    back.animalType;
+    back.foodType;
 
 
 
@@ -382,30 +382,30 @@ export function combineAnimalType(
 
 
   // ==========================================================
-  // 1. 鸟 + 鸟
+  // 1. 甜食 + 甜食
   // ==========================================================
 
   if(
-    frontType === ANIMAL_TYPES.BIRD &&
-    backType === ANIMAL_TYPES.BIRD
+    frontType === FOOD_TYPES.DESSERT &&
+    backType === FOOD_TYPES.DESSERT
   ){
 
 
-    return ANIMAL_TYPES.BIRD;
+    return FOOD_TYPES.DESSERT;
 
   }
 
 
 
   // ==========================================================
-  // 2. 鸟 + 普通
+  // 2. 甜食 + 普通
   //
   // 结果继承普通类型。
   // ==========================================================
 
   if(
-    frontType === ANIMAL_TYPES.BIRD &&
-    isNormalAnimalType(
+    frontType === FOOD_TYPES.DESSERT &&
+    isNormalFoodType(
       backType
     )
   ){
@@ -418,8 +418,8 @@ export function combineAnimalType(
 
 
   if(
-    backType === ANIMAL_TYPES.BIRD &&
-    isNormalAnimalType(
+    backType === FOOD_TYPES.DESSERT &&
+    isNormalFoodType(
       frontType
     )
   ){
@@ -437,13 +437,13 @@ export function combineAnimalType(
 
   const bothNormal =
 
-    isNormalAnimalType(
+    isNormalFoodType(
       frontType
     )
 
     &&
 
-    isNormalAnimalType(
+    isNormalFoodType(
       backType
     );
 
@@ -463,7 +463,7 @@ export function combineAnimalType(
   // ==========================================================
   // 4. 普通 + 普通跨101
   //
-  // → 鸟
+  // → 甜食
   // ==========================================================
 
   const crossed101 =
@@ -483,7 +483,7 @@ export function combineAnimalType(
   ){
 
 
-    return ANIMAL_TYPES.BIRD;
+    return FOOD_TYPES.DESSERT;
 
   }
 
@@ -505,75 +505,75 @@ export function combineAnimalType(
 
 
   // ==========================================================
-  // 6. 狗 + 猫
+  // 6. 荤 + 素
   //
-  // → 哺乳
+  // → 调料
   // ==========================================================
 
   if(
     (
-      frontType === ANIMAL_TYPES.DOG &&
-      backType === ANIMAL_TYPES.CAT
+      frontType === FOOD_TYPES.MEAT &&
+      backType === FOOD_TYPES.VEGETABLE
     )
     ||
     (
-      frontType === ANIMAL_TYPES.CAT &&
-      backType === ANIMAL_TYPES.DOG
+      frontType === FOOD_TYPES.VEGETABLE &&
+      backType === FOOD_TYPES.MEAT
     )
   ){
 
 
-    return ANIMAL_TYPES.MAMMAL;
+    return FOOD_TYPES.SEASONING;
 
   }
 
 
 
   // ==========================================================
-  // 7. 猫 + 哺乳
+  // 7. 素 + 调料
   //
-  // → 狗
+  // → 荤
   // ==========================================================
 
   if(
     (
-      frontType === ANIMAL_TYPES.CAT &&
-      backType === ANIMAL_TYPES.MAMMAL
+      frontType === FOOD_TYPES.VEGETABLE &&
+      backType === FOOD_TYPES.SEASONING
     )
     ||
     (
-      frontType === ANIMAL_TYPES.MAMMAL &&
-      backType === ANIMAL_TYPES.CAT
+      frontType === FOOD_TYPES.SEASONING &&
+      backType === FOOD_TYPES.VEGETABLE
     )
   ){
 
 
-    return ANIMAL_TYPES.DOG;
+    return FOOD_TYPES.MEAT;
 
   }
 
 
 
   // ==========================================================
-  // 8. 哺乳 + 狗
+  // 8. 调料 + 荤
   //
-  // → 猫
+  // → 素
   // ==========================================================
 
   if(
     (
-      frontType === ANIMAL_TYPES.MAMMAL &&
-      backType === ANIMAL_TYPES.DOG
+      frontType === FOOD_TYPES.SEASONING &&
+      backType === FOOD_TYPES.MEAT
     )
     ||
     (
-      frontType === ANIMAL_TYPES.DOG &&
-      backType === ANIMAL_TYPES.MAMMAL
+      frontType === FOOD_TYPES.MEAT &&
+      backType === FOOD_TYPES.SEASONING
     )
   ){
 
 
-    return ANIMAL_TYPES.CAT;
+    return FOOD_TYPES.VEGETABLE;
 
   }
 
@@ -600,14 +600,14 @@ export function combineAnimalType(
 // 普通异类生成第三类
 // → mixed
 //
-// 最终是鸟系
+// 最终是甜食系
 // → null
 //
-// 鸟 + 普通
+// 甜食 + 普通
 // → mixed
 // ============================================================
 
-export function combineAnimalPurity(
+export function combineFoodPurity(
   front,
   back
 ) {
@@ -625,11 +625,11 @@ export function combineAnimalPurity(
 
 
   const frontType =
-    front.animalType;
+    front.foodType;
 
 
   const backType =
-    back.animalType;
+    back.foodType;
 
 
 
@@ -646,7 +646,7 @@ export function combineAnimalPurity(
 
   const resultType =
 
-    combineAnimalType(
+    combineFoodType(
 
       front,
 
@@ -667,11 +667,11 @@ export function combineAnimalPurity(
 
 
   // ==========================================================
-  // 鸟系当前不参与纯度
+  // 甜食系当前不参与纯度
   // ==========================================================
 
   if(
-    resultType === ANIMAL_TYPES.BIRD
+    resultType === FOOD_TYPES.DESSERT
   ){
 
 
@@ -688,11 +688,11 @@ export function combineAnimalPurity(
   // ==========================================================
 
   if(
-    isNormalAnimalType(
+    isNormalFoodType(
       frontType
     )
     &&
-    isNormalAnimalType(
+    isNormalFoodType(
       backType
     )
     &&
@@ -702,7 +702,7 @@ export function combineAnimalPurity(
   ){
 
 
-    return ANIMAL_PURITY.PURE;
+    return FOOD_PURITY.PURE;
 
   }
 
@@ -715,13 +715,13 @@ export function combineAnimalPurity(
   // ==========================================================
 
   if(
-    isNormalAnimalType(
+    isNormalFoodType(
       resultType
     )
   ){
 
 
-    return ANIMAL_PURITY.MIXED;
+    return FOOD_PURITY.MIXED;
 
   }
 
@@ -736,35 +736,35 @@ export function combineAnimalPurity(
 
 
 // ============================================================
-// 判断两个棋子是否拥有相同“动物身份”
+// 判断两个棋子是否拥有相同“食物身份”
 //
 // 当前身份由：
 //
-// value + animalType
+// value + foodType
 //
 // 两部分共同决定。
 //
 //
 // 例如：
 //
-// 狗2 ≠ 猫2
+// 荤2 ≠ 素2
 //
-// 狗2 = 狗2
+// 荤2 = 荤2
 //
 //
 // 当前暂时不比较 purity。
 //
 // 所以：
 //
-// 纯狗2
-// 半纯狗2
+// 纯荤2
+// 半纯荤2
 //
 // 在组合限制中仍视为同一种：
 //
-// 狗2
+// 荤2
 // ============================================================
 
-export function isSameAnimalIdentity(
+export function isSameFoodIdentity(
   a,
   b
 ) {
@@ -787,7 +787,7 @@ export function isSameAnimalIdentity(
 
     &&
 
-    a.animalType === b.animalType
+    a.foodType === b.foodType
 
   );
 
@@ -805,12 +805,12 @@ export function isSameAnimalIdentity(
 //
 // value 相同
 // +
-// animalType 相同
+// foodType 相同
 //
 // 才视为真正的父母。
 // ============================================================
 
-export function hasParentAnimal(
+export function hasParentFood(
   child,
   candidate
 ) {
@@ -830,21 +830,21 @@ export function hasParentAnimal(
   // ==========================================================
   // 新版数据：
   //
-  // parentAnimals 保存完整动物身份。
+  // parentFoods 保存完整食物身份。
   // ==========================================================
 
   if(
     Array.isArray(
-      child.parentAnimals
+      child.parentFoods
     )
   ){
 
 
-    return child.parentAnimals.some(
+    return child.parentFoods.some(
 
       parent =>
 
-        isSameAnimalIdentity(
+        isSameFoodIdentity(
 
           parent,
 
@@ -888,11 +888,11 @@ export function hasParentAnimal(
 // ============================================================
 // 判断是否已经存在同父母孩子
 //
-// 新规则比较完整动物身份：
+// 新规则比较完整食物身份：
 //
-// 狗2 + 猫3
+// 荤2 + 素3
 //
-// value + animalType
+// value + foodType
 //
 // 顺序无关。
 // ============================================================
@@ -924,23 +924,23 @@ export function hasSameParents(
 
 
       // ======================================================
-      // 新版读取 parentAnimals
+      // 新版读取 parentFoods
       // ======================================================
 
       if(
         Array.isArray(
-          item.parentAnimals
+          item.parentFoods
         ) &&
-        item.parentAnimals.length >= 2
+        item.parentFoods.length >= 2
       ){
 
 
         const p1 =
-          item.parentAnimals[0];
+          item.parentFoods[0];
 
 
         const p2 =
-          item.parentAnimals[1];
+          item.parentFoods[1];
 
 
 
@@ -957,14 +957,14 @@ export function hasSameParents(
 
         const sameForward =
 
-          isSameAnimalIdentity(
+          isSameFoodIdentity(
             p1,
             a
           )
 
           &&
 
-          isSameAnimalIdentity(
+          isSameFoodIdentity(
             p2,
             b
           );
@@ -973,14 +973,14 @@ export function hasSameParents(
 
         const sameBackward =
 
-          isSameAnimalIdentity(
+          isSameFoodIdentity(
             p1,
             b
           )
 
           &&
 
-          isSameAnimalIdentity(
+          isSameFoodIdentity(
             p2,
             a
           );
@@ -1078,12 +1078,12 @@ export function canCombineRelation(
   // ==========================================================
   // 不能和自己的真正父母再次组合
   //
-  // value + animalType
+  // value + foodType
   // 必须全部一样才算父母。
   // ==========================================================
 
   if(
-    hasParentAnimal(
+    hasParentFood(
       a,
       b
     )
@@ -1097,7 +1097,7 @@ export function canCombineRelation(
 
 
   if(
-    hasParentAnimal(
+    hasParentFood(
       b,
       a
     )

@@ -2,9 +2,9 @@ import "./Discovery.css";
 
 
 const COLLECTION_TYPES = [
-  "dog",
-  "cat",
-  "mammal"
+  "meat",
+  "vegetable",
+  "seasoning"
 ];
 
 
@@ -49,13 +49,13 @@ export default function Discovery({
 
 
       for(
-        const animalType
+        const foodType
         of COLLECTION_TYPES
       ){
 
 
         const path =
-          slots[animalType];
+          slots[foodType];
 
 
         if(

@@ -7,14 +7,14 @@ import {
 } from "../game/scoreConfig";
 
 import {
-  ANIMAL_TYPES,
-  getBirdMutationAnimalType,
-  isNormalAnimalType
+  FOOD_TYPES,
+  getDessertMutationFoodType,
+  isNormalFoodType
 } from "../game/rules";
 
 import {
-  getAnimalName
-} from "../data/animal/animalRegistry";
+  getFoodName
+} from "../data/food/foodRegistry";
 
 import BoardCell from "./BoardCell";
 
@@ -232,7 +232,7 @@ export default function Board({
   //     triggered: true,
   //
   //     role:
-  //       "target" | "bird",
+  //       "target" | "dessert",
   //
   //     fromType,
   //     toType,
@@ -333,15 +333,15 @@ export default function Board({
         // ======================================================
         // 情况 A
         //
-        // first = 鸟
+        // first = 甜食
         // firstResult = 1
         //
         // second 发生变种
         // ======================================================
 
         if(
-          firstPiece.animalType ===
-          ANIMAL_TYPES.BIRD
+          firstPiece.foodType ===
+          FOOD_TYPES.DESSERT
 
           &&
 
@@ -350,16 +350,16 @@ export default function Board({
 
           &&
 
-          isNormalAnimalType(
-            secondPiece.animalType
+          isNormalFoodType(
+            secondPiece.foodType
           )
         ){
 
 
           const mutatedType =
 
-            getBirdMutationAnimalType(
-              secondPiece.animalType
+            getDessertMutationFoodType(
+              secondPiece.foodType
             );
 
 
@@ -377,13 +377,13 @@ export default function Board({
                 true,
 
               role:
-                "bird",
+                "dessert",
 
               fromType:
-                ANIMAL_TYPES.BIRD,
+                FOOD_TYPES.DESSERT,
 
               toType:
-                ANIMAL_TYPES.BIRD,
+                FOOD_TYPES.DESSERT,
 
               resultValue:
                 firstResult
@@ -403,7 +403,7 @@ export default function Board({
                 "target",
 
               fromType:
-                secondPiece.animalType,
+                secondPiece.foodType,
 
               toType:
                 mutatedType,
@@ -424,15 +424,15 @@ export default function Board({
         // ======================================================
         // 情况 B
         //
-        // second = 鸟
+        // second = 甜食
         // secondResult = 1
         //
         // first 发生变种
         // ======================================================
 
         else if(
-          secondPiece.animalType ===
-          ANIMAL_TYPES.BIRD
+          secondPiece.foodType ===
+          FOOD_TYPES.DESSERT
 
           &&
 
@@ -441,16 +441,16 @@ export default function Board({
 
           &&
 
-          isNormalAnimalType(
-            firstPiece.animalType
+          isNormalFoodType(
+            firstPiece.foodType
           )
         ){
 
 
           const mutatedType =
 
-            getBirdMutationAnimalType(
-              firstPiece.animalType
+            getDessertMutationFoodType(
+              firstPiece.foodType
             );
 
 
@@ -468,13 +468,13 @@ export default function Board({
                 true,
 
               role:
-                "bird",
+                "dessert",
 
               fromType:
-                ANIMAL_TYPES.BIRD,
+                FOOD_TYPES.DESSERT,
 
               toType:
-                ANIMAL_TYPES.BIRD,
+                FOOD_TYPES.DESSERT,
 
               resultValue:
                 secondResult
@@ -494,7 +494,7 @@ export default function Board({
                 "target",
 
               fromType:
-                firstPiece.animalType,
+                firstPiece.foodType,
 
               toType:
                 mutatedType,
@@ -550,11 +550,11 @@ export default function Board({
 
     combinePreview
 
-      ? getAnimalName(
+      ? getFoodName(
 
           combinePreview.value,
 
-          combinePreview.animalType
+          combinePreview.foodType
 
         )
 
@@ -565,32 +565,32 @@ export default function Board({
 
 
   // ==========================================================
-  // Preview 动物类型 CSS
+  // Preview 食物类型 CSS
   // ==========================================================
 
   const combinePreviewTypeClass =
 
-    combinePreview?.animalType === "dog"
+    combinePreview?.foodType === "meat"
 
-      ? "board-preview--dog"
-
-      :
-
-    combinePreview?.animalType === "cat"
-
-      ? "board-preview--cat"
+      ? "board-preview--meat"
 
       :
 
-    combinePreview?.animalType === "mammal"
+    combinePreview?.foodType === "vegetable"
 
-      ? "board-preview--mammal"
+      ? "board-preview--vegetable"
 
       :
 
-    combinePreview?.animalType === "bird"
+    combinePreview?.foodType === "seasoning"
 
-      ? "board-preview--bird"
+      ? "board-preview--seasoning"
+
+      :
+
+    combinePreview?.foodType === "dessert"
+
+      ? "board-preview--dessert"
 
       :
 
@@ -611,11 +611,11 @@ export default function Board({
     &&
 
     (
-      combinePreview?.animalType === "dog"
+      combinePreview?.foodType === "meat"
       ||
-      combinePreview?.animalType === "cat"
+      combinePreview?.foodType === "vegetable"
       ||
-      combinePreview?.animalType === "mammal"
+      combinePreview?.foodType === "seasoning"
     );
 
 
@@ -743,7 +743,7 @@ export default function Board({
 
 
             // ==================================================
-            // 新动物组合 Preview
+            // 新食物组合 Preview
             // ==================================================
 
             if(
@@ -923,7 +923,7 @@ export default function Board({
 
 
             // ==================================================
-            // 鸟变种 Preview
+            // 甜食变种 Preview
             // ==================================================
 
             const mutationPreview =

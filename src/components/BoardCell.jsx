@@ -3,9 +3,9 @@ import {
 } from "../game/prime";
 
 import {
-  getAnimalTypeShortName,
-  getAnimalName
-} from "../data/animal/animalRegistry";
+  getFoodTypeShortName,
+  getFoodName
+} from "../data/food/foodRegistry";
 
 import "./Board.css";
 
@@ -100,25 +100,25 @@ export default function BoardCell({
     piece.value;
 
 
-  const animalType =
-    piece.animalType
+  const foodType =
+    piece.foodType
     ?? null;
 
 
-  const isDog =
-    animalType === "dog";
+  const isMeat =
+    foodType === "meat";
 
 
-  const isCat =
-    animalType === "cat";
+  const isVegetable =
+    foodType === "vegetable";
 
 
-  const isMammal =
-    animalType === "mammal";
+  const isSeasoning =
+    foodType === "seasoning";
 
 
-  const isBird =
-    animalType === "bird";
+  const isDessert =
+    foodType === "dessert";
 
 
   const isOne =
@@ -139,7 +139,7 @@ export default function BoardCell({
 
 
   // ==========================================================
-  // 鸟变种 Preview
+  // 甜食变种 Preview
   // ==========================================================
 
   const mutationTriggered =
@@ -170,14 +170,14 @@ export default function BoardCell({
 
 
 
-  const isMutationBird =
+  const isMutationDessert =
 
     mutationTriggered
 
     &&
 
     mutationRole ===
-    "bird";
+    "dessert";
 
 
 
@@ -213,7 +213,7 @@ export default function BoardCell({
 
       ?
 
-        getAnimalTypeShortName(
+        getFoodTypeShortName(
           mutationFromType
         )
 
@@ -229,7 +229,7 @@ export default function BoardCell({
 
       ?
 
-        getAnimalTypeShortName(
+        getFoodTypeShortName(
           mutationToType
         )
 
@@ -246,11 +246,11 @@ export default function BoardCell({
   //
   // 例：
   //
-  // 当前狗：
-  // board-piece--dog
+  // 当前荤：
+  // board-piece--meat
   //
-  // 即将变猫：
-  // board-piece--mutation-to-cat
+  // 即将变素：
+  // board-piece--mutation-to-vegetable
   //
   // CSS 会强制目标颜色覆盖当前颜色。
   // ==========================================================
@@ -261,21 +261,21 @@ export default function BoardCell({
 
       ?
 
-        mutationToType === "dog"
+        mutationToType === "meat"
 
-          ? "board-piece--mutation-to-dog"
-
-          :
-
-        mutationToType === "cat"
-
-          ? "board-piece--mutation-to-cat"
+          ? "board-piece--mutation-to-meat"
 
           :
 
-        mutationToType === "mammal"
+        mutationToType === "vegetable"
 
-          ? "board-piece--mutation-to-mammal"
+          ? "board-piece--mutation-to-vegetable"
+
+          :
+
+        mutationToType === "seasoning"
+
+          ? "board-piece--mutation-to-seasoning"
 
           :
 
@@ -300,9 +300,9 @@ export default function BoardCell({
     &&
 
     (
-      isDog ||
-      isCat ||
-      isMammal
+      isMeat ||
+      isVegetable ||
+      isSeasoning
     )
 
     &&
@@ -314,20 +314,20 @@ export default function BoardCell({
 
 
   // ==========================================================
-  // 当前动物名称
+  // 当前食物名称
   // ==========================================================
 
-  const animalName =
+  const foodName =
 
     isOne
 
       ? "水"
 
-      : getAnimalName(
+      : getFoodName(
 
           value,
 
-          animalType
+          foodType
 
         );
 
@@ -336,10 +336,10 @@ export default function BoardCell({
 
 
   // ==========================================================
-  // 约分后的真实 animalType
+  // 约分后的真实 foodType
   // ==========================================================
 
-  const reduceResultAnimalType =
+  const reduceResultFoodType =
 
     isMutationTarget
 
@@ -349,28 +349,28 @@ export default function BoardCell({
 
       :
 
-        animalType;
+        foodType;
 
 
 
 
 
   // ==========================================================
-  // 约分后的动物名称
+  // 约分后的食物名称
   // ==========================================================
 
-  const reduceAnimalName =
+  const reduceFoodName =
 
     reducing &&
     reducePreview !== 1
 
       ?
 
-        getAnimalName(
+        getFoodName(
 
           reducePreview,
 
-          reduceResultAnimalType
+          reduceResultFoodType
 
         )
 
@@ -386,20 +386,20 @@ export default function BoardCell({
   // 组合来源
   // ==========================================================
 
-  const parentAnimalNames =
+  const parentFoodNames =
 
     Array.isArray(
-      piece.parentAnimals
+      piece.parentFoods
     )
 
     &&
 
-    piece.parentAnimals.length >=
+    piece.parentFoods.length >=
     2
 
       ?
 
-        piece.parentAnimals.map(
+        piece.parentFoods.map(
 
           parent => {
 
@@ -415,11 +415,11 @@ export default function BoardCell({
 
 
 
-            return getAnimalName(
+            return getFoodName(
 
               parent.value,
 
-              parent.animalType
+              parent.foodType
 
             );
 
@@ -464,13 +464,13 @@ export default function BoardCell({
 
 
 
-  const reducePreviousAnimalType =
+  const reducePreviousFoodType =
 
-    reducePreviousRecord?.animalType
+    reducePreviousRecord?.foodType
 
     ??
 
-    animalType
+    foodType
 
     ??
 
@@ -478,18 +478,18 @@ export default function BoardCell({
 
 
 
-  const reducePreviousAnimalName =
+  const reducePreviousFoodName =
 
     reducePreviousValue !==
     null
 
       ?
 
-        getAnimalName(
+        getFoodName(
 
           reducePreviousValue,
 
-          reducePreviousAnimalType
+          reducePreviousFoodType
 
         )
 
@@ -531,13 +531,13 @@ export default function BoardCell({
 
 
 
-  const onePreviousAnimalType =
+  const onePreviousFoodType =
 
-    onePreviousRecord?.animalType
+    onePreviousRecord?.foodType
 
     ??
 
-    animalType
+    foodType
 
     ??
 
@@ -545,18 +545,18 @@ export default function BoardCell({
 
 
 
-  const onePreviousAnimalName =
+  const onePreviousFoodName =
 
     onePreviousValue !==
     null
 
       ?
 
-        getAnimalName(
+        getFoodName(
 
           onePreviousValue,
 
-          onePreviousAnimalType
+          onePreviousFoodType
 
         )
 
@@ -578,21 +578,21 @@ export default function BoardCell({
 
       ? "board-piece--one"
 
-      : isDog
+      : isMeat
 
-      ? "board-piece--dog"
+      ? "board-piece--meat"
 
-      : isCat
+      : isVegetable
 
-      ? "board-piece--cat"
+      ? "board-piece--vegetable"
 
-      : isMammal
+      : isSeasoning
 
-      ? "board-piece--mammal"
+      ? "board-piece--seasoning"
 
-      : isBird
+      : isDessert
 
-      ? "board-piece--bird"
+      ? "board-piece--dessert"
 
       : "board-piece--default";
 
@@ -647,8 +647,8 @@ export default function BoardCell({
         }
 
         ${
-          isMutationBird
-            ? "board-cell--mutation-bird"
+          isMutationDessert
+            ? "board-cell--mutation-dessert"
             : ""
         }
       `}
@@ -802,10 +802,10 @@ export default function BoardCell({
             }
 
             ${
-              isMutationBird &&
+              isMutationDessert &&
               !removing
 
-                ? "board-piece--mutation-bird"
+                ? "board-piece--mutation-dessert"
 
                 : ""
             }
@@ -918,16 +918,16 @@ export default function BoardCell({
 
           {
 
-            isMutationBird &&
+            isMutationDessert &&
             !removing &&
 
             <div
               className="
-                board-piece-bird-trigger
+                board-piece-dessert-trigger
               "
             >
 
-              鸟归1
+              甜食归1
 
             </div>
 
@@ -1001,7 +1001,7 @@ export default function BoardCell({
 
             >
 
-              {animalName}
+              {foodName}
 
             </span>
 
@@ -1036,7 +1036,7 @@ export default function BoardCell({
 
                     ? "水"
 
-                    : reduceAnimalName
+                    : reduceFoodName
                 }
 
               </span>
@@ -1065,7 +1065,7 @@ export default function BoardCell({
           {
 
             !isOne &&
-            !parentAnimalNames &&
+            !parentFoodNames &&
             !reducePreviousRecord &&
 
             <div
@@ -1089,9 +1089,9 @@ export default function BoardCell({
           {
 
             !isOne &&
-            parentAnimalNames &&
-            parentAnimalNames[0] &&
-            parentAnimalNames[1] &&
+            parentFoodNames &&
+            parentFoodNames[0] &&
+            parentFoodNames[1] &&
 
             <div
               className="
@@ -1101,7 +1101,7 @@ export default function BoardCell({
 
 
               <span>
-                {parentAnimalNames[0]}
+                {parentFoodNames[0]}
               </span>
 
 
@@ -1115,7 +1115,7 @@ export default function BoardCell({
 
 
               <span>
-                {parentAnimalNames[1]}
+                {parentFoodNames[1]}
               </span>
 
 
@@ -1131,7 +1131,7 @@ export default function BoardCell({
 
             !isOne &&
             reducePreviousRecord &&
-            reducePreviousAnimalName &&
+            reducePreviousFoodName &&
 
             <div
               className="
@@ -1140,7 +1140,7 @@ export default function BoardCell({
             >
 
               <span>
-                {reducePreviousAnimalName}
+                {reducePreviousFoodName}
               </span>
 
             </div>
@@ -1167,7 +1167,7 @@ export default function BoardCell({
               <span>
 
                 {
-                  onePreviousAnimalName
+                  onePreviousFoodName
                   ?? "来源"
                 }
 

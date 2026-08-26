@@ -73,10 +73,10 @@ export function getMazeTurnValue(
 //
 // 不改变：
 //
-// animalType
+// foodType
 // purity
 // parents
-// parentAnimals
+// parentFoods
 // origin
 // id
 //

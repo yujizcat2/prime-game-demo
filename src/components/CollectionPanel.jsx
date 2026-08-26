@@ -3,8 +3,8 @@ import {
 } from "react";
 
 import {
-  getAnimalTypeShortName
-} from "../data/animal/animalRegistry";
+  getFoodTypeShortName
+} from "../data/food/foodRegistry";
 
 
 
@@ -14,26 +14,26 @@ const COLLECTION_TYPES = [
 
   {
     key:
-      "dog",
+      "meat",
 
     label:
-      "狗"
+      "荤"
   },
 
   {
     key:
-      "cat",
+      "vegetable",
 
     label:
-      "猫"
+      "素"
   },
 
   {
     key:
-      "mammal",
+      "seasoning",
 
     label:
-      "哺乳"
+      "调料"
   }
 
 ];
@@ -76,16 +76,16 @@ export default function CollectionPanel({
   // ==========================================================
   // 当前展开的收藏槽
   //
-  // dog
-  // cat
-  // mammal
+  // meat
+  // vegetable
+  // seasoning
   // ==========================================================
 
   const [
 
-    selectedAnimalType,
+    selectedFoodType,
 
-    setSelectedAnimalType
+    setSelectedFoodType
 
   ] = useState(
     null
@@ -153,12 +153,12 @@ export default function CollectionPanel({
 
   const selectedPath =
 
-    selectedAnimalType !== null
+    selectedFoodType !== null
 
       ?
 
         selectedSlots[
-          selectedAnimalType
+          selectedFoodType
         ]
 
         ??
@@ -179,12 +179,12 @@ export default function CollectionPanel({
 
   const selectedParents =
 
-    selectedAnimalType !== null
+    selectedFoodType !== null
 
       ?
 
         selectedParentSlots[
-          selectedAnimalType
+          selectedFoodType
         ]
 
         ??
@@ -235,7 +235,7 @@ export default function CollectionPanel({
     );
 
 
-    setSelectedAnimalType(
+    setSelectedFoodType(
       null
     );
 
@@ -257,7 +257,7 @@ export default function CollectionPanel({
     );
 
 
-    setSelectedAnimalType(
+    setSelectedFoodType(
       null
     );
 
@@ -271,15 +271,15 @@ export default function CollectionPanel({
   // 选择收藏槽
   // ==========================================================
 
-  function selectAnimalType(
-    animalType
+  function selectFoodType(
+    foodType
   ){
 
 
     const path =
 
       selectedSlots[
-        animalType
+        foodType
       ];
 
 
@@ -299,12 +299,12 @@ export default function CollectionPanel({
 
 
     if(
-      selectedAnimalType ===
-      animalType
+      selectedFoodType ===
+      foodType
     ){
 
 
-      setSelectedAnimalType(
+      setSelectedFoodType(
         null
       );
 
@@ -315,8 +315,8 @@ export default function CollectionPanel({
 
 
 
-    setSelectedAnimalType(
-      animalType
+    setSelectedFoodType(
+      foodType
     );
 
   }
@@ -367,16 +367,16 @@ export default function CollectionPanel({
 
 
   // ==========================================================
-  // 动物状态名称
+  // 食物状态名称
   // ==========================================================
 
-  function getAnimalStateName(
+  function getFoodStateName(
     item
   ){
 
 
     if(
-      !item?.animalType
+      !item?.foodType
     ){
 
 
@@ -387,27 +387,27 @@ export default function CollectionPanel({
 
 
     if(
-      item.animalType ===
-      "bird"
+      item.foodType ===
+      "dessert"
     ){
 
 
-      return "鸟系";
+      return "甜食系";
 
     }
 
 
 
-    const animalTypeName =
+    const foodTypeName =
 
-      getAnimalTypeShortName(
-        item.animalType
+      getFoodTypeShortName(
+        item.foodType
       );
 
 
 
     if(
-      !animalTypeName
+      !foodTypeName
     ){
 
 
@@ -423,7 +423,7 @@ export default function CollectionPanel({
     ){
 
 
-      return `纯${animalTypeName}`;
+      return `纯${foodTypeName}`;
 
     }
 
@@ -435,13 +435,13 @@ export default function CollectionPanel({
     ){
 
 
-      return `半纯${animalTypeName}`;
+      return `半纯${foodTypeName}`;
 
     }
 
 
 
-    return animalTypeName;
+    return foodTypeName;
 
   }
 
@@ -1209,7 +1209,7 @@ export default function CollectionPanel({
 
                     const active =
 
-                      selectedAnimalType
+                      selectedFoodType
 
                       ===
 
@@ -1227,7 +1227,7 @@ export default function CollectionPanel({
 
                       &&
 
-                      latestCollection?.animalType
+                      latestCollection?.foodType
 
                       ===
 
@@ -1247,7 +1247,7 @@ export default function CollectionPanel({
 
                     const stateName =
 
-                      getAnimalStateName(
+                      getFoodStateName(
                         finalState
                       );
 
@@ -1293,7 +1293,7 @@ export default function CollectionPanel({
 
                         onClick={
                           () =>
-                            selectAnimalType(
+                            selectFoodType(
                               type.key
                             )
                         }
@@ -1604,7 +1604,7 @@ export default function CollectionPanel({
 
                           type =>
                             type.key ===
-                            selectedAnimalType
+                            selectedFoodType
 
                         )?.label
 
@@ -1625,12 +1625,12 @@ export default function CollectionPanel({
                   {
 
                     Array.isArray(
-                      selectedParents?.parentAnimals
+                      selectedParents?.parentFoods
                     )
 
                     &&
 
-                    selectedParents.parentAnimals.length >
+                    selectedParents.parentFoods.length >
                     0
 
                     ?
@@ -1646,7 +1646,7 @@ export default function CollectionPanel({
 
                       {
 
-                        selectedParents.parentAnimals.map(
+                        selectedParents.parentFoods.map(
 
                           (
                             parent,
@@ -1656,7 +1656,7 @@ export default function CollectionPanel({
 
                             const parentStateName =
 
-                              getAnimalStateName(
+                              getFoodStateName(
                                 parent
                               );
 
@@ -1871,7 +1871,7 @@ export default function CollectionPanel({
 
                           type =>
                             type.key ===
-                            selectedAnimalType
+                            selectedFoodType
 
                         )?.label
 
@@ -1917,7 +1917,7 @@ export default function CollectionPanel({
 
                           const stateName =
 
-                            getAnimalStateName(
+                            getFoodStateName(
                               item
                             );
 

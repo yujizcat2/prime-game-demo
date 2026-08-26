@@ -11,16 +11,16 @@ export default function PreviewPanel({
     preview?.reduce;
 
 
-  const combineAnimal =
-    preview?.combine?.animal ?? null;
+  const combineFood =
+    preview?.combine?.food ?? null;
 
 
-  const combineIsCat =
-    combineAnimal === "cat";
+  const combineIsVegetable =
+    combineFood === "vegetable";
 
 
-  const combineIsDog =
-    combineAnimal === "dog";
+  const combineIsMeat =
+    combineFood === "meat";
 
 
 
@@ -105,14 +105,14 @@ export default function PreviewPanel({
                 border
 
                 ${
-                  combineIsCat
+                  combineIsVegetable
 
                     ? `
                       bg-violet-50
                       border-violet-100
                     `
 
-                    : combineIsDog
+                    : combineIsMeat
 
                     ? `
                       bg-sky-50
@@ -136,11 +136,11 @@ export default function PreviewPanel({
                   font-bold
 
                   ${
-                    combineIsCat
+                    combineIsVegetable
 
                       ? "text-violet-400"
 
-                      : combineIsDog
+                      : combineIsMeat
 
                       ? "text-sky-400"
 
@@ -162,11 +162,11 @@ export default function PreviewPanel({
                   font-black
 
                   ${
-                    combineIsCat
+                    combineIsVegetable
 
                       ? "text-violet-600"
 
-                      : combineIsDog
+                      : combineIsMeat
 
                       ? "text-sky-600"
 

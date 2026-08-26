@@ -8,8 +8,8 @@ import {
 
 import {
   combineValue,
-  combineAnimalType,
-  combineAnimalPurity
+  combineFoodType,
+  combineFoodPurity
 } from "../game/rules";
 
 import {
@@ -94,9 +94,9 @@ export default function useGame(){
   //
   // gameEngine 会自动赋予：
   //
-  // 第0格 → 狗系 / pure
-  // 第1格 → 猫系 / pure
-  // 第2格 → 哺乳系 / pure
+  // 第0格 → 荤系 / pure
+  // 第1格 → 素系 / pure
+  // 第2格 → 调料系 / pure
   //
   // 同时：
   //
@@ -165,10 +165,10 @@ export default function useGame(){
   //
   // 当前所有正式棋子统一存在主棋盘：
   //
-  // dog
-  // cat
-  // mammal
-  // bird
+  // meat
+  // vegetable
+  // seasoning
+  // dessert
   //
   // 每个普通棋子还可以拥有：
   //
@@ -177,7 +177,7 @@ export default function useGame(){
   // pure
   // mixed
   //
-  // bird 当前 purity 为 null。
+  // dessert 当前 purity 为 null。
   // ==========================================================
 
   const numbers =
@@ -635,22 +635,22 @@ export default function useGame(){
   // 合成预览现在同时计算：
   //
   // value
-  // animalType
+  // foodType
   // purity
   //
   // 例：
   //
-  // 狗 + 狗
-  // → 狗系 / pure
+  // 荤 + 荤
+  // → 荤系 / pure
   //
-  // 狗 + 猫
-  // → 哺乳系 / mixed
+  // 荤 + 素
+  // → 调料系 / mixed
   //
   // 普通跨 101
-  // → 鸟系 / null
+  // → 甜食系 / null
   //
-  // 鸟 + 普通
-  // → 普通动物系 / mixed
+  // 甜食 + 普通
+  // → 普通食物系 / mixed
   // ==========================================================
 
   function getPreviewResult(){
@@ -781,9 +781,9 @@ export default function useGame(){
                 ),
 
 
-              animalType:
+              foodType:
 
-                combineAnimalType(
+                combineFoodType(
 
                   orderedPair.front,
 
@@ -794,7 +794,7 @@ export default function useGame(){
 
               purity:
 
-                combineAnimalPurity(
+                combineFoodPurity(
 
                   orderedPair.front,
 
@@ -954,7 +954,7 @@ export default function useGame(){
   // gameEngine 负责：
   //
   // 数字变化
-  // animalType 保留
+  // foodType 保留
   // purity 保留
   // mazeHistory 检测
   // 迷宫回转

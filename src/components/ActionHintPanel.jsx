@@ -3,12 +3,12 @@ import {
 } from "../game/actionStatus";
 
 import {
-  combineAnimalType
+  combineFoodType
 } from "../game/rules";
 
 import {
-  getAnimalName
-} from "../data/animal/animalRegistry";
+  getFoodName
+} from "../data/food/foodRegistry";
 
 import {
   getEmptyText,
@@ -26,12 +26,12 @@ import {
 
 
 // ============================================================
-// 根据动物类型获取名称
+// 根据食物类型获取名称
 // ============================================================
 
 function getDisplayName(
   value,
-  animalType
+  foodType
 ) {
 
 
@@ -46,11 +46,11 @@ function getDisplayName(
 
 
 
-  return getAnimalName(
+  return getFoodName(
 
     value,
 
-    animalType
+    foodType
 
   );
 
@@ -89,7 +89,7 @@ export default function ActionHintPanel({
 
 
   // ==========================================================
-  // 获取某个节点对应的动物名称
+  // 获取某个节点对应的食物名称
   // ==========================================================
 
   function getItemName(
@@ -111,7 +111,7 @@ export default function ActionHintPanel({
 
       item.value,
 
-      item.animalType
+      item.foodType
 
     );
 
@@ -166,13 +166,13 @@ export default function ActionHintPanel({
 
 
 
-    const previousAnimalType =
+    const previousFoodType =
 
-      previousRecord?.animalType
+      previousRecord?.foodType
 
       ??
 
-      oneItem?.animalType
+      oneItem?.foodType
 
       ??
 
@@ -180,7 +180,7 @@ export default function ActionHintPanel({
 
 
 
-    const previousAnimalName =
+    const previousFoodName =
 
       previousValue !== null
 
@@ -188,7 +188,7 @@ export default function ActionHintPanel({
 
             previousValue,
 
-            previousAnimalType
+            previousFoodType
 
           )
 
@@ -200,7 +200,7 @@ export default function ActionHintPanel({
 
       getWaterText(
 
-        previousAnimalName
+        previousFoodName
 
       );
 
@@ -211,7 +211,7 @@ export default function ActionHintPanel({
 
 
   // ==========================================================
-  // 只选择一个普通动物
+  // 只选择一个普通食物
   // ==========================================================
 
   else if(
@@ -259,7 +259,7 @@ export default function ActionHintPanel({
 
 
   // ==========================================================
-  // 选择两个动物
+  // 选择两个食物
   // ==========================================================
 
   else if(
@@ -316,12 +316,12 @@ export default function ActionHintPanel({
 
 
 
-    const resultAnimalType =
+    const resultFoodType =
 
       firstItem &&
       secondItem
 
-        ? combineAnimalType(
+        ? combineFoodType(
 
             firstItem,
 
@@ -329,7 +329,7 @@ export default function ActionHintPanel({
 
           )
 
-        : firstItem?.animalType ?? null;
+        : firstItem?.foodType ?? null;
 
 
 
@@ -344,7 +344,7 @@ export default function ActionHintPanel({
 
             combine.result,
 
-            resultAnimalType
+            resultFoodType
 
           )
 
@@ -364,7 +364,7 @@ export default function ActionHintPanel({
 
             reduce.firstResult,
 
-            firstItem.animalType
+            firstItem.foodType
 
           )
 
@@ -384,7 +384,7 @@ export default function ActionHintPanel({
 
             reduce.secondResult,
 
-            secondItem.animalType
+            secondItem.foodType
 
           )
 

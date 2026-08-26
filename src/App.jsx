@@ -200,7 +200,7 @@ function App(){
               "
             >
 
-              PRIME ANIMAL
+              PRIME KITCHEN
 
             </div>
 
@@ -211,7 +211,7 @@ function App(){
               "
             >
 
-              动物迷宫
+              料理迷宫
 
             </h1>
 
@@ -403,7 +403,7 @@ function App(){
               "
             >
 
-              动物盘
+              料理台
 
             </div>
 

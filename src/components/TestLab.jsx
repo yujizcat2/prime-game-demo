@@ -878,18 +878,18 @@ function ProgressPanel({
 }){
 
 
-  const dog =
-    progress.currentCollectionDogCount
+  const meat =
+    progress.currentCollectionMeatCount
     ?? 0;
 
 
-  const cat =
-    progress.currentCollectionCatCount
+  const vegetable =
+    progress.currentCollectionVegetableCount
     ?? 0;
 
 
-  const mammal =
-    progress.currentCollectionMammalCount
+  const seasoning =
+    progress.currentCollectionSeasoningCount
     ?? 0;
 
 
@@ -960,15 +960,15 @@ function ProgressPanel({
 
               <div>
 
-                狗 {dog}
+                荤 {meat}
 
                 {" / "}
 
-                猫 {cat}
+                素 {vegetable}
 
                 {" / "}
 
-                哺乳 {mammal}
+                调料 {seasoning}
 
                 {" · "}
 
@@ -986,14 +986,14 @@ function ProgressPanel({
                 {
                   describeBalanceState({
 
-                    dogCount:
-                      dog,
+                    meatCount:
+                      meat,
 
-                    catCount:
-                      cat,
+                    vegetableCount:
+                      vegetable,
 
-                    mammalCount:
-                      mammal
+                    seasoningCount:
+                      seasoning
 
                   })
                 }
@@ -1387,7 +1387,7 @@ function BestGameCard({
 
 
   const typeCounts =
-    game.collectionAnimalTypeCounts;
+    game.collectionFoodTypeCounts;
 
 
 
@@ -1474,22 +1474,22 @@ function BestGameCard({
 
           <strong>
 
-            狗 {
-              typeCounts.dog
+            荤 {
+              typeCounts.meat
               ?? 0
             }
 
             {" / "}
 
-            猫 {
-              typeCounts.cat
+            素 {
+              typeCounts.vegetable
               ?? 0
             }
 
             {" / "}
 
-            哺乳 {
-              typeCounts.mammal
+            调料 {
+              typeCounts.seasoning
               ?? 0
             }
 
@@ -1517,15 +1517,15 @@ function BestGameCard({
 
             <strong>
 
-              狗 {balance.dogCount}
+              荤 {balance.meatCount}
 
               {" / "}
 
-              猫 {balance.catCount}
+              素 {balance.vegetableCount}
 
               {" / "}
 
-              哺乳 {balance.mammalCount}
+              调料 {balance.seasoningCount}
 
             </strong>
 
@@ -1707,7 +1707,7 @@ function CollectionTimeline({
               <CollectionTimelineItem
 
                 key={
-                  `${entry.order}-${entry.value}-${entry.animalType}`
+                  `${entry.order}-${entry.value}-${entry.foodType}`
                 }
 
                 entry={
@@ -1864,8 +1864,8 @@ function CollectionTimelineItem({
           >
 
             {
-              formatAnimalType(
-                entry.animalType
+              formatFoodType(
+                entry.foodType
               )
             }
 
@@ -1903,15 +1903,15 @@ function CollectionTimelineItem({
 
               <br />
 
-              狗 {balance.dogCount}
+              荤 {balance.meatCount}
 
               {" / "}
 
-              猫 {balance.catCount}
+              素 {balance.vegetableCount}
 
               {" / "}
 
-              哺乳 {balance.mammalCount}
+              调料 {balance.seasoningCount}
 
               {" · "}
 
@@ -2260,26 +2260,26 @@ function describeBalanceState(
 
 
 
-  const dog =
+  const meat =
 
     Number(
-      balance.dogCount
+      balance.meatCount
       ?? 0
     );
 
 
-  const cat =
+  const vegetable =
 
     Number(
-      balance.catCount
+      balance.vegetableCount
       ?? 0
     );
 
 
-  const mammal =
+  const seasoning =
 
     Number(
-      balance.mammalCount
+      balance.seasoningCount
       ?? 0
     );
 
@@ -2289,35 +2289,35 @@ function describeBalanceState(
 
     {
       key:
-        "dog",
+        "meat",
 
       label:
-        "狗",
+        "荤",
 
       count:
-        dog
+        meat
     },
 
     {
       key:
-        "cat",
+        "vegetable",
 
       label:
-        "猫",
+        "素",
 
       count:
-        cat
+        vegetable
     },
 
     {
       key:
-        "mammal",
+        "seasoning",
 
       label:
-        "哺乳",
+        "调料",
 
       count:
-        mammal
+        seasoning
     }
 
   ];
@@ -2583,29 +2583,29 @@ function getModeTitle(
 
 
 
-function formatAnimalType(
-  animalType
+function formatFoodType(
+  foodType
 ){
 
 
   switch(
-    animalType
+    foodType
   ){
 
 
-    case "dog":
+    case "meat":
 
-      return "狗";
-
-
-    case "cat":
-
-      return "猫";
+      return "荤";
 
 
-    case "mammal":
+    case "vegetable":
 
-      return "哺乳";
+      return "素";
+
+
+    case "seasoning":
+
+      return "调料";
 
 
     default:
@@ -2642,7 +2642,7 @@ function formatTypeSequence(
 
   return sequence
     .map(
-      formatAnimalType
+      formatFoodType
     )
     .join(
       " → "

@@ -11,9 +11,9 @@ import {
 // ============================================================
 // 随机生成开局
 //
-// 第1个 → 狗
-// 第2个 → 猫
-// 第3个 → 哺乳
+// 第1个 → 荤
+// 第2个 → 素
+// 第3个 → 调料
 // ============================================================
 
 function createRandomInitialValues(){
@@ -144,15 +144,15 @@ function yieldToBrowser(){
 //
 // 例如：
 //
-// "17:dog"
-// "17:cat"
-// "17:mammal"
+// "17:meat"
+// "17:vegetable"
+// "17:seasoning"
 //
 // →
 //
 // {
 //   value: 17,
-//   animalType: "dog"
+//   foodType: "meat"
 // }
 // ============================================================
 
@@ -205,7 +205,7 @@ function parseCollectionKey(
 
 
 
-  const animalType =
+  const foodType =
 
     key.slice(
       separatorIndex + 1
@@ -227,11 +227,11 @@ function parseCollectionKey(
 
 
   if(
-    animalType !== "dog"
+    foodType !== "meat"
     &&
-    animalType !== "cat"
+    foodType !== "vegetable"
     &&
-    animalType !== "mammal"
+    foodType !== "seasoning"
   ){
 
 
@@ -245,7 +245,7 @@ function parseCollectionKey(
 
     value,
 
-    animalType
+    foodType
 
   };
 
@@ -267,7 +267,7 @@ function parseCollectionKey(
 //   至少拥有一个槽的数字数量
 //
 // completeNumberCount
-//   狗 / 猫 / 哺乳三个槽全部集齐的数字数量
+//   荤 / 素 / 调料三个槽全部集齐的数字数量
 //
 // partialNumberCount
 //   只收集了1～2槽的数字数量
@@ -332,7 +332,7 @@ function analyzeCollection(
         parsed.value
       )
       .add(
-        parsed.animalType
+        parsed.foodType
       );
 
   }
@@ -535,7 +535,7 @@ export function runRandomGame({
     // ========================================================
     // 收藏槽总数
     //
-    // 17:dog + 17:cat = 2
+    // 17:meat + 17:vegetable = 2
     // ========================================================
 
     collectionCount:
@@ -546,7 +546,7 @@ export function runRandomGame({
     // ========================================================
     // 已覆盖数字数量
     //
-    // 17:dog + 17:cat = 1个数字
+    // 17:meat + 17:vegetable = 1个数字
     // ========================================================
 
     collectionNumberCount:

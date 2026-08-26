@@ -1,9 +1,9 @@
 /* ============================================================
    Board
-   动物迷宫 · 大九宫格
+   料理迷宫 · 大九宫格
 
    四系：
-   狗系 / 猫系 / 哺乳系 / 鸟系
+   荤系 / 素系 / 调料系 / 甜食系
 
    特殊：
    1 = 水
@@ -139,7 +139,7 @@
 }
 
 
-.board-cell--mutation-bird {
+.board-cell--mutation-dessert {
 
   z-index:
     25;
@@ -344,10 +344,10 @@
 
 
 /* ============================================================
-   狗系
+   荤系
    ============================================================ */
 
-.board-piece--dog {
+.board-piece--meat {
 
   color:
     #603625;
@@ -362,7 +362,7 @@
 }
 
 
-.board-piece--dog
+.board-piece--meat
 .board-piece-type-bar {
 
   background:
@@ -375,10 +375,10 @@
 
 
 /* ============================================================
-   猫系
+   素系
    ============================================================ */
 
-.board-piece--cat {
+.board-piece--vegetable {
 
   color:
     #29583b;
@@ -393,7 +393,7 @@
 }
 
 
-.board-piece--cat
+.board-piece--vegetable
 .board-piece-type-bar {
 
   background:
@@ -406,10 +406,10 @@
 
 
 /* ============================================================
-   哺乳系
+   调料系
    ============================================================ */
 
-.board-piece--mammal {
+.board-piece--seasoning {
 
   color:
     #266173;
@@ -424,7 +424,7 @@
 }
 
 
-.board-piece--mammal
+.board-piece--seasoning
 .board-piece-type-bar {
 
   background:
@@ -437,10 +437,10 @@
 
 
 /* ============================================================
-   鸟系
+   甜食系
    ============================================================ */
 
-.board-piece--bird {
+.board-piece--dessert {
 
   color:
     #654673;
@@ -455,7 +455,7 @@
 }
 
 
-.board-piece--bird
+.board-piece--dessert
 .board-piece-type-bar {
 
   background:
@@ -657,7 +657,7 @@
 
 
 /* ============================================================
-   主动物区域
+   主食物区域
    ============================================================ */
 
 .board-piece-main {
@@ -699,7 +699,7 @@
 
 
 /* ============================================================
-   动物名
+   食物名
    ============================================================ */
 
 .board-piece-name {
@@ -1057,7 +1057,7 @@
 
 
 /* ============================================================
-   原动物文字循环
+   原食物文字循环
 
    0 - 28%
    原状态
@@ -1236,7 +1236,7 @@
 
 
 /* ============================================================
-   鸟变种
+   甜食变种
    ============================================================ */
 
 
@@ -1269,10 +1269,10 @@
 
 
 /* ============================================================
-   鸟触发卡
+   甜食触发卡
    ============================================================ */
 
-.board-piece--mutation-bird {
+.board-piece--mutation-dessert {
 
   border-color:
     rgba(173,131,183,.34);
@@ -1346,10 +1346,10 @@
 
 
 /* ============================================================
-   → 狗
+   → 荤
    ============================================================ */
 
-.board-piece--mutation-to-dog::after {
+.board-piece--mutation-to-meat::after {
 
   background:
     linear-gradient(
@@ -1365,10 +1365,10 @@
 
 
 /* ============================================================
-   → 猫
+   → 素
    ============================================================ */
 
-.board-piece--mutation-to-cat::after {
+.board-piece--mutation-to-vegetable::after {
 
   background:
     linear-gradient(
@@ -1384,10 +1384,10 @@
 
 
 /* ============================================================
-   → 哺乳
+   → 调料
    ============================================================ */
 
-.board-piece--mutation-to-mammal::after {
+.board-piece--mutation-to-seasoning::after {
 
   background:
     linear-gradient(
@@ -1493,10 +1493,10 @@
 
 
 /* ============================================================
-   → 狗 · 类型条
+   → 荤 · 类型条
    ============================================================ */
 
-.board-piece--mutation-to-dog
+.board-piece--mutation-to-meat
 .board-piece-type-bar::after {
 
   background:
@@ -1513,10 +1513,10 @@
 
 
 /* ============================================================
-   → 猫 · 类型条
+   → 素 · 类型条
    ============================================================ */
 
-.board-piece--mutation-to-cat
+.board-piece--mutation-to-vegetable
 .board-piece-type-bar::after {
 
   background:
@@ -1533,10 +1533,10 @@
 
 
 /* ============================================================
-   → 哺乳 · 类型条
+   → 调料 · 类型条
    ============================================================ */
 
-.board-piece--mutation-to-mammal
+.board-piece--mutation-to-seasoning
 .board-piece-type-bar::after {
 
   background:
@@ -1559,7 +1559,7 @@
    Preview 文字也按照目标类型染色。
    ============================================================ */
 
-.board-piece--mutation-to-dog
+.board-piece--mutation-to-meat
 .board-piece-reduce-preview {
 
   color:
@@ -1568,7 +1568,7 @@
 }
 
 
-.board-piece--mutation-to-cat
+.board-piece--mutation-to-vegetable
 .board-piece-reduce-preview {
 
   color:
@@ -1577,7 +1577,7 @@
 }
 
 
-.board-piece--mutation-to-mammal
+.board-piece--mutation-to-seasoning
 .board-piece-reduce-preview {
 
   color:
@@ -1732,10 +1732,10 @@
 
 
 /* ============================================================
-   鸟归1提示
+   甜食归1提示
    ============================================================ */
 
-.board-piece-bird-trigger {
+.board-piece-dessert-trigger {
 
   position:
     absolute;
@@ -2271,7 +2271,7 @@
 
 
 
-.board-preview--dog {
+.board-preview--meat {
 
   color:
     #603625;
@@ -2286,7 +2286,7 @@
 }
 
 
-.board-preview--dog
+.board-preview--meat
 .board-preview-type-bar {
 
   background:
@@ -2298,7 +2298,7 @@
 
 
 
-.board-preview--cat {
+.board-preview--vegetable {
 
   color:
     #29583b;
@@ -2313,7 +2313,7 @@
 }
 
 
-.board-preview--cat
+.board-preview--vegetable
 .board-preview-type-bar {
 
   background:
@@ -2325,7 +2325,7 @@
 
 
 
-.board-preview--mammal {
+.board-preview--seasoning {
 
   color:
     #266173;
@@ -2340,7 +2340,7 @@
 }
 
 
-.board-preview--mammal
+.board-preview--seasoning
 .board-preview-type-bar {
 
   background:
@@ -2352,7 +2352,7 @@
 
 
 
-.board-preview--bird {
+.board-preview--dessert {
 
   color:
     #654673;
@@ -2367,7 +2367,7 @@
 }
 
 
-.board-preview--bird
+.board-preview--dessert
 .board-preview-type-bar {
 
   background:
@@ -2716,7 +2716,7 @@
   }
 
 
-  .board-piece-bird-trigger {
+  .board-piece-dessert-trigger {
 
     top:
       8px;
@@ -2966,7 +2966,7 @@
   }
 
 
-  .board-piece-bird-trigger {
+  .board-piece-dessert-trigger {
 
     top:
       5px;
@@ -3347,7 +3347,7 @@
   .board-piece--mutation-target
   .board-piece-type-bar::after,
   .board-piece-mutation-preview,
-  .board-piece-bird-trigger {
+  .board-piece-dessert-trigger {
 
     animation:
       none;

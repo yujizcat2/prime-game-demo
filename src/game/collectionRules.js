@@ -11,16 +11,16 @@ import {
 
 
 // ============================================================
-// 正式收藏动物类型
+// 正式收藏食物类型
 // ============================================================
 
-export const COLLECTIBLE_ANIMAL_TYPES = [
+export const COLLECTIBLE_FOOD_TYPES = [
 
-  "dog",
+  "meat",
 
-  "cat",
+  "vegetable",
 
-  "mammal"
+  "seasoning"
 
 ];
 
@@ -39,13 +39,13 @@ export const COLLECTION_BALANCE_WINDOW =
 // 类型判断
 // ============================================================
 
-export function isCollectibleAnimalType(
-  animalType
+export function isCollectibleFoodType(
+  foodType
 ){
 
 
-  return COLLECTIBLE_ANIMAL_TYPES.includes(
-    animalType
+  return COLLECTIBLE_FOOD_TYPES.includes(
+    foodType
   );
 
 }
@@ -60,14 +60,14 @@ export function isCollectibleAnimalType(
 
 export function getSimulationCollectionKey(
   value,
-  animalType
+  foodType
 ){
 
 
   if(
     value == null ||
-    !isCollectibleAnimalType(
-      animalType
+    !isCollectibleFoodType(
+      foodType
     )
   ){
 
@@ -78,7 +78,7 @@ export function getSimulationCollectionKey(
 
 
 
-  return `${value}:${animalType}`;
+  return `${value}:${foodType}`;
 
 }
 
@@ -270,8 +270,8 @@ export function canCollect(
 
 
   if(
-    !isCollectibleAnimalType(
-      piece?.animalType
+    !isCollectibleFoodType(
+      piece?.foodType
     )
   ){
 
@@ -302,14 +302,14 @@ export function canCollect(
 // 收藏类型历史
 // ============================================================
 
-export function getCollectionAnimalTypeHistory(
+export function getCollectionFoodTypeHistory(
   state
 ){
 
 
   if(
     !Array.isArray(
-      state?.collectionAnimalTypeHistory
+      state?.collectionFoodTypeHistory
     )
   ){
 
@@ -322,7 +322,7 @@ export function getCollectionAnimalTypeHistory(
 
   return [
 
-    ...state.collectionAnimalTypeHistory
+    ...state.collectionFoodTypeHistory
 
   ];
 
@@ -360,13 +360,13 @@ export function getCollectionSlots(
 
     return {
 
-      dog:
+      meat:
         null,
 
-      cat:
+      vegetable:
         null,
 
-      mammal:
+      seasoning:
         null
 
     };
@@ -377,16 +377,16 @@ export function getCollectionSlots(
 
   return {
 
-    dog:
-      slots.dog
+    meat:
+      slots.meat
       ?? null,
 
-    cat:
-      slots.cat
+    vegetable:
+      slots.vegetable
       ?? null,
 
-    mammal:
-      slots.mammal
+    seasoning:
+      slots.seasoning
       ?? null
 
   };
@@ -404,13 +404,13 @@ export function getCollectionSlots(
 export function hasCollectionSlot(
   state,
   value,
-  animalType
+  foodType
 ){
 
 
   if(
-    !isCollectibleAnimalType(
-      animalType
+    !isCollectibleFoodType(
+      foodType
     )
   ){
 
@@ -431,7 +431,7 @@ export function hasCollectionSlot(
 
 
   return Boolean(
-    slots[animalType]
+    slots[foodType]
   );
 
 }
@@ -465,7 +465,7 @@ export function getCollectionSlotCount(
 
 
   if(
-    slots.dog
+    slots.meat
   ){
     count++;
   }
@@ -473,7 +473,7 @@ export function getCollectionSlotCount(
 
 
   if(
-    slots.cat
+    slots.vegetable
   ){
     count++;
   }
@@ -481,7 +481,7 @@ export function getCollectionSlotCount(
 
 
   if(
-    slots.mammal
+    slots.seasoning
   ){
     count++;
   }
@@ -633,7 +633,7 @@ export function getCollectionBalanceState(
 
   const history =
 
-    getCollectionAnimalTypeHistory(
+    getCollectionFoodTypeHistory(
       state
     );
 
@@ -647,43 +647,43 @@ export function getCollectionBalanceState(
 
 
 
-  let dogCount =
+  let meatCount =
     0;
 
 
-  let catCount =
+  let vegetableCount =
     0;
 
 
-  let mammalCount =
+  let seasoningCount =
     0;
 
 
 
   for(
-    const animalType
+    const foodType
     of recent
   ){
 
 
     if(
-      animalType === "dog"
+      foodType === "meat"
     ){
-      dogCount++;
+      meatCount++;
     }
 
 
     else if(
-      animalType === "cat"
+      foodType === "vegetable"
     ){
-      catCount++;
+      vegetableCount++;
     }
 
 
     else if(
-      animalType === "mammal"
+      foodType === "seasoning"
     ){
-      mammalCount++;
+      seasoningCount++;
     }
 
   }
@@ -694,19 +694,19 @@ export function getCollectionBalanceState(
 
   const regularCount =
 
-    dogCount +
-    catCount +
-    mammalCount;
+    meatCount +
+    vegetableCount +
+    seasoningCount;
 
 
 
   const counts = [
 
-    dogCount,
+    meatCount,
 
-    catCount,
+    vegetableCount,
 
-    mammalCount
+    seasoningCount
 
   ];
 
@@ -735,7 +735,7 @@ export function getCollectionBalanceState(
 
 
 
-  let dominantAnimalType =
+  let dominantFoodType =
     null;
 
 
@@ -746,25 +746,25 @@ export function getCollectionBalanceState(
 
 
   if(
-    dogCount === maxCount
+    meatCount === maxCount
   ){
-    maxTypes.push("dog");
+    maxTypes.push("meat");
   }
 
 
 
   if(
-    catCount === maxCount
+    vegetableCount === maxCount
   ){
-    maxTypes.push("cat");
+    maxTypes.push("vegetable");
   }
 
 
 
   if(
-    mammalCount === maxCount
+    seasoningCount === maxCount
   ){
-    maxTypes.push("mammal");
+    maxTypes.push("seasoning");
   }
 
 
@@ -775,7 +775,7 @@ export function getCollectionBalanceState(
   ){
 
 
-    dominantAnimalType =
+    dominantFoodType =
       maxTypes[0];
 
   }
@@ -792,13 +792,13 @@ export function getCollectionBalanceState(
 
     recent,
 
-    dogCount,
+    meatCount,
 
-    catCount,
+    vegetableCount,
 
-    mammalCount,
+    seasoningCount,
 
-    birdCount:
+    dessertCount:
       0,
 
     regularCount,
@@ -818,7 +818,7 @@ export function getCollectionBalanceState(
 
     imbalance,
 
-    dominantAnimalType
+    dominantFoodType
 
   };
 
@@ -846,9 +846,9 @@ function applySimulationCollection(
 
 
 
-  const animalType =
+  const foodType =
 
-    piece?.animalType
+    piece?.foodType
 
     ??
 
@@ -858,8 +858,8 @@ function applySimulationCollection(
 
   if(
     value == null ||
-    !isCollectibleAnimalType(
-      animalType
+    !isCollectibleFoodType(
+      foodType
     )
   ){
 
@@ -876,7 +876,7 @@ function applySimulationCollection(
 
       value,
 
-      animalType
+      foodType
 
     );
 
@@ -914,20 +914,20 @@ function applySimulationCollection(
 
   if(
     !Array.isArray(
-      state.collectionAnimalTypeHistory
+      state.collectionFoodTypeHistory
     )
   ){
 
 
-    state.collectionAnimalTypeHistory =
+    state.collectionFoodTypeHistory =
       [];
 
   }
 
 
 
-  state.collectionAnimalTypeHistory.push(
-    animalType
+  state.collectionFoodTypeHistory.push(
+    foodType
   );
 
 
@@ -946,7 +946,7 @@ function applySimulationCollection(
 // 注意：
 //
 // 收藏数字本身是 previousRecord。
-// 所以父母应读取 previousRecord.parents / parentAnimals，
+// 所以父母应读取 previousRecord.parents / parentFoods，
 // 而不是读取已经变成1的 piece.parents。
 // ============================================================
 
@@ -965,7 +965,7 @@ function createCollectionParentSnapshot(
       parents:
         null,
 
-      parentAnimals:
+      parentFoods:
         null
 
     };
@@ -988,21 +988,21 @@ function createCollectionParentSnapshot(
 
 
 
-  const parentAnimals =
+  const parentFoods =
 
     Array.isArray(
-      previousRecord.parentAnimals
+      previousRecord.parentFoods
     )
 
-      ? previousRecord.parentAnimals.map(
+      ? previousRecord.parentFoods.map(
 
           parent => ({
 
             value:
               parent.value,
 
-            animalType:
-              parent.animalType
+            foodType:
+              parent.foodType
               ?? null,
 
             purity:
@@ -1021,7 +1021,7 @@ function createCollectionParentSnapshot(
 
     parents,
 
-    parentAnimals
+    parentFoods
 
   };
 
@@ -1041,9 +1041,9 @@ function applyGameCollection(
 ){
 
 
-  const animalType =
+  const foodType =
 
-    piece?.animalType
+    piece?.foodType
 
     ??
 
@@ -1052,8 +1052,8 @@ function applyGameCollection(
 
 
   if(
-    !isCollectibleAnimalType(
-      animalType
+    !isCollectibleFoodType(
+      foodType
     )
   ){
 
@@ -1159,7 +1159,7 @@ function applyGameCollection(
 
   if(
     normalizedPaths[
-      animalType
+      foodType
     ]
   ){
 
@@ -1224,9 +1224,9 @@ function applyGameCollection(
 
 
 
-  let nextCollectionAnimalTypeHistory =
+  let nextCollectionFoodTypeHistory =
 
-    getCollectionAnimalTypeHistory(
+    getCollectionFoodTypeHistory(
       state
     );
 
@@ -1269,7 +1269,7 @@ function applyGameCollection(
 
       ...normalizedOrigins,
 
-      [animalType]:
+      [foodType]:
         previousRecord
 
     }
@@ -1300,7 +1300,7 @@ function applyGameCollection(
 
       ...normalizedPaths,
 
-      [animalType]:
+      [foodType]:
         mainLineage
 
     }
@@ -1314,7 +1314,7 @@ function applyGameCollection(
   // ==========================================================
   // 父母槽
   //
-  // 每个 animalType 独立保存第一次收藏的父母。
+  // 每个 foodType 独立保存第一次收藏的父母。
   // ==========================================================
 
   const oldParents =
@@ -1354,7 +1354,7 @@ function applyGameCollection(
 
       ...normalizedParents,
 
-      [animalType]:
+      [foodType]:
         parentSnapshot
 
     }
@@ -1374,7 +1374,7 @@ function applyGameCollection(
     value:
       discoveredValue,
 
-    animalType
+    foodType
 
   };
 
@@ -1386,11 +1386,11 @@ function applyGameCollection(
   // 新槽历史
   // ==========================================================
 
-  nextCollectionAnimalTypeHistory = [
+  nextCollectionFoodTypeHistory = [
 
-    ...nextCollectionAnimalTypeHistory,
+    ...nextCollectionFoodTypeHistory,
 
-    animalType
+    foodType
 
   ];
 
@@ -1479,8 +1479,8 @@ function applyGameCollection(
     collection:
       nextCollection,
 
-    collectionAnimalTypeHistory:
-      nextCollectionAnimalTypeHistory,
+    collectionFoodTypeHistory:
+      nextCollectionFoodTypeHistory,
 
     collectionOrigins:
       nextCollectionOrigins,
