@@ -6,9 +6,11 @@ import {
   getSimulationHistorySignature
 } from "./simulationEngine";
 
+
 import {
   createMazeStateKey
 } from "../game/mazeHistory";
+
 
 import {
   getCollectionBalanceState,
@@ -68,6 +70,10 @@ const PERFECT_RECENT_BALANCE_BONUS =
 
 
 
+
+// ============================================================
+// 随机开局
+// ============================================================
 
 function createRandomInitialValues(){
 
@@ -132,6 +138,10 @@ function createRandomInitialValues(){
 
 
 
+// ============================================================
+// 浏览器让步
+// ============================================================
+
 function yieldToBrowser(){
 
 
@@ -151,6 +161,10 @@ function yieldToBrowser(){
 
 
 
+
+// ============================================================
+// 简单 gcd
+// ============================================================
 
 function gcdSimple(
   a,
@@ -332,6 +346,224 @@ function parseCollectionKey(
 
 
 // ============================================================
+// 分析某个 reduce 动作会自动收藏什么
+//
+// 新核心：
+//
+// result === 1
+// → 自动收藏约分前的 value + foodType
+//
+//
+// 返回：
+//
+// [
+//   {
+//     value,
+//     foodType,
+//     key,
+//     alreadyCollected
+//   }
+// ]
+//
+// 最多两个。
+// ============================================================
+
+function analyzeReduceAutoCollections(
+  state,
+  action
+){
+
+
+  if(
+    !state ||
+    !action ||
+    action.type !== "reduce"
+  ){
+
+
+    return [];
+
+  }
+
+
+
+  const [
+    indexA,
+    indexB
+  ] =
+    action.indexes;
+
+
+
+  const a =
+    state.board[indexA];
+
+
+  const b =
+    state.board[indexB];
+
+
+
+  if(
+    !a ||
+    !b
+  ){
+
+
+    return [];
+
+  }
+
+
+
+  const divisor =
+
+    gcdSimple(
+      a.value,
+      b.value
+    );
+
+
+
+  if(
+    divisor <= 1
+  ){
+
+
+    return [];
+
+  }
+
+
+
+  const nextA =
+
+    a.value /
+    divisor;
+
+
+
+  const nextB =
+
+    b.value /
+    divisor;
+
+
+
+  const events =
+    [];
+
+
+
+  if(
+    nextA === 1
+    &&
+    isCollectibleFoodType(
+      a.foodType
+    )
+  ){
+
+
+    const key =
+
+      getSimulationCollectionKey(
+
+        a.value,
+
+        a.foodType
+
+      );
+
+
+
+    if(
+      key
+    ){
+
+
+      events.push({
+
+        value:
+          a.value,
+
+        foodType:
+          a.foodType,
+
+        key,
+
+        alreadyCollected:
+
+          state.collection.has(
+            key
+          )
+
+      });
+
+    }
+
+  }
+
+
+
+  if(
+    nextB === 1
+    &&
+    isCollectibleFoodType(
+      b.foodType
+    )
+  ){
+
+
+    const key =
+
+      getSimulationCollectionKey(
+
+        b.value,
+
+        b.foodType
+
+      );
+
+
+
+    if(
+      key
+    ){
+
+
+      events.push({
+
+        value:
+          b.value,
+
+        foodType:
+          b.foodType,
+
+        key,
+
+        alreadyCollected:
+
+          state.collection.has(
+            key
+          )
+
+      });
+
+    }
+
+  }
+
+
+
+  return events;
+
+}
+
+
+
+
+
+// ============================================================
 // 基础局面分析
 // ============================================================
 
@@ -341,10 +573,6 @@ function analyzeState(
 
 
   let empty =
-    0;
-
-
-  let ones =
     0;
 
 
@@ -379,17 +607,6 @@ function analyzeState(
       empty++;
 
       continue;
-
-    }
-
-
-
-    if(
-      piece.value === 1
-    ){
-
-
-      ones++;
 
     }
 
@@ -497,7 +714,14 @@ function analyzeState(
 
     empty,
 
-    ones,
+    // ========================================================
+    // 兼容旧评分字段。
+    //
+    // 新系统正常棋盘不存在1。
+    // ========================================================
+
+    ones:
+      0,
 
     meatPieces,
 
@@ -514,6 +738,12 @@ function analyzeState(
 
 
 
+
+// ============================================================
+// 生存 AI 评分
+//
+// 新版不再奖励棋盘上的1。
+// ============================================================
 
 function scoreSurvival(
   state
@@ -573,11 +803,6 @@ function scoreSurvival(
     info.empty *
     40
 
-    +
-
-    info.ones *
-    80
-
   );
 
 }
@@ -589,11 +814,10 @@ function scoreSurvival(
 // ============================================================
 // 收藏潜力分析
 //
-// 新版所有判断都按：
+// 新核心：
 //
-// value + foodType
-//
-// 而不是只按 value。
+// “一步内自动收藏”
+// 直接来自合法 reduce。
 // ============================================================
 
 function analyzeCollectionPotential(
@@ -602,9 +826,18 @@ function analyzeCollectionPotential(
 ){
 
 
+  // ==========================================================
+  // 下一步可以获得多少个新槽
+  // ==========================================================
+
   let directNewCollection =
     0;
 
+
+
+  // ==========================================================
+  // 有多少约分动作可以直接通向收藏
+  // ==========================================================
 
   let oneReduceAway =
     0;
@@ -620,7 +853,9 @@ function analyzeCollectionPotential(
 
 
 
-
+  // ==========================================================
+  // 当前棋盘上还未收藏的槽
+  // ==========================================================
 
   for(
     const piece
@@ -649,45 +884,6 @@ function analyzeCollectionPotential(
       continue;
 
     }
-
-
-
-    if(
-      piece.value === 1
-    ){
-
-
-      const source =
-        piece.previousValue;
-
-
-
-      if(
-        source != null
-        &&
-        !hasCollectionSlot(
-
-          state,
-
-          source,
-
-          piece.foodType
-
-        )
-      ){
-
-
-        directNewCollection++;
-
-      }
-
-
-
-      continue;
-
-    }
-
-
 
 
 
@@ -724,6 +920,10 @@ function analyzeCollectionPotential(
 
 
 
+  // ==========================================================
+  // 查看每个合法约分动作
+  // ==========================================================
+
   for(
     const action
     of info.legalActions
@@ -741,113 +941,39 @@ function analyzeCollectionPotential(
 
 
 
-    const [
-      indexA,
-      indexB
-    ] =
-      action.indexes;
+    const autoCollections =
 
-
-
-    const a =
-      state.board[indexA];
-
-
-    const b =
-      state.board[indexB];
-
-
-
-    if(
-      !a ||
-      !b
-    ){
-
-
-      continue;
-
-    }
-
-
-
-    const divisor =
-
-      gcdSimple(
-        a.value,
-        b.value
+      analyzeReduceAutoCollections(
+        state,
+        action
       );
 
 
 
-    if(
-      divisor <= 1
+    let actionHasNewCollection =
+      false;
+
+
+
+    for(
+      const event
+      of autoCollections
     ){
 
 
-      continue;
-
-    }
-
-
-
-    const nextA =
-      a.value / divisor;
-
-
-    const nextB =
-      b.value / divisor;
-
-
-
-
-
-    if(
-      isCollectibleFoodType(
-        a.foodType
-      )
-    ){
-
-
-      const keyA =
-
-        getSimulationCollectionKey(
-
-          a.value,
-
-          a.foodType
-
-        );
-
-
-
       if(
-        nextA === 1
-        &&
-        keyA
-        &&
-        !state.collection.has(
-          keyA
-        )
+        !event.alreadyCollected
       ){
 
 
-        oneReduceAway++;
+        directNewCollection++;
 
-      }
-
-
-
-      if(
-        keyA
-        &&
-        !state.collection.has(
-          keyA
-        )
-      ){
+        actionHasNewCollection =
+          true;
 
 
         reducibleUnseenSlots.add(
-          keyA
+          event.key
         );
 
       }
@@ -856,58 +982,12 @@ function analyzeCollectionPotential(
 
 
 
-
-
     if(
-      isCollectibleFoodType(
-        b.foodType
-      )
+      actionHasNewCollection
     ){
 
 
-      const keyB =
-
-        getSimulationCollectionKey(
-
-          b.value,
-
-          b.foodType
-
-        );
-
-
-
-      if(
-        nextB === 1
-        &&
-        keyB
-        &&
-        !state.collection.has(
-          keyB
-        )
-      ){
-
-
-        oneReduceAway++;
-
-      }
-
-
-
-      if(
-        keyB
-        &&
-        !state.collection.has(
-          keyB
-        )
-      ){
-
-
-        reducibleUnseenSlots.add(
-          keyB
-        );
-
-      }
+      oneReduceAway++;
 
     }
 
@@ -934,6 +1014,10 @@ function analyzeCollectionPotential(
 
 
 
+
+// ============================================================
+// 收藏类型计数
+// ============================================================
 
 function countCollectionFoodTypes(
   history
@@ -1477,6 +1561,10 @@ function scoreTypeEcology(
 
 
 
+// ============================================================
+// 收藏 AI 评分
+// ============================================================
+
 function scoreCollection(
   state
 ){
@@ -1517,6 +1605,12 @@ function scoreCollection(
     COLLECTION_SCORE;
 
 
+
+  // ==========================================================
+  // 现在 directNewCollection 表示：
+  //
+  // 合法约分下一步能够自动获得的新槽数量。
+  // ==========================================================
 
   const directScore =
 
@@ -1571,11 +1665,6 @@ function scoreCollection(
     +
 
     info.legalCount *
-    20
-
-    +
-
-    info.ones *
     20;
 
 
@@ -1641,11 +1730,15 @@ function scoreState(
     mode ===
     SMART_AI_MODES.COLLECTION
 
-      ? scoreCollection(
+      ?
+
+        scoreCollection(
           state
         )
 
-      : scoreSurvival(
+      :
+
+        scoreSurvival(
           state
         )
 
@@ -1685,6 +1778,10 @@ function createSearchKey(
 
 
 
+
+// ============================================================
+// Beam Search
+// ============================================================
 
 function chooseSmartAction(
   state,
@@ -2027,6 +2124,10 @@ function chooseSmartAction(
 
 
 
+// ============================================================
+// 棋盘 Snapshot
+// ============================================================
+
 function snapshotBoard(
   state
 ){
@@ -2091,48 +2192,16 @@ function snapshotBoard(
 
 
 
+// ============================================================
+// 动作说明
+//
+// 新版 reduce 会把自动收藏直接写在同一动作。
+// ============================================================
+
 function describeAction(
   state,
   action
 ){
-
-
-  if(
-    action.type === "remove"
-  ){
-
-
-    const piece =
-
-      state.board[
-        action.index
-      ];
-
-
-
-    return {
-
-      type:
-        "remove",
-
-      text:
-
-        `处理1：格${action.index + 1}`
-
-        +
-
-        (
-          piece?.previousValue != null
-
-            ? ` · 收藏来源 ${piece.previousValue}`
-
-            : ""
-        )
-
-    };
-
-  }
-
 
 
   const [
@@ -2176,6 +2245,43 @@ function describeAction(
 
 
 
+  const autoCollections =
+
+    analyzeReduceAutoCollections(
+      state,
+      action
+    );
+
+
+
+  const autoText =
+
+    autoCollections.length > 0
+
+      ?
+
+        " · 自动收藏 "
+
+        +
+
+        autoCollections
+          .map(
+
+            event =>
+
+              `${event.value}:${event.foodType}`
+
+          )
+          .join(
+            " / "
+          )
+
+      :
+
+        "";
+
+
+
   return {
 
     type:
@@ -2189,6 +2295,10 @@ function describeAction(
 
       ` ↔ 格${bIndex + 1} ${b?.value}`
 
+      +
+
+      autoText
+
   };
 
 }
@@ -2196,6 +2306,10 @@ function describeAction(
 
 
 
+
+// ============================================================
+// 单局 Smart AI
+// ============================================================
 
 export async function runSmartGame({
 
@@ -2239,15 +2353,19 @@ export async function runSmartGame({
 
 
 
-  let totalRemoveActions =
+  // ==========================================================
+  // 新版统计
+  // ==========================================================
+
+  let totalAutoCollectionEvents =
     0;
 
 
-  let repeatCollectionRemovals =
+  let repeatAutoCollections =
     0;
 
 
-  let repeatRemovalsSincePreviousCollection =
+  let repeatAutoCollectionsSincePreviousCollection =
     0;
 
 
@@ -2348,79 +2466,51 @@ export async function runSmartGame({
 
 
 
-    let isRepeatCollectionRemoval =
-      false;
+    // ========================================================
+    // 在执行 reduce 前先判断：
+    //
+    // 本次会自动收藏哪些槽，
+    // 其中哪些是重复旧槽。
+    // ========================================================
+
+    const autoCollectionEvents =
+
+      analyzeReduceAutoCollections(
+        state,
+        action
+      );
 
 
-    let removedSource =
-      null;
 
-
-    let removedFoodType =
-      null;
+    let repeatAutoCollectionCount =
+      0;
 
 
 
-    if(
-      action.type === "remove"
+    for(
+      const event
+      of autoCollectionEvents
     ){
 
 
-      const piece =
-
-        state.board[
-          action.index
-        ];
-
-
-
-      removedSource =
-
-        piece?.previousValue
-        ?? null;
-
-
-
-      removedFoodType =
-
-        piece?.foodType
-        ?? null;
-
-
-
-      totalRemoveActions++;
-
-
+      totalAutoCollectionEvents++;
 
 
 
       if(
-        removedSource != null
-        &&
-        isCollectibleFoodType(
-          removedFoodType
-        )
-        &&
-        hasCollectionSlot(
-
-          state,
-
-          removedSource,
-
-          removedFoodType
-
-        )
+        event.alreadyCollected
       ){
 
 
-        isRepeatCollectionRemoval =
-          true;
+        repeatAutoCollections++;
+
+        repeatAutoCollectionCount++;
+
+        repeatAutoCollectionsSincePreviousCollection++;
 
       }
 
     }
-
-
 
 
 
@@ -2463,21 +2553,6 @@ export async function runSmartGame({
 
 
 
-    if(
-      isRepeatCollectionRemoval
-    ){
-
-
-      repeatCollectionRemovals++;
-
-      repeatRemovalsSincePreviousCollection++;
-
-    }
-
-
-
-
-
     recentActions.push({
 
       actionNumber:
@@ -2492,12 +2567,42 @@ export async function runSmartGame({
       text:
         description.text,
 
-      removedSource,
+      autoCollections:
 
-      removedFoodType,
+        autoCollectionEvents.map(
+
+          event => ({
+
+            value:
+              event.value,
+
+            foodType:
+              event.foodType,
+
+            alreadyCollected:
+              event.alreadyCollected
+
+          })
+
+        ),
+
+      repeatAutoCollectionCount,
+
+      // ======================================================
+      // 旧字段兼容
+      //
+      // 等 TestLab 改完可以删除。
+      // ======================================================
+
+      removedSource:
+        null,
+
+      removedFoodType:
+        null,
 
       repeatCollectionRemoval:
-        isRepeatCollectionRemoval,
+
+        repeatAutoCollectionCount > 0,
 
       beforeBoard,
 
@@ -2528,7 +2633,9 @@ export async function runSmartGame({
 
 
     // ========================================================
-    // 检测首次新增收藏槽
+    // 检测新增收藏槽
+    //
+    // 一次 reduce 可能同时新增两个槽。
     // ========================================================
 
     if(
@@ -2553,8 +2660,6 @@ export async function runSmartGame({
           continue;
 
         }
-
-
 
 
 
@@ -2605,13 +2710,14 @@ export async function runSmartGame({
 
 
 
-
-
         maxCollectionImbalance =
 
           Math.max(
+
             maxCollectionImbalance,
+
             balanceState.imbalance
+
           );
 
 
@@ -2621,8 +2727,6 @@ export async function runSmartGame({
 
 
         collectionBalanceSamples++;
-
-
 
 
 
@@ -2684,10 +2788,14 @@ export async function runSmartGame({
 
             previousTimelineEntry
 
-              ? actions -
+              ?
+
+                actions -
                 previousTimelineEntry.actionNumber
 
-              : actions,
+              :
+
+                actions,
 
 
 
@@ -2695,16 +2803,34 @@ export async function runSmartGame({
 
             previousTimelineEntry
 
-              ? state.steps -
+              ?
+
+                state.steps -
                 previousTimelineEntry.steps
 
-              : state.steps,
+              :
+
+                state.steps,
 
 
+
+          // ==================================================
+          // 新字段
+          // ==================================================
+
+          repeatAutoCollectionsSincePrevious:
+
+            repeatAutoCollectionsSincePreviousCollection,
+
+
+
+          // ==================================================
+          // 旧字段兼容
+          // ==================================================
 
           repeatRemovalsSincePrevious:
 
-            repeatRemovalsSincePreviousCollection,
+            repeatAutoCollectionsSincePreviousCollection,
 
 
 
@@ -2740,11 +2866,18 @@ export async function runSmartGame({
                 text:
                   item.text,
 
+                autoCollections:
+                  item.autoCollections,
+
+                repeatAutoCollectionCount:
+                  item.repeatAutoCollectionCount,
+
+                // 兼容旧 TestLab
                 removedSource:
-                  item.removedSource,
+                  null,
 
                 removedFoodType:
-                  item.removedFoodType,
+                  null,
 
                 repeatCollectionRemoval:
                   item.repeatCollectionRemoval
@@ -2757,7 +2890,7 @@ export async function runSmartGame({
 
 
 
-        repeatRemovalsSincePreviousCollection =
+        repeatAutoCollectionsSincePreviousCollection =
           0;
 
       }
@@ -2775,6 +2908,10 @@ export async function runSmartGame({
 
 
 
+
+    // ========================================================
+    // 迷宫回转
+    // ========================================================
 
     if(
       state.mazeTurnCount >
@@ -2840,6 +2977,10 @@ export async function runSmartGame({
 
 
 
+    // ========================================================
+    // Progress
+    // ========================================================
+
     if(
       actions %
       yieldEvery === 0
@@ -2878,9 +3019,25 @@ export async function runSmartGame({
         mazeTurnCount:
           state.mazeTurnCount,
 
-        totalRemoveActions,
 
-        repeatCollectionRemovals,
+
+        totalAutoCollectionEvents,
+
+        repeatAutoCollections,
+
+
+
+        // ====================================================
+        // 旧字段兼容
+        // ====================================================
+
+        totalRemoveActions:
+          totalAutoCollectionEvents,
+
+        repeatCollectionRemovals:
+          repeatAutoCollections,
+
+
 
         collectionImbalance:
           balanceState.imbalance,
@@ -3028,27 +3185,64 @@ export async function runSmartGame({
 
       collectionBalanceSamples > 0
 
-        ? totalCollectionImbalance /
+        ?
+
+          totalCollectionImbalance /
           collectionBalanceSamples
 
-        : 0,
+        :
+
+          0,
 
 
 
-    totalRemoveActions,
+    // ========================================================
+    // 新统计
+    // ========================================================
 
-    repeatCollectionRemovals,
+    totalAutoCollectionEvents,
+
+    repeatAutoCollections,
+
+    averageRepeatAutoCollectionsPerCollection:
+
+      state.collection.size > 0
+
+        ?
+
+          repeatAutoCollections /
+          state.collection.size
+
+        :
+
+          0,
 
 
+
+    // ========================================================
+    // 旧字段兼容
+    //
+    // 等 TestLab.jsx 改完后可删除。
+    // ========================================================
+
+    totalRemoveActions:
+      totalAutoCollectionEvents,
+
+    repeatCollectionRemovals:
+      repeatAutoCollections,
 
     averageRepeatRemovalsPerCollection:
 
       state.collection.size > 0
 
-        ? repeatCollectionRemovals /
+        ?
+
+          repeatAutoCollections /
           state.collection.size
 
-        : 0,
+        :
+
+          0,
 
 
 
@@ -3072,6 +3266,7 @@ export async function runSmartGame({
       mazeTurns[
         mazeTurns.length - 1
       ]
+
       ?? null,
 
     endedNaturally,
@@ -3092,6 +3287,10 @@ export async function runSmartGame({
 
 
 
+
+// ============================================================
+// 多局 Smart Explorer
+// ============================================================
 
 export async function runSmartExplorer({
 
@@ -3139,11 +3338,11 @@ export async function runSmartExplorer({
     0;
 
 
-  let totalRemoveActions =
+  let totalAutoCollectionEvents =
     0;
 
 
-  let totalRepeatCollectionRemovals =
+  let totalRepeatAutoCollections =
     0;
 
 
@@ -3246,11 +3445,27 @@ export async function runSmartExplorer({
               currentMazeTurns:
                 current.mazeTurnCount,
 
+
+
+              currentAutoCollectionEvents:
+                current.totalAutoCollectionEvents,
+
+              currentRepeatAutoCollections:
+                current.repeatAutoCollections,
+
+
+
+              // =================================================
+              // 旧字段兼容
+              // =================================================
+
               currentRemoveActions:
-                current.totalRemoveActions,
+                current.totalAutoCollectionEvents,
 
               currentRepeatCollectionRemovals:
-                current.repeatCollectionRemovals,
+                current.repeatAutoCollections,
+
+
 
               currentCollectionImbalance:
                 current.collectionImbalance,
@@ -3310,12 +3525,12 @@ export async function runSmartExplorer({
       result.mazeTurnCount;
 
 
-    totalRemoveActions +=
-      result.totalRemoveActions;
+    totalAutoCollectionEvents +=
+      result.totalAutoCollectionEvents;
 
 
-    totalRepeatCollectionRemovals +=
-      result.repeatCollectionRemovals;
+    totalRepeatAutoCollections +=
+      result.repeatAutoCollections;
 
 
     totalCollectionImbalance +=
@@ -3328,9 +3543,12 @@ export async function runSmartExplorer({
     maxCollectionImbalance =
 
       Math.max(
+
         maxCollectionImbalance,
+
         result.maxCollectionImbalance
         ?? 0
+
       );
 
 
@@ -3449,6 +3667,13 @@ export async function runSmartExplorer({
       currentMazeTurns:
         0,
 
+      currentAutoCollectionEvents:
+        0,
+
+      currentRepeatAutoCollections:
+        0,
+
+      // 旧字段
       currentRemoveActions:
         0,
 
@@ -3534,23 +3759,61 @@ export async function runSmartExplorer({
 
 
 
-    totalRemoveActions,
+    // ========================================================
+    // 新统计
+    // ========================================================
 
-    totalRepeatCollectionRemovals,
+    totalAutoCollectionEvents,
+
+    totalRepeatAutoCollections,
+
+    averageRepeatAutoCollectionsPerGame:
+
+      totalRepeatAutoCollections /
+      safeGames,
+
+    averageRepeatAutoCollectionsPerCollection:
+
+      totalCollection > 0
+
+        ?
+
+          totalRepeatAutoCollections /
+          totalCollection
+
+        :
+
+          0,
+
+
+
+    // ========================================================
+    // 旧 TestLab 兼容
+    // ========================================================
+
+    totalRemoveActions:
+      totalAutoCollectionEvents,
+
+    totalRepeatCollectionRemovals:
+      totalRepeatAutoCollections,
 
     averageRepeatCollectionRemovalsPerGame:
 
-      totalRepeatCollectionRemovals /
+      totalRepeatAutoCollections /
       safeGames,
 
     averageRepeatRemovalsPerCollection:
 
       totalCollection > 0
 
-        ? totalRepeatCollectionRemovals /
+        ?
+
+          totalRepeatAutoCollections /
           totalCollection
 
-        : 0,
+        :
+
+          0,
 
 
 

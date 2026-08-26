@@ -2,20 +2,26 @@ import {
   gcd
 } from "../utils/math";
 
+
 import {
   FOOD_TYPES,
+  FOOD_PURITY,
   combineValue,
   combineFoodType,
   combineFoodPurity,
   canReduce,
   canCombine,
+  getReduceExtractFoodType,
   getDessertMutationFoodType
 } from "./rules";
 
+
 import {
   createCombineOrigin,
-  createReduceOrigin
+  createReduceOrigin,
+  createReduceExtractOrigin
 } from "./numberOrigin";
+
 
 import {
   getBoardPieces,
@@ -26,9 +32,11 @@ import {
   BOARD_CONFIG
 } from "./boardRules";
 
+
 import {
   consumeStep
 } from "./gameState";
+
 
 import {
   applyCollection
@@ -54,7 +62,6 @@ export function canCombineCells(
     state.gameOver
   ){
 
-
     return false;
 
   }
@@ -62,10 +69,8 @@ export function canCombineCells(
 
 
   if(
-    indexA ===
-    indexB
+    indexA === indexB
   ){
-
 
     return false;
 
@@ -79,14 +84,13 @@ export function canCombineCells(
     )
   ){
 
-
     return false;
 
   }
 
 
 
-  const a =
+  const first =
 
     getPieceAt(
       state,
@@ -94,7 +98,7 @@ export function canCombineCells(
     );
 
 
-  const b =
+  const second =
 
     getPieceAt(
       state,
@@ -104,10 +108,9 @@ export function canCombineCells(
 
 
   if(
-    !a ||
-    !b
+    !first ||
+    !second
   ){
-
 
     return false;
 
@@ -115,11 +118,16 @@ export function canCombineCells(
 
 
 
-  if(
-    a.value === 1 ||
-    b.value === 1
-  ){
+  // ==========================================================
+  // 新规则下正常棋盘理论上不会长期存在1。
+  //
+  // 这里仍然保留保护。
+  // ==========================================================
 
+  if(
+    first.value === 1 ||
+    second.value === 1
+  ){
 
     return false;
 
@@ -129,9 +137,9 @@ export function canCombineCells(
 
   return canCombine(
 
-    a,
+    first,
 
-    b,
+    second,
 
     getBoardPieces(
       state.board
@@ -146,7 +154,416 @@ export function canCombineCells(
 
 
 // ============================================================
+// 是否需要提取最大公约数
+//
+// 普通三系 + 异值
+// → 提取 gcd
+//
+//
+// 同值：
+//
+// 8 / 8
+// → 1 / 1
+//
+// 不额外生成8。
+//
+//
+// 甜食：
+//
+// 暂时继续旧特殊规则，
+// 不产生 gcd 新卡。
+// ============================================================
+
+function shouldExtractReduceDivisor(
+  first,
+  second
+){
+
+
+  if(
+    !first ||
+    !second
+  ){
+
+    return false;
+
+  }
+
+
+
+  // ==========================================================
+  // 同值不提取
+  // ==========================================================
+
+  if(
+    first.value ===
+    second.value
+  ){
+
+    return false;
+
+  }
+
+
+
+  // ==========================================================
+  // 甜食暂时不进入 gcd 提取体系
+  // ==========================================================
+
+  if(
+    first.foodType ===
+      FOOD_TYPES.DESSERT
+    ||
+    second.foodType ===
+      FOOD_TYPES.DESSERT
+  ){
+
+    return false;
+
+  }
+
+
+
+  return Boolean(
+
+    getReduceExtractFoodType(
+      first,
+      second
+    )
+
+  );
+
+}
+
+
+
+
+
+// ============================================================
+// 公约数产物纯度
+//
+// 同类来源
+// → pure
+//
+// 异类来源
+// → mixed
+// ============================================================
+
+function getReduceExtractPurity(
+  first,
+  second
+){
+
+
+  const foodType =
+
+    getReduceExtractFoodType(
+      first,
+      second
+    );
+
+
+
+  if(
+    !foodType
+  ){
+
+    return null;
+
+  }
+
+
+
+  if(
+    first.foodType ===
+    second.foodType
+  ){
+
+    return FOOD_PURITY.PURE;
+
+  }
+
+
+
+  return FOOD_PURITY.MIXED;
+
+}
+
+
+
+
+
+// ============================================================
+// 获取一次约分的基础计划
+//
+// 这个函数非常重要。
+//
+// canReduceCells()
+// reduceCells()
+//
+// 都使用同一套结果，
+// 避免“UI说能约但执行不了”之类的规则分叉。
+//
+//
+// ------------------------------------------------------------
+//
+// 返回示例：
+//
+// 16 / 4
+//
+// {
+//   divisor: 4,
+//   firstResult: 4,
+//   secondResult: 1,
+//   autoRemoveCount: 1,
+//   shouldExtract: true
+// }
+//
+// ------------------------------------------------------------
+//
+// 12 / 18
+//
+// {
+//   divisor: 6,
+//   firstResult: 2,
+//   secondResult: 3,
+//   autoRemoveCount: 0,
+//   shouldExtract: true
+// }
+// ============================================================
+
+function getReducePlan(
+  state,
+  first,
+  second
+){
+
+
+  if(
+    !state ||
+    !first ||
+    !second
+  ){
+
+    return null;
+
+  }
+
+
+
+  const divisor =
+
+    gcd(
+      first.value,
+      second.value
+    );
+
+
+
+  if(
+    divisor <= 1
+  ){
+
+    return null;
+
+  }
+
+
+
+  const firstResult =
+
+    first.value /
+    divisor;
+
+
+
+  const secondResult =
+
+    second.value /
+    divisor;
+
+
+
+  const shouldExtract =
+
+    shouldExtractReduceDivisor(
+      first,
+      second
+    );
+
+
+
+  // ==========================================================
+  // 本次约分结束时，
+  // 有几个1会立即自动消失。
+  // ==========================================================
+
+  let autoRemoveCount =
+    0;
+
+
+
+  if(
+    firstResult === 1
+  ){
+
+    autoRemoveCount++;
+
+  }
+
+
+
+  if(
+    secondResult === 1
+  ){
+
+    autoRemoveCount++;
+
+  }
+
+
+
+  // ==========================================================
+  // 当前已有多少空格
+  // ==========================================================
+
+  const currentCount =
+
+    getBoardPieces(
+      state.board
+    ).length;
+
+
+
+  const currentEmptyCount =
+
+    Math.max(
+
+      0,
+
+      BOARD_CONFIG.SIZE -
+      currentCount
+
+    );
+
+
+
+  // ==========================================================
+  // 本次约分真正能够使用的空间
+  //
+  // 当前空格
+  // +
+  // 自动消除1释放的格子
+  // ==========================================================
+
+  const availableAfterReduce =
+
+    currentEmptyCount +
+    autoRemoveCount;
+
+
+
+  // ==========================================================
+  // gcd 新卡需要1格。
+  //
+  // 不提取则不需要额外格子。
+  // ==========================================================
+
+  const requiredExtraSpace =
+
+    shouldExtract
+      ? 1
+      : 0;
+
+
+
+  const canFitExtract =
+
+    availableAfterReduce >=
+    requiredExtraSpace;
+
+
+
+  return {
+
+    divisor,
+
+    firstResult,
+
+    secondResult,
+
+    shouldExtract,
+
+    autoRemoveCount,
+
+    currentEmptyCount,
+
+    availableAfterReduce,
+
+    requiredExtraSpace,
+
+    canFitExtract
+
+  };
+
+}
+
+
+
+
+
+// ============================================================
 // 两格能否约分
+//
+// 新核心规则：
+//
+// 1. gcd > 1
+//
+// 2. 结果为1时：
+//    → 自动收藏
+//    → 自动消失
+//
+// 3. 判断空间时：
+//
+//    当前空位
+//    +
+//    本次会自动消失的1
+//
+//    都可以用来容纳 gcd 新卡。
+//
+//
+// ------------------------------------------------------------
+//
+// 满盘：
+//
+// 16 / 4
+// → 4 / 1 + 4
+//
+// 1会消失
+// → 有1个释放格
+// → 可以容纳析出的4
+// → 允许
+//
+//
+// 满盘：
+//
+// 12 / 18
+// → 2 / 3 + 6
+//
+// 没有1
+// → 没有释放格
+// → 禁止
+//
+//
+// 满盘：
+//
+// 8 / 8
+// → 1 / 1
+//
+// 两边自动收藏
+// 不产生新8
+//
+// → 允许
 // ============================================================
 
 export function canReduceCells(
@@ -161,7 +578,6 @@ export function canReduceCells(
     state.gameOver
   ){
 
-
     return false;
 
   }
@@ -169,10 +585,8 @@ export function canReduceCells(
 
 
   if(
-    indexA ===
-    indexB
+    indexA === indexB
   ){
-
 
     return false;
 
@@ -180,7 +594,7 @@ export function canReduceCells(
 
 
 
-  const a =
+  const first =
 
     getPieceAt(
       state,
@@ -188,7 +602,7 @@ export function canReduceCells(
     );
 
 
-  const b =
+  const second =
 
     getPieceAt(
       state,
@@ -198,10 +612,26 @@ export function canReduceCells(
 
 
   if(
-    !a ||
-    !b
+    !first ||
+    !second
   ){
 
+    return false;
+
+  }
+
+
+
+  // ==========================================================
+  // 正常新棋盘不会存在1。
+  //
+  // 仍然保护旧状态。
+  // ==========================================================
+
+  if(
+    first.value === 1 ||
+    second.value === 1
+  ){
 
     return false;
 
@@ -210,10 +640,11 @@ export function canReduceCells(
 
 
   if(
-    a.value === 1 ||
-    b.value === 1
+    !canReduce(
+      first,
+      second
+    )
   ){
-
 
     return false;
 
@@ -221,10 +652,44 @@ export function canReduceCells(
 
 
 
-  return canReduce(
-    a,
-    b
-  );
+  const plan =
+
+    getReducePlan(
+      state,
+      first,
+      second
+    );
+
+
+
+  if(
+    !plan
+  ){
+
+    return false;
+
+  }
+
+
+
+  // ==========================================================
+  // 唯一真正的容量判断：
+  //
+  // 约分完成后的空间
+  // 是否容得下析出物。
+  // ==========================================================
+
+  if(
+    !plan.canFitExtract
+  ){
+
+    return false;
+
+  }
+
+
+
+  return true;
 
 }
 
@@ -248,7 +713,6 @@ export function combineCells(
     state.gameOver
   ){
 
-
     return state;
 
   }
@@ -262,7 +726,6 @@ export function combineCells(
       indexB
     )
   ){
-
 
     return state;
 
@@ -282,14 +745,13 @@ export function combineCells(
     targetIndex === -1
   ){
 
-
     return state;
 
   }
 
 
 
-  const a =
+  const first =
 
     getPieceAt(
       state,
@@ -297,7 +759,7 @@ export function combineCells(
     );
 
 
-  const b =
+  const second =
 
     getPieceAt(
       state,
@@ -309,23 +771,18 @@ export function combineCells(
   const orderedPair =
 
     getOrderedPair(
-
       state,
-
       indexA,
-
       indexB
-
     );
 
 
 
   if(
-    !a ||
-    !b ||
+    !first ||
+    !second ||
     !orderedPair
   ){
-
 
     return state;
 
@@ -341,30 +798,20 @@ export function combineCells(
 
 
 
-
-
   const result =
 
     combineValue(
-
       front.value,
-
       back.value
-
     );
-
-
 
 
 
   const foodType =
 
     combineFoodType(
-
       front,
-
       back
-
     );
 
 
@@ -373,54 +820,40 @@ export function combineCells(
     !foodType
   ){
 
-
     return state;
 
   }
 
 
 
-
-
   const purity =
 
     combineFoodPurity(
-
       front,
-
       back
-
     );
-
-
 
 
 
   const newPiece = {
 
-
     id:
       state.nextId,
-
 
     value:
       result,
 
-
     foodType,
-
 
     purity,
 
-
     parents: [
 
-      a.value,
+      first.value,
 
-      b.value
+      second.value
 
     ],
-
 
     parentFoods: [
 
@@ -433,8 +866,7 @@ export function combineCells(
           front.foodType,
 
         purity:
-          front.purity
-          ?? null
+          front.purity ?? null
 
       },
 
@@ -447,36 +879,26 @@ export function combineCells(
           back.foodType,
 
         purity:
-          back.purity
-          ?? null
+          back.purity ?? null
 
       }
 
     ],
 
-
     origin:
 
       createCombineOrigin(
-
         result,
-
         front,
-
         back
-
       )
 
   };
 
 
 
-
-
   const nextBoard = [
-
     ...state.board
-
   ];
 
 
@@ -521,69 +943,41 @@ export function combineCells(
 // ============================================================
 // 约分
 //
-// 基础规则：
-//
-// 约分：
-//
-// - 改变 value
-// - 默认不改变 foodType
-// - 默认不改变 purity
-// - 清除当前这一代的组合父母
-//
-//
 // ============================================================
-// 甜食系变种规则
+// 新核心：1不再进入棋盘
 // ============================================================
 //
-// 如果：
+// 任何一边约分结果 === 1：
 //
-// 普通食物 + 甜食
-//
-// 进行约分，
-//
-// 并且甜食这一侧约分后的结果 === 1，
-//
-// 那么另一侧普通食物发生一次三角变种：
-//
-// 荤
-// ↓
-// 素
-// ↓
-// 调料
-// ↓
-// 荤
-//
+// 1. 创建临时的1节点
+// 2. origin 仍然记录 reduce
+// 3. 调用 applyCollection()
+// 4. 不把1写入 board
+// 5. 原格立即变成空格
 //
 // ------------------------------------------------------------
 //
 // 例如：
 //
-// 荤14 + 甜食7
+// 素4 → 1
 //
-// ÷7
+// 实际内部会瞬间创建：
 //
-// → 荤2 + 甜食1
+// {
+//   value: 1,
+//   foodType: "vegetable",
+//   origin: {
+//     type: "reduce",
+//     parent: 素4
+//   }
+// }
 //
-// 甜食变成1，因此：
+// applyCollection()
+// ↓
 //
-// 荤2 → 素2
+// 收藏「4素」
 //
-//
-// 最终：
-//
-// 素2 + 甜食1
-//
-//
-// ------------------------------------------------------------
-//
-// 当前 V1：
-//
-// - 不检测是否灭绝
-// - 不随机
-// - 不允许玩家选择
-// - 不改变数字
-// - 不改变 purity
-// - 甜食 + 甜食 不触发变种
+// 然后这个临时节点消失。
 // ============================================================
 
 export function reduceCells(
@@ -598,7 +992,6 @@ export function reduceCells(
     state.gameOver
   ){
 
-
     return state;
 
   }
@@ -612,7 +1005,6 @@ export function reduceCells(
       indexB
     )
   ){
-
 
     return state;
 
@@ -642,6 +1034,25 @@ export function reduceCells(
     !second
   ){
 
+    return state;
+
+  }
+
+
+
+  const plan =
+
+    getReducePlan(
+      state,
+      first,
+      second
+    );
+
+
+
+  if(
+    !plan
+  ){
 
     return state;
 
@@ -649,55 +1060,31 @@ export function reduceCells(
 
 
 
-  const divisor =
+  const {
 
-    gcd(
+    divisor,
 
-      first.value,
+    firstResult,
 
-      second.value
+    secondResult,
 
-    );
+    shouldExtract
 
-
-
-  const firstResult =
-
-    first.value /
-    divisor;
-
-
-
-  const secondResult =
-
-    second.value /
-    divisor;
+  } = plan;
 
 
 
 
 
   // ==========================================================
-  // 先记录约分来源
-  //
-  // 注意：
-  //
-  // origin 保存的是“变种之前”的真实父节点。
-  //
-  // 这样以后仍然可以知道：
-  //
-  // 这个素2原本其实是荤14，
-  // 因为甜食系约分而发生了变种。
+  // 先记录两边自己的约分来源
   // ==========================================================
 
   const firstOrigin =
 
     createReduceOrigin(
-
       firstResult,
-
       first
-
     );
 
 
@@ -705,11 +1092,8 @@ export function reduceCells(
   const secondOrigin =
 
     createReduceOrigin(
-
       secondResult,
-
       second
-
     );
 
 
@@ -717,9 +1101,7 @@ export function reduceCells(
 
 
   // ==========================================================
-  // 默认 foodType
-  //
-  // 普通约分保持原类型。
+  // 默认类型保持不变
   // ==========================================================
 
   let firstFoodType =
@@ -734,24 +1116,19 @@ export function reduceCells(
 
 
   // ==========================================================
-  // 情况 A
+  // 甜食特殊变种 A
   //
-  // first 是甜食
-  // second 是普通食物
+  // first 是甜食，
+  // 并且 first 约成1。
   //
-  // 如果 firstResult === 1：
-  //
-  // second 发生变种。
+  // → second 发生变种。
   // ==========================================================
 
   if(
     first.foodType ===
-    FOOD_TYPES.DESSERT
-
+      FOOD_TYPES.DESSERT
     &&
-
-    firstResult ===
-    1
+    firstResult === 1
   ){
 
 
@@ -767,7 +1144,6 @@ export function reduceCells(
       mutatedType
     ){
 
-
       secondFoodType =
         mutatedType;
 
@@ -780,24 +1156,19 @@ export function reduceCells(
 
 
   // ==========================================================
-  // 情况 B
+  // 甜食特殊变种 B
   //
-  // second 是甜食
-  // first 是普通食物
+  // second 是甜食，
+  // 并且 second 约成1。
   //
-  // 如果 secondResult === 1：
-  //
-  // first 发生变种。
+  // → first 发生变种。
   // ==========================================================
 
   if(
     second.foodType ===
-    FOOD_TYPES.DESSERT
-
+      FOOD_TYPES.DESSERT
     &&
-
-    secondResult ===
-    1
+    secondResult === 1
   ){
 
 
@@ -813,7 +1184,6 @@ export function reduceCells(
       mutatedType
     ){
 
-
       firstFoodType =
         mutatedType;
 
@@ -826,20 +1196,19 @@ export function reduceCells(
 
 
   // ==========================================================
-  // 更新棋盘
+  // 创建两边约分后的临时节点
+  //
+  // 即使结果为1，也先创建。
+  //
+  // 因为收藏系统需要通过：
+  //
+  // piece.value === 1
+  // piece.origin.type === "reduce"
+  //
+  // 找回约分前的数字。
   // ==========================================================
 
-  const nextBoard = [
-
-    ...state.board
-
-  ];
-
-
-
-  nextBoard[
-    indexA
-  ] = {
+  const firstReducedPiece = {
 
     ...first,
 
@@ -848,12 +1217,6 @@ export function reduceCells(
 
     foodType:
       firstFoodType,
-
-    // ========================================================
-    // 当前 V1：
-    //
-    // 甜食变种不改变 purity。
-    // ========================================================
 
     purity:
       first.purity,
@@ -871,9 +1234,7 @@ export function reduceCells(
 
 
 
-  nextBoard[
-    indexB
-  ] = {
+  const secondReducedPiece = {
 
     ...second,
 
@@ -901,6 +1262,54 @@ export function reduceCells(
 
 
 
+  // ==========================================================
+  // 第一阶段：
+  //
+  // 更新棋盘上的两个原位置。
+  //
+  // 如果结果 === 1：
+  //
+  // → 直接写 null
+  //
+  // 1永远不真正进入 board。
+  // ==========================================================
+
+  const nextBoard = [
+    ...state.board
+  ];
+
+
+
+  nextBoard[
+    indexA
+  ] =
+
+    firstResult === 1
+
+      ? null
+
+      : firstReducedPiece;
+
+
+
+  nextBoard[
+    indexB
+  ] =
+
+    secondResult === 1
+
+      ? null
+
+      : secondReducedPiece;
+
+
+
+
+
+  // ==========================================================
+  // 先建立基础 nextState
+  // ==========================================================
+
   let nextState = {
 
     ...state,
@@ -911,6 +1320,233 @@ export function reduceCells(
   };
 
 
+
+
+
+  // ==========================================================
+  // 第二阶段：
+  //
+  // 自动收藏 first 的1
+  // ==========================================================
+
+  if(
+    firstResult === 1
+  ){
+
+
+    nextState =
+
+      applyCollection(
+
+        nextState,
+
+        firstReducedPiece
+
+      );
+
+  }
+
+
+
+
+
+  // ==========================================================
+  // 自动收藏 second 的1
+  //
+  // 必须使用 first 收藏后的 nextState，
+  // 这样如果两边同时收藏，
+  // 两次收藏都不会丢失。
+  // ==========================================================
+
+  if(
+    secondResult === 1
+  ){
+
+
+    nextState =
+
+      applyCollection(
+
+        nextState,
+
+        secondReducedPiece
+
+      );
+
+  }
+
+
+
+
+
+  // ==========================================================
+  // 第三阶段：
+  //
+  // 析出 gcd 新卡。
+  //
+  // 注意：
+  //
+  // 此时结果为1的格子已经是 null。
+  //
+  // 所以即使原来是满盘，
+  // getNextEmptyIndex() 也能找到
+  // 刚刚自动释放出来的位置。
+  // ==========================================================
+
+  let nextId =
+    state.nextId;
+
+
+
+  if(
+    shouldExtract
+  ){
+
+
+    const extractFoodType =
+
+      getReduceExtractFoodType(
+        first,
+        second
+      );
+
+
+
+    if(
+      !extractFoodType
+    ){
+
+      return state;
+
+    }
+
+
+
+    const extractPurity =
+
+      getReduceExtractPurity(
+        first,
+        second
+      );
+
+
+
+    const extractTargetIndex =
+
+      getNextEmptyIndex(
+        nextState.board
+      );
+
+
+
+    // ========================================================
+    // 按照 canReduceCells 的规则，
+    // 理论上一定有空间。
+    //
+    // 再做一次安全保护。
+    // ========================================================
+
+    if(
+      extractTargetIndex === -1
+    ){
+
+      return state;
+
+    }
+
+
+
+    const extractedPiece = {
+
+      id:
+        state.nextId,
+
+      value:
+        divisor,
+
+      foodType:
+        extractFoodType,
+
+      purity:
+        extractPurity,
+
+      parents:
+        null,
+
+      parentFoods:
+        null,
+
+      origin:
+
+        createReduceExtractOrigin(
+          divisor,
+          first,
+          second
+        )
+
+    };
+
+
+
+    const boardWithExtract = [
+      ...nextState.board
+    ];
+
+
+
+    boardWithExtract[
+      extractTargetIndex
+    ] =
+      extractedPiece;
+
+
+
+    nextState = {
+
+      ...nextState,
+
+      board:
+        boardWithExtract
+
+    };
+
+
+
+    nextId =
+      state.nextId + 1;
+
+  }
+
+
+
+
+
+  // ==========================================================
+  // 写入 nextId
+  // ==========================================================
+
+  nextState = {
+
+    ...nextState,
+
+    nextId
+
+  };
+
+
+
+
+
+  // ==========================================================
+  // 玩家只执行了一次“约分”动作，
+  //
+  // 即使内部：
+  //
+  // - 自动收藏1次或2次
+  // - 析出一个 gcd
+  //
+  // 仍然只消耗1步。
+  // ==========================================================
 
   nextState =
 
@@ -929,23 +1565,16 @@ export function reduceCells(
 
 
 // ============================================================
-// 处理1
+// 旧版手动处理1
 //
-// 收藏逻辑交给 collectionRules。
+// 新核心已经不再使用。
 //
-// 普通三系1：
+// 保留这个函数只为了：
 //
-// meat
-// vegetable
-// seasoning
+// - 热更新时旧棋盘兼容
+// - 旧模块 import 不立即报错
 //
-// → 正常进入三槽收藏。
-//
-//
-// dessert 1：
-//
-// → collectionRules 会自动忽略。
-// → 删除棋子。
+// 新游戏正常流程中不会再产生可点击的1。
 // ============================================================
 
 export function removeOne(
@@ -958,7 +1587,6 @@ export function removeOne(
     !state ||
     state.gameOver
   ){
-
 
     return state;
 
@@ -980,7 +1608,6 @@ export function removeOne(
     target.value !== 1
   ){
 
-
     return state;
 
   }
@@ -990,19 +1617,14 @@ export function removeOne(
   let nextState =
 
     applyCollection(
-
       state,
-
       target
-
     );
 
 
 
   const nextBoard = [
-
     ...nextState.board
-
   ];
 
 
@@ -1046,7 +1668,6 @@ export function getLegalCombineActions(
     )
   ){
 
-
     return [];
 
   }
@@ -1069,7 +1690,6 @@ export function getLegalCombineActions(
       !state.board[i]
     ){
 
-
       continue;
 
     }
@@ -1086,7 +1706,6 @@ export function getLegalCombineActions(
       if(
         !state.board[j]
       ){
-
 
         continue;
 
@@ -1133,6 +1752,12 @@ export function getLegalCombineActions(
 
 // ============================================================
 // 所有合法约分
+//
+// 新版 canReduceCells 已经自动考虑：
+//
+// - 当前空格
+// - 约成1后释放的空格
+// - gcd 新卡需要的空间
 // ============================================================
 
 export function getLegalReduceActions(
@@ -1144,7 +1769,6 @@ export function getLegalReduceActions(
     !state ||
     state.gameOver
   ){
-
 
     return [];
 
@@ -1168,7 +1792,6 @@ export function getLegalReduceActions(
       !state.board[i]
     ){
 
-
       continue;
 
     }
@@ -1185,7 +1808,6 @@ export function getLegalReduceActions(
       if(
         !state.board[j]
       ){
-
 
         continue;
 
@@ -1231,7 +1853,11 @@ export function getLegalReduceActions(
 
 
 // ============================================================
-// 所有可消除1
+// 手动消除1
+//
+// 新核心正式关闭。
+//
+// 正常运行时永远返回空数组。
 // ============================================================
 
 export function getLegalRemoveActions(
@@ -1239,51 +1865,7 @@ export function getLegalRemoveActions(
 ){
 
 
-  if(
-    !state ||
-    state.gameOver
-  ){
-
-
-    return [];
-
-  }
-
-
-
-  const actions =
-    [];
-
-
-
-  for(
-    let index = 0;
-    index < BOARD_CONFIG.SIZE;
-    index++
-  ){
-
-
-    if(
-      state.board[index]?.value === 1
-    ){
-
-
-      actions.push({
-
-        type:
-          "remove",
-
-        index
-
-      });
-
-    }
-
-  }
-
-
-
-  return actions;
+  return [];
 
 }
 
@@ -1293,6 +1875,13 @@ export function getLegalRemoveActions(
 
 // ============================================================
 // 所有合法动作
+//
+// 新核心只有：
+//
+// combine
+// reduce
+//
+// 不再存在正式的 remove 动作。
 // ============================================================
 
 export function getLegalActions(
@@ -1304,7 +1893,6 @@ export function getLegalActions(
     !state ||
     state.gameOver
   ){
-
 
     return [];
 
@@ -1319,10 +1907,6 @@ export function getLegalActions(
     ),
 
     ...getLegalReduceActions(
-      state
-    ),
-
-    ...getLegalRemoveActions(
       state
     )
 

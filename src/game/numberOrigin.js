@@ -32,7 +32,7 @@
 //
 //
 //
-// 3. 约分
+// 3. 普通约分
 //
 //    A → B
 //
@@ -43,7 +43,35 @@
 //
 //
 //
-// 4. 玩家默认只查看一条主线
+// 4. 公约数提取
+//
+//    A / B
+//
+//    gcd = G
+//
+//    如果 A !== B：
+//
+//    A → A/G
+//    B → B/G
+//
+//    同时额外产生：
+//
+//    G
+//
+//    G 的 origin:
+//
+//    type = "reduceExtract"
+//
+//    并完整保存：
+//
+//    A
+//    B
+//
+//    两边的历史。
+//
+//
+//
+// 5. 玩家默认只查看一条主线
 //
 //    例如：
 //
@@ -56,14 +84,14 @@
 //
 //
 //
-// 5. 完整父母树仍然保留
+// 6. 完整父母树仍然保留
 //
 //    当前 UI 暂时不显示完整树，
 //    但底层数据继续保存。
 //
 //
 //
-// 6. 每一个历史节点同时保存：
+// 7. 每一个历史节点同时保存：
 //
 //    value
 //    foodType
@@ -94,17 +122,6 @@
 //
 // 防止之后数字继续变化时
 // 影响已经记录的旧历史。
-//
-//
-// 例如：
-//
-// {
-//   value: 40,
-//   foodType: "meat",
-//   purity: "mixed",
-//   origin: ...
-// }
-//
 // ============================================================
 
 export function createOriginSnapshot(
@@ -177,20 +194,6 @@ export function createOriginSnapshot(
 // 38 ⇐ 20
 //
 // 18 仍然完整保存在 parents 中。
-//
-//
-// ------------------------------------------------------------
-// 类型 / 纯度
-//
-// father 和 otherParent 的快照
-// 都会完整保存：
-//
-// value
-// foodType
-// purity
-// origin
-//
-// 因此以后可以恢复完整食物族谱。
 // ============================================================
 
 export function createCombineOrigin(
@@ -226,21 +229,6 @@ export function createCombineOrigin(
       resultValue,
 
 
-    // ========================================================
-    // 完整父母
-    //
-    // 【底层保留】
-    //
-    // 保存双方：
-    //
-    // value
-    // foodType
-    // purity
-    // origin
-    //
-    // 当前简化 UI 暂时不全部展示。
-    // ========================================================
-
     parents: [
 
       fatherSnapshot,
@@ -249,12 +237,6 @@ export function createCombineOrigin(
 
     ],
 
-
-    // ========================================================
-    // 父系
-    //
-    // 当前玩家主路径只追这一边。
-    // ========================================================
 
     mainParent:
       fatherSnapshot
@@ -268,7 +250,7 @@ export function createCombineOrigin(
 
 
 // ============================================================
-// 创建约分来源
+// 创建普通约分来源
 //
 // resultValue：
 // 约分后的数字
@@ -287,26 +269,7 @@ export function createCombineOrigin(
 // 19 ← 38
 //
 // 参与约分的另一边数字
-// 不进入 19 的来源。
-//
-//
-// ------------------------------------------------------------
-// 类型 / 纯度
-//
-// previousNumber 的：
-//
-// foodType
-// purity
-//
-// 都会一起进入历史快照。
-//
-// 因此：
-//
-// 半纯荤38
-// ↓约分
-// 半纯荤19
-//
-// 历史仍然知道 38 也是半纯荤。
+// 不进入 19 自己的主路径。
 // ============================================================
 
 export function createReduceOrigin(
@@ -330,6 +293,126 @@ export function createReduceOrigin(
       createOriginSnapshot(
         previousNumber
       )
+
+  };
+
+}
+
+
+
+
+
+// ============================================================
+// 创建公约数提取来源
+//
+// resultValue：
+// 被提取出的最大公约数
+//
+// firstNumber：
+// 参与约分的第一个数字
+//
+// secondNumber：
+// 参与约分的第二个数字
+//
+// ------------------------------------------------------------
+//
+// 例如：
+//
+// 荤12 + 素18
+//
+// gcd = 6
+//
+// → 荤2
+// → 素3
+// → 调料6
+//
+//
+// 调料6的来源：
+//
+// {
+//   type: "reduceExtract",
+//   value: 6,
+//   parents: [
+//     荤12完整快照,
+//     素18完整快照
+//   ],
+//   mainParent: 荤12完整快照
+// }
+//
+// ------------------------------------------------------------
+//
+// reduceExtract 与普通 reduce 完全不同。
+//
+// 普通 reduce：
+//
+// 12 → 2
+//
+// 只描述一个数字自己的变化。
+//
+//
+// reduceExtract：
+//
+// 12 / 18 → 提取6
+//
+// 描述两个数字共同拥有的结构。
+// ============================================================
+
+export function createReduceExtractOrigin(
+  resultValue,
+  firstNumber,
+  secondNumber
+){
+
+
+  const firstSnapshot =
+
+    createOriginSnapshot(
+      firstNumber
+    );
+
+
+
+  const secondSnapshot =
+
+    createOriginSnapshot(
+      secondNumber
+    );
+
+
+
+  return {
+
+    type:
+      "reduceExtract",
+
+
+    value:
+      resultValue,
+
+
+    // ========================================================
+    // 完整双方来源
+    // ========================================================
+
+    parents: [
+
+      firstSnapshot,
+
+      secondSnapshot
+
+    ],
+
+
+    // ========================================================
+    // 默认主线
+    //
+    // 暂时沿用第一方。
+    //
+    // 完整来源仍然保存在 parents。
+    // ========================================================
+
+    mainParent:
+      firstSnapshot
 
   };
 
@@ -391,10 +474,6 @@ export function cloneOrigin(
 
 
 
-    // ========================================================
-    // 父系也必须复制
-    // ========================================================
-
     const mainParent =
 
       origin.mainParent
@@ -433,7 +512,7 @@ export function cloneOrigin(
 
 
   // ==========================================================
-  // 约分
+  // 普通约分
   // ==========================================================
 
   if(
@@ -472,6 +551,76 @@ export function cloneOrigin(
 
 
 
+  // ==========================================================
+  // 公约数提取
+  // ==========================================================
+
+  if(
+    origin.type ===
+    "reduceExtract"
+  ){
+
+
+    const parents =
+
+      Array.isArray(
+        origin.parents
+      )
+
+        ?
+
+        origin.parents.map(
+
+          parent =>
+            cloneRecord(
+              parent
+            )
+
+        )
+
+        :
+
+        [];
+
+
+
+    const mainParent =
+
+      origin.mainParent
+
+        ?
+
+        cloneRecord(
+          origin.mainParent
+        )
+
+        :
+
+        parents[0] ?? null;
+
+
+
+    return {
+
+      type:
+        "reduceExtract",
+
+
+      value:
+        origin.value,
+
+
+      parents,
+
+
+      mainParent
+
+    };
+
+  }
+
+
+
   return null;
 
 }
@@ -483,7 +632,7 @@ export function cloneOrigin(
 // ============================================================
 // 深复制一个来源记录
 //
-// 每一个来源记录现在保存：
+// 每一个来源记录保存：
 //
 // value
 // foodType
@@ -538,16 +687,6 @@ function cloneRecord(
 // 获取某个数字完整来源记录
 //
 // 【完整来源树接口】
-//
-// 当前简化 UI 暂时不直接使用。
-//
-// 未来完整族谱 / 高级详情
-// 可以直接通过这里读取：
-//
-// value
-// foodType
-// purity
-// origin
 // ============================================================
 
 export function getNumberOriginRecord(
@@ -568,85 +707,18 @@ export function getNumberOriginRecord(
 // ============================================================
 // 获取父系主路径
 //
-// 【当前 CollectionPanel 主要使用的数据来源】
+// 当前支持：
 //
-// ------------------------------------------------------------
-//
-// 返回：
-//
-// [
-//   {
-//     value: 19,
-//     foodType: "meat",
-//     purity: "mixed",
-//     fromType: "reduce"
-//   },
-//
-//   {
-//     value: 38,
-//     foodType: "meat",
-//     purity: "mixed",
-//     fromType: "combine"
-//   },
-//
-//   {
-//     value: 20,
-//     foodType: "vegetable",
-//     purity: "pure",
-//     fromType: null
-//   }
-// ]
-//
+// combine
+// reduce
+// reduceExtract
 //
 // ------------------------------------------------------------
 //
 // fromType 含义：
 //
-// 当前这个数字
-// 是通过什么方式从“下一个历史数字”变来的。
-//
-//
-// ------------------------------------------------------------
-//
-// 例如：
-//
-// 38 → 19
-//
-// 19：
-//
-// {
-//   value: 19,
-//   foodType: "meat",
-//   purity: "mixed",
-//   fromType: "reduce"
-// }
-//
-// UI 未来可以显示：
-//
-// 半纯荤19 ← 半纯荤38
-//
-//
-// ------------------------------------------------------------
-//
-// 如果：
-//
-// 20 + 18 = 38
-//
-// 且 20 是父系：
-//
-// 38：
-//
-// {
-//   value: 38,
-//   foodType: "meat",
-//   purity: "mixed",
-//   fromType: "combine"
-// }
-//
-// UI 未来可以显示：
-//
-// 半纯荤38 ⇐ 纯素20
-//
+// 当前数字是通过什么方式
+// 从后面的历史来源产生的。
 // ============================================================
 
 export function getMainLineage(
@@ -718,7 +790,7 @@ export function getMainLineage(
 
 
     // ========================================================
-    // 约分
+    // 普通约分
     // ========================================================
 
     if(
@@ -800,7 +872,48 @@ export function getMainLineage(
 
 
     // ========================================================
-    // 未知来源类型保护
+    // 公约数提取
+    // ========================================================
+
+    if(
+      origin.type ===
+      "reduceExtract"
+    ){
+
+
+      lineage.push({
+
+        value:
+          current.value,
+
+
+        foodType:
+          current.foodType ?? null,
+
+
+        purity:
+          current.purity ?? null,
+
+
+        fromType:
+          "reduceExtract"
+
+      });
+
+
+
+      current =
+        origin.mainParent;
+
+
+      continue;
+
+    }
+
+
+
+    // ========================================================
+    // 未知来源保护
     // ========================================================
 
     lineage.push({
@@ -842,16 +955,6 @@ export function getMainLineage(
 //
 // 【当前简化 UI 暂时不用】
 // 【保留，不要删除】
-//
-// 未来如果要查看完整族谱，
-// 可以从这里取得双方来源。
-//
-// 每个 parent 都包含：
-//
-// value
-// foodType
-// purity
-// origin
 // ============================================================
 
 export function getCombineParents(
@@ -862,6 +965,51 @@ export function getCombineParents(
   if(
     !record?.origin ||
     record.origin.type !== "combine"
+  ){
+
+    return [];
+
+  }
+
+
+
+  return (
+    record.origin.parents ?? []
+  );
+
+}
+
+
+
+
+
+// ============================================================
+// 获取公约数提取的双方来源
+//
+// 例如：
+//
+// 调料6
+//
+// 来源：
+//
+// 荤12 / 素18
+//
+// 返回：
+//
+// [
+//   荤12完整快照,
+//   素18完整快照
+// ]
+// ============================================================
+
+export function getReduceExtractParents(
+  record
+){
+
+
+  if(
+    !record?.origin ||
+    record.origin.type !== "reduceExtract"
   ){
 
     return [];

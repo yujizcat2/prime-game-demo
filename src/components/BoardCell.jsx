@@ -129,7 +129,87 @@ export default function BoardCell({
     reducePreview !== null;
 
 
+
+
+
+  // ==========================================================
+  // 新版约分预览
+  // ==========================================================
+
+  const reduceResultValue =
+
+    reducePreview?.value
+
+    ?? null;
+
+
+
+  const autoCollectPreview =
+
+    reducePreview?.autoCollect ===
+    true;
+
+
+
+  // ==========================================================
+  // 自动获得的收藏物
+  //
+  // 例如：
+  //
+  // 16 / 4
+  //
+  // 4 → 1
+  //
+  // UI 不展示1，
+  // 而是直接展示：
+  //
+  // GET!
+  // 对应料理
+  // ×1
+  // ==========================================================
+
+  const autoCollectValue =
+
+    reducePreview?.collectValue
+
+    ??
+
+    value;
+
+
+
+  const autoCollectFoodType =
+
+    reducePreview?.foodType
+
+    ??
+
+    foodType;
+
+
+
+  const autoCollectFoodName =
+
+    autoCollectPreview
+
+      ?
+
+        getFoodName(
+
+          autoCollectValue,
+
+          autoCollectFoodType
+
+        )
+
+      :
+
+        null;
+
+
+
   const prime =
+
     isPrime(
       value
     );
@@ -243,16 +323,6 @@ export default function BoardCell({
 
   // ==========================================================
   // 即将变成的目标类型 class
-  //
-  // 例：
-  //
-  // 当前荤：
-  // board-piece--meat
-  //
-  // 即将变素：
-  // board-piece--mutation-to-vegetable
-  //
-  // CSS 会强制目标颜色覆盖当前颜色。
   // ==========================================================
 
   const mutationTargetTypeClass =
@@ -356,19 +426,22 @@ export default function BoardCell({
 
 
   // ==========================================================
-  // 约分后的食物名称
+  // 普通约分后的名称
   // ==========================================================
 
   const reduceFoodName =
 
-    reducing &&
-    reducePreview !== 1
+    reducing
+    &&
+    !autoCollectPreview
+    &&
+    reduceResultValue !== null
 
       ?
 
         getFoodName(
 
-          reducePreview,
+          reduceResultValue,
 
           reduceResultFoodType
 
@@ -407,7 +480,6 @@ export default function BoardCell({
             if(
               !parent
             ){
-
 
               return null;
 
@@ -502,7 +574,7 @@ export default function BoardCell({
 
 
   // ==========================================================
-  // 水的直接来源
+  // 旧版水来源
   // ==========================================================
 
   const onePreviousRecord =
@@ -651,6 +723,12 @@ export default function BoardCell({
             ? "board-cell--mutation-dessert"
             : ""
         }
+
+        ${
+          autoCollectPreview
+            ? "board-cell--auto-collect-preview"
+            : ""
+        }
       `}
 
       data-index={
@@ -776,6 +854,15 @@ export default function BoardCell({
             }
 
             ${
+              autoCollectPreview &&
+              !removing
+
+                ? "board-piece--auto-collect-preview"
+
+                : ""
+            }
+
+            ${
               removing
 
                 ? "board-piece--remove"
@@ -884,11 +971,8 @@ export default function BoardCell({
                   board-piece-mutation-label
                 "
               >
-
                 变种
-
               </span>
-
 
 
               <strong
@@ -927,7 +1011,7 @@ export default function BoardCell({
               "
             >
 
-              甜食归1
+              自动处理
 
             </div>
 
@@ -1012,9 +1096,14 @@ export default function BoardCell({
 
 
 
+          {/* ==================================================
+              普通约分预览
+          ================================================== */}
+
           {
 
             reducing &&
+            !autoCollectPreview &&
             !removing &&
 
             <div
@@ -1030,17 +1119,9 @@ export default function BoardCell({
                 "
               >
 
-                {
-                  reducePreview ===
-                  1
-
-                    ? "水"
-
-                    : reduceFoodName
-                }
+                {reduceFoodName}
 
               </span>
-
 
 
               <span
@@ -1049,9 +1130,95 @@ export default function BoardCell({
                 "
               >
 
-                {reducePreview}
+                {reduceResultValue}
 
               </span>
+
+
+            </div>
+
+          }
+
+
+
+
+
+          {/* ==================================================
+              自动获得物品 Preview
+
+              不显示：
+              1
+              →
+              收藏
+
+              直接显示：
+
+              GET!
+              料理名
+              ×1
+          ================================================== */}
+
+          {
+
+            autoCollectPreview &&
+            !removing &&
+
+            <div
+              className="
+                board-piece-auto-collect-preview
+              "
+            >
+
+
+              <div
+                className="
+                  board-piece-auto-collect-reward
+                "
+              >
+
+
+                <span
+                  className="
+                    board-piece-auto-collect-get
+                  "
+                >
+
+                  GET!
+
+                </span>
+
+
+
+                <strong
+                  className="
+                    board-piece-auto-collect-reward-name
+                  "
+                >
+
+                  {
+                    autoCollectFoodName
+
+                    ??
+
+                    autoCollectValue
+                  }
+
+                </strong>
+
+
+
+                <span
+                  className="
+                    board-piece-auto-collect-count
+                  "
+                >
+
+                  ×1
+
+                </span>
+
+
+              </div>
 
 
             </div>

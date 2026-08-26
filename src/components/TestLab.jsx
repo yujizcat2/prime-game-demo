@@ -15,6 +15,8 @@ import "./TestLab.css";
 
 
 
+
+
 const TEST_MODES = {
 
   RANDOM:
@@ -30,6 +32,8 @@ const TEST_MODES = {
 
 
 
+
+
 const RANDOM_GAME_OPTIONS = [
 
   10,
@@ -41,12 +45,17 @@ const RANDOM_GAME_OPTIONS = [
 ];
 
 
+
+
+
 const SMART_GAME_OPTIONS = [
 
   1,
   10
 
 ];
+
+
 
 
 
@@ -59,11 +68,13 @@ const SMART_BEAM_WIDTH =
 
 
 const COLLECTION_MAX_ACTIONS =
-  3000;
+  1000;
 
 
 const SURVIVAL_MAX_ACTIONS =
   10000;
+
+
 
 
 
@@ -123,6 +134,8 @@ export default function TestLab({
 
 
 
+
+
   const isSmartMode =
 
     mode !==
@@ -142,6 +155,8 @@ export default function TestLab({
       ? SMART_GAME_OPTIONS
 
       : RANDOM_GAME_OPTIONS;
+
+
 
 
 
@@ -879,18 +894,49 @@ function ProgressPanel({
 
 
   const meat =
+
     progress.currentCollectionMeatCount
     ?? 0;
 
 
   const vegetable =
+
     progress.currentCollectionVegetableCount
     ?? 0;
 
 
   const seasoning =
+
     progress.currentCollectionSeasoningCount
     ?? 0;
+
+
+
+  const autoCollectionEvents =
+
+    progress.currentAutoCollectionEvents
+
+    ??
+
+    progress.currentRemoveActions
+
+    ??
+
+    0;
+
+
+
+  const repeatAutoCollections =
+
+    progress.currentRepeatAutoCollections
+
+    ??
+
+    progress.currentRepeatCollectionRemovals
+
+    ??
+
+    0;
 
 
 
@@ -976,6 +1022,26 @@ function ProgressPanel({
                   progress.currentCollectionImbalance
                   ?? 0
                 }
+
+              </div>
+
+
+
+              <div>
+
+                自动收藏{" "}
+
+                <strong>
+                  {formatNumber(autoCollectionEvents)}
+                </strong>
+
+                {" · "}
+
+                重复{" "}
+
+                <strong>
+                  {formatNumber(repeatAutoCollections)}
+                </strong>
 
               </div>
 
@@ -1155,6 +1221,48 @@ function ResultGrid({
 }){
 
 
+  const repeatAutoCollections =
+
+    result.totalRepeatAutoCollections
+
+    ??
+
+    result.totalRepeatCollectionRemovals
+
+    ??
+
+    0;
+
+
+
+  const averageRepeatAutoCollections =
+
+    result.averageRepeatAutoCollectionsPerCollection
+
+    ??
+
+    result.averageRepeatRemovalsPerCollection
+
+    ??
+
+    0;
+
+
+
+  const totalAutoCollectionEvents =
+
+    result.totalAutoCollectionEvents
+
+    ??
+
+    result.totalRemoveActions
+
+    ??
+
+    0;
+
+
+
   return (
 
     <div
@@ -1251,22 +1359,30 @@ function ResultGrid({
 
 
           <ResultItem
-            label="重复旧槽"
+            label="自动收藏总数"
             value={
               formatNumber(
-                result.totalRepeatCollectionRemovals
-                ?? 0
+                totalAutoCollectionEvents
               )
             }
           />
 
 
           <ResultItem
-            label="每新槽平均重复"
+            label="重复自动收藏"
+            value={
+              formatNumber(
+                repeatAutoCollections
+              )
+            }
+          />
+
+
+          <ResultItem
+            label="每新槽平均重复自动收藏"
             value={
               Number(
-                result.averageRepeatRemovalsPerCollection
-                ?? 0
+                averageRepeatAutoCollections
               ).toFixed(
                 2
               )
@@ -1391,6 +1507,34 @@ function BestGameCard({
 
 
 
+  const totalAutoCollectionEvents =
+
+    game.totalAutoCollectionEvents
+
+    ??
+
+    game.totalRemoveActions
+
+    ??
+
+    0;
+
+
+
+  const repeatAutoCollections =
+
+    game.repeatAutoCollections
+
+    ??
+
+    game.repeatCollectionRemovals
+
+    ??
+
+    0;
+
+
+
   return (
 
     <div
@@ -1458,6 +1602,44 @@ function BestGameCard({
         </strong>
 
       </div>
+
+
+
+      {
+
+        collectionMode &&
+
+        <div>
+
+          自动收藏：
+
+          {" "}
+
+          <strong>
+
+            {formatNumber(
+              totalAutoCollectionEvents
+            )}
+
+          </strong>
+
+          {" · "}
+
+          重复：
+
+          {" "}
+
+          <strong>
+
+            {formatNumber(
+              repeatAutoCollections
+            )}
+
+          </strong>
+
+        </div>
+
+      }
 
 
 
@@ -1757,6 +1939,20 @@ function CollectionTimelineItem({
 
 
 
+  const repeatAutoCollectionsSincePrevious =
+
+    entry.repeatAutoCollectionsSincePrevious
+
+    ??
+
+    entry.repeatRemovalsSincePrevious
+
+    ??
+
+    0;
+
+
+
   return (
 
     <div
@@ -1936,6 +2132,26 @@ function CollectionTimelineItem({
           }
 
 
+
+          {
+
+            repeatAutoCollectionsSincePrevious > 0 &&
+
+            <>
+
+              <br />
+
+              重复自动收藏{" "}
+
+              <strong>
+                {repeatAutoCollectionsSincePrevious}
+              </strong>
+
+            </>
+
+          }
+
+
         </span>
 
 
@@ -2052,7 +2268,7 @@ function CollectionRouteDetail({
         >
 
           <strong>
-            收藏槽：
+            收藏触发：
           </strong>
 
           {" "}
@@ -2098,38 +2314,65 @@ function CollectionRouteDetail({
 
               route.map(
 
-                item => (
-
-                  <div
-                    key={
-                      item.actionNumber
-                    }
-                  >
-
-                    {item.actionNumber}
-
-                    {" "}
-
-                    {item.text}
+                item => {
 
 
+                  const repeatAutoCollectionCount =
 
-                    {
+                    item.repeatAutoCollectionCount
 
-                      item.repeatCollectionRemoval &&
+                    ??
 
-                      <strong>
-
-                        {" [重复槽]"}
-
-                      </strong>
-
-                    }
+                    (
+                      item.repeatCollectionRemoval
+                        ? 1
+                        : 0
+                    );
 
 
-                  </div>
 
-                )
+                  return (
+
+                    <div
+                      key={
+                        item.actionNumber
+                      }
+                    >
+
+                      {item.actionNumber}
+
+                      {" "}
+
+                      {item.text}
+
+
+
+                      {
+
+                        repeatAutoCollectionCount > 0 &&
+
+                        <strong>
+
+                          {
+                            ` [重复自动收藏${
+                              repeatAutoCollectionCount > 1
+
+                                ? `×${repeatAutoCollectionCount}`
+
+                                : ""
+                            }]`
+                          }
+
+                        </strong>
+
+                      }
+
+
+                    </div>
+
+                  );
+
+                }
 
               )
 
@@ -2606,6 +2849,11 @@ function formatFoodType(
     case "seasoning":
 
       return "调料";
+
+
+    case "dessert":
+
+      return "甜食";
 
 
     default:
