@@ -402,6 +402,15 @@ export function createSimulationState(
     collectionFoodTypeHistory:
       [],
 
+    // Test-AI-only telemetry. Unlike collectionFoodTypeHistory this records
+    // every automatic collection, including repeats, so search can detect
+    // unproductive same-type loops without changing the game rules.
+    collectionEventHistory:
+      [],
+
+    repeatCollectionCount:
+      0,
+
 
 
 
@@ -1222,10 +1231,6 @@ function applyReduce(
     oldB /
     divisor;
 
-
-
-
-
   // ==========================================================
   // 默认类型保持
   // ==========================================================
@@ -1280,6 +1285,29 @@ function applyReduce(
 
     }
 
+  }
+
+
+
+
+  const collectionEvents = [];
+
+  if(firstResult === 1 && firstFoodType !== FOOD_TYPES.DESSERT){
+    const key = `${oldA}:${firstFoodType}`;
+    collectionEvents.push({
+      foodType: firstFoodType,
+      key,
+      repeated: state.collection.has(key)
+    });
+  }
+
+  if(secondResult === 1 && secondFoodType !== FOOD_TYPES.DESSERT){
+    const key = `${oldB}:${secondFoodType}`;
+    collectionEvents.push({
+      foodType: secondFoodType,
+      key,
+      repeated: state.collection.has(key)
+    });
   }
 
 
@@ -1412,6 +1440,16 @@ function applyReduce(
     ] = null;
 
   }
+
+  for(const event of collectionEvents){
+    state.collectionEventHistory.push(event);
+
+    if(event.repeated){
+      state.repeatCollectionCount++;
+    }
+  }
+
+  state.collectionEventHistory = state.collectionEventHistory.slice(-12);
 
 
 
@@ -1935,6 +1973,12 @@ export function cloneSimulationState(
           ?? []
         )
       ],
+
+    collectionEventHistory:
+      (state.collectionEventHistory ?? []).map(event => ({...event})),
+
+    repeatCollectionCount:
+      state.repeatCollectionCount ?? 0,
 
 
 

@@ -18,6 +18,11 @@ import {
   isCollectibleFoodType
 } from "../game/collectionRules";
 
+import {
+  FOOD_TYPES,
+  getDessertMutationFoodType
+} from "../game/rules";
+
 
 
 
@@ -448,6 +453,17 @@ function analyzeReduceAutoCollections(
     b.value /
     divisor;
 
+  let aFoodType = a.foodType;
+  let bFoodType = b.foodType;
+
+  if(a.foodType === FOOD_TYPES.DESSERT && nextA === 1){
+    bFoodType = getDessertMutationFoodType(b.foodType) ?? b.foodType;
+  }
+
+  if(b.foodType === FOOD_TYPES.DESSERT && nextB === 1){
+    aFoodType = getDessertMutationFoodType(a.foodType) ?? a.foodType;
+  }
+
 
 
   const events =
@@ -459,7 +475,7 @@ function analyzeReduceAutoCollections(
     nextA === 1
     &&
     isCollectibleFoodType(
-      a.foodType
+      aFoodType
     )
   ){
 
@@ -470,7 +486,7 @@ function analyzeReduceAutoCollections(
 
         a.value,
 
-        a.foodType
+        aFoodType
 
       );
 
@@ -487,7 +503,7 @@ function analyzeReduceAutoCollections(
           a.value,
 
         foodType:
-          a.foodType,
+          aFoodType,
 
         key,
 
@@ -509,7 +525,7 @@ function analyzeReduceAutoCollections(
     nextB === 1
     &&
     isCollectibleFoodType(
-      b.foodType
+      bFoodType
     )
   ){
 
@@ -520,7 +536,7 @@ function analyzeReduceAutoCollections(
 
         b.value,
 
-        b.foodType
+        bFoodType
 
       );
 
@@ -537,7 +553,7 @@ function analyzeReduceAutoCollections(
           b.value,
 
         foodType:
-          b.foodType,
+          bFoodType,
 
         key,
 
@@ -842,6 +858,9 @@ function analyzeCollectionPotential(
   let oneReduceAway =
     0;
 
+  let directRepeatCollection =
+    0;
+
 
 
   const unseenSlots =
@@ -978,6 +997,12 @@ function analyzeCollectionPotential(
 
       }
 
+      else {
+
+        directRepeatCollection++;
+
+      }
+
     }
 
 
@@ -1000,6 +1025,8 @@ function analyzeCollectionPotential(
     directNewCollection,
 
     oneReduceAway,
+
+    directRepeatCollection,
 
     unseenBoardValues:
       unseenSlots.size,
@@ -1717,33 +1744,121 @@ function scoreCollection(
 
 
 
+// ============================================================
+// Collection mode uses a lexicographic objective. This prevents a long route
+// of small repeat rewards from overtaking a route that actually adds a slot.
+// ============================================================
+
+function getRepeatedTypeStreak(state){
+
+  const history = state.collectionEventHistory ?? [];
+  const last = history[history.length - 1];
+
+  if(!last || !last.repeated){
+    return 0;
+  }
+
+  let length = 0;
+
+  for(let index = history.length - 1; index >= 0; index--){
+    const event = history[index];
+
+    if(!event.repeated || event.foodType !== last.foodType){
+      break;
+    }
+
+    length++;
+  }
+
+  return length;
+}
 
 
-function scoreState(
-  state,
-  mode
-){
 
+function getTypeScarcityGain(state, rootState){
 
-  return (
-
-    mode ===
-    SMART_AI_MODES.COLLECTION
-
-      ?
-
-        scoreCollection(
-          state
-        )
-
-      :
-
-        scoreSurvival(
-          state
-        )
-
+  const rootCounts = getGlobalTypeImbalance(rootState).counts;
+  const minimum = Math.min(
+    rootCounts.meat,
+    rootCounts.vegetable,
+    rootCounts.seasoning
   );
 
+  let gain = 0;
+
+  for(const key of state.collection){
+    if(rootState.collection.has(key)){
+      continue;
+    }
+
+    const slot = parseCollectionKey(key);
+
+    if(slot){
+      gain += Math.max(0, minimum + 1 - rootCounts[slot.foodType]);
+    }
+  }
+
+  return gain;
+}
+
+
+
+function createCollectionRank(state, rootState){
+
+  const info = analyzeState(state);
+  const potential = analyzeCollectionPotential(state, info);
+  const newSlots = state.collection.size - rootState.collection.size;
+  const alive = info.legalCount > 0 ? 1 : 0;
+  const repeatDelta =
+    (state.repeatCollectionCount ?? 0) -
+    (rootState.repeatCollectionCount ?? 0);
+
+  // A slot that immediately ends the route is not treated as progress over a
+  // living route that can still reach one. The raw gain remains the next key.
+  const sustainableNewSlots = Math.max(
+    0,
+    newSlots - (alive ? 0 : 1)
+  );
+
+  return [
+    sustainableNewSlots,
+    newSlots,
+    potential.directNewCollection,
+    potential.unseenReducibleValues,
+    potential.unseenBoardValues,
+    getTypeScarcityGain(state, rootState),
+    alive,
+    -repeatDelta,
+    -potential.directRepeatCollection,
+    -getRepeatedTypeStreak(state),
+    scoreCollection(state)
+  ];
+}
+
+
+
+function compareRanks(left, right){
+
+  const length = Math.max(left.length, right.length);
+
+  for(let index = 0; index < length; index++){
+    const difference = (right[index] ?? 0) - (left[index] ?? 0);
+
+    if(difference !== 0){
+      return difference;
+    }
+  }
+
+  return 0;
+}
+
+
+
+function createNodeScore(state, mode, rootState){
+
+  return mode === SMART_AI_MODES.COLLECTION
+    ? createCollectionRank(state, rootState)
+    : [scoreSurvival(state)];
 }
 
 
@@ -1866,9 +1981,10 @@ function chooseSmartAction(
 
       score:
 
-        scoreState(
+        createNodeScore(
           nextState,
-          mode
+          mode,
+          state
         )
 
     });
@@ -1895,8 +2011,7 @@ function chooseSmartAction(
       b
     ) =>
 
-      b.score -
-      a.score
+      compareRanks(a.score, b.score)
 
   );
 
@@ -2045,9 +2160,10 @@ function chooseSmartAction(
 
           score:
 
-            scoreState(
+            createNodeScore(
               nextState,
-              mode
+              mode,
+              state
             )
 
         });
@@ -2076,8 +2192,7 @@ function chooseSmartAction(
         b
       ) =>
 
-        b.score -
-        a.score
+        compareRanks(a.score, b.score)
 
     );
 
@@ -2101,8 +2216,7 @@ function chooseSmartAction(
       b
     ) =>
 
-      b.score -
-      a.score
+      compareRanks(a.score, b.score)
 
   );
 
@@ -2119,6 +2233,15 @@ function chooseSmartAction(
   );
 
 }
+
+
+
+export const collectionAITestUtils = {
+  analyzeReduceAutoCollections,
+  createCollectionRank,
+  compareRanks,
+  chooseSmartAction
+};
 
 
 
