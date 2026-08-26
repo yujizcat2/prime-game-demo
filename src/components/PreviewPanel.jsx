@@ -241,7 +241,14 @@ export default function PreviewPanel({
 
                 {
 
-                  preview.reduce
+                  (
+                    preview.reduce.results
+                    ?? preview.reduce
+                  )
+
+                    .map(
+                      item => item?.value ?? item
+                    )
 
                     .filter(
                       x => x !== 1

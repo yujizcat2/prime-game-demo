@@ -2,27 +2,22 @@ import {
   gcd
 } from "../utils/math";
 
-
 import {
   SCORE_CONFIG
 } from "../game/scoreConfig";
 
-
 import {
   FOOD_TYPES,
+  canReduce,
   getDessertMutationFoodType,
-  isNormalFoodType,
-  getReduceExtractFoodType
+  isNormalFoodType
 } from "../game/rules";
-
 
 import {
   getFoodName
 } from "../data/food/foodRegistry";
 
-
 import BoardCell from "./BoardCell";
-
 
 import "./Board.css";
 
@@ -57,10 +52,6 @@ export default function Board({
 }) {
 
 
-  // ==========================================================
-  // 固定九宫格
-  // ==========================================================
-
   const cells =
 
     Array.from(
@@ -84,10 +75,6 @@ export default function Board({
 
 
 
-  // ==========================================================
-  // 当前选择
-  // ==========================================================
-
   const selected =
 
     Array.isArray(
@@ -101,10 +88,6 @@ export default function Board({
 
 
 
-
-  // ==========================================================
-  // 当前选中的正式棋子
-  // ==========================================================
 
   const selectedCells =
 
@@ -138,57 +121,6 @@ export default function Board({
 
   // ==========================================================
   // 单选后的可约分候选
-  //
-  // 新核心：
-  //
-  // 不能再只判断：
-  //
-  // gcd > 1
-  //
-  //
-  // 还必须判断：
-  //
-  // 当前空格
-  // +
-  // 本次约成1自动收藏释放的格子
-  //
-  // 是否足够容纳析出的 gcd。
-  //
-  //
-  // ----------------------------------------------------------
-  //
-  // 满盘：
-  //
-  // 12 / 18
-  //
-  // → 2 / 3 + 6
-  //
-  // 没有自动释放
-  //
-  // → 不允许
-  //
-  //
-  // 满盘：
-  //
-  // 16 / 4
-  //
-  // → 4 / 1 + 4
-  //
-  // 1自动收藏释放1格
-  //
-  // → 允许
-  //
-  //
-  // 满盘：
-  //
-  // 8 / 8
-  //
-  // → 1 / 1
-  //
-  // 两格自动释放
-  // 不析出8
-  //
-  // → 允许
   // ==========================================================
 
   const reduceCandidateIndexes =
@@ -207,35 +139,6 @@ export default function Board({
 
     const selectedPiece =
       selectedEntry.piece;
-
-
-
-    // ========================================================
-    // 当前正式棋子数量
-    // ========================================================
-
-    const currentPieceCount =
-
-      cells.filter(
-        Boolean
-      ).length;
-
-
-
-    // ========================================================
-    // 当前真实空格
-    // ========================================================
-
-    const currentEmptyCount =
-
-      Math.max(
-
-        0,
-
-        9 -
-        currentPieceCount
-
-      );
 
 
 
@@ -268,12 +171,6 @@ export default function Board({
 
 
 
-        // ======================================================
-        // 新系统理论上不会出现正式1。
-        //
-        // 这里仅作为旧状态兼容保护。
-        // ======================================================
-
         if(
           piece.value === 1 ||
           selectedPiece.value === 1
@@ -285,183 +182,19 @@ export default function Board({
 
 
 
-        // ======================================================
-        // 最大公约数
-        // ======================================================
-
-        const divisor =
-
-          gcd(
-
-            selectedPiece.value,
-
-            piece.value
-
-          );
-
-
-
-        // ======================================================
-        // 数学上不可约
-        // ======================================================
-
         if(
-          divisor <= 1
-        ){
-
-          return;
-
-        }
-
-
-
-        // ======================================================
-        // 约分后的结果
-        // ======================================================
-
-        const firstResult =
-
-          selectedPiece.value /
-          divisor;
-
-
-
-        const secondResult =
-
-          piece.value /
-          divisor;
-
-
-
-        // ======================================================
-        // 本次会自动收藏几个1
-        //
-        // 一个结果变1
-        // → 自动收藏
-        // → 自动释放1格
-        // ======================================================
-
-        const autoCollectCount =
-
-          (
-            firstResult === 1
-
-              ? 1
-
-              : 0
+          canReduce(
+            selectedPiece,
+            piece
           )
-
-          +
-
-          (
-            secondResult === 1
-
-              ? 1
-
-              : 0
-          );
-
-
-
-        // ======================================================
-        // 是否会析出 gcd
-        //
-        // 普通三系 + 异值
-        // → 析出
-        //
-        // 同值
-        // → 不析出
-        //
-        // 甜食
-        // → 当前不析出
-        // ======================================================
-
-        let extractFoodType =
-          null;
-
-
-
-        if(
-          selectedPiece.value !==
-          piece.value
         ){
 
 
-          extractFoodType =
-
-            getReduceExtractFoodType(
-
-              selectedPiece,
-
-              piece
-
-            );
-
-        }
-
-
-
-        const extract =
-
-          Boolean(
-            extractFoodType
+          reduceCandidateIndexes.add(
+            index
           );
 
-
-
-        // ======================================================
-        // 析出物需要多少空间
-        // ======================================================
-
-        const requiredSpace =
-
-          extract
-
-            ? 1
-
-            : 0;
-
-
-
-        // ======================================================
-        // 本次真正可使用空间
-        //
-        // 当前空格
-        // +
-        // 自动收藏释放格
-        // ======================================================
-
-        const availableSpace =
-
-          currentEmptyCount +
-          autoCollectCount;
-
-
-
-        // ======================================================
-        // 空间不足
-        //
-        // 不标记为约分候选。
-        // ======================================================
-
-        if(
-          availableSpace <
-          requiredSpace
-        ){
-
-          return;
-
         }
-
-
-
-        // ======================================================
-        // 真正可约候选
-        // ======================================================
-
-        reduceCandidateIndexes.add(
-          index
-        );
 
       }
 
@@ -476,41 +209,31 @@ export default function Board({
   // ==========================================================
   // 双选约分 Preview
   //
-  // 新版不再由 Board 自己重新生成约分结果。
-  //
-  // 直接读取：
-  //
-  // useGame.preview.reduce.results
-  //
-  //
-  // 每边结构：
+  // reducePreviewMap
   //
   // {
-  //
-  //   value,
-  //
-  //   autoCollect,
-  //
-  //   collectValue,
-  //
-  //   foodType,
-  //
-  //   purity
-  //
+  //   [index]: resultValue
   // }
   //
   //
-  // 这样 BoardCell 才能知道：
+  // mutationPreviewMap
   //
-  // 普通：
+  // {
+  //   [index]: {
   //
-  // 16 → 4
+  //     triggered: true,
   //
+  //     role:
+  //       "target" | "dessert",
   //
-  // 特殊：
+  //     fromType,
+  //     toType,
   //
-  // 4 → 1
-  // → 自动收藏
+  //     resultValue
+  //
+  //   }
+  // }
+  //
   // ==========================================================
 
   const reducePreviewMap =
@@ -522,25 +245,8 @@ export default function Board({
 
 
 
-  const reducePreviewData =
-
-    preview?.reduce
-    ?? null;
-
-
-
   if(
     selectedCells.length === 2
-
-    &&
-
-    Array.isArray(
-      reducePreviewData?.results
-    )
-
-    &&
-
-    reducePreviewData.results.length === 2
   ){
 
 
@@ -552,33 +258,6 @@ export default function Board({
       selectedCells[1];
 
 
-
-    // ========================================================
-    // 直接映射 useGame 的新版 preview
-    // ========================================================
-
-    reducePreviewMap[
-      firstEntry.index
-    ] =
-      reducePreviewData.results[0];
-
-
-
-    reducePreviewMap[
-      secondEntry.index
-    ] =
-      reducePreviewData.results[1];
-
-
-
-
-
-    // ========================================================
-    // 甜食特殊变种 Preview
-    //
-    // 这一套旧规则继续保留。
-    // ========================================================
-
     const firstPiece =
       firstEntry.piece;
 
@@ -588,209 +267,256 @@ export default function Board({
 
 
 
-    const firstResult =
-
-      reducePreviewData
-        .results?.[0]
-        ?.value
-
-      ?? null;
-
-
-
-    const secondResult =
-
-      reducePreviewData
-        .results?.[1]
-        ?.value
-
-      ?? null;
-
-
-
-
-
-    // ========================================================
-    // 情况 A
-    //
-    // first = 甜食
-    // first → 1
-    //
-    // second 普通类型发生变种
-    // ========================================================
-
     if(
-      firstPiece?.foodType ===
-        FOOD_TYPES.DESSERT
-
-      &&
-
-      firstResult ===
-        1
-
-      &&
-
-      isNormalFoodType(
-        secondPiece?.foodType
-      )
+      firstPiece &&
+      secondPiece
     ){
 
 
-      const mutatedType =
+      const divisor =
 
-        getDessertMutationFoodType(
-          secondPiece.foodType
+        gcd(
+
+          firstPiece.value,
+
+          secondPiece.value
+
         );
 
 
 
       if(
-        mutatedType
+        divisor > 1
       ){
 
 
-        // ====================================================
-        // 甜食这一侧
-        // ====================================================
+        const firstResult =
 
-        mutationPreviewMap[
+          firstPiece.value /
+          divisor;
+
+
+
+        const secondResult =
+
+          secondPiece.value /
+          divisor;
+
+
+
+
+
+        reducePreviewMap[
           firstEntry.index
-        ] = {
-
-          triggered:
-            true,
-
-          role:
-            "dessert",
-
-          fromType:
-            FOOD_TYPES.DESSERT,
-
-          toType:
-            FOOD_TYPES.DESSERT,
-
-          resultValue:
-            firstResult
-
-        };
+        ] =
+          preview?.reduce?.results?.[0]
+          ?? {
+            value: firstResult,
+            autoCollect: firstResult === 1,
+            collectValue: firstResult === 1
+              ? firstPiece.value
+              : null,
+            foodType: firstPiece.foodType,
+            purity: firstPiece.purity ?? null
+          };
 
 
 
-        // ====================================================
-        // 普通食物这一侧
-        // ====================================================
-
-        mutationPreviewMap[
+        reducePreviewMap[
           secondEntry.index
-        ] = {
-
-          triggered:
-            true,
-
-          role:
-            "target",
-
-          fromType:
-            secondPiece.foodType,
-
-          toType:
-            mutatedType,
-
-          resultValue:
-            secondResult
-
-        };
-
-      }
-
-    }
+        ] =
+          preview?.reduce?.results?.[1]
+          ?? {
+            value: secondResult,
+            autoCollect: secondResult === 1,
+            collectValue: secondResult === 1
+              ? secondPiece.value
+              : null,
+            foodType: secondPiece.foodType,
+            purity: secondPiece.purity ?? null
+          };
 
 
 
 
 
-    // ========================================================
-    // 情况 B
-    //
-    // second = 甜食
-    // second → 1
-    //
-    // first 普通类型发生变种
-    // ========================================================
+        // ======================================================
+        // 情况 A
+        //
+        // first = 甜食
+        // firstResult = 1
+        //
+        // second 发生变种
+        // ======================================================
 
-    else if(
-      secondPiece?.foodType ===
-        FOOD_TYPES.DESSERT
+        if(
+          firstPiece.foodType ===
+          FOOD_TYPES.DESSERT
 
-      &&
+          &&
 
-      secondResult ===
-        1
+          firstResult ===
+          1
 
-      &&
+          &&
 
-      isNormalFoodType(
-        firstPiece?.foodType
-      )
-    ){
-
-
-      const mutatedType =
-
-        getDessertMutationFoodType(
-          firstPiece.foodType
-        );
+          isNormalFoodType(
+            secondPiece.foodType
+          )
+        ){
 
 
+          const mutatedType =
 
-      if(
-        mutatedType
-      ){
-
-
-        mutationPreviewMap[
-          secondEntry.index
-        ] = {
-
-          triggered:
-            true,
-
-          role:
-            "dessert",
-
-          fromType:
-            FOOD_TYPES.DESSERT,
-
-          toType:
-            FOOD_TYPES.DESSERT,
-
-          resultValue:
-            secondResult
-
-        };
+            getDessertMutationFoodType(
+              secondPiece.foodType
+            );
 
 
 
-        mutationPreviewMap[
-          firstEntry.index
-        ] = {
+          if(
+            mutatedType
+          ){
 
-          triggered:
-            true,
 
-          role:
-            "target",
+            mutationPreviewMap[
+              firstEntry.index
+            ] = {
 
-          fromType:
-            firstPiece.foodType,
+              triggered:
+                true,
 
-          toType:
-            mutatedType,
+              role:
+                "dessert",
 
-          resultValue:
-            firstResult
+              fromType:
+                FOOD_TYPES.DESSERT,
 
-        };
+              toType:
+                FOOD_TYPES.DESSERT,
+
+              resultValue:
+                firstResult
+
+            };
+
+
+
+            mutationPreviewMap[
+              secondEntry.index
+            ] = {
+
+              triggered:
+                true,
+
+              role:
+                "target",
+
+              fromType:
+                secondPiece.foodType,
+
+              toType:
+                mutatedType,
+
+              resultValue:
+                secondResult
+
+            };
+
+          }
+
+        }
+
+
+
+
+
+        // ======================================================
+        // 情况 B
+        //
+        // second = 甜食
+        // secondResult = 1
+        //
+        // first 发生变种
+        // ======================================================
+
+        else if(
+          secondPiece.foodType ===
+          FOOD_TYPES.DESSERT
+
+          &&
+
+          secondResult ===
+          1
+
+          &&
+
+          isNormalFoodType(
+            firstPiece.foodType
+          )
+        ){
+
+
+          const mutatedType =
+
+            getDessertMutationFoodType(
+              firstPiece.foodType
+            );
+
+
+
+          if(
+            mutatedType
+          ){
+
+
+            mutationPreviewMap[
+              secondEntry.index
+            ] = {
+
+              triggered:
+                true,
+
+              role:
+                "dessert",
+
+              fromType:
+                FOOD_TYPES.DESSERT,
+
+              toType:
+                FOOD_TYPES.DESSERT,
+
+              resultValue:
+                secondResult
+
+            };
+
+
+
+            mutationPreviewMap[
+              firstEntry.index
+            ] = {
+
+              triggered:
+                true,
+
+              role:
+                "target",
+
+              fromType:
+                firstPiece.foodType,
+
+              toType:
+                mutatedType,
+
+              resultValue:
+                firstResult
+
+            };
+
+          }
+
+        }
 
       }
 
@@ -804,11 +530,6 @@ export default function Board({
 
   // ==========================================================
   // 下一个空格
-  //
-  // 合成幽灵卡仍然只占真正的当前空格。
-  //
-  // 约分析出 gcd 不在这里预览，
-  // 而是在 ActionButtons 附近显示小析出提示。
   // ==========================================================
 
   const nextEmptyIndex =
@@ -825,7 +546,7 @@ export default function Board({
 
 
   // ==========================================================
-  // 合成 Preview
+  // 组合 Preview
   // ==========================================================
 
   const combinePreview =
@@ -839,9 +560,7 @@ export default function Board({
 
     combinePreview
 
-      ?
-
-        getFoodName(
+      ? getFoodName(
 
           combinePreview.value,
 
@@ -849,53 +568,39 @@ export default function Board({
 
         )
 
-      :
-
-        null;
+      : null;
 
 
 
 
 
   // ==========================================================
-  // 合成 Preview 食物类型 CSS
+  // Preview 食物类型 CSS
   // ==========================================================
 
   const combinePreviewTypeClass =
 
-    combinePreview?.foodType ===
-      "meat"
+    combinePreview?.foodType === "meat"
 
-      ?
-
-        "board-preview--meat"
+      ? "board-preview--meat"
 
       :
 
-    combinePreview?.foodType ===
-      "vegetable"
+    combinePreview?.foodType === "vegetable"
 
-      ?
-
-        "board-preview--vegetable"
+      ? "board-preview--vegetable"
 
       :
 
-    combinePreview?.foodType ===
-      "seasoning"
+    combinePreview?.foodType === "seasoning"
 
-      ?
-
-        "board-preview--seasoning"
+      ? "board-preview--seasoning"
 
       :
 
-    combinePreview?.foodType ===
-      "dessert"
+    combinePreview?.foodType === "dessert"
 
-      ?
-
-        "board-preview--dessert"
+      ? "board-preview--dessert"
 
       :
 
@@ -906,29 +611,21 @@ export default function Board({
 
 
   // ==========================================================
-  // 合成 Preview 是否为纯系
+  // 是否显示纯系标记
   // ==========================================================
 
   const combinePreviewPure =
 
-    combinePreview?.purity ===
-      "pure"
+    combinePreview?.purity === "pure"
 
     &&
 
     (
-      combinePreview?.foodType ===
-        "meat"
-
+      combinePreview?.foodType === "meat"
       ||
-
-      combinePreview?.foodType ===
-        "vegetable"
-
+      combinePreview?.foodType === "vegetable"
       ||
-
-      combinePreview?.foodType ===
-        "seasoning"
+      combinePreview?.foodType === "seasoning"
     );
 
 
@@ -942,7 +639,7 @@ export default function Board({
   const mazeTurnActive =
 
     mazeTurn?.triggered ===
-      true;
+    true;
 
 
 
@@ -951,23 +648,17 @@ export default function Board({
   return (
 
     <div
-
       className={`
-
         board
 
         ${
-
           mazeTurnActive
 
             ? "board--maze-turn"
 
             : ""
-
         }
-
       `}
-
     >
 
 
@@ -1062,26 +753,18 @@ export default function Board({
 
 
             // ==================================================
-            // 合成幽灵 Preview
-            //
-            // 只负责：
-            //
-            // A + B = C
-            //
-            // 约分析出物不会占这里。
+            // 新食物组合 Preview
             // ==================================================
 
             if(
-              !piece
 
-              &&
+              !piece &&
 
-              combinePreview
-
-              &&
+              combinePreview &&
 
               index ===
-                nextEmptyIndex
+              nextEmptyIndex
+
             ){
 
 
@@ -1114,23 +797,16 @@ export default function Board({
                     }
 
                     className={`
-
                       board-preview
 
                       ${combinePreviewTypeClass}
-
                     `}
 
                     aria-label={
-
                       `点击组合 ${
-
                         combinePreviewName
-                        ??
-                        combinePreview.value
-
+                        ?? combinePreview.value
                       }`
-
                     }
 
                   >
@@ -1224,10 +900,6 @@ export default function Board({
 
 
 
-            // ==================================================
-            // 当前是否选中
-            // ==================================================
-
             const isSelected =
 
               selected.includes(
@@ -1238,10 +910,6 @@ export default function Board({
 
 
 
-            // ==================================================
-            // 是否为单选后的可约分候选
-            // ==================================================
-
             const reduceCandidate =
 
               reduceCandidateIndexes.has(
@@ -1251,12 +919,6 @@ export default function Board({
 
 
 
-
-            // ==================================================
-            // 新版约分 Preview
-            //
-            // object | null
-            // ==================================================
 
             const reducePreview =
 
@@ -1286,34 +948,23 @@ export default function Board({
 
 
 
-            // ==================================================
-            // 旧版手动移除状态
-            //
-            // 新核心正常不会再使用。
-            // ==================================================
-
             const removing =
 
               removingIndex ===
-                index;
+              index;
 
 
 
 
-
-            // ==================================================
-            // 当前数字是否已经收藏过
-            // ==================================================
 
             const discovered =
 
               piece?.value !==
-                undefined
+              undefined
 
               &&
 
-              piece.value !==
-                1
+              piece.value !== 1
 
               &&
 
@@ -1326,29 +977,16 @@ export default function Board({
 
 
             // ==================================================
-            // 以下全部属于旧版正式1兼容逻辑
-            //
-            // 新核心：
-            //
-            // 约成1
-            // → 自动收藏
-            // → 不进入 board
-            //
-            // 所以正常游戏不会进入这里。
+            // 数字1的直接来源
             // ==================================================
 
             const reduceFrom =
 
-              piece?.value === 1
+              piece?.value === 1 &&
 
-              &&
+              piece.origin?.type === "reduce"
 
-              piece.origin?.type ===
-                "reduce"
-
-                ?
-
-                  (
+                ? (
                     piece.origin
                       ?.parent
                       ?.value
@@ -1356,9 +994,7 @@ export default function Board({
                     ?? null
                   )
 
-                :
-
-                  null;
+                : null;
 
 
 
@@ -1366,13 +1002,9 @@ export default function Board({
 
             const isNewDiscovery =
 
-              piece?.value === 1
+              piece?.value === 1 &&
 
-              &&
-
-              reduceFrom !== null
-
-              &&
+              reduceFrom !== null &&
 
               !collection.includes(
                 reduceFrom
@@ -1388,11 +1020,11 @@ export default function Board({
 
 
             if(
-              piece?.value === 1
 
-              &&
+              piece?.value === 1 &&
 
               reduceFrom !== null
+
             ){
 
 
@@ -1431,10 +1063,6 @@ export default function Board({
 
 
 
-            // ==================================================
-            // 点击棋子
-            // ==================================================
-
             function handlePieceClick(){
 
 
@@ -1442,17 +1070,12 @@ export default function Board({
                 !piece
               ){
 
+
                 return;
 
               }
 
 
-
-              // =================================================
-              // 旧热更新状态兼容
-              //
-              // 新游戏不会产生正式1。
-              // =================================================
 
               if(
                 piece.value === 1
@@ -1488,14 +1111,9 @@ export default function Board({
 
                   piece
 
-                    ?
+                    ? `piece-${piece.id}`
 
-                      `piece-${piece.id}`
-
-                    :
-
-                      `empty-${index}`
-
+                    : `empty-${index}`
                 }
 
                 index={

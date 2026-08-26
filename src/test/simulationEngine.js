@@ -2,7 +2,6 @@ import {
   gcd
 } from "../utils/math";
 
-
 import {
   FOOD_TYPES,
   FOOD_PURITY,
@@ -11,15 +10,12 @@ import {
   combineFoodPurity,
   canReduce,
   canCombine,
-  getReduceExtractFoodType,
   getDessertMutationFoodType
 } from "../game/rules";
-
 
 import {
   createMazeStateKey
 } from "../game/mazeHistory";
-
 
 import {
   applyCollection
@@ -34,34 +30,44 @@ import {
 //
 // 高速模拟版本。
 //
-// 新版核心：
+// ------------------------------------------------------------
 //
-// 1. 合成
-//    A + B → C
+// 当前支持：
 //
-// 2. 约分
+// 荤 / 素 / 调料
+// → 三槽收藏
 //
-//    A / B
+// 甜食
+// → 不进入收藏
 //
-//    gcd = G
+// ------------------------------------------------------------
 //
-//    普通异值：
-//    → A/G
-//    → B/G
-//    → 析出 G
+// 甜食系变种规则：
 //
-//    结果为1：
-//    → 自动收藏
-//    → 不落盘
+// 普通食物 + 甜食
+// ↓
+// 约分
 //
-//    同值：
-//    → 1 / 1
-//    → 两边自动收藏
-//    → 不析出 G
+// 如果甜食这一侧结果 === 1：
 //
-// 3. 不再存在手动 remove 动作。
+// 荤
+// ↓
+// 素
+// ↓
+// 调料
+// ↓
+// 荤
 //
-// 4. 甜食变种规则继续保留。
+// ------------------------------------------------------------
+//
+// Simulation 不保存正式：
+//
+// origin
+// collectionOrigins
+// collectionPaths
+// collectionParents
+//
+// 只保留测试真正需要的数据。
 // ============================================================
 
 export const SIM_BOARD_SIZE =
@@ -266,6 +272,12 @@ function recordVisitedState(
 
 // ============================================================
 // 创建模拟状态
+//
+// 开局：
+//
+// 第1个 → 荤
+// 第2个 → 素
+// 第3个 → 调料
 // ============================================================
 
 export function createSimulationState(
@@ -363,24 +375,42 @@ export function createSimulationState(
     board,
 
 
+
+
+
     // ========================================================
     // 收藏槽
     //
-    // "17:meat"
-    // "17:vegetable"
-    // "17:seasoning"
+    // Set 内格式：
+    //
+    // 17:meat
+    // 17:vegetable
+    // 17:seasoning
     // ========================================================
 
     collection:
       new Set(),
 
 
+
+
+
+    // ========================================================
+    // 首次获得新收藏槽的食物类型历史
+    // ========================================================
+
     collectionFoodTypeHistory:
       [],
 
 
+
+
+
     steps:
       0,
+
+
+
 
 
     mazeVisited:
@@ -465,14 +495,46 @@ function isBoardFull(
 ){
 
 
-  return (
+  let count =
+    0;
 
-    getPieces(
-      board
-    ).length >=
-    SIM_BOARD_SIZE
 
-  );
+
+  for(
+    let i = 0;
+    i < SIM_BOARD_SIZE;
+    i++
+  ){
+
+
+    if(
+      board[
+        i
+      ]
+    ){
+
+
+      count++;
+
+
+
+      if(
+        count >=
+        SIM_BOARD_SIZE
+      ){
+
+
+        return true;
+
+      }
+
+    }
+
+  }
+
+
+
+  return false;
 
 }
 
@@ -499,7 +561,11 @@ function getNextEmptyIndex(
     if(
       board[
         i
-      ] === null
+      ]
+
+      ===
+
+      null
     ){
 
 
@@ -512,283 +578,6 @@ function getNextEmptyIndex(
 
 
   return -1;
-
-}
-
-
-
-
-
-// ============================================================
-// 是否需要析出 gcd
-// ============================================================
-
-function shouldExtractReduceDivisor(
-  first,
-  second
-){
-
-
-  if(
-    !first ||
-    !second
-  ){
-
-
-    return false;
-
-  }
-
-
-
-  if(
-    first.value ===
-    second.value
-  ){
-
-
-    return false;
-
-  }
-
-
-
-  if(
-    first.foodType ===
-      FOOD_TYPES.DESSERT
-    ||
-    second.foodType ===
-      FOOD_TYPES.DESSERT
-  ){
-
-
-    return false;
-
-  }
-
-
-
-  return Boolean(
-
-    getReduceExtractFoodType(
-      first,
-      second
-    )
-
-  );
-
-}
-
-
-
-
-
-// ============================================================
-// gcd 析出物纯度
-// ============================================================
-
-function getReduceExtractPurity(
-  first,
-  second
-){
-
-
-  const foodType =
-
-    getReduceExtractFoodType(
-      first,
-      second
-    );
-
-
-
-  if(
-    !foodType
-  ){
-
-
-    return null;
-
-  }
-
-
-
-  return (
-
-    first.foodType ===
-    second.foodType
-
-      ?
-
-        FOOD_PURITY.PURE
-
-      :
-
-        FOOD_PURITY.MIXED
-
-  );
-
-}
-
-
-
-
-
-// ============================================================
-// 约分计划
-// ============================================================
-
-function getReducePlan(
-  state,
-  first,
-  second
-){
-
-
-  if(
-    !state ||
-    !first ||
-    !second
-  ){
-
-
-    return null;
-
-  }
-
-
-
-  const divisor =
-
-    gcd(
-      first.value,
-      second.value
-    );
-
-
-
-  if(
-    divisor <= 1
-  ){
-
-
-    return null;
-
-  }
-
-
-
-  const firstResult =
-
-    first.value /
-    divisor;
-
-
-
-  const secondResult =
-
-    second.value /
-    divisor;
-
-
-
-  const firstAutoCollect =
-
-    firstResult === 1;
-
-
-
-  const secondAutoCollect =
-
-    secondResult === 1;
-
-
-
-  const autoCollectCount =
-
-    (
-      firstAutoCollect
-        ? 1
-        : 0
-    )
-
-    +
-
-    (
-      secondAutoCollect
-        ? 1
-        : 0
-    );
-
-
-
-  const shouldExtract =
-
-    shouldExtractReduceDivisor(
-      first,
-      second
-    );
-
-
-
-  const currentEmptyCount =
-
-    Math.max(
-
-      0,
-
-      SIM_BOARD_SIZE -
-      getPieces(
-        state.board
-      ).length
-
-    );
-
-
-
-  const availableAfterReduce =
-
-    currentEmptyCount +
-    autoCollectCount;
-
-
-
-  const requiredExtraSpace =
-
-    shouldExtract
-      ? 1
-      : 0;
-
-
-
-  return {
-
-    divisor,
-
-    firstResult,
-
-    secondResult,
-
-    firstAutoCollect,
-
-    secondAutoCollect,
-
-    autoCollectCount,
-
-    shouldExtract,
-
-    currentEmptyCount,
-
-    availableAfterReduce,
-
-    requiredExtraSpace,
-
-    canFitExtract:
-
-      availableAfterReduce >=
-      requiredExtraSpace
-
-  };
 
 }
 
@@ -872,8 +661,6 @@ function canCombineIndexes(
 
 // ============================================================
 // 能否约分
-//
-// 使用与正式游戏一致的净空间逻辑。
 // ============================================================
 
 function canReduceIndexes(
@@ -895,14 +682,14 @@ function canReduceIndexes(
 
 
 
-  const first =
+  const a =
 
     state.board[
       indexA
     ];
 
 
-  const second =
+  const b =
 
     state.board[
       indexB
@@ -911,10 +698,10 @@ function canReduceIndexes(
 
 
   if(
-    !first ||
-    !second ||
-    first.value === 1 ||
-    second.value === 1
+    !a ||
+    !b ||
+    a.value === 1 ||
+    b.value === 1
   ){
 
 
@@ -924,32 +711,9 @@ function canReduceIndexes(
 
 
 
-  if(
-    !canReduce(
-      first,
-      second
-    )
-  ){
-
-
-    return false;
-
-  }
-
-
-
-  const plan =
-
-    getReducePlan(
-      state,
-      first,
-      second
-    );
-
-
-
-  return Boolean(
-    plan?.canFitExtract
+  return canReduce(
+    a,
+    b
   );
 
 }
@@ -960,13 +724,6 @@ function canReduceIndexes(
 
 // ============================================================
 // 获取全部合法动作
-//
-// 新版只有：
-//
-// combine
-// reduce
-//
-// 不再产生 remove。
 // ============================================================
 
 export function getSimulationLegalActions(
@@ -990,6 +747,12 @@ export function getSimulationLegalActions(
 
 
 
+
+
+  // ==========================================================
+  // 合成 / 约分
+  // ==========================================================
+
   for(
     let i = 0;
     i < SIM_BOARD_SIZE;
@@ -997,7 +760,7 @@ export function getSimulationLegalActions(
   ){
 
 
-    const first =
+    const a =
 
       board[
         i
@@ -1006,8 +769,8 @@ export function getSimulationLegalActions(
 
 
     if(
-      !first ||
-      first.value === 1
+      !a ||
+      a.value === 1
     ){
 
 
@@ -1024,7 +787,7 @@ export function getSimulationLegalActions(
     ){
 
 
-      const second =
+      const b =
 
         board[
           j
@@ -1033,8 +796,8 @@ export function getSimulationLegalActions(
 
 
       if(
-        !second ||
-        second.value === 1
+        !b ||
+        b.value === 1
       ){
 
 
@@ -1043,10 +806,6 @@ export function getSimulationLegalActions(
       }
 
 
-
-      // ======================================================
-      // 合成
-      // ======================================================
 
       if(
         !full
@@ -1074,10 +833,6 @@ export function getSimulationLegalActions(
       }
 
 
-
-      // ======================================================
-      // 约分
-      // ======================================================
 
       if(
         canReduceIndexes(
@@ -1147,14 +902,14 @@ function applyCombine(
 
 
 
-  const first =
+  const a =
 
     state.board[
       indexA
     ];
 
 
-  const second =
+  const b =
 
     state.board[
       indexB
@@ -1163,8 +918,8 @@ function applyCombine(
 
 
   if(
-    !first ||
-    !second
+    !a ||
+    !b
   ){
 
 
@@ -1181,11 +936,11 @@ function applyCombine(
 
       ?
 
-        first
+        a
 
       :
 
-        second;
+        b;
 
 
 
@@ -1196,11 +951,13 @@ function applyCombine(
 
       ?
 
-        second
+        b
 
       :
 
-        first;
+        a;
+
+
 
 
 
@@ -1213,6 +970,8 @@ function applyCombine(
       back.value
 
     );
+
+
 
 
 
@@ -1239,6 +998,8 @@ function applyCombine(
 
 
 
+
+
   state.board[
     targetIndex
   ] = {
@@ -1259,9 +1020,9 @@ function applyCombine(
 
     parents: [
 
-      first.value,
+      a.value,
 
-      second.value
+      b.value
 
     ],
 
@@ -1317,61 +1078,66 @@ function applyCombine(
 
 
 // ============================================================
-// 自动收藏一个约成1的临时节点
-//
-// Simulation 不保存完整 origin，
-// 所以继续通过 previousValue
-// 告诉 applyCollection：
-//
-// “这个1来自哪个数字”。
-// ============================================================
-
-function autoCollectReducedOne(
-  state,
-  piece
-){
-
-
-  if(
-    !piece ||
-    piece.value !== 1
-  ){
-
-
-    return;
-
-  }
-
-
-
-  applyCollection(
-    state,
-    piece
-  );
-
-}
-
-
-
-
-
-// ============================================================
 // 约分
 //
-// 新版：
+// ============================================================
+// 普通规则
+// ============================================================
 //
-// 12 / 18
-// → 2 / 3 + 6
+// value 改变。
 //
-// 16 / 4
-// → 4 / 1 + 4
-// → 1自动收藏
-// → 最终 4 + 4
+// foodType / purity
+// 默认保持。
 //
-// 8 / 8
-// → 1 / 1
-// → 两边自动收藏
-// → 两格消失
+// parents / parentFoods
+// 清除。
+//
+// previousValue
+// 保存约分前数字，用于 Simulation 收藏。
+//
+//
+// ============================================================
+// 甜食系变种
+// ============================================================
+//
+// 如果：
+//
+// 甜食 + 普通食物
+//
+// 进行约分，
+//
+// 且甜食这一侧结果 === 1，
+//
+// 则另一侧普通食物发生三角变种：
+//
+// 荤
+// ↓
+// 素
+// ↓
+// 调料
+// ↓
+// 荤
+//
+//
+// ------------------------------------------------------------
+//
+// 例：
+//
+// 荤14 + 甜食7
+// ÷7
+//
+// → 荤2 + 甜食1
+//
+// → 素2 + 甜食1
+//
+// ------------------------------------------------------------
+//
+// 当前：
+//
+// - 数字不改变
+// - purity 不改变
+// - 不检测灭绝
+// - 甜食 + 甜食 不触发
 // ============================================================
 
 function applyReduce(
@@ -1408,19 +1174,23 @@ function applyReduce(
 
 
 
-  const plan =
 
-    getReducePlan(
-      state,
-      first,
-      second
+
+  const divisor =
+
+    gcd(
+
+      first.value,
+
+      second.value
+
     );
 
 
 
   if(
-    !plan ||
-    !plan.canFitExtract
+    divisor <=
+    1
   ){
 
 
@@ -1429,18 +1199,6 @@ function applyReduce(
   }
 
 
-
-  const {
-
-    divisor,
-
-    firstResult,
-
-    secondResult,
-
-    shouldExtract
-
-  } = plan;
 
 
 
@@ -1453,28 +1211,54 @@ function applyReduce(
 
 
 
+  const firstResult =
+
+    oldA /
+    divisor;
+
+
+  const secondResult =
+
+    oldB /
+    divisor;
+
+
+
+
+
   // ==========================================================
-  // 默认类型
+  // 默认类型保持
   // ==========================================================
 
   let firstFoodType =
+
     first.foodType;
 
 
   let secondFoodType =
+
     second.foodType;
 
 
 
+
+
   // ==========================================================
-  // 甜食变种 A
+  // first 是甜食
+  //
+  // first → 1
+  //
+  // second 发生变种
   // ==========================================================
 
   if(
     first.foodType ===
-      FOOD_TYPES.DESSERT
+    FOOD_TYPES.DESSERT
+
     &&
-    firstResult === 1
+
+    firstResult ===
+    1
   ){
 
 
@@ -1500,15 +1284,24 @@ function applyReduce(
 
 
 
+
+
   // ==========================================================
-  // 甜食变种 B
+  // second 是甜食
+  //
+  // second → 1
+  //
+  // first 发生变种
   // ==========================================================
 
   if(
     second.foodType ===
-      FOOD_TYPES.DESSERT
+    FOOD_TYPES.DESSERT
+
     &&
-    secondResult === 1
+
+    secondResult ===
+    1
   ){
 
 
@@ -1534,207 +1327,99 @@ function applyReduce(
 
 
 
+
+
   // ==========================================================
-  // 构造约分后的临时节点
+  // 更新 first
   // ==========================================================
 
-  const firstReducedPiece = {
-
-    ...first,
-
-    value:
-      firstResult,
-
-    foodType:
-      firstFoodType,
-
-    parents:
-      null,
-
-    parentFoods:
-      null,
-
-    previousValue:
-      oldA
-
-  };
+  first.value =
+    firstResult;
 
 
+  first.foodType =
+    firstFoodType;
 
-  const secondReducedPiece = {
 
-    ...second,
+  first.parents =
+    null;
 
-    value:
-      secondResult,
 
-    foodType:
-      secondFoodType,
+  first.parentFoods =
+    null;
 
-    parents:
-      null,
 
-    parentFoods:
-      null,
+  first.previousValue =
+    oldA;
 
-    previousValue:
-      oldB
 
-  };
 
 
 
   // ==========================================================
-  // 结果不是1
-  // → 留盘
-  //
-  // 结果是1
-  // → 直接释放格
+  // 更新 second
   // ==========================================================
 
-  state.board[
-    indexA
-  ] =
-
-    firstResult === 1
-
-      ?
-
-        null
-
-      :
-
-        firstReducedPiece;
+  second.value =
+    secondResult;
 
 
-
-  state.board[
-    indexB
-  ] =
-
-    secondResult === 1
-
-      ?
-
-        null
-
-      :
-
-        secondReducedPiece;
+  second.foodType =
+    secondFoodType;
 
 
+  second.parents =
+    null;
 
-  // ==========================================================
-  // 自动收藏
-  // ==========================================================
+
+  second.parentFoods =
+    null;
+
+
+  second.previousValue =
+    oldB;
+
+
 
   if(
     firstResult === 1
   ){
 
-
-    autoCollectReducedOne(
+    applyCollection(
       state,
-      firstReducedPiece
+      first
     );
-
-  }
-
-
-
-  if(
-    secondResult === 1
-  ){
-
-
-    autoCollectReducedOne(
-      state,
-      secondReducedPiece
-    );
-
-  }
-
-
-
-  // ==========================================================
-  // 析出 gcd
-  // ==========================================================
-
-  if(
-    shouldExtract
-  ){
-
-
-    const extractFoodType =
-
-      getReduceExtractFoodType(
-        first,
-        second
-      );
-
-
-
-    if(
-      !extractFoodType
-    ){
-
-
-      return false;
-
-    }
-
-
-
-    const targetIndex =
-
-      getNextEmptyIndex(
-        state.board
-      );
-
-
-
-    if(
-      targetIndex === -1
-    ){
-
-
-      return false;
-
-    }
-
-
 
     state.board[
-      targetIndex
-    ] = {
-
-      value:
-        divisor,
-
-      foodType:
-        extractFoodType,
-
-      purity:
-
-        getReduceExtractPurity(
-          first,
-          second
-        ),
-
-      parents:
-        null,
-
-      parentFoods:
-        null,
-
-      previousValue:
-        null
-
-    };
+      indexA
+    ] = null;
 
   }
 
 
+
+  if(
+    secondResult === 1
+  ){
+
+    applyCollection(
+      state,
+      second
+    );
+
+    state.board[
+      indexB
+    ] = null;
+
+  }
+
+
+
+
+
+  // ==========================================================
+  // purity 当前保持不变
+  // ==========================================================
 
   state.steps++;
 
@@ -1780,6 +1465,9 @@ function mazeTurnValue(
 
 // ============================================================
 // 应用迷宫回转
+//
+// 只改变 value。
+// foodType / purity 不改变。
 // ============================================================
 
 function applyMazeTurn(
@@ -1849,6 +1537,12 @@ function resolveMaze(
 
 
 
+
+
+  // ==========================================================
+  // 新状态
+  // ==========================================================
+
   if(
     !previous
   ){
@@ -1875,6 +1569,12 @@ function resolveMaze(
 
 
 
+
+
+  // ==========================================================
+  // 重复状态
+  // ==========================================================
+
   const beforeValues =
 
     state.board.map(
@@ -1891,13 +1591,19 @@ function resolveMaze(
 
 
 
+
+
   applyMazeTurn(
     state
   );
 
 
 
+
+
   state.mazeTurnCount++;
+
+
 
 
 
@@ -1914,6 +1620,8 @@ function resolveMaze(
         null
 
     );
+
+
 
 
 
@@ -1942,11 +1650,15 @@ function resolveMaze(
 
 
 
+
+
   const turnedKey =
 
     createMazeStateKey(
       state
     );
+
+
 
 
 
@@ -1978,11 +1690,6 @@ function resolveMaze(
 
 // ============================================================
 // 应用动作
-//
-// 新版正式 Simulation 动作只有：
-//
-// combine
-// reduce
 // ============================================================
 
 export function applySimulationAction(
@@ -2005,6 +1712,8 @@ export function applySimulationAction(
 
   let applied =
     false;
+
+
 
 
 
@@ -2037,6 +1746,8 @@ export function applySimulationAction(
 
 
 
+
+
     case "reduce":
 
 
@@ -2061,12 +1772,16 @@ export function applySimulationAction(
 
 
 
+
+
     default:
 
 
       return false;
 
   }
+
+
 
 
 
@@ -2078,6 +1793,8 @@ export function applySimulationAction(
     return false;
 
   }
+
+
 
 
 
@@ -2197,11 +1914,17 @@ export function cloneSimulationState(
       ),
 
 
+
+
+
     collection:
 
       new Set(
         state.collection
       ),
+
+
+
 
 
     collectionFoodTypeHistory:
@@ -2214,8 +1937,14 @@ export function cloneSimulationState(
       ],
 
 
+
+
+
     steps:
       state.steps,
+
+
+
 
 
     mazeVisited:
@@ -2225,20 +1954,35 @@ export function cloneSimulationState(
       ),
 
 
+
+
+
     mazeVisitedCount:
       state.mazeVisitedCount,
+
+
+
 
 
     mazeHashXor:
       state.mazeHashXor,
 
 
+
+
+
     mazeHashSum:
       state.mazeHashSum,
 
 
+
+
+
     mazeTurnCount:
       state.mazeTurnCount,
+
+
+
 
 
     lastMazeTurn:

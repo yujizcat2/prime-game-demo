@@ -7,8 +7,8 @@ import {
 // ============================================================
 // 食物类型
 //
-// meat       = 荤系
-// vegetable  = 素系
+// meat     = 荤系
+// vegetable     = 素系
 // seasoning  = 调料系
 // dessert    = 甜食系
 //
@@ -67,18 +67,6 @@ export const FOOD_PURITY = {
 
 // ============================================================
 // 是否可以约分
-//
-// 注意：
-//
-// 这里只判断两个数字在数学关系上是否可以约分。
-//
-// 不判断：
-//
-// - 棋盘是否满格
-// - 是否有空间生成公约数
-//
-// 这些属于棋盘动作规则，
-// 由 gameActions.js 负责。
 // ============================================================
 
 export function canReduce(
@@ -191,274 +179,6 @@ export function isNormalFoodType(
 
   ].includes(
     foodType
-  );
-
-}
-
-
-
-
-
-// ============================================================
-// 普通三系基础关系
-//
-// 这是普通三系最底层的共同关系。
-// 合成、公约数提取等规则都可以复用。
-//
-//
-// ============================================================
-// 同类
-// ============================================================
-//
-// 荤 + 荤
-// → 荤
-//
-// 素 + 素
-// → 素
-//
-// 调料 + 调料
-// → 调料
-//
-//
-// ============================================================
-// 异类
-// ============================================================
-//
-// 荤 + 素
-// → 调料
-//
-// 素 + 调料
-// → 荤
-//
-// 调料 + 荤
-// → 素
-//
-//
-// ============================================================
-// 注意
-// ============================================================
-//
-// 1. 这里只处理普通三系。
-// 2. 不处理甜食。
-// 3. 不判断跨101。
-// 4. 不处理数字。
-// 5. 不处理 purity。
-// ============================================================
-
-export function getNormalFoodTypeRelation(
-  typeA,
-  typeB
-) {
-
-
-  if(
-    !isNormalFoodType(
-      typeA
-    )
-    ||
-    !isNormalFoodType(
-      typeB
-    )
-  ){
-
-
-    return null;
-
-  }
-
-
-
-  // ==========================================================
-  // 1. 同类
-  //
-  // → 本类
-  // ==========================================================
-
-  if(
-    typeA === typeB
-  ){
-
-
-    return typeA;
-
-  }
-
-
-
-  // ==========================================================
-  // 2. 荤 + 素
-  //
-  // → 调料
-  // ==========================================================
-
-  if(
-    (
-      typeA === FOOD_TYPES.MEAT &&
-      typeB === FOOD_TYPES.VEGETABLE
-    )
-    ||
-    (
-      typeA === FOOD_TYPES.VEGETABLE &&
-      typeB === FOOD_TYPES.MEAT
-    )
-  ){
-
-
-    return FOOD_TYPES.SEASONING;
-
-  }
-
-
-
-  // ==========================================================
-  // 3. 素 + 调料
-  //
-  // → 荤
-  // ==========================================================
-
-  if(
-    (
-      typeA === FOOD_TYPES.VEGETABLE &&
-      typeB === FOOD_TYPES.SEASONING
-    )
-    ||
-    (
-      typeA === FOOD_TYPES.SEASONING &&
-      typeB === FOOD_TYPES.VEGETABLE
-    )
-  ){
-
-
-    return FOOD_TYPES.MEAT;
-
-  }
-
-
-
-  // ==========================================================
-  // 4. 调料 + 荤
-  //
-  // → 素
-  // ==========================================================
-
-  if(
-    (
-      typeA === FOOD_TYPES.SEASONING &&
-      typeB === FOOD_TYPES.MEAT
-    )
-    ||
-    (
-      typeA === FOOD_TYPES.MEAT &&
-      typeB === FOOD_TYPES.SEASONING
-    )
-  ){
-
-
-    return FOOD_TYPES.VEGETABLE;
-
-  }
-
-
-
-  return null;
-
-}
-
-
-
-
-
-// ============================================================
-// 判断约分时提取出的最大公约数类型
-//
-// 新版约分：
-//
-// A / B
-//
-// gcd = G
-//
-// → A/G
-// → B/G
-// → 额外提取 G
-//
-//
-// 例如：
-//
-// 荤12 + 素18
-//
-// gcd = 6
-//
-// → 荤2
-// → 素3
-// → 调料6
-//
-//
-// ============================================================
-// 类型规则
-// ============================================================
-//
-// 同类约分：
-//
-// 荤 + 荤
-// → 公约数为荤
-//
-// 素 + 素
-// → 公约数为素
-//
-// 调料 + 调料
-// → 公约数为调料
-//
-//
-// 异类约分：
-//
-// 荤 + 素
-// → 公约数为调料
-//
-// 素 + 调料
-// → 公约数为荤
-//
-// 调料 + 荤
-// → 公约数为素
-//
-//
-// ============================================================
-// 甜食规则
-// ============================================================
-//
-// 当前版本：
-//
-// - 普通约分不会产生甜食。
-// - 甜食不参与公约数类型生成。
-// - 甜食相关特殊变种继续由 gameActions.js 处理。
-//
-// 因此只要任意一方不是普通三系，
-// 当前函数返回 null。
-// ============================================================
-
-export function getReduceExtractFoodType(
-  a,
-  b
-) {
-
-
-  if(
-    !a ||
-    !b
-  ){
-
-
-    return null;
-
-  }
-
-
-
-  return getNormalFoodTypeRelation(
-
-    a.foodType,
-
-    b.foodType
-
   );
 
 }
@@ -597,15 +317,31 @@ export function getDessertMutationFoodType(
 //
 //
 // ============================================================
-// 第三层：普通三系关系
+// 第三层：普通三循环
 // ============================================================
 //
-// 直接复用：
+// 同类：
 //
-// getNormalFoodTypeRelation()
+// 荤 + 荤
+// → 荤
 //
-// 同类 → 本类
-// 异类 → 缺少的第三类
+// 素 + 素
+// → 素
+//
+// 调料 + 调料
+// → 调料
+//
+//
+// 异类：
+//
+// 荤 + 素
+// → 调料
+//
+// 素 + 调料
+// → 荤
+//
+// 调料 + 荤
+// → 素
 // ============================================================
 
 export function combineFoodType(
@@ -618,7 +354,6 @@ export function combineFoodType(
     !front ||
     !back
   ){
-
 
     return null;
 
@@ -639,7 +374,6 @@ export function combineFoodType(
     !frontType ||
     !backType
   ){
-
 
     return null;
 
@@ -756,21 +490,96 @@ export function combineFoodType(
 
 
   // ==========================================================
-  // 5. 普通三系关系
-  //
-  // 同类 → 本类
-  // 异类 → 缺少的第三类
-  //
-  // 统一交给底层关系函数。
+  // 5. 普通同类
   // ==========================================================
 
-  return getNormalFoodTypeRelation(
+  if(
+    frontType === backType
+  ){
 
-    frontType,
 
-    backType
+    return frontType;
 
-  );
+  }
+
+
+
+  // ==========================================================
+  // 6. 荤 + 素
+  //
+  // → 调料
+  // ==========================================================
+
+  if(
+    (
+      frontType === FOOD_TYPES.MEAT &&
+      backType === FOOD_TYPES.VEGETABLE
+    )
+    ||
+    (
+      frontType === FOOD_TYPES.VEGETABLE &&
+      backType === FOOD_TYPES.MEAT
+    )
+  ){
+
+
+    return FOOD_TYPES.SEASONING;
+
+  }
+
+
+
+  // ==========================================================
+  // 7. 素 + 调料
+  //
+  // → 荤
+  // ==========================================================
+
+  if(
+    (
+      frontType === FOOD_TYPES.VEGETABLE &&
+      backType === FOOD_TYPES.SEASONING
+    )
+    ||
+    (
+      frontType === FOOD_TYPES.SEASONING &&
+      backType === FOOD_TYPES.VEGETABLE
+    )
+  ){
+
+
+    return FOOD_TYPES.MEAT;
+
+  }
+
+
+
+  // ==========================================================
+  // 8. 调料 + 荤
+  //
+  // → 素
+  // ==========================================================
+
+  if(
+    (
+      frontType === FOOD_TYPES.SEASONING &&
+      backType === FOOD_TYPES.MEAT
+    )
+    ||
+    (
+      frontType === FOOD_TYPES.MEAT &&
+      backType === FOOD_TYPES.SEASONING
+    )
+  ){
+
+
+    return FOOD_TYPES.VEGETABLE;
+
+  }
+
+
+
+  return null;
 
 }
 
@@ -809,7 +618,6 @@ export function combineFoodPurity(
     !back
   ){
 
-
     return null;
 
   }
@@ -829,7 +637,6 @@ export function combineFoodPurity(
     !frontType ||
     !backType
   ){
-
 
     return null;
 
@@ -852,7 +659,6 @@ export function combineFoodPurity(
   if(
     !resultType
   ){
-
 
     return null;
 
@@ -969,7 +775,6 @@ export function isSameFoodIdentity(
     !b
   ){
 
-
     return false;
 
   }
@@ -1015,7 +820,6 @@ export function hasParentFood(
     !child ||
     !candidate
   ){
-
 
     return false;
 
@@ -1108,7 +912,6 @@ export function hasSameParents(
     !b
   ){
 
-
     return false;
 
   }
@@ -1145,7 +948,6 @@ export function hasSameParents(
           !p1 ||
           !p2
         ){
-
 
           return false;
 
@@ -1207,7 +1009,6 @@ export function hasSameParents(
         item.parents.length < 2
       ){
 
-
         return false;
 
       }
@@ -1267,7 +1068,6 @@ export function canCombineRelation(
     !a ||
     !b
   ){
-
 
     return false;
 
@@ -1357,7 +1157,6 @@ export function canCombine(
   if(
     numbers.length >= 9
   ){
-
 
     return false;
 
