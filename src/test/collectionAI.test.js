@@ -155,6 +155,18 @@ async function runRegressionTests(){
     "MONEY simulation must use the formal repeat penalty"
   );
 
+  const sourceOrderState = createSimulationState([16, 17, 2]);
+  assert.equal(applySimulationAction(sourceOrderState, {type: "combine", indexes: [0, 1]}), true);
+  assert.equal(applySimulationAction(sourceOrderState, {type: "combine", indexes: [1, 0]}), true);
+  assert.equal(sourceOrderState.board[3].sourceKey, "16|17");
+  assert.equal(sourceOrderState.board[4].sourceKey, "16|17");
+  applySimulationAction(sourceOrderState, {type: "reduce", indexes: [3, 4]});
+  assert.equal(
+    sourceOrderState.lastCollectionEvents[1].sameSourceRepeat,
+    true,
+    "simulation uses the shared same-source twin settlement"
+  );
+
   const limited = await runSmartGame({
     mode: SMART_AI_MODES.MONEY,
     initialValues: [2, 4, 3],
@@ -174,7 +186,7 @@ async function runRegressionTests(){
     "paid collection history must retain formal price components"
   );
 
-  console.log("Collection and money AI regression cases: 10 passed");
+  console.log("Collection and money AI regression cases: 11 passed");
 }
 
 

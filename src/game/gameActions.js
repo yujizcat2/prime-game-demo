@@ -422,6 +422,9 @@ export function combineCells(
 
     ],
 
+    sourceKey:
+      [a.value, b.value].sort((left, right) => left - right).join("|"),
+
 
     parentFoods: [
 
@@ -857,6 +860,9 @@ export function reduceCells(
     purity:
       first.purity,
 
+    sourceKey:
+      firstResult === 1 ? (first.sourceKey ?? null) : null,
+
     parents:
       null,
 
@@ -882,6 +888,9 @@ export function reduceCells(
 
     purity:
       second.purity,
+
+    sourceKey:
+      secondResult === 1 ? (second.sourceKey ?? null) : null,
 
     parents:
       null,

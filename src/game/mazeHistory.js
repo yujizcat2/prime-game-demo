@@ -424,6 +424,11 @@ export function createMazePieceSnapshot(
       ?? null,
 
 
+    sourceKey:
+      piece.sourceKey
+      ?? null,
+
+
     parents:
 
       createParentsSnapshot(

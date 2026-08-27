@@ -743,6 +743,7 @@ export default function CollectionPanel({
                 : latestCollection?.reward < 0
                   ? `-¥${Math.abs(latestCollection.reward)}`
                   : "¥0"}
+              {latestCollection?.sameSourceRepeat ? " · 同源重复" : ""}
             </span>
           }
 

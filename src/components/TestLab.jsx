@@ -1980,6 +1980,10 @@ function MoneyActionHistory({game}){
 
               <div>盘面：{action.boardAfter.length > 0 ? action.boardAfter.join(" / ") : "空"}</div>
 
+              {action.type === "reduce" && action.inputValues[0] === action.inputValues[1] && (
+                <div>来源：{action.inputSourceKeys?.map(source => source ?? "无").join(" / ")}</div>
+              )}
+
               {(action.collections ?? []).map((collection, index) => (
                 <div key={`${collection.value}-${collection.foodType}-${index}`}>
                   收藏：{collection.value} {formatFoodType(collection.foodType)}
@@ -1988,7 +1992,7 @@ function MoneyActionHistory({game}){
                     : collection.reward < 0
                       ? `-¥${Math.abs(collection.reward)}`
                       : "¥0"}
-                  {" · "}{collection.first ? "首次" : "重复"}
+                  {" · "}{collection.sameSourceRepeat ? "同源重复" : collection.first ? "首次" : "重复"}
                   <br />
                   Trend：{Number(collection.trendBefore ?? 1).toFixed(2)} → {Number(collection.trendAfter ?? 1).toFixed(2)}
                   {collection.first && collection.reward > 0 && (

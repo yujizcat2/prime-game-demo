@@ -925,10 +925,12 @@ function applySimulationCollection(
 
 
   if(
-    state.collection.has(
-      key
-    )
+    state.forceSameSourceRepeat
+    ||
+    state.collection.has(key)
   ){
+
+    const sameSourceRepeat = state.forceSameSourceRepeat === true;
 
     const currentPrice = getCurrentPrice(
       value,
@@ -956,6 +958,7 @@ function applySimulationCollection(
       foodType,
       reward: -actualPenalty,
       first: false,
+      sameSourceRepeat,
       price: currentPrice,
       penalty,
       trendBefore: state.collectionPricingTrend ?? state.trend ?? 1,
@@ -1280,10 +1283,12 @@ function applyGameCollection(
   // ==========================================================
 
   if(
-    normalizedPaths[
-      foodType
-    ]
+    state.forceSameSourceRepeat
+    ||
+    normalizedPaths[foodType]
   ){
+
+    const sameSourceRepeat = state.forceSameSourceRepeat === true;
 
     const currentPrice = getCurrentPrice(
       discoveredValue,
@@ -1313,6 +1318,7 @@ function applyGameCollection(
         foodType,
         reward: -actualPenalty,
         isFirstNumber: false,
+        sameSourceRepeat,
         trendFrom: null,
         eventId: (state.collectionEventId ?? 0) + 1
       },
@@ -1800,7 +1806,18 @@ export function applyCollections(
     deferredMoneyChanges: []
   };
 
-  for(const piece of pieces){
+  const sameSourceTwins =
+    pieces.length === 2
+    && getCollectionValue(pieces[0]) === getCollectionValue(pieces[1])
+    && pieces[0]?.sourceKey != null
+    && pieces[0].sourceKey === pieces[1]?.sourceKey;
+
+  for(let index = 0; index < pieces.length; index++){
+    const piece = pieces[index];
+    nextState = {
+      ...nextState,
+      forceSameSourceRepeat: sameSourceTwins && index === 1
+    };
     nextState = applyCollection(nextState, piece);
   }
 
@@ -1846,6 +1863,7 @@ export function applyCollections(
     deferredFirstCollections: _deferredFirstCollections,
     deferCollectionMoney: _deferMoney,
     deferredMoneyChanges: _deferredMoneyChanges,
+    forceSameSourceRepeat: _forceSameSourceRepeat,
     ...settledState
   } = nextState;
 

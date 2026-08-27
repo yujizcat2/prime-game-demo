@@ -2335,6 +2335,10 @@ function snapshotBoard(
 
         previousValue:
           piece.previousValue
+          ?? null,
+
+        sourceKey:
+          piece.sourceKey
           ?? null
 
       };
@@ -2698,6 +2702,10 @@ export async function runSmartGame({
       action.indexes.map(index => state.board[index]?.value ?? null);
 
 
+    const inputSourceKeys =
+      action.indexes.map(index => state.board[index]?.sourceKey ?? null);
+
+
 
     const applied =
 
@@ -2742,6 +2750,7 @@ export async function runSmartGame({
       actionNumber: actions,
       type: description.type,
       inputValues,
+      inputSourceKeys,
       resultValues,
       boardAfter: afterBoard.filter(piece => !piece.empty).map(piece => piece.value),
       moneyBefore,

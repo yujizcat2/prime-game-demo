@@ -358,6 +358,9 @@ export function createSimulationState(
           null,
 
         previousValue:
+          null,
+
+        sourceKey:
           null
 
       };
@@ -1053,6 +1056,9 @@ function applyCombine(
 
     ],
 
+    sourceKey:
+      [a.value, b.value].sort((left, right) => left - right).join("|"),
+
     parentFoods: [
 
       {
@@ -1403,6 +1409,9 @@ function applyReduce(
   first.previousValue =
     oldA;
 
+  first.sourceKey =
+    firstResult === 1 ? (first.sourceKey ?? null) : null;
+
 
 
 
@@ -1429,6 +1438,9 @@ function applyReduce(
 
   second.previousValue =
     oldB;
+
+  second.sourceKey =
+    secondResult === 1 ? (second.sourceKey ?? null) : null;
 
 
 
@@ -1933,6 +1945,10 @@ function clonePiece(
 
     previousValue:
       piece.previousValue
+      ?? null,
+
+    sourceKey:
+      piece.sourceKey
       ?? null
 
   };

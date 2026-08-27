@@ -152,6 +152,14 @@ function App(){
         Object.keys(slots ?? {}).map(foodType => `${value}:${foodType}`)
       )
     );
+    const autoCollectIndexes = indexes.filter(
+      (_, position) => game.preview.reduce.results?.[position]?.autoCollect
+    );
+    const sameSourceTwins =
+      autoCollectIndexes.length === 2
+      && game.board[autoCollectIndexes[0]]?.value === game.board[autoCollectIndexes[1]]?.value
+      && game.board[autoCollectIndexes[0]]?.sourceKey != null
+      && game.board[autoCollectIndexes[0]]?.sourceKey === game.board[autoCollectIndexes[1]]?.sourceKey;
     const removedCells = indexes.flatMap((index, position) => {
       const result = game.preview.reduce.results?.[position];
 
@@ -166,7 +174,8 @@ function App(){
 
       if(collectible){
         const slotKey = `${value}:${foodType}`;
-        const isFirstSlot = !collectedSlots.has(slotKey);
+        const sameSourceRepeat = sameSourceTwins && index === autoCollectIndexes[1];
+        const isFirstSlot = !sameSourceRepeat && !collectedSlots.has(slotKey);
         const currentPrice = getCurrentPrice(value, game.board, game.trend);
         reward = isFirstSlot
           ? currentPrice
@@ -177,7 +186,12 @@ function App(){
         }
       }
 
-      return [{index, foodType, reward}];
+      return [{
+        index,
+        foodType,
+        reward,
+        sameSourceRepeat: sameSourceTwins && index === autoCollectIndexes[1]
+      }];
     });
     const moneySettlement = settleMoneyChanges(
       game.money,

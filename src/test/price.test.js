@@ -216,4 +216,99 @@ assert.equal(lowBalanceSettled.money, 0, "penalty cannot make money negative");
 assert.equal(lowBalanceSettled.latestCollection.reward, -6, "feedback uses actual affordable deduction");
 assert.equal(lowBalanceSettled.trend, 0.83, "repeat with different parents keeps Trend unchanged");
 
-console.log("Money system regression cases: 17 passed");
+function sourcedCollectionPiece(value, foodType, sourceKey){
+  return {
+    ...collectionPiece(value, foodType),
+    origin: null,
+    previousValue: value,
+    sourceKey
+  };
+}
+
+const twinBoard = [
+  {value: 43, foodType: "seasoning", sourceKey: "21|22"},
+  {value: 43, foodType: "meat", sourceKey: "21|22"}
+];
+const twinPrice = getCurrentPrice(43, twinBoard, 1);
+const freshSimulationMoneyState = board => ({
+  board,
+  collection: new Set(),
+  collectionNumbers: new Set(),
+  collectionFoodTypeHistory: [],
+  lastCollectionEvents: [],
+  money: 0,
+  previousCollection: null,
+  trend: 1
+});
+const sameSourceSettled = applyCollections(
+  freshSimulationMoneyState(twinBoard),
+  [
+    sourcedCollectionPiece(43, "seasoning", "21|22"),
+    sourcedCollectionPiece(43, "meat", "21|22")
+  ],
+  twinBoard
+);
+assert.deepEqual(
+  sameSourceSettled.lastCollectionEvents.map(event => [event.reward, event.sameSourceRepeat]),
+  [[twinPrice, undefined], [-getRepeatPenalty(twinPrice), true]],
+  "same-source twins yield once and penalize the second once"
+);
+assert.deepEqual(
+  [...sameSourceSettled.collection],
+  ["43:seasoning"],
+  "forced same-source repeat does not permanently fill the second slot"
+);
+const formalSameSourceSettled = applyCollections(
+  gameState(twinBoard),
+  [
+    Object.assign(collectionPiece(43, "seasoning"), {sourceKey: "21|22"}),
+    Object.assign(collectionPiece(43, "meat"), {sourceKey: "21|22"})
+  ],
+  twinBoard
+);
+assert.equal(
+  formalSameSourceSettled.money,
+  twinPrice - getRepeatPenalty(twinPrice),
+  "formal game uses the shared same-source settlement"
+);
+assert.equal(formalSameSourceSettled.collectionPaths[43]?.meat, undefined);
+
+const differentSourceSettled = applyCollections(
+  freshSimulationMoneyState([{value: 53}, {value: 53}]),
+  [
+    sourcedCollectionPiece(53, "seasoning", "12|41"),
+    sourcedCollectionPiece(53, "meat", "24|29")
+  ],
+  [{value: 53}, {value: 53}]
+);
+const differentSourcePrice = getCurrentPrice(53, [{value: 53}, {value: 53}], 1);
+assert.deepEqual(
+  differentSourceSettled.lastCollectionEvents.map(event => event.reward),
+  [differentSourcePrice, differentSourcePrice],
+  "different-source twins retain full double earnings"
+);
+
+const collectedSameSource = applyCollections(
+  {
+    ...batchState,
+    board: twinBoard,
+    collection: new Set(["43:seasoning", "43:meat"]),
+    collectionNumbers: new Set([43]),
+    lastCollectionEvents: [],
+    money: 100,
+    previousCollection: 43,
+    trend: 1
+  },
+  [
+    sourcedCollectionPiece(43, "seasoning", "21|22"),
+    sourcedCollectionPiece(43, "meat", "21|22")
+  ],
+  twinBoard
+);
+assert.deepEqual(
+  collectedSameSource.lastCollectionEvents.map(event => event.reward),
+  [-getRepeatPenalty(twinPrice), -getRepeatPenalty(twinPrice)],
+  "collected and same-source status never stack more than one penalty per item"
+);
+
+console.log("Money system regression cases: 22 passed");

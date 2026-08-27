@@ -141,6 +141,9 @@ export function createGameState(
         parentFoods:
           null,
 
+        sourceKey:
+          null,
+
 
         origin:
           null
