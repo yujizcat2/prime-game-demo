@@ -273,6 +273,36 @@
 .board-cell--cleared-dessert { color: #ad83b7; }
 .board-cell--cleared-default { color: #8ba3b8; }
 
+.board-cell-money-reward {
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  z-index: 6;
+  transform: translate(-50%,0);
+  font-size: 14px;
+  line-height: 1;
+  font-weight: 900;
+  color: #4f7e60;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: boardCellMoneyReward .85s ease-out both;
+}
+
+@keyframes boardCellMoneyReward {
+  0% {
+    opacity: 0;
+    transform: translate(-50%,4px) scale(.94);
+  }
+  18% {
+    opacity: 1;
+    transform: translate(-50%,0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%,-13px) scale(1);
+  }
+}
+
 .board-cell--cleared::before,
 .board-cell--cleared::after {
   content: "";
@@ -356,7 +386,8 @@
   .board-piece--reduce-auto-exit .board-piece-origin,
   .board-cell--operation-pulse::after,
   .board-cell--cleared::before,
-  .board-cell--cleared::after {
+  .board-cell--cleared::after,
+  .board-cell-money-reward {
     animation-duration: .01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: .01ms !important;
@@ -5378,7 +5409,7 @@
   top: 8px;
   right: 9px;
   z-index: 4;
-  font-size: 9px;
+  font-size: 10px;
   line-height: 1;
   font-weight: 800;
   color: #6f7c72;

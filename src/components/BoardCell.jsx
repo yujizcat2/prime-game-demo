@@ -119,6 +119,13 @@ export default function BoardCell({
 
         </div>
 
+        {
+          clearFeedback?.reward != null &&
+          <div className="board-cell-money-reward">
+            {clearFeedback.reward > 0 ? "+" : ""}¥{clearFeedback.reward}
+          </div>
+        }
+
 
       </div>
 

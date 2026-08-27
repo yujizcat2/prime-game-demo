@@ -24,6 +24,11 @@ import {
   getActivityStatus
 } from "./game/activityStatus";
 
+import {
+  getCurrentPrice,
+  getTrend
+} from "./game/price";
+
 
 
 function App(){
@@ -138,9 +143,36 @@ function App(){
     const removedIndexes = indexes.filter(
       (_, position) => game.preview.reduce.results?.[position]?.autoCollect
     );
-    const removedCells = removedIndexes.map(
-      index => ({ index, foodType: game.board[index]?.foodType ?? null })
-    );
+    const collectedValues = new Set(game.collection);
+    let previousCollection = game.collection.at(-1) ?? null;
+    let settlementTrend = game.trend;
+    const removedCells = indexes.flatMap((index, position) => {
+      const result = game.preview.reduce.results?.[position];
+
+      if(!result?.autoCollect){
+        return [];
+      }
+
+      const foodType = game.board[index]?.foodType ?? null;
+      const collectible = ["meat", "vegetable", "seasoning"].includes(foodType);
+      const value = result.collectValue;
+      let reward = null;
+
+      if(collectible){
+        const isFirstNumber = !collectedValues.has(value);
+        reward = isFirstNumber
+          ? getCurrentPrice(value, game.board, settlementTrend)
+          : 0;
+
+        if(isFirstNumber){
+          collectedValues.add(value);
+          settlementTrend = getTrend(previousCollection, value);
+          previousCollection = value;
+        }
+      }
+
+      return [{index, foodType, reward}];
+    });
     const token = ++animationTokenRef.current;
     const commitDelay = removedIndexes.length > 0 ? 420 : 150;
 
@@ -155,7 +187,7 @@ function App(){
 
         if(removedCells.length > 0){
           setClearedCells(removedCells);
-          scheduleAnimation(() => setClearedCells([]), 360);
+          scheduleAnimation(() => setClearedCells([]), 900);
         }
       },
       commitDelay
