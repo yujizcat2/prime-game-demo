@@ -23,6 +23,12 @@ import {
   getDessertMutationFoodType
 } from "../game/rules";
 
+import {
+  getBoardMetrics,
+  getRecentBoardMean,
+  summarizeBoardMetrics
+} from "./boardMetrics";
+
 
 
 
@@ -2550,6 +2556,10 @@ export async function runSmartGame({
     [];
 
 
+  const boardMeanHistory =
+    [];
+
+
   const ROUTE_WINDOW_SIZE =
     20;
 
@@ -2694,6 +2704,10 @@ export async function runSmartGame({
       );
 
 
+    const boardMeanBefore =
+      getBoardMetrics(state.board).boardMean;
+
+
     const moneyBefore =
       state.money ?? 0;
 
@@ -2745,6 +2759,13 @@ export async function runSmartGame({
       snapshotBoard(state);
 
 
+    const boardMetrics =
+      getBoardMetrics(state.board);
+
+
+    boardMeanHistory.push(boardMetrics.boardMean);
+
+
     const resultValues =
       action.type === "reduce"
         ? (() => {
@@ -2774,6 +2795,9 @@ export async function runSmartGame({
       sameSource,
       actionSignature,
       fatigueCount,
+      boardMeanBefore,
+      ...boardMetrics,
+      recent20BoardMean: getRecentBoardMean(boardMeanHistory),
       resultValues,
       boardAfter: afterBoard.filter(piece => !piece.empty).map(piece => piece.value),
       moneyBefore,
@@ -2781,7 +2805,7 @@ export async function runSmartGame({
       moneyGain: (state.money ?? 0) - moneyBefore,
       collections:
         action.type === "reduce"
-          ? (state.lastCollectionEvents ?? []).map(event => ({...event}))
+          ? (state.lastCollectionEvents ?? []).map(event => ({...event, boardMeanBefore}))
           : []
     });
 
@@ -3349,6 +3373,16 @@ export async function runSmartGame({
   );
 
 
+  const firstCollectionBoardMeans = actionHistory.flatMap(action =>
+    (action.collections ?? [])
+      .filter(event => event.first)
+      .map(event => event.boardMeanBefore)
+  );
+
+
+  const boardMeanStats = summarizeBoardMetrics(actionHistory, firstCollectionBoardMeans);
+
+
 
 
 
@@ -3386,6 +3420,8 @@ export async function runSmartGame({
       fatigueCollectionEvents.reduce((sum, event) => sum + (event.fatigueExtraLoss ?? 0), 0),
 
     maxActionSignatureRepeatCount,
+
+    ...boardMeanStats,
 
 
 
@@ -3611,6 +3647,13 @@ export async function runSmartExplorer({
   let totalFatigueTriggerCount = 0;
   let totalFatigueExtraLoss = 0;
   let maxActionSignatureRepeatCount = 0;
+  let totalFinalBoardMean = 0;
+  let totalHighestBoardMean = 0;
+  let totalAverageBoardMean = 0;
+  let totalLowStepRate = 0;
+  let maxLongestLowStepCount = 0;
+  let highEntryGameCount = 0;
+  let totalHighestBoardMax = 0;
 
 
   let totalCollection =
@@ -3820,6 +3863,13 @@ export async function runSmartExplorer({
       maxActionSignatureRepeatCount,
       result.maxActionSignatureRepeatCount ?? 0
     );
+    totalFinalBoardMean += result.finalBoardMean ?? 0;
+    totalHighestBoardMean += result.highestBoardMean ?? 0;
+    totalAverageBoardMean += result.averageBoardMean ?? 0;
+    totalLowStepRate += result.lowStepRate ?? 0;
+    maxLongestLowStepCount = Math.max(maxLongestLowStepCount, result.longestLowStepCount ?? 0);
+    if(result.firstHighStep != null) highEntryGameCount++;
+    totalHighestBoardMax += result.highestBoardMax ?? 0;
 
     if((result.money ?? 0) > maxMoney || !bestMoneyGame){
       maxMoney = result.money ?? 0;
@@ -4080,6 +4130,28 @@ export async function runSmartExplorer({
     totalFatigueExtraLoss,
 
     maxActionSignatureRepeatCount,
+
+    averageFinalBoardMean:
+      totalFinalBoardMean / safeGames,
+
+    averageHighestBoardMean:
+      totalHighestBoardMean / safeGames,
+
+    averageGlobalBoardMean:
+      totalAverageBoardMean / safeGames,
+
+    averageLowStepRate:
+      totalLowStepRate / safeGames,
+
+    maxLongestLowStepCount,
+
+    highEntryGameCount,
+
+    highEntryGameRate:
+      highEntryGameCount / safeGames,
+
+    averageHighestBoardMax:
+      totalHighestBoardMax / safeGames,
 
     maxSteps,
 

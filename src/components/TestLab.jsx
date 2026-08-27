@@ -1236,6 +1236,8 @@ function TestResults({
 
       />
 
+      {moneyMode && <BoardMeanSummary result={result} />}
+
 
 
       {
@@ -1936,6 +1938,48 @@ function BestGameCard({
 
 
 
+function BoardMeanSummary({result}){
+  const game = result.bestMoneyGame ?? {};
+  const stepText = step => step == null ? "未进入" : `Step ${step}`;
+  const rangeLabels = ["1–100", "101–200", "201–300", "301–400", "401–500"];
+
+  return (
+    <div className="test-lab-record" style={{marginTop: "12px"}}>
+      <div className="test-lab-record-title">盘面指数</div>
+      <div className="test-lab-result-grid">
+        <ResultItem label="最终平均值" value={Number(game.finalBoardMean ?? 0).toFixed(1)} />
+        <ResultItem label="历史最高" value={`${Number(game.highestBoardMean ?? 0).toFixed(1)} · ${stepText(game.highestBoardMeanStep)}`} />
+        <ResultItem label="全局平均" value={Number(game.averageBoardMean ?? 0).toFixed(1)} />
+        <ResultItem label="低位占比" value={`${((game.lowStepRate ?? 0) * 100).toFixed(1)}%`} />
+        <ResultItem label="最长连续低位" value={`${game.longestLowStepCount ?? 0} Step`} />
+        <ResultItem label="低位区间" value={game.longestLowStartStep == null ? "无" : `Step ${game.longestLowStartStep}–${game.longestLowEndStep}`} />
+        <ResultItem label="首次进入中位" value={stepText(game.firstMiddleStep)} />
+        <ResultItem label="首次进入高位" value={stepText(game.firstHighStep)} />
+        <ResultItem label="历史最大数字" value={`${game.highestBoardMax ?? 0} · ${stepText(game.highestBoardMaxStep)}`} />
+        <ResultItem label="首次收藏平均" value={Number(game.firstCollectionAverageBoardMean ?? 0).toFixed(1)} />
+        <ResultItem label="前10次首次收藏" value={Number(game.first10CollectionAverageBoardMean ?? 0).toFixed(1)} />
+        <ResultItem label="后10次首次收藏" value={Number(game.last10CollectionAverageBoardMean ?? 0).toFixed(1)} />
+        {(game.boardMeanRanges ?? []).map((value, index) => value == null ? null : (
+          <ResultItem key={rangeLabels[index]} label={`Step ${rangeLabels[index]}`} value={Number(value).toFixed(1)} />
+        ))}
+      </div>
+
+      {result.games > 1 && (
+        <div style={{marginTop: "10px"}}>
+          多局汇总：平均最终 {Number(result.averageFinalBoardMean ?? 0).toFixed(1)}
+          {" · "}平均历史最高 {Number(result.averageHighestBoardMean ?? 0).toFixed(1)}
+          {" · "}平均全局 {Number(result.averageGlobalBoardMean ?? 0).toFixed(1)}
+          {" · "}平均低位占比 {((result.averageLowStepRate ?? 0) * 100).toFixed(1)}%
+          {" · "}最大连续低位 {result.maxLongestLowStepCount ?? 0} Step
+          {" · "}进入高位 {result.highEntryGameCount ?? 0}/{result.games}（{((result.highEntryGameRate ?? 0) * 100).toFixed(1)}%）
+          {" · "}平均历史最大数字 {Number(result.averageHighestBoardMax ?? 0).toFixed(1)}
+        </div>
+      )}
+    </div>
+  );
+}
+
+
 function MoneyActionHistory({game}){
 
   const history = game.actionHistory ?? [];
@@ -1973,6 +2017,7 @@ function MoneyActionHistory({game}){
                 Step {action.step} · {action.type === "combine" ? "合成" : action.type === "reduce" ? "约分" : "处理1"}
                 {" "}{action.inputValues.join(action.type === "combine" ? " + " : " / ")}
                 {" → "}{action.resultValues.join(" / ")}
+                {" · "}BoardMean {Number(action.boardMean ?? 0).toFixed(1)}
                 {action.moneyGain > 0
                   ? ` · +¥${action.moneyGain}`
                   : action.moneyGain < 0

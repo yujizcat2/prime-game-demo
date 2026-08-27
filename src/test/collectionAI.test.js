@@ -18,6 +18,13 @@ import {
   getRepeatPenalty
 } from "../game/price";
 
+import {
+  getBoardMeanBand,
+  getBoardMetrics,
+  getRecentBoardMean,
+  summarizeBoardMetrics
+} from "./boardMetrics";
+
 
 function piece(value, foodType){
   return {
@@ -157,6 +164,39 @@ function runFatigueLoopSmokeTest(){
 
 
 async function runRegressionTests(){
+  assert.equal(getBoardMetrics([{value: 3}, {value: 6}, {value: 9}]).boardMean, 6);
+  assert.deepEqual(getBoardMetrics([]), {boardMean: 0, boardSize: 0, boardMax: 0, boardMin: 0});
+  assert.equal(getRecentBoardMean(Array.from({length: 25}, (_, index) => index + 1)), 15.5);
+  assert.equal(getBoardMeanBand(14.9), "low");
+  assert.equal(getBoardMeanBand(15), "middle");
+  assert.equal(getBoardMeanBand(34.9), "middle");
+  assert.equal(getBoardMeanBand(35), "high");
+
+  const metricSummary = summarizeBoardMetrics([
+    {step: 1, boardMean: 10, boardMax: 20},
+    {step: 2, boardMean: 12, boardMax: 24},
+    {step: 3, boardMean: 18, boardMax: 30},
+    {step: 4, boardMean: 9, boardMax: 22},
+    {step: 5, boardMean: 8, boardMax: 21},
+    {step: 6, boardMean: 7, boardMax: 19},
+    {step: 7, boardMean: 40, boardMax: 80}
+  ]);
+  assert.equal(metricSummary.highestBoardMean, 40);
+  assert.equal(metricSummary.highestBoardMeanStep, 7);
+  assert.equal(metricSummary.longestLowStepCount, 3);
+  assert.equal(metricSummary.longestLowStartStep, 4);
+  assert.equal(metricSummary.longestLowEndStep, 6);
+
+  const metricCloneState = createSimulationState([3, 6, 9]);
+  const legalActionsBeforeMetrics = getSimulationLegalActions(metricCloneState);
+  getBoardMetrics(metricCloneState.board);
+  const metricClone = cloneSimulationState(metricCloneState);
+  assert.deepEqual(
+    getSimulationLegalActions(metricClone),
+    legalActionsBeforeMetrics,
+    "BoardMean observation does not alter cloned search state or legal behavior"
+  );
+
   const utils = collectionAITestUtils;
   const state = collectionChoiceState();
   const actions = getSimulationLegalActions(state);
@@ -296,6 +336,12 @@ async function runRegressionTests(){
   assert.equal(limited.hitLimit, true, "living route stopped by Step limit must be recorded");
   assert.equal(limited.actionHistory.length, limited.steps, "actual MONEY path must be retained");
   assert.equal(limited.actionHistory[0].money, limited.money, "path money must match final record");
+  assert.equal(limited.actionHistory[0].boardMeanBefore, 3);
+  assert.ok(limited.actionHistory[0].collections.length > 0, "fixture must perform a first collection");
+  assert.ok(
+    limited.actionHistory[0].collections.every(event => event.boardMeanBefore === 3),
+    "first collections consistently record the pre-action BoardMean"
+  );
   assert.ok(
     limited.actionHistory[0].collections.every(event =>
       event.reward === 0 || (event.base > 0 && event.liquidity > 0 && event.price === event.reward)
@@ -303,7 +349,7 @@ async function runRegressionTests(){
     "paid collection history must retain formal price components"
   );
 
-  console.log("Collection and money AI regression cases: 15 passed");
+  console.log("Collection and money AI regression cases: 24 passed");
 }
 
 
