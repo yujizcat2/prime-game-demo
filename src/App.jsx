@@ -1,4 +1,6 @@
 import {
+  useEffect,
+  useRef,
   useState
 } from "react";
 
@@ -45,6 +47,112 @@ function App(){
   ] = useState(null);
 
 
+  const [
+    boardAnimation,
+    setBoardAnimation
+  ] = useState(null);
+
+
+  const animationTimersRef = useRef([]);
+  const animationTokenRef = useRef(0);
+
+
+  function clearAnimationTimers(){
+
+    animationTimersRef.current.forEach(
+      timer => window.clearTimeout(timer)
+    );
+
+    animationTimersRef.current = [];
+
+  }
+
+
+  function scheduleAnimation(callback, delay){
+
+    const timer = window.setTimeout(callback, delay);
+    animationTimersRef.current.push(timer);
+
+  }
+
+
+  useEffect(
+    () => () => clearAnimationTimers(),
+    []
+  );
+
+
+  function handleCombine(){
+
+    if(
+      boardAnimation ||
+      removingIndex !== null ||
+      game.selectedIndexes.length !== 2 ||
+      !game.preview?.combine
+    ){
+      return;
+    }
+
+    const indexes = [...game.selectedIndexes];
+    const targetIndex = game.board.findIndex(piece => !piece);
+    const token = ++animationTokenRef.current;
+
+    clearAnimationTimers();
+    setBoardAnimation({ type: "combine", phase: "exit", indexes, targetIndex, token });
+
+    scheduleAnimation(
+      () => {
+        game.combineNumbers();
+        setBoardAnimation({ type: "combine", phase: "enter", indexes, targetIndex, token });
+      },
+      140
+    );
+
+    scheduleAnimation(
+      () => setBoardAnimation(null),
+      440
+    );
+
+  }
+
+
+  function handleReduce(){
+
+    if(
+      boardAnimation ||
+      removingIndex !== null ||
+      game.selectedIndexes.length !== 2 ||
+      !game.preview?.reduce
+    ){
+      return;
+    }
+
+    const indexes = [...game.selectedIndexes];
+    const removedIndexes = indexes.filter(
+      (_, position) => game.preview.reduce.results?.[position]?.autoCollect
+    );
+    const token = ++animationTokenRef.current;
+    const commitDelay = removedIndexes.length > 0 ? 220 : 120;
+
+    clearAnimationTimers();
+    setBoardAnimation({ type: "reduce", phase: "compress", indexes, removedIndexes, token });
+
+    scheduleAnimation(
+      () => {
+        game.reduceNumbers();
+        setBoardAnimation({ type: "reduce", phase: "settle", indexes, removedIndexes, token });
+      },
+      commitDelay
+    );
+
+    scheduleAnimation(
+      () => setBoardAnimation(null),
+      commitDelay + 280
+    );
+
+  }
+
+
 
   function handleRemoveOne(
     index
@@ -52,7 +160,8 @@ function App(){
 
 
     if(
-      removingIndex !== null
+      removingIndex !== null ||
+      boardAnimation
     ){
 
       return;
@@ -67,7 +176,9 @@ function App(){
 
 
 
-    window.setTimeout(
+    clearAnimationTimers();
+
+    scheduleAnimation(
       () => {
 
 
@@ -82,7 +193,7 @@ function App(){
 
 
       },
-      300
+      220
     );
 
   }
@@ -472,11 +583,11 @@ function App(){
                   }
 
                   onCombine={
-                    game.combineNumbers
+                    handleCombine
                   }
 
                   onReduce={
-                    game.reduceNumbers
+                    handleReduce
                   }
 
                   gameOver={
@@ -484,7 +595,7 @@ function App(){
                   }
 
                   removingId={
-                    removingIndex
+                    removingIndex ?? boardAnimation?.token ?? null
                   }
 
                 />
@@ -515,7 +626,9 @@ function App(){
                 }
 
                 onSelectCell={
-                  game.selectCell
+                  boardAnimation
+                    ? undefined
+                    : game.selectCell
                 }
 
                 onRemoveOne={
@@ -523,7 +636,7 @@ function App(){
                 }
 
                 onCombine={
-                  game.combineNumbers
+                  handleCombine
                 }
 
                 collection={
@@ -540,6 +653,10 @@ function App(){
 
                 mazeTurn={
                   game.mazeTurn
+                }
+
+                animationState={
+                  boardAnimation
                 }
 
               />

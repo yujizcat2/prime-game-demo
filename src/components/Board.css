@@ -98,6 +98,150 @@
 }
 
 
+/* Core operation feedback */
+
+.board-piece.board-piece--combine-source {
+  pointer-events: none;
+  animation: boardPieceCombineSource .14s ease-in forwards;
+}
+
+@keyframes boardPieceCombineSource {
+  to {
+    opacity: .64;
+    transform: scale(.955);
+  }
+}
+
+.board-piece-wrapper.board-piece-wrapper--created {
+  animation: boardPieceCreated .28s cubic-bezier(.2,.82,.28,1) both;
+}
+
+@keyframes boardPieceCreated {
+  0% {
+    opacity: 0;
+    transform: scale(.86);
+    filter: brightness(1.08);
+  }
+  68% {
+    opacity: 1;
+    transform: scale(1.03);
+    filter: brightness(1.04);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    filter: brightness(1);
+  }
+}
+
+.board-piece.board-piece--reduce-compress {
+  pointer-events: none;
+  animation: boardPieceReduceCompress .12s ease-in forwards;
+}
+
+@keyframes boardPieceReduceCompress {
+  to {
+    opacity: .82;
+    transform: scale(.9);
+    filter: blur(1px) brightness(1.02);
+  }
+}
+
+.board-piece.board-piece--reduce-settle {
+  animation: boardPieceReduceSettle .28s cubic-bezier(.2,.82,.3,1) both;
+}
+
+.board-piece.board-piece--reduce-auto-exit {
+  pointer-events: none;
+  animation: boardPieceReduceAutoExit .22s ease-in forwards;
+}
+
+@keyframes boardPieceReduceAutoExit {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  48% {
+    opacity: .82;
+    transform: scale(.9);
+    filter: blur(1px) brightness(1.03);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(.8) translateY(-7px);
+    filter: blur(0);
+  }
+}
+
+@keyframes boardPieceReduceSettle {
+  0% {
+    transform: scale(.9);
+    border-color: rgba(59,130,246,.28);
+    filter: brightness(1.04);
+  }
+  62% {
+    transform: scale(1.02);
+  }
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+}
+
+.board-piece-number--changed {
+  animation: boardPieceNumberChanged .14s ease-out both;
+}
+
+@keyframes boardPieceNumberChanged {
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+    filter: blur(1px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+.board-cell--operation-pulse::after,
+.board-cell--cleared::after {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  z-index: 0;
+  border: 1px solid rgba(59,130,246,.12);
+  border-radius: 21px;
+  background: rgba(219,234,254,.12);
+  pointer-events: none;
+  animation: boardCellOperationPulse .2s ease-out both;
+}
+
+@keyframes boardCellOperationPulse {
+  from { opacity: .8; }
+  to { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .board-piece-wrapper--enter,
+  .board-piece-wrapper--created,
+  .board-piece--combine-source,
+  .board-piece--reduce-compress,
+  .board-piece--reduce-auto-exit,
+  .board-piece--reduce-settle,
+  .board-piece-number--changed,
+  .board-piece--remove,
+  .board-piece-remove-flash,
+  .board-cell--operation-pulse::after,
+  .board-cell--cleared::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
+
+
 
 
 
@@ -2002,8 +2146,8 @@
 
   animation:
     boardPieceRemove
-    .3s
-    ease-in
+    .22s
+    cubic-bezier(.4,0,.8,.35)
     forwards;
 
 }
@@ -2011,14 +2155,24 @@
 
 @keyframes boardPieceRemove {
 
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  24% {
+    opacity: 1;
+    transform: scale(1.04) translateY(-2px);
+  }
+
   100% {
 
     opacity:
       0;
 
     transform:
-      scale(.42)
-      translateY(-22px);
+      scale(.8)
+      translateY(-8px);
 
   }
 
@@ -2042,18 +2196,12 @@
   pointer-events:
     none;
 
-  background:
-    radial-gradient(
-      circle,
-      rgba(255,255,255,.98) 0%,
-      rgba(125,211,252,.38) 34%,
-      rgba(96,165,250,.14) 52%,
-      transparent 74%
-    );
+  border:
+    1px solid rgba(96,165,250,.2);
 
   animation:
     boardPieceRemoveFlash
-    .3s
+    .2s
     ease-out
     forwards;
 
@@ -2068,7 +2216,7 @@
       0;
 
     transform:
-      scale(.6);
+      scale(.96);
 
   }
 
@@ -2087,7 +2235,7 @@
       0;
 
     transform:
-      scale(1.5);
+      scale(1.01);
 
   }
 

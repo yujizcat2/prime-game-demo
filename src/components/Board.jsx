@@ -49,6 +49,8 @@ export default function Board({
 
   mazeTurn = null,
 
+  animationState = null,
+
 }) {
 
 
@@ -954,6 +956,17 @@ export default function Board({
               index;
 
 
+            const animation =
+
+              animationState?.indexes?.includes(index)
+              || animationState?.targetIndex === index
+              || animationState?.removedIndexes?.includes(index)
+
+                ? animationState
+
+                : null;
+
+
 
 
 
@@ -1154,6 +1167,10 @@ export default function Board({
 
                 removing={
                   removing
+                }
+
+                animationState={
+                  animation
                 }
 
                 onClick={

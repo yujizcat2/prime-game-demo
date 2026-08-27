@@ -35,6 +35,8 @@ export default function BoardCell({
 
   removing = false,
 
+  animationState = null,
+
   onClick,
 
 }) {
@@ -53,10 +55,15 @@ export default function BoardCell({
 
       <div
 
-        className="
+        className={`
           board-cell
           board-cell--empty
-        "
+          ${
+            animationState?.removedIndexes?.includes(index)
+              ? "board-cell--cleared"
+              : ""
+          }
+        `}
 
         data-index={
           index
@@ -729,6 +736,13 @@ export default function BoardCell({
             ? "board-cell--auto-collect-preview"
             : ""
         }
+
+        ${
+          animationState?.phase === "enter" ||
+          animationState?.phase === "settle"
+            ? "board-cell--operation-pulse"
+            : ""
+        }
       `}
 
       data-index={
@@ -749,6 +763,14 @@ export default function BoardCell({
               ? "board-piece-wrapper--removing"
 
               : "board-piece-wrapper--enter"
+          }
+
+          ${
+            animationState?.type === "combine" &&
+            animationState.phase === "enter" &&
+            animationState.targetIndex === index
+              ? "board-piece-wrapper--created"
+              : ""
           }
         `}
 
@@ -867,6 +889,32 @@ export default function BoardCell({
 
                 ? "board-piece--remove"
 
+                : ""
+            }
+
+            ${
+              animationState?.type === "combine" &&
+              animationState.phase === "exit" &&
+              animationState.indexes.includes(index)
+                ? "board-piece--combine-source"
+                : ""
+            }
+
+            ${
+              animationState?.type === "reduce" &&
+              animationState.phase === "compress" &&
+              animationState.indexes.includes(index)
+                ? animationState.removedIndexes.includes(index)
+                  ? "board-piece--reduce-auto-exit"
+                  : "board-piece--reduce-compress"
+                : ""
+            }
+
+            ${
+              animationState?.type === "reduce" &&
+              animationState.phase === "settle" &&
+              animationState.indexes.includes(index)
+                ? "board-piece--reduce-settle"
                 : ""
             }
 
@@ -1023,8 +1071,15 @@ export default function BoardCell({
 
           <div
 
-            className={`
-              board-piece-number
+              className={`
+                board-piece-number
+
+                ${
+                  animationState?.type === "reduce" &&
+                  animationState.phase === "settle"
+                    ? "board-piece-number--changed"
+                    : ""
+                }
 
               ${
                 showReduceCandidate
