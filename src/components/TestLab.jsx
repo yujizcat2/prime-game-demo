@@ -26,7 +26,10 @@ const TEST_MODES = {
     "survival",
 
   COLLECTION:
-    "collection"
+    "collection",
+
+  MONEY:
+    "money"
 
 };
 
@@ -56,6 +59,13 @@ const SMART_GAME_OPTIONS = [
 ];
 
 
+const MONEY_GAME_OPTIONS = [
+  1,
+  10,
+  100
+];
+
+
 
 
 
@@ -73,6 +83,10 @@ const COLLECTION_MAX_ACTIONS =
 
 const SURVIVAL_MAX_ACTIONS =
   10000;
+
+
+const MONEY_MAX_STEPS =
+  500;
 
 
 
@@ -148,9 +162,19 @@ export default function TestLab({
     TEST_MODES.COLLECTION;
 
 
+  const isMoneyMode =
+
+    mode ===
+    TEST_MODES.MONEY;
+
+
   const gameOptions =
 
-    isSmartMode
+    isMoneyMode
+
+      ? MONEY_GAME_OPTIONS
+
+      : isSmartMode
 
       ? SMART_GAME_OPTIONS
 
@@ -313,7 +337,7 @@ export default function TestLab({
 
 
 
-      else{
+      else if(mode === TEST_MODES.COLLECTION){
 
 
         nextResult =
@@ -338,6 +362,20 @@ export default function TestLab({
               setProgress
 
           });
+
+      }
+
+
+      else{
+
+        nextResult = await runSmartExplorer({
+          mode: SMART_AI_MODES.MONEY,
+          games,
+          depth: SMART_DEPTH,
+          beamWidth: SMART_BEAM_WIDTH,
+          maxActionsPerGame: MONEY_MAX_STEPS,
+          onProgress: setProgress
+        });
 
       }
 
@@ -559,6 +597,27 @@ export default function TestLab({
             </ModeButton>
 
 
+            <ModeButton
+
+              active={
+                mode === TEST_MODES.MONEY
+              }
+
+              disabled={
+                running
+              }
+
+              onClick={() =>
+                changeMode(TEST_MODES.MONEY)
+              }
+
+            >
+
+              最高金钱 AI
+
+            </ModeButton>
+
+
           </div>
 
 
@@ -619,7 +678,11 @@ export default function TestLab({
 
               最大 {
 
-                isCollectionMode
+                isMoneyMode
+
+                  ? formatNumber(MONEY_MAX_STEPS)
+
+                  : isCollectionMode
 
                   ? formatNumber(
                       COLLECTION_MAX_ACTIONS
@@ -629,7 +692,7 @@ export default function TestLab({
                       SURVIVAL_MAX_ACTIONS
                     )
 
-              } 操作
+              } {isMoneyMode ? "Step" : "操作"}
 
             </>
 
@@ -764,6 +827,10 @@ export default function TestLab({
                 isCollectionMode
               }
 
+              moneyMode={
+                isMoneyMode
+              }
+
               smart={
                 isSmartMode
               }
@@ -811,6 +878,10 @@ export default function TestLab({
 
             collectionMode={
               isCollectionMode
+            }
+
+            moneyMode={
+              isMoneyMode
             }
 
           />
@@ -888,7 +959,9 @@ function ProgressPanel({
 
   smart,
 
-  collectionMode
+  collectionMode,
+
+  moneyMode
 
 }){
 
@@ -996,6 +1069,16 @@ function ProgressPanel({
           </div>
 
 
+          {
+            moneyMode &&
+            <div>
+              当前 money <strong>¥{formatNumber(progress.currentMoney ?? 0)}</strong>
+              {" · "}
+              首次收藏 <strong>{progress.currentFirstCollection ?? 0}</strong>
+            </div>
+          }
+
+
 
           {
 
@@ -1093,18 +1176,24 @@ function TestResults({
 
   smart,
 
-  collectionMode
+  collectionMode,
+
+  moneyMode
 
 }){
 
 
   const bestGame =
 
-    result.bestCollectionGame
+    moneyMode
 
-    ??
+      ? result.bestMoneyGame
 
-    result.bestStepGame;
+      : result.bestCollectionGame
+
+        ??
+
+        result.bestStepGame;
 
 
 
@@ -1143,6 +1232,10 @@ function TestResults({
           collectionMode
         }
 
+        moneyMode={
+          moneyMode
+        }
+
       />
 
 
@@ -1159,6 +1252,10 @@ function TestResults({
 
           collectionMode={
             collectionMode
+          }
+
+          moneyMode={
+            moneyMode
           }
 
         />
@@ -1216,7 +1313,9 @@ function ResultGrid({
 
   smart,
 
-  collectionMode
+  collectionMode,
+
+  moneyMode
 
 }){
 
@@ -1280,6 +1379,20 @@ function ResultGrid({
           )
         }
       />
+
+
+      {
+        moneyMode &&
+        <>
+          <ResultItem label="平均总金钱" value={`¥${Number(result.averageMoney ?? 0).toFixed(2)}`} />
+          <ResultItem label="最大总金钱" value={`¥${formatNumber(result.maxMoney ?? 0)}`} highlight />
+          <ResultItem label="最小总金钱" value={`¥${formatNumber(result.minMoney ?? 0)}`} />
+          <ResultItem label="平均首次收藏" value={Number(result.averageFirstCollection ?? 0).toFixed(2)} />
+          <ResultItem label="最大首次收藏" value={result.maxFirstCollection ?? 0} />
+          <ResultItem label="达到 500 Step" value={result.reachedStepLimitCount ?? 0} />
+          <ResultItem label="提前死局" value={result.deadGameCount ?? 0} />
+        </>
+      }
 
 
       <ResultItem
@@ -1493,7 +1606,9 @@ function BestGameCard({
 
   game,
 
-  collectionMode
+  collectionMode,
+
+  moneyMode
 
 }){
 
@@ -1553,10 +1668,28 @@ function BestGameCard({
         {
           collectionMode
             ? "最多收藏槽纪录"
-            : "最长步数纪录"
+            : moneyMode
+              ? "最高金钱纪录"
+              : "最长步数纪录"
         }
 
       </div>
+
+
+      {
+        moneyMode &&
+        <div>
+          金钱 <strong>¥{formatNumber(game.money ?? 0)}</strong>
+          {" · "}
+          首次收藏 <strong>{game.firstCollectionCount ?? 0}</strong>
+          {" · "}
+          最后首次收藏 <strong>{game.lastFirstCollection ?? "无"}</strong>
+          <br />
+          最终 Trend <strong>{Number(game.finalTrend ?? 1).toFixed(3)}</strong>
+          {" · "}
+          {game.hitLimit ? "已达到 500 Step" : "提前结束"}
+        </div>
+      }
 
 
 
@@ -2813,6 +2946,16 @@ function getModeTitle(
 
 
     return "最多收藏 AI";
+
+  }
+
+
+  if(
+    mode ===
+    TEST_MODES.MONEY
+  ){
+
+    return "最高金钱 AI";
 
   }
 

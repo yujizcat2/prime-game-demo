@@ -13,6 +13,10 @@ import {
   getSimulationLegalActions
 } from "./simulationEngine";
 
+import {
+  getCurrentPrice
+} from "../game/price";
+
 
 function piece(value, foodType){
   return {
@@ -114,7 +118,46 @@ async function runRegressionTests(){
     "an equally productive live route must beat an immediate dead end"
   );
 
-  console.log("Collection AI regression cases: 5 passed");
+  const lowerMoneyState = createSimulationState([2, 3, 5]);
+  const higherMoneyState = cloneSimulationState(lowerMoneyState);
+  lowerMoneyState.money = 20;
+  higherMoneyState.money = 21;
+  assert.ok(
+    collectionAITestUtils.compareRanks(
+      collectionAITestUtils.createMoneyRank(higherMoneyState),
+      collectionAITestUtils.createMoneyRank(lowerMoneyState)
+    ) < 0,
+    "MONEY rank must prioritize higher accumulated money"
+  );
+
+  const formalMoneyState = createSimulationState([2, 4, 3]);
+  const formalPrice = getCurrentPrice(2, formalMoneyState.board, 1);
+  applySimulationAction(formalMoneyState, {type: "reduce", indexes: [0, 1]});
+  assert.equal(
+    formalMoneyState.money,
+    formalPrice,
+    "simulation must settle through the formal pre-change board price"
+  );
+
+  const repeatedMoneyState = createSimulationState([2, 4, 3]);
+  repeatedMoneyState.collection.add("2:meat");
+  repeatedMoneyState.collectionNumbers.add(2);
+  repeatedMoneyState.previousCollection = 2;
+  applySimulationAction(repeatedMoneyState, {type: "reduce", indexes: [0, 1]});
+  assert.equal(repeatedMoneyState.money, 0, "repeated collection slot must earn zero");
+
+  const limited = await runSmartGame({
+    mode: SMART_AI_MODES.MONEY,
+    initialValues: [2, 4, 3],
+    depth: 1,
+    beamWidth: 10,
+    maxActions: 1,
+    yieldEvery: 100
+  });
+  assert.equal(limited.steps, 1, "configured Step limit must stop the game immediately");
+  assert.equal(limited.hitLimit, true, "living route stopped by Step limit must be recorded");
+
+  console.log("Collection and money AI regression cases: 9 passed");
 }
 
 

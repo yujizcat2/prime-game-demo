@@ -33,7 +33,10 @@ export const SMART_AI_MODES = {
     "survival",
 
   COLLECTION:
-    "collection"
+    "collection",
+
+  MONEY:
+    "money"
 
 };
 
@@ -148,6 +151,13 @@ function createRandomInitialValues(){
 // ============================================================
 
 function yieldToBrowser(){
+
+
+  if(typeof window === "undefined"){
+
+    return Promise.resolve();
+
+  }
 
 
   return new Promise(
@@ -1836,6 +1846,21 @@ function createCollectionRank(state, rootState){
 }
 
 
+function createMoneyRank(state){
+  const info = analyzeState(state);
+  const potential = analyzeCollectionPotential(state, info);
+
+  return [
+    state.money ?? 0,
+    potential.directNewCollection,
+    potential.unseenReducibleValues,
+    info.legalCount > 0 ? 1 : 0,
+    info.reduceCount,
+    info.empty
+  ];
+}
+
+
 
 function compareRanks(left, right){
 
@@ -1855,6 +1880,10 @@ function compareRanks(left, right){
 
 
 function createNodeScore(state, mode, rootState){
+
+  if(mode === SMART_AI_MODES.MONEY){
+    return createMoneyRank(state);
+  }
 
   return mode === SMART_AI_MODES.COLLECTION
     ? createCollectionRank(state, rootState)
@@ -1885,6 +1914,10 @@ function createSearchKey(
     getSimulationHistorySignature(
       state
     )
+
+    +
+
+    `#${state.money ?? 0}:${state.previousCollection ?? ""}:${state.trend ?? 1}`
 
   );
 
@@ -2240,7 +2273,8 @@ export const collectionAITestUtils = {
   analyzeReduceAutoCollections,
   createCollectionRank,
   compareRanks,
-  chooseSmartAction
+  chooseSmartAction,
+  createMoneyRank
 };
 
 
@@ -2452,14 +2486,17 @@ export async function runSmartGame({
     20,
 
   onProgress =
-    null
+    null,
+
+  initialValues:
+    suppliedInitialValues = null
 
 } = {}){
 
 
   const initialValues =
 
-    createRandomInitialValues();
+    suppliedInitialValues ?? createRandomInitialValues();
 
 
 
@@ -3128,6 +3165,12 @@ export async function runSmartGame({
         collectionCount:
           state.collection.size,
 
+        money:
+          state.money ?? 0,
+
+        firstCollectionCount:
+          state.collectionNumbers?.size ?? 0,
+
         lastCollection:
 
           collectionTimeline[
@@ -3239,6 +3282,18 @@ export async function runSmartGame({
       state.steps,
 
     actions,
+
+    money:
+      state.money ?? 0,
+
+    firstCollectionCount:
+      state.collectionNumbers?.size ?? 0,
+
+    lastFirstCollection:
+      state.previousCollection ?? null,
+
+    finalTrend:
+      state.trend ?? 1,
 
 
 
@@ -3453,6 +3508,14 @@ export async function runSmartExplorer({
     0;
 
 
+  let totalMoney = 0;
+  let totalFirstCollection = 0;
+  let maxMoney = 0;
+  let minMoney = Infinity;
+  let maxFirstCollection = 0;
+  let deadGameCount = 0;
+
+
   let totalCollection =
     0;
 
@@ -3503,6 +3566,10 @@ export async function runSmartExplorer({
 
 
   let bestCollectionGame =
+    null;
+
+
+  let bestMoneyGame =
     null;
 
 
@@ -3558,6 +3625,12 @@ export async function runSmartExplorer({
 
               currentCollection:
                 current.collectionCount,
+
+              currentMoney:
+                current.money,
+
+              currentFirstCollection:
+                current.firstCollectionCount,
 
               currentLastCollection:
                 current.lastCollection,
@@ -3638,6 +3711,21 @@ export async function runSmartExplorer({
 
     totalSteps +=
       result.steps;
+
+
+    totalMoney += result.money ?? 0;
+    totalFirstCollection += result.firstCollectionCount ?? 0;
+    minMoney = Math.min(minMoney, result.money ?? 0);
+    maxFirstCollection = Math.max(maxFirstCollection, result.firstCollectionCount ?? 0);
+
+    if((result.money ?? 0) > maxMoney || !bestMoneyGame){
+      maxMoney = result.money ?? 0;
+      bestMoneyGame = game;
+    }
+
+    if(result.endedNaturally){
+      deadGameCount++;
+    }
 
 
     totalCollection +=
@@ -3781,6 +3869,12 @@ export async function runSmartExplorer({
       currentCollection:
         0,
 
+      currentMoney:
+        0,
+
+      currentFirstCollection:
+        0,
+
       currentLastCollection:
         null,
 
@@ -3859,6 +3953,24 @@ export async function runSmartExplorer({
 
       totalSteps /
       safeGames,
+
+    averageMoney:
+      totalMoney / safeGames,
+
+    maxMoney,
+
+    minMoney:
+      Number.isFinite(minMoney) ? minMoney : 0,
+
+    averageFirstCollection:
+      totalFirstCollection / safeGames,
+
+    maxFirstCollection,
+
+    reachedStepLimitCount:
+      hitLimitCount,
+
+    deadGameCount,
 
     maxSteps,
 
@@ -3968,7 +4080,9 @@ export async function runSmartExplorer({
 
     bestStepGame,
 
-    bestCollectionGame
+    bestCollectionGame,
+
+    bestMoneyGame
 
   };
 

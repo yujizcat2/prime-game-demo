@@ -391,6 +391,21 @@ export function createSimulationState(
     collection:
       new Set(),
 
+    collectionNumbers:
+      new Set(),
+
+    money:
+      0,
+
+    previousCollection:
+      null,
+
+    trend:
+      1,
+
+    latestCollectionReward:
+      0,
+
 
 
 
@@ -1155,6 +1170,9 @@ function applyReduce(
   indexB
 ){
 
+  const collectionPricingBoard =
+    state.board.map(clonePiece);
+
 
   const first =
 
@@ -1413,6 +1431,9 @@ function applyReduce(
     firstResult === 1
   ){
 
+    state.collectionPricingBoard =
+      collectionPricingBoard;
+
     applyCollection(
       state,
       first
@@ -1430,6 +1451,9 @@ function applyReduce(
     secondResult === 1
   ){
 
+    state.collectionPricingBoard =
+      collectionPricingBoard;
+
     applyCollection(
       state,
       second
@@ -1440,6 +1464,8 @@ function applyReduce(
     ] = null;
 
   }
+
+  delete state.collectionPricingBoard;
 
   for(const event of collectionEvents){
     state.collectionEventHistory.push(event);
@@ -1960,6 +1986,24 @@ export function cloneSimulationState(
       new Set(
         state.collection
       ),
+
+    collectionNumbers:
+
+      new Set(
+        state.collectionNumbers ?? []
+      ),
+
+    money:
+      state.money ?? 0,
+
+    previousCollection:
+      state.previousCollection ?? null,
+
+    trend:
+      state.trend ?? 1,
+
+    latestCollectionReward:
+      state.latestCollectionReward ?? 0,
 
 
 

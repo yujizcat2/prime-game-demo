@@ -905,10 +905,46 @@ function applySimulationCollection(
   ){
 
 
+    state.latestCollectionReward =
+      0;
+
+
     return state;
 
   }
 
+
+
+  const isFirstNumber =
+    !(state.collectionNumbers ?? new Set()).has(value);
+
+
+  const reward =
+    getCurrentPrice(
+      value,
+      state.collectionPricingBoard ?? state.board,
+      state.trend ?? 1
+    );
+
+
+  state.money =
+    (state.money ?? 0) + reward;
+
+
+  state.latestCollectionReward =
+    reward;
+
+
+  if(!(state.collectionNumbers instanceof Set)){
+    state.collectionNumbers = new Set();
+  }
+
+
+  if(isFirstNumber){
+    state.trend = getTrend(state.previousCollection, value);
+    state.previousCollection = value;
+    state.collectionNumbers.add(value);
+  }
 
 
   state.collection.add(
