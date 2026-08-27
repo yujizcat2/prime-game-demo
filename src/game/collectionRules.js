@@ -915,8 +915,8 @@ function applySimulationCollection(
       foodType,
       reward: 0,
       first: false,
-      trendBefore: state.trend ?? 1,
-      trendAfter: state.trend ?? 1
+      trendBefore: state.collectionPricingTrend ?? state.trend ?? 1,
+      trendAfter: state.collectionPricingTrend ?? state.trend ?? 1
     });
 
 
@@ -934,12 +934,12 @@ function applySimulationCollection(
     getCurrentPrice(
       value,
       state.collectionPricingBoard ?? state.board,
-      state.trend ?? 1
+      state.collectionPricingTrend ?? state.trend ?? 1
     );
 
 
   const trendBefore =
-    state.trend ?? 1;
+    state.collectionPricingTrend ?? state.trend ?? 1;
 
 
   state.money =
@@ -956,9 +956,15 @@ function applySimulationCollection(
 
 
   if(isFirstNumber){
-    state.trend = getTrend(state.previousCollection, value);
-    state.previousCollection = value;
     state.collectionNumbers.add(value);
+
+    if(state.deferCollectionTrend){
+      state.deferredFirstCollections.push(value);
+    }
+    else{
+      state.trend = getTrend(state.previousCollection, value);
+      state.previousCollection = value;
+    }
   }
 
 
@@ -1461,7 +1467,7 @@ function applyGameCollection(
       getCurrentPrice(
         discoveredValue,
         state.collectionPricingBoard ?? state.board,
-        state.trend ?? 1
+        state.collectionPricingTrend ?? state.trend ?? 1
       ),
 
     isFirstNumber,
@@ -1604,14 +1610,19 @@ function applyGameCollection(
       (state.money ?? 0) + nextLatestCollection.reward,
 
     previousCollection:
-      isFirstNumber
+      isFirstNumber && !state.deferCollectionTrend
         ? discoveredValue
         : (state.previousCollection ?? null),
 
     trend:
-      isFirstNumber
+      isFirstNumber && !state.deferCollectionTrend
         ? getTrend(state.previousCollection, discoveredValue)
-        : (state.trend ?? 1)
+        : (state.trend ?? 1),
+
+    deferredFirstCollections:
+      isFirstNumber && state.deferCollectionTrend
+        ? [...(state.deferredFirstCollections ?? []), discoveredValue]
+        : (state.deferredFirstCollections ?? [])
 
   };
 
@@ -1685,4 +1696,62 @@ export function applyCollection(
 
   return state;
 
+}
+
+
+// ============================================================
+// 同一次操作产生的收藏统一结算
+// ============================================================
+
+export function applyCollections(
+  state,
+  pieces,
+  pricingBoard = state?.board
+){
+  if(!state || !Array.isArray(pieces) || pieces.length === 0){
+    return state;
+  }
+
+  const lockedTrend = state.trend ?? 1;
+  const startingPrevious = state.previousCollection ?? null;
+
+  let nextState = {
+    ...state,
+    collectionPricingBoard: pricingBoard,
+    collectionPricingTrend: lockedTrend,
+    deferCollectionTrend: true,
+    deferredFirstCollections: []
+  };
+
+  for(const piece of pieces){
+    nextState = applyCollection(nextState, piece);
+  }
+
+  let nextPrevious = startingPrevious;
+  let nextTrend = lockedTrend;
+
+  for(const value of nextState.deferredFirstCollections ?? []){
+    nextTrend = getTrend(nextPrevious, value);
+    nextPrevious = value;
+  }
+
+  if(Array.isArray(nextState.lastCollectionEvents)){
+    nextState.lastCollectionEvents = nextState.lastCollectionEvents.map(
+      event => ({...event, trendAfter: nextTrend})
+    );
+  }
+
+  const {
+    collectionPricingBoard: _pricingBoard,
+    collectionPricingTrend: _pricingTrend,
+    deferCollectionTrend: _deferTrend,
+    deferredFirstCollections: _deferredFirstCollections,
+    ...settledState
+  } = nextState;
+
+  return {
+    ...settledState,
+    previousCollection: nextPrevious,
+    trend: nextTrend
+  };
 }

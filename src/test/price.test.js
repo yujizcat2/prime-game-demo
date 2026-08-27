@@ -9,7 +9,8 @@ import {
 } from "../game/price";
 
 import {
-  applyCollection
+  applyCollection,
+  applyCollections
 } from "../game/collectionRules";
 
 
@@ -111,4 +112,79 @@ assert.notEqual(beforePrice, getCurrentPrice(14, afterBoard, 1));
 timingState = applyCollection(timingState, collectionPiece(14));
 assert.equal(timingState.money, beforePrice, "settlement uses pre-change board price");
 
-console.log("Money system regression cases: 6 passed");
+const batchBoard = [
+  {value: 55, foodType: "meat"},
+  {value: 55, foodType: "vegetable"}
+];
+const batchState = {
+  board: batchBoard,
+  collection: new Set(),
+  collectionNumbers: new Set(),
+  collectionFoodTypeHistory: [],
+  lastCollectionEvents: [],
+  money: 0,
+  previousCollection: 101,
+  trend: 0.72
+};
+const batchPrice = getCurrentPrice(55, batchBoard, 0.72);
+const formalBatchState = {
+  ...gameState(batchBoard),
+  previousCollection: 101,
+  trend: 0.72
+};
+const formalBatchSettled = applyCollections(
+  formalBatchState,
+  [collectionPiece(55, "meat"), collectionPiece(55, "vegetable")],
+  batchBoard
+);
+assert.equal(formalBatchSettled.money, batchPrice * 2, "formal game uses locked batch price");
+assert.equal(formalBatchSettled.trend, getTrend(101, 55), "formal game commits Trend after batch");
+
+const settledBatch = applyCollections(
+  batchState,
+  [
+    {...collectionPiece(55, "meat"), origin: null, previousValue: 55},
+    {...collectionPiece(55, "vegetable"), origin: null, previousValue: 55}
+  ],
+  batchBoard
+);
+assert.deepEqual(
+  settledBatch.lastCollectionEvents.map(event => event.trendBefore),
+  [0.72, 0.72],
+  "same action collections use one locked pre-action Trend"
+);
+assert.deepEqual(
+  settledBatch.lastCollectionEvents.map(event => event.liquidity),
+  [getLiquidity(55, batchBoard), getLiquidity(55, batchBoard)],
+  "same action collections use one locked liquidity context"
+);
+assert.deepEqual(
+  settledBatch.lastCollectionEvents.map(event => event.price),
+  [batchPrice, batchPrice],
+  "same action collections use one locked price context"
+);
+assert.equal(settledBatch.money, batchPrice * 2);
+assert.equal(settledBatch.trend, getTrend(101, 55), "Trend updates after batch settlement");
+
+const repeatedBatch = {
+  ...batchState,
+  collection: new Set(["55:meat"]),
+  collectionNumbers: new Set([55]),
+  lastCollectionEvents: [],
+  money: 0
+};
+const repeatedSettled = applyCollections(
+  repeatedBatch,
+  [
+    {...collectionPiece(55, "meat"), origin: null, previousValue: 55},
+    {...collectionPiece(55, "vegetable"), origin: null, previousValue: 55}
+  ],
+  batchBoard
+);
+assert.deepEqual(
+  repeatedSettled.lastCollectionEvents.map(event => event.reward),
+  [0, batchPrice],
+  "repeated slot remains zero while a new slot uses the locked price"
+);
+
+console.log("Money system regression cases: 12 passed");

@@ -18,7 +18,7 @@ import {
 } from "../game/mazeHistory";
 
 import {
-  applyCollection
+  applyCollections
 } from "../game/collectionRules";
 
 
@@ -1432,45 +1432,23 @@ function applyReduce(
 
 
 
-  if(
-    firstResult === 1
-  ){
+  const collectedPieces = [
+    firstResult === 1 ? first : null,
+    secondResult === 1 ? second : null
+  ].filter(Boolean);
 
-    state.collectionPricingBoard =
-      collectionPricingBoard;
+  Object.assign(
+    state,
+    applyCollections(state, collectedPieces, collectionPricingBoard)
+  );
 
-    applyCollection(
-      state,
-      first
-    );
-
-    state.board[
-      indexA
-    ] = null;
-
+  if(firstResult === 1){
+    state.board[indexA] = null;
   }
 
-
-
-  if(
-    secondResult === 1
-  ){
-
-    state.collectionPricingBoard =
-      collectionPricingBoard;
-
-    applyCollection(
-      state,
-      second
-    );
-
-    state.board[
-      indexB
-    ] = null;
-
+  if(secondResult === 1){
+    state.board[indexB] = null;
   }
-
-  delete state.collectionPricingBoard;
 
   for(const event of collectionEvents){
     state.collectionEventHistory.push(event);

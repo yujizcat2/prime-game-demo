@@ -31,7 +31,8 @@ import {
 } from "./gameState";
 
 import {
-  applyCollection
+  applyCollection,
+  applyCollections
 } from "./collectionRules";
 
 
@@ -922,42 +923,23 @@ export function reduceCells(
     ...state,
 
     board:
-      nextBoard,
-
-    collectionPricingBoard:
-      state.board
+      nextBoard
 
   };
 
 
 
-  if(
-    firstResult === 1
-  ){
-
-    nextState =
-
-      applyCollection(
-        nextState,
-        firstReducedPiece
-      );
-
-  }
+  const collectedPieces = [
+    firstResult === 1 ? firstReducedPiece : null,
+    secondResult === 1 ? secondReducedPiece : null
+  ].filter(Boolean);
 
 
-
-  if(
-    secondResult === 1
-  ){
-
-    nextState =
-
-      applyCollection(
-        nextState,
-        secondReducedPiece
-      );
-
-  }
+  nextState = applyCollections(
+    nextState,
+    collectedPieces,
+    state.board
+  );
 
 
 
@@ -968,14 +950,7 @@ export function reduceCells(
     );
 
 
-  const {
-    collectionPricingBoard: _collectionPricingBoard,
-    ...settledState
-  } = nextState;
-
-
-
-  return settledState;
+  return nextState;
 
 }
 
