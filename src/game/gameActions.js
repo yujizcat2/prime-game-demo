@@ -35,6 +35,13 @@ import {
   applyCollections
 } from "./collectionRules";
 
+import {
+  appendRecentActionSignature,
+  createCombineActionSignature,
+  createReduceActionSignature,
+  getActionFatigue
+} from "./actionFatigue";
+
 
 
 
@@ -512,6 +519,14 @@ export function combineCells(
       nextState
     );
 
+  nextState = {
+    ...nextState,
+    recentActionSignatures: appendRecentActionSignature(
+      state.recentActionSignatures,
+      createCombineActionSignature(a.value, b.value, result)
+    )
+  };
+
 
 
   return nextState;
@@ -676,6 +691,18 @@ export function reduceCells(
 
     second.value /
     divisor;
+
+  const actionSignature = createReduceActionSignature(
+    first.value,
+    second.value,
+    firstResult,
+    secondResult
+  );
+
+  const actionFatigue = getActionFatigue(
+    state.recentActionSignatures,
+    actionSignature
+  );
 
 
 
@@ -932,7 +959,9 @@ export function reduceCells(
     ...state,
 
     board:
-      nextBoard
+      nextBoard,
+
+    actionFatigue
 
   };
 
@@ -957,6 +986,15 @@ export function reduceCells(
     consumeStep(
       nextState
     );
+
+  nextState = {
+    ...nextState,
+    actionFatigue: null,
+    recentActionSignatures: appendRecentActionSignature(
+      state.recentActionSignatures,
+      actionSignature
+    )
+  };
 
 
   return nextState;

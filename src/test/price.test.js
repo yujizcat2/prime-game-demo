@@ -14,6 +14,29 @@ import {
   applyCollections
 } from "../game/collectionRules";
 
+import {
+  ACTION_FATIGUE_WINDOW,
+  appendRecentActionSignature,
+  createCombineActionSignature,
+  createReduceActionSignature,
+  getActionFatigue,
+  getFatiguedFirstReward,
+  getFatiguedRepeatPenalty
+} from "../game/actionFatigue";
+
+import {
+  createGameState
+} from "../game/gameState";
+
+import {
+  reduceCells
+} from "../game/gameActions";
+
+import {
+  applySimulationAction,
+  createSimulationState
+} from "./simulationEngine";
+
 
 function boardOf(...values){
   return values.map(value => value == null ? null : {value});
@@ -70,6 +93,26 @@ assert.equal(getTrend(null, 47), 1);
 assert.equal(getTrend(47, 26), 0.895);
 assert.equal(getTrend(26, 47), 1);
 assert.equal(getTrend(101, 2), 0.7);
+
+const combineSignature = createCombineActionSignature(3, 6, 9);
+assert.equal(combineSignature, "C:3|6>9");
+assert.equal(createCombineActionSignature(6, 3, 9), combineSignature, "combine parents are normalized");
+assert.notEqual(createCombineActionSignature(4, 5, 9), combineSignature, "different math routes do not share fatigue");
+assert.equal(createReduceActionSignature(9, 3, 3, 1), "R:3|9>1|3");
+assert.deepEqual(getActionFatigue([], combineSignature), {
+  signature: combineSignature,
+  fatigueCount: 0,
+  fatigueRate: 0
+});
+assert.equal(getActionFatigue([combineSignature], combineSignature).fatigueRate, 0.1);
+assert.equal(getActionFatigue(Array(8).fill(combineSignature), combineSignature).fatigueRate, 0.5);
+
+let fatigueWindow = [];
+fatigueWindow = appendRecentActionSignature(fatigueWindow, combineSignature);
+for(let index = 0; index < ACTION_FATIGUE_WINDOW; index++){
+  fatigueWindow = appendRecentActionSignature(fatigueWindow, `C:${index}|${index + 1}>${index * 2 + 1}`);
+}
+assert.equal(fatigueWindow.includes(combineSignature), false, "fatigue recovers after the old action leaves 20 Steps");
 
 const initialBoard = boardOf(10, 20, 3);
 let state = gameState(initialBoard);
@@ -311,4 +354,73 @@ assert.deepEqual(
   "collected and same-source status never stack more than one penalty per item"
 );
 
-console.log("Money system regression cases: 22 passed");
+const fatiguePrice = getCurrentPrice(10, initialBoard, 1);
+const fatiguedFirst = applyCollections(
+  {
+    ...freshSimulationMoneyState(initialBoard),
+    actionFatigue: {signature: combineSignature, fatigueCount: 5, fatigueRate: 0.5}
+  },
+  [{...collectionPiece(10, "meat"), origin: null, previousValue: 10}],
+  initialBoard
+);
+assert.equal(
+  fatiguedFirst.lastCollectionEvents[0].reward,
+  getFatiguedFirstReward(fatiguePrice, 0.5),
+  "first collection fatigue bottoms out at 50% Price"
+);
+assert.ok(fatiguedFirst.lastCollectionEvents[0].reward > 0);
+
+const fatiguedRepeat = applyCollections(
+  {
+    ...freshSimulationMoneyState(initialBoard),
+    collection: new Set(["10:meat"]),
+    collectionNumbers: new Set([10]),
+    money: 100,
+    previousCollection: 10,
+    trend: 0.83,
+    actionFatigue: {signature: combineSignature, fatigueCount: 5, fatigueRate: 0.5}
+  },
+  [{...collectionPiece(10, "meat"), origin: null, previousValue: 10}],
+  initialBoard
+);
+const fatiguedRepeatPrice = getCurrentPrice(10, initialBoard, 0.83);
+assert.equal(
+  fatiguedRepeat.lastCollectionEvents[0].reward,
+  -getFatiguedRepeatPenalty(fatiguedRepeatPrice, 0.5),
+  "repeat penalty grows to at most 100% Price"
+);
+assert.equal(fatiguedRepeat.trend, 0.83, "fatigue does not alter Trend");
+
+const fatiguedSameSource = applyCollections(
+  {
+    ...freshSimulationMoneyState(twinBoard),
+    money: 100,
+    actionFatigue: {signature: "R:43|43>1|1", fatigueCount: 5, fatigueRate: 0.5}
+  },
+  [
+    sourcedCollectionPiece(43, "seasoning", "21|22"),
+    sourcedCollectionPiece(43, "meat", "21|22")
+  ],
+  twinBoard
+);
+assert.equal(
+  fatiguedSameSource.lastCollectionEvents[1].reward,
+  -twinPrice,
+  "same-source repeat plus fatigue never exceeds 100% Price"
+);
+
+const formalFatigueState = createGameState([3, 9, 2]);
+formalFatigueState.recentActionSignatures = ["R:3|9>1|3"];
+const simulationFatigueState = createSimulationState([3, 9, 2]);
+simulationFatigueState.recentActionSignatures = ["R:3|9>1|3"];
+const formalFatigueResult = reduceCells(formalFatigueState, 0, 1);
+applySimulationAction(simulationFatigueState, {type: "reduce", indexes: [0, 1]});
+assert.equal(
+  formalFatigueResult.money,
+  simulationFatigueState.money,
+  "formal game and MONEY simulation share fatigue settlement"
+);
+assert.equal(formalFatigueResult.latestCollection.fatigueRate, 0.1);
+assert.equal(simulationFatigueState.lastCollectionEvents[0].fatigueRate, 0.1);
+
+console.log("Money system regression cases: 33 passed");

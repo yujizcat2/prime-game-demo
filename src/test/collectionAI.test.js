@@ -105,6 +105,57 @@ function assertSameSourceSimulationPath(parentA, parentB, expectedSourceKey){
 }
 
 
+function runFatigueLoopSmokeTest(){
+  const state = createSimulationState([3, 6, 2]);
+  state.collection = new Set(["3:meat", "3:vegetable", "3:seasoning"]);
+  state.collectionNumbers = new Set([3]);
+  state.previousCollection = 3;
+  state.money = 1000;
+  const observations = [];
+  const routeMarkers = [2, 5, 7, 11, 13, 17];
+
+  for(let round = 0; round < 6; round++){
+    state.board[2].value = routeMarkers[round];
+    const threeIndex = state.board.findIndex(piece => piece?.value === 3);
+    const sixIndex = state.board.findIndex(piece => piece?.value === 6);
+    assert.equal(
+      applySimulationAction(state, {type: "combine", indexes: [threeIndex, sixIndex]}),
+      true,
+      `3/6/9 smoke combine round ${round + 1}`
+    );
+
+    const nineIndex = state.board.findIndex(piece => piece?.value === 9);
+    const currentThreeIndex = state.board.findIndex(piece => piece?.value === 3);
+    assert.equal(
+      applySimulationAction(state, {type: "reduce", indexes: [nineIndex, currentThreeIndex]}),
+      true,
+      `3/6/9 smoke reduce round ${round + 1}`
+    );
+
+    const event = state.lastCollectionEvents[0];
+    observations.push({
+      round: round + 1,
+      fatigueCount: event.fatigueCount,
+      fatigueRate: event.fatigueRate,
+      penalty: Math.abs(event.reward)
+    });
+  }
+
+  assert.deepEqual(
+    observations.map(item => Math.round(item.fatigueRate * 100)),
+    [0, 10, 20, 30, 40, 50],
+    "3/6/9 loop repeat collection cost grows until the 50% fatigue cap"
+  );
+  assert.ok(
+    observations.every((item, index) => index === 0 || item.penalty >= observations[index - 1].penalty),
+    "3/6/9 loop can no longer keep a permanently minimal repeat penalty"
+  );
+  console.log("3/6/9 fatigue smoke:", observations.map(
+    item => `#${item.round} count=${item.fatigueCount} rate=${Math.round(item.fatigueRate * 100)}% penalty=-¥${item.penalty}`
+  ).join(" · "));
+}
+
+
 async function runRegressionTests(){
   const utils = collectionAITestUtils;
   const state = collectionChoiceState();
@@ -231,6 +282,7 @@ async function runRegressionTests(){
   assertSameSourceSimulationPath(9, 5, "5|9");
   assertSameSourceSimulationPath(14, 13, "13|14");
   assertSameSourceSimulationPath(13, 36, "13|36");
+  runFatigueLoopSmokeTest();
 
   const limited = await runSmartGame({
     mode: SMART_AI_MODES.MONEY,
@@ -251,7 +303,7 @@ async function runRegressionTests(){
     "paid collection history must retain formal price components"
   );
 
-  console.log("Collection and money AI regression cases: 14 passed");
+  console.log("Collection and money AI regression cases: 15 passed");
 }
 
 

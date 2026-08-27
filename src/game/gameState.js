@@ -248,6 +248,9 @@ export function createGameState(
     trend:
       1,
 
+    recentActionSignatures:
+      [],
+
 
 
 

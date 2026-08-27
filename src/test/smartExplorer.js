@@ -2706,6 +2706,10 @@ export async function runSmartGame({
       action.indexes.map(index => state.board[index]?.sourceKey ?? null);
 
 
+    const recentActionSignaturesBefore =
+      [...(state.recentActionSignatures ?? [])];
+
+
     const sameSource =
       action.type === "reduce"
       && inputValues[0] === inputValues[1]
@@ -2752,6 +2756,15 @@ export async function runSmartGame({
             .map(piece => piece.value);
 
 
+    const actionSignature =
+      state.recentActionSignatures?.[state.recentActionSignatures.length - 1]
+      ?? null;
+
+
+    const fatigueCount =
+      recentActionSignaturesBefore.filter(signature => signature === actionSignature).length;
+
+
     actionHistory.push({
       step: state.steps,
       actionNumber: actions,
@@ -2759,6 +2772,8 @@ export async function runSmartGame({
       inputValues,
       inputSourceKeys,
       sameSource,
+      actionSignature,
+      fatigueCount,
       resultValues,
       boardAfter: afterBoard.filter(piece => !piece.empty).map(piece => piece.value),
       moneyBefore,
@@ -3323,6 +3338,17 @@ export async function runSmartGame({
     );
 
 
+  const fatigueCollectionEvents = actionHistory.flatMap(action =>
+    (action.collections ?? []).filter(event => (event.fatigueCount ?? 0) > 0)
+  );
+
+
+  const maxActionSignatureRepeatCount = actionHistory.reduce(
+    (maximum, action) => Math.max(maximum, (action.fatigueCount ?? 0) + 1),
+    0
+  );
+
+
 
 
 
@@ -3352,6 +3378,14 @@ export async function runSmartGame({
 
     finalTrend:
       state.trend ?? 1,
+
+    fatigueTriggerCount:
+      fatigueCollectionEvents.length,
+
+    fatigueExtraLoss:
+      fatigueCollectionEvents.reduce((sum, event) => sum + (event.fatigueExtraLoss ?? 0), 0),
+
+    maxActionSignatureRepeatCount,
 
 
 
@@ -3574,6 +3608,9 @@ export async function runSmartExplorer({
   let minMoney = Infinity;
   let maxFirstCollection = 0;
   let deadGameCount = 0;
+  let totalFatigueTriggerCount = 0;
+  let totalFatigueExtraLoss = 0;
+  let maxActionSignatureRepeatCount = 0;
 
 
   let totalCollection =
@@ -3777,6 +3814,12 @@ export async function runSmartExplorer({
     totalFirstCollection += result.firstCollectionCount ?? 0;
     minMoney = Math.min(minMoney, result.money ?? 0);
     maxFirstCollection = Math.max(maxFirstCollection, result.firstCollectionCount ?? 0);
+    totalFatigueTriggerCount += result.fatigueTriggerCount ?? 0;
+    totalFatigueExtraLoss += result.fatigueExtraLoss ?? 0;
+    maxActionSignatureRepeatCount = Math.max(
+      maxActionSignatureRepeatCount,
+      result.maxActionSignatureRepeatCount ?? 0
+    );
 
     if((result.money ?? 0) > maxMoney || !bestMoneyGame){
       maxMoney = result.money ?? 0;
@@ -4031,6 +4074,12 @@ export async function runSmartExplorer({
       hitLimitCount,
 
     deadGameCount,
+
+    totalFatigueTriggerCount,
+
+    totalFatigueExtraLoss,
+
+    maxActionSignatureRepeatCount,
 
     maxSteps,
 

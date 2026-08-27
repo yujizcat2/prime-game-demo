@@ -21,6 +21,13 @@ import {
   applyCollections
 } from "../game/collectionRules";
 
+import {
+  appendRecentActionSignature,
+  createCombineActionSignature,
+  createReduceActionSignature,
+  getActionFatigue
+} from "../game/actionFatigue";
+
 
 
 
@@ -405,6 +412,9 @@ export function createSimulationState(
 
     trend:
       1,
+
+    recentActionSignatures:
+      [],
 
     latestCollectionReward:
       0,
@@ -1001,6 +1011,8 @@ function applyCombine(
 
     );
 
+  const actionSignature = createCombineActionSignature(a.value, b.value, value);
+
 
 
 
@@ -1099,6 +1111,11 @@ function applyCombine(
 
 
   state.steps++;
+
+  state.recentActionSignatures = appendRecentActionSignature(
+    state.recentActionSignatures,
+    actionSignature
+  );
 
 
 
@@ -1259,6 +1276,9 @@ function applyReduce(
 
     oldB /
     divisor;
+
+  const actionSignature = createReduceActionSignature(oldA, oldB, firstResult, secondResult);
+  const actionFatigue = getActionFatigue(state.recentActionSignatures, actionSignature);
 
   // ==========================================================
   // 默认类型保持
@@ -1451,7 +1471,7 @@ function applyReduce(
 
   Object.assign(
     state,
-    applyCollections(state, collectedPieces, collectionPricingBoard)
+    applyCollections({...state, actionFatigue}, collectedPieces, collectionPricingBoard)
   );
 
   if(firstResult === 1){
@@ -1481,6 +1501,11 @@ function applyReduce(
   // ==========================================================
 
   state.steps++;
+
+  state.recentActionSignatures = appendRecentActionSignature(
+    state.recentActionSignatures,
+    actionSignature
+  );
 
 
 
@@ -2001,6 +2026,9 @@ export function cloneSimulationState(
     trend:
       state.trend ?? 1,
 
+    recentActionSignatures:
+      [...(state.recentActionSignatures ?? [])],
+
     latestCollectionReward:
       state.latestCollectionReward ?? 0,
 
@@ -2114,6 +2142,14 @@ export function getSimulationHistorySignature(
     +
 
     `${state.mazeHashSum}`
+
+    +
+
+    ":"
+
+    +
+
+    (state.recentActionSignatures ?? []).join(",")
 
   );
 

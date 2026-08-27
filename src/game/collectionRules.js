@@ -14,6 +14,11 @@ import {
   getTrend
 } from "./price";
 
+import {
+  getFatiguedFirstReward,
+  getFatiguedRepeatPenalty
+} from "./actionFatigue";
+
 
 export function settleMoneyChanges(startingMoney, intendedChanges) {
   let available = startingMoney + intendedChanges.reduce(
@@ -937,7 +942,10 @@ function applySimulationCollection(
       state.collectionPricingBoard ?? state.board,
       state.collectionPricingTrend ?? state.trend ?? 1
     );
-    const penalty = getRepeatPenalty(currentPrice);
+    const fatigueCount = state.actionFatigue?.fatigueCount ?? 0;
+    const fatigueRate = state.actionFatigue?.fatigueRate ?? 0;
+    const penalty = getFatiguedRepeatPenalty(currentPrice, fatigueRate);
+    const fatigueExtraLoss = penalty - getRepeatPenalty(currentPrice);
     const actualPenalty = state.deferCollectionMoney
       ? penalty
       : Math.min(state.money ?? 0, penalty);
@@ -963,6 +971,10 @@ function applySimulationCollection(
       sameSourceRepeat,
       price: currentPrice,
       penalty,
+      actionSignature: state.actionFatigue?.signature ?? null,
+      fatigueCount,
+      fatigueRate,
+      fatigueExtraLoss,
       trendBefore: state.collectionPricingTrend ?? state.trend ?? 1,
       trendAfter: state.collectionPricingTrend ?? state.trend ?? 1
     });
@@ -978,12 +990,16 @@ function applySimulationCollection(
     !(state.collectionNumbers ?? new Set()).has(value);
 
 
-  const reward =
+  const currentPrice =
     getCurrentPrice(
       value,
       state.collectionPricingBoard ?? state.board,
       state.collectionPricingTrend ?? state.trend ?? 1
     );
+
+  const fatigueCount = state.actionFatigue?.fatigueCount ?? 0;
+  const fatigueRate = state.actionFatigue?.fatigueRate ?? 0;
+  const reward = getFatiguedFirstReward(currentPrice, fatigueRate);
 
 
   const trendBefore =
@@ -1031,7 +1047,11 @@ function applySimulationCollection(
     liquidity: getLiquidity(value, state.collectionPricingBoard ?? state.board),
     trendBefore,
     trendAfter: state.trend ?? 1,
-    price: reward
+    price: currentPrice,
+    actionSignature: state.actionFatigue?.signature ?? null,
+    fatigueCount,
+    fatigueRate,
+    fatigueExtraLoss: currentPrice - reward
   });
 
 
@@ -1299,7 +1319,9 @@ function applyGameCollection(
       state.collectionPricingBoard ?? state.board,
       state.collectionPricingTrend ?? state.trend ?? 1
     );
-    const penalty = getRepeatPenalty(currentPrice);
+    const fatigueCount = state.actionFatigue?.fatigueCount ?? 0;
+    const fatigueRate = state.actionFatigue?.fatigueRate ?? 0;
+    const penalty = getFatiguedRepeatPenalty(currentPrice, fatigueRate);
     const actualPenalty = state.deferCollectionMoney
       ? penalty
       : Math.min(state.money ?? 0, penalty);
@@ -1323,6 +1345,10 @@ function applyGameCollection(
         reward: -actualPenalty,
         isFirstNumber: false,
         sameSourceRepeat,
+        actionSignature: state.actionFatigue?.signature ?? null,
+        fatigueCount,
+        fatigueRate,
+        fatigueExtraLoss: penalty - getRepeatPenalty(currentPrice),
         trendFrom: null,
         eventId: (state.collectionEventId ?? 0) + 1
       },
@@ -1533,6 +1559,16 @@ function applyGameCollection(
   // 最新新槽
   // ==========================================================
 
+  const currentPrice =
+    getCurrentPrice(
+      discoveredValue,
+      state.collectionPricingBoard ?? state.board,
+      state.collectionPricingTrend ?? state.trend ?? 1
+    );
+
+  const fatigueCount = state.actionFatigue?.fatigueCount ?? 0;
+  const fatigueRate = state.actionFatigue?.fatigueRate ?? 0;
+
   const nextLatestCollection = {
 
     value:
@@ -1541,11 +1577,20 @@ function applyGameCollection(
     foodType,
 
     reward:
-      getCurrentPrice(
-        discoveredValue,
-        state.collectionPricingBoard ?? state.board,
-        state.collectionPricingTrend ?? state.trend ?? 1
-      ),
+      getFatiguedFirstReward(currentPrice, fatigueRate),
+
+    price:
+      currentPrice,
+
+    actionSignature:
+      state.actionFatigue?.signature ?? null,
+
+    fatigueCount,
+
+    fatigueRate,
+
+    fatigueExtraLoss:
+      currentPrice - getFatiguedFirstReward(currentPrice, fatigueRate),
 
     isFirstNumber,
 
@@ -1842,11 +1887,19 @@ export function applyCollections(
 
   if(Array.isArray(nextState.lastCollectionEvents)){
     nextState.lastCollectionEvents = nextState.lastCollectionEvents.map(
-      (event, index) => ({
-        ...event,
-        reward: moneySettlement.actualChanges[index] ?? event.reward,
-        trendAfter: nextTrend
-      })
+      (event, index) => {
+        const actualReward = moneySettlement.actualChanges[index] ?? event.reward;
+        const fatigueExtraLoss = event.first
+          ? Math.max(0, (event.price ?? 0) - actualReward)
+          : Math.max(0, Math.abs(actualReward) - getRepeatPenalty(event.price ?? 0));
+
+        return {
+          ...event,
+          reward: actualReward,
+          fatigueExtraLoss,
+          trendAfter: nextTrend
+        };
+      }
     );
   }
 
@@ -1871,6 +1924,7 @@ export function applyCollections(
     deferredMoneyChanges: _deferredMoneyChanges,
     forceSameSourceRepeat: _forceSameSourceRepeat,
     collectionBatchSameSource: _collectionBatchSameSource,
+    actionFatigue: _actionFatigue,
     ...settledState
   } = nextState;
 

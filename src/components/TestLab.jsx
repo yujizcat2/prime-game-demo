@@ -1396,6 +1396,9 @@ function ResultGrid({
           <ResultItem label="最大首次收藏" value={result.maxFirstCollection ?? 0} />
           <ResultItem label="达到 500 Step" value={result.reachedStepLimitCount ?? 0} />
           <ResultItem label="提前死局" value={result.deadGameCount ?? 0} />
+          <ResultItem label="产业疲劳触发" value={result.totalFatigueTriggerCount ?? 0} />
+          <ResultItem label="疲劳额外损失" value={`¥${formatNumber(result.totalFatigueExtraLoss ?? 0)}`} />
+          <ResultItem label="单一动作最高重复" value={result.maxActionSignatureRepeatCount ?? 0} />
         </>
       }
 
@@ -2002,6 +2005,12 @@ function MoneyActionHistory({game}){
                     <>
                       <br />
                       价格：Base {collection.base} × Liquidity {Number(collection.liquidity).toFixed(2)} × Trend {Number(collection.trendBefore).toFixed(2)} = ¥{collection.price}
+                    </>
+                  )}
+                  {(collection.fatigueCount ?? 0) > 0 && (
+                    <>
+                      <br />
+                      产业疲劳：{collection.fatigueCount}次 · {Math.round(collection.fatigueRate * 100)}%
                     </>
                   )}
                 </div>
