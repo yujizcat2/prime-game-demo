@@ -52,6 +52,8 @@ export default function Board({
 
   actionCandidates = {},
 
+  clearedCells = [],
+
 }) {
 
 
@@ -881,6 +883,15 @@ export default function Board({
                 : null;
 
 
+            const clearFeedback =
+
+              clearedCells.find(
+                entry => entry.index === index
+              )
+
+              ?? null;
+
+
 
 
 
@@ -1093,6 +1104,10 @@ export default function Board({
 
                 animationState={
                   animation
+                }
+
+                clearFeedback={
+                  clearFeedback
                 }
 
                 onClick={

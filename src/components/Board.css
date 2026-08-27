@@ -107,10 +107,10 @@
 
 @keyframes boardPieceCombineSource {
   to {
-    opacity: .58;
+    opacity: .68;
     transform:
       translate(var(--combine-shift-x,0),var(--combine-shift-y,0))
-      scale(.92);
+      scale(.94);
   }
 }
 
@@ -121,13 +121,13 @@
 @keyframes boardPieceCreated {
   0% {
     opacity: 0;
-    transform: scale(.74);
-    filter: brightness(1.14);
+    transform: scale(.86);
+    filter: brightness(1.09);
   }
   68% {
     opacity: 1;
-    transform: scale(1.09);
-    filter: brightness(1.08);
+    transform: scale(1.05);
+    filter: brightness(1.06);
   }
   100% {
     opacity: 1;
@@ -175,8 +175,8 @@
 @keyframes boardPieceReduceCompress {
   to {
     opacity: .7;
-    transform: translateX(2px) scale(.85);
-    filter: blur(1.5px) brightness(1.05);
+    transform: scale(.86);
+    filter: blur(1px) brightness(1.05);
   }
 }
 
@@ -196,30 +196,30 @@
   }
   24% {
     opacity: 1;
-    transform: scale(1.11);
+    transform: translateY(-3px) scale(1.13) rotate(0deg);
     filter: brightness(1.13);
     box-shadow: 0 0 0 5px rgba(167,139,250,.14), 0 14px 28px rgba(109,40,217,.22);
   }
   42% {
     opacity: .96;
-    transform: scale(1.07);
+    transform: translateY(-4px) scale(1.09) rotate(1deg);
     filter: brightness(1.08);
   }
   100% {
     opacity: 0;
-    transform: scale(.74) translateY(-17px);
+    transform: translateY(-25px) scale(.74) rotate(3deg);
     filter: blur(0);
   }
 }
 
 @keyframes boardPieceReduceSettle {
   0% {
-    transform: translateX(-2px) scale(.85);
+    transform: scale(.86);
     border-color: rgba(8,145,178,.48);
     filter: brightness(1.08);
   }
   62% {
-    transform: translateX(2px) scale(1.055);
+    transform: scale(1.04);
   }
   100% {
     transform: scale(1);
@@ -260,6 +260,57 @@
 @keyframes boardCellOperationPulse {
   from { opacity: .8; }
   to { opacity: 0; }
+}
+
+.board-cell--cleared-meat { color: #d88a61; }
+.board-cell--cleared-vegetable { color: #72aa79; }
+.board-cell--cleared-seasoning { color: #63a9b6; }
+.board-cell--cleared-dessert { color: #ad83b7; }
+.board-cell--cleared-default { color: #8ba3b8; }
+
+.board-cell--cleared::after {
+  inset: 12%;
+  z-index: 3;
+  border: 2px solid color-mix(in srgb,currentColor 40%,transparent);
+  border-radius: 22px;
+  background: transparent;
+  box-shadow: 0 0 16px color-mix(in srgb,currentColor 12%,transparent);
+  animation: boardCellClearRipple .28s ease-out both;
+}
+
+@keyframes boardCellClearRipple {
+  from {
+    opacity: .5;
+    transform: scale(.55);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.24);
+  }
+}
+
+.board-piece--remove .board-piece-number,
+.board-piece--reduce-auto-exit .board-piece-number {
+  animation: boardPieceRemoveNumber .26s ease-in forwards;
+}
+
+.board-piece--remove .board-piece-origin,
+.board-piece--reduce-auto-exit .board-piece-origin {
+  animation: boardPieceRemoveOrigin .22s .05s ease-in forwards;
+}
+
+@keyframes boardPieceRemoveNumber {
+  to {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes boardPieceRemoveOrigin {
+  to {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -436,6 +487,9 @@
   -webkit-tap-highlight-color:
     transparent;
 
+  outline:
+    none;
+
   background:
     #ffffff;
 
@@ -452,6 +506,17 @@
     box-shadow .16s ease,
     border-color .16s ease,
     filter .16s ease;
+
+}
+
+
+.board-piece:focus-visible {
+
+  outline:
+    2px solid color-mix(in srgb,currentColor 42%,transparent);
+
+  outline-offset:
+    1px;
 
 }
 
@@ -990,7 +1055,7 @@
     hidden;
 
   font-size:
-    11px;
+    13px;
 
   line-height:
     1;
@@ -1002,7 +1067,7 @@
     nowrap;
 
   opacity:
-    .50;
+    .62;
 
 }
 
@@ -1080,14 +1145,14 @@
     absolute;
 
   inset:
-    3px;
+    4px;
 
   z-index:
     25;
 
   border:
-    3px solid
-    rgba(37,99,235,.86);
+    1px solid
+    color-mix(in srgb,currentColor 68%,transparent);
 
   border-radius:
     19px;
@@ -1111,15 +1176,15 @@
     20;
 
   border-color:
-    rgba(37,99,235,.28);
+    color-mix(in srgb,currentColor 36%,transparent);
 
   box-shadow:
 
     0 4px 0
-    rgba(37,99,235,.08),
+    color-mix(in srgb,currentColor 9%,transparent),
 
     0 13px 24px
-    rgba(37,99,235,.14);
+    color-mix(in srgb,currentColor 17%,transparent);
 
   animation:
     boardPieceSelected
@@ -1171,10 +1236,10 @@
 .board-piece-number--reduce-candidate {
 
   color:
-    #2563eb;
+    currentColor;
 
   text-shadow:
-    0 0 12px rgba(59,130,246,.2);
+    0 0 12px color-mix(in srgb,currentColor 22%,transparent);
 
 }
 
@@ -1195,11 +1260,11 @@
 .board-piece--combine-candidate {
 
   border-color:
-    rgba(37,99,235,.28);
+    color-mix(in srgb,currentColor 34%,transparent);
 
   box-shadow:
-    0 2px 0 rgba(15,23,42,.06),
-    0 7px 16px rgba(37,99,235,.1);
+    0 0 0 3px color-mix(in srgb,currentColor 8%,transparent),
+    0 8px 18px color-mix(in srgb,currentColor 13%,transparent);
 
 }
 
@@ -1207,11 +1272,23 @@
 .board-piece--reduce-candidate {
 
   border-color:
-    rgba(14,116,144,.42);
+    color-mix(in srgb,currentColor 38%,transparent);
 
   box-shadow:
-    inset 0 0 0 2px rgba(103,232,249,.12),
-    0 7px 17px rgba(8,145,178,.13);
+    inset 0 0 0 3px color-mix(in srgb,currentColor 9%,transparent),
+    inset 0 0 18px color-mix(in srgb,currentColor 8%,transparent),
+    0 6px 14px rgba(15,23,42,.08);
+
+}
+
+
+.board-piece--combine-candidate.board-piece--reduce-candidate {
+
+  box-shadow:
+    inset 0 0 0 3px color-mix(in srgb,currentColor 9%,transparent),
+    inset 0 0 18px color-mix(in srgb,currentColor 8%,transparent),
+    0 0 0 3px color-mix(in srgb,currentColor 8%,transparent),
+    0 8px 18px color-mix(in srgb,currentColor 13%,transparent);
 
 }
 
@@ -1222,12 +1299,23 @@
     12;
 
   border-color:
-    rgba(124,58,237,.5);
+    color-mix(in srgb,currentColor 52%,transparent);
 
   box-shadow:
-    inset 0 0 0 2px rgba(196,181,253,.2),
-    0 0 0 3px rgba(167,139,250,.1),
-    0 9px 21px rgba(109,40,217,.17);
+    inset 0 0 0 2px color-mix(in srgb,currentColor 14%,transparent),
+    inset 0 0 20px color-mix(in srgb,currentColor 10%,transparent),
+    0 0 0 4px color-mix(in srgb,currentColor 10%,transparent),
+    0 10px 22px color-mix(in srgb,currentColor 19%,transparent);
+
+  filter:
+    brightness(1.045)
+    saturate(1.06);
+
+  animation:
+    boardPieceRemoveCandidate
+    1.8s
+    ease-in-out
+    infinite;
 
 }
 
@@ -1249,118 +1337,15 @@
 }
 
 
-.board-piece-candidate-badges {
+@keyframes boardPieceRemoveCandidate {
 
-  position:
-    absolute;
-
-  top:
-    9px;
-
-  right:
-    9px;
-
-  z-index:
-    32;
-
-  display:
-    flex;
-
-  gap:
-    5px;
-
-  pointer-events:
-    none;
-
-}
-
-
-.board-piece-candidate-badge {
-
-  width:
-    27px;
-
-  height:
-    27px;
-
-  display:
-    grid;
-
-  place-items:
-    center;
-
-  border:
-    1px solid rgba(255,255,255,.72);
-
-  border-radius:
-    999px;
-
-  color:
-    #ffffff;
-
-  font-size:
-    18px;
-
-  font-weight:
-    850;
-
-  line-height:
-    1;
-
-  box-shadow:
-    0 3px 8px rgba(15,23,42,.14);
-
-  animation:
-    boardPieceCandidateBadgeEnter
-    .22s
-    cubic-bezier(.2,.86,.3,1.15)
-    both;
-
-}
-
-
-.board-piece-candidate-badge--combine {
-  background: #3b82f6;
-}
-
-.board-piece-candidate-badge--reduce {
-  background: #0891b2;
-}
-
-.board-piece-candidate-badge--remove {
-
-  width:
-    31px;
-
-  height:
-    31px;
-
-  margin-top:
-    -2px;
-
-  background:
-    linear-gradient(145deg,#8b5cf6,#6d28d9);
-
-  font-size:
-    17px;
-
-  box-shadow:
-    0 0 0 3px rgba(167,139,250,.14),
-    0 5px 12px rgba(109,40,217,.2);
-
-}
-
-
-@keyframes boardPieceCandidateBadgeEnter {
-
-  from {
-    opacity: 0;
-    transform: scale(.72);
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
   }
 
-  to {
-    opacity: 1;
-    transform: scale(1);
+  50% {
+    transform: translateY(-1.5px) scale(1.015);
   }
 
 }
@@ -2391,7 +2376,7 @@
 
   24% {
     opacity: 1;
-    transform: scale(1.11) translateY(-2px);
+    transform: translateY(-3px) scale(1.13) rotate(0deg);
     filter: brightness(1.12);
     box-shadow:
       0 0 0 5px rgba(125,211,252,.16),
@@ -2404,8 +2389,9 @@
       0;
 
     transform:
+      translateY(-25px)
       scale(.74)
-      translateY(-17px);
+      rotate(3deg);
 
   }
 
@@ -3044,7 +3030,7 @@
   .board-piece-origin {
 
     font-size:
-      9px;
+      11px;
 
   }
 
@@ -3264,7 +3250,7 @@
       6px;
 
     font-size:
-      7px;
+      9px;
 
   }
 
@@ -3724,7 +3710,6 @@
   .board-piece--combine-candidate,
   .board-piece--reduce-candidate,
   .board-piece--remove-candidate,
-  .board-piece-candidate-badge,
   .board-piece--reducing,
   .board-piece-name--reducing,
   .board-piece-reduce-preview,
@@ -3744,6 +3729,15 @@
 
     display:
       none;
+
+  }
+
+
+  .board-piece--selected {
+
+    transform:
+      translateY(-4px)
+      scale(1.025);
 
   }
 

@@ -53,6 +53,12 @@ function App(){
   ] = useState(null);
 
 
+  const [
+    clearedCells,
+    setClearedCells
+  ] = useState([]);
+
+
   const animationTimersRef = useRef([]);
   const animationTokenRef = useRef(0);
 
@@ -98,6 +104,7 @@ function App(){
     const token = ++animationTokenRef.current;
 
     clearAnimationTimers();
+    setClearedCells([]);
     setBoardAnimation({ type: "combine", phase: "exit", indexes, targetIndex, token });
 
     scheduleAnimation(
@@ -131,16 +138,25 @@ function App(){
     const removedIndexes = indexes.filter(
       (_, position) => game.preview.reduce.results?.[position]?.autoCollect
     );
+    const removedCells = removedIndexes.map(
+      index => ({ index, foodType: game.board[index]?.foodType ?? null })
+    );
     const token = ++animationTokenRef.current;
     const commitDelay = removedIndexes.length > 0 ? 420 : 150;
 
     clearAnimationTimers();
+    setClearedCells([]);
     setBoardAnimation({ type: "reduce", phase: "compress", indexes, removedIndexes, token });
 
     scheduleAnimation(
       () => {
         game.reduceNumbers();
         setBoardAnimation({ type: "reduce", phase: "settle", indexes, removedIndexes, token });
+
+        if(removedCells.length > 0){
+          setClearedCells(removedCells);
+          scheduleAnimation(() => setClearedCells([]), 280);
+        }
       },
       commitDelay
     );
@@ -174,9 +190,15 @@ function App(){
       index
     );
 
+    const removedCell = {
+      index,
+      foodType: game.board[index]?.foodType ?? null
+    };
+
 
 
     clearAnimationTimers();
+    setClearedCells([]);
 
     scheduleAnimation(
       () => {
@@ -184,6 +206,13 @@ function App(){
 
         game.removeOne(
           index
+        );
+
+        setClearedCells([removedCell]);
+
+        scheduleAnimation(
+          () => setClearedCells([]),
+          280
         );
 
 
@@ -661,6 +690,10 @@ function App(){
 
                 actionCandidates={
                   game.actionCandidates
+                }
+
+                clearedCells={
+                  clearedCells
                 }
 
               />

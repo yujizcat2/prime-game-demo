@@ -41,6 +41,8 @@ export default function BoardCell({
 
   animationState = null,
 
+  clearFeedback = null,
+
   onClick,
 
 }) {
@@ -63,8 +65,8 @@ export default function BoardCell({
           board-cell
           board-cell--empty
           ${
-            animationState?.removedIndexes?.includes(index)
-              ? "board-cell--cleared"
+            clearFeedback
+              ? `board-cell--cleared board-cell--cleared-${clearFeedback.foodType ?? "default"}`
               : ""
           }
         `}
@@ -1017,41 +1019,6 @@ export default function BoardCell({
             />
 
           }
-
-
-          {
-
-            (
-              showCombineCandidate ||
-              showReduceCandidate ||
-              showRemoveCandidate
-            ) &&
-
-            <div
-              className="board-piece-candidate-badges"
-              aria-label="可执行操作"
-            >
-
-              {
-                showCombineCandidate &&
-                <span className="board-piece-candidate-badge board-piece-candidate-badge--combine">
-                  +
-                </span>
-              }
-
-              {
-                showRemoveCandidate
-                  ? <span className="board-piece-candidate-badge board-piece-candidate-badge--remove">✦</span>
-                  : showReduceCandidate &&
-                    <span className="board-piece-candidate-badge board-piece-candidate-badge--reduce">÷</span>
-              }
-
-            </div>
-
-          }
-
-
-
 
 
           <div
