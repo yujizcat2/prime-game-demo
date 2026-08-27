@@ -187,7 +187,7 @@ function App(){
 
         if(removedCells.length > 0){
           setClearedCells(removedCells);
-          scheduleAnimation(() => setClearedCells([]), 900);
+          scheduleAnimation(() => setClearedCells([]), 1050);
         }
       },
       commitDelay
