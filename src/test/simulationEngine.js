@@ -406,6 +406,9 @@ export function createSimulationState(
     latestCollectionReward:
       0,
 
+    lastCollectionEvents:
+      [],
+
 
 
 
@@ -1172,6 +1175,8 @@ function applyReduce(
 
   const collectionPricingBoard =
     state.board.map(clonePiece);
+
+  state.lastCollectionEvents = [];
 
 
   const first =
@@ -2004,6 +2009,9 @@ export function cloneSimulationState(
 
     latestCollectionReward:
       state.latestCollectionReward ?? 0,
+
+    lastCollectionEvents:
+      (state.lastCollectionEvents ?? []).map(event => ({...event})),
 
 
 

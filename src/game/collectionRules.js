@@ -7,7 +7,9 @@ import {
 } from "./numberOrigin";
 
 import {
+  getBasePrice,
   getCurrentPrice,
+  getLiquidity,
   getTrend
 } from "./price";
 
@@ -908,6 +910,15 @@ function applySimulationCollection(
     state.latestCollectionReward =
       0;
 
+    state.lastCollectionEvents?.push({
+      value,
+      foodType,
+      reward: 0,
+      first: false,
+      trendBefore: state.trend ?? 1,
+      trendAfter: state.trend ?? 1
+    });
+
 
     return state;
 
@@ -925,6 +936,10 @@ function applySimulationCollection(
       state.collectionPricingBoard ?? state.board,
       state.trend ?? 1
     );
+
+
+  const trendBefore =
+    state.trend ?? 1;
 
 
   state.money =
@@ -945,6 +960,19 @@ function applySimulationCollection(
     state.previousCollection = value;
     state.collectionNumbers.add(value);
   }
+
+
+  state.lastCollectionEvents?.push({
+    value,
+    foodType,
+    reward,
+    first: true,
+    base: getBasePrice(value),
+    liquidity: getLiquidity(value, state.collectionPricingBoard ?? state.board),
+    trendBefore,
+    trendAfter: state.trend ?? 1,
+    price: reward
+  });
 
 
   state.collection.add(

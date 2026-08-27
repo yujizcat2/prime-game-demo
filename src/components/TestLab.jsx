@@ -302,8 +302,6 @@ export default function TestLab({
 
       }
 
-
-
       else if(
         mode ===
         TEST_MODES.SURVIVAL
@@ -1263,6 +1261,13 @@ function TestResults({
       }
 
 
+      {
+        moneyMode &&
+        result.bestMoneyGame &&
+        <MoneyActionHistory game={result.bestMoneyGame} />
+      }
+
+
 
       {
 
@@ -1926,6 +1931,73 @@ function BestGameCard({
 
 
 
+
+
+function MoneyActionHistory({game}){
+
+  const history = game.actionHistory ?? [];
+  const earningSteps = history.flatMap(action =>
+    (action.collections ?? [])
+      .filter(collection => collection.first && collection.reward > 0)
+      .map(collection => ({action, collection}))
+  );
+
+  return (
+    <div className="test-lab-record">
+      <div className="test-lab-record-title">赚钱步骤</div>
+
+      {
+        earningSteps.length === 0
+          ? <div>本局没有付费收藏</div>
+          : earningSteps.map(({action, collection}, index) => (
+              <div key={`${action.actionNumber}-${collection.value}-${collection.foodType}`}>
+                #{index + 1} · Step {action.step} · {collection.value} {formatFoodType(collection.foodType)}
+                {" · "+`+¥${collection.reward}`}
+                {" · "}总计 ¥{action.money}
+              </div>
+            ))
+      }
+
+      <details style={{marginTop: "12px"}}>
+        <summary style={{cursor: "pointer", fontWeight: 800}}>
+          查看完整路径（{history.length} Step）
+        </summary>
+
+        <div style={{display: "grid", gap: "10px", marginTop: "12px"}}>
+          {history.map(action => (
+            <div key={action.actionNumber} className="test-lab-record-collection">
+              <strong>
+                Step {action.step} · {action.type === "combine" ? "合成" : action.type === "reduce" ? "约分" : "处理1"}
+                {" "}{action.inputValues.join(action.type === "combine" ? " + " : " / ")}
+                {" → "}{action.resultValues.join(" / ")}
+                {action.moneyGain > 0 ? ` · +¥${action.moneyGain}` : ""}
+                {" · "}总计 ¥{action.money}
+              </strong>
+
+              <div>盘面：{action.boardAfter.length > 0 ? action.boardAfter.join(" / ") : "空"}</div>
+
+              {(action.collections ?? []).map((collection, index) => (
+                <div key={`${collection.value}-${collection.foodType}-${index}`}>
+                  收藏：{collection.value} {formatFoodType(collection.foodType)}
+                  {" · "}{collection.reward > 0 ? `+¥${collection.reward}` : "¥0"}
+                  {" · "}{collection.first ? "首次" : "重复"}
+                  <br />
+                  Trend：{Number(collection.trendBefore ?? 1).toFixed(2)} → {Number(collection.trendAfter ?? 1).toFixed(2)}
+                  {collection.first && collection.reward > 0 && (
+                    <>
+                      <br />
+                      价格：Base {collection.base} × Liquidity {Number(collection.liquidity).toFixed(2)} × Trend {Number(collection.trendBefore).toFixed(2)} = ¥{collection.price}
+                    </>
+                  )}
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      </details>
+    </div>
+  );
+}
 
 
 function CollectionTimeline({

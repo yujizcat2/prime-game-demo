@@ -2542,6 +2542,10 @@ export async function runSmartGame({
     [];
 
 
+  const actionHistory =
+    [];
+
+
   const ROUTE_WINDOW_SIZE =
     20;
 
@@ -2686,6 +2690,14 @@ export async function runSmartGame({
       );
 
 
+    const moneyBefore =
+      state.money ?? 0;
+
+
+    const inputValues =
+      action.indexes.map(index => state.board[index]?.value ?? null);
+
+
 
     const applied =
 
@@ -2708,6 +2720,38 @@ export async function runSmartGame({
 
 
     actions++;
+
+
+    const afterBoard =
+      snapshotBoard(state);
+
+
+    const resultValues =
+      action.type === "reduce"
+        ? (() => {
+            const divisor = gcdSimple(inputValues[0], inputValues[1]);
+            return inputValues.map(value => value / divisor);
+          })()
+        : afterBoard
+            .filter((piece, index) => beforeBoard[index]?.empty && !piece.empty)
+            .map(piece => piece.value);
+
+
+    actionHistory.push({
+      step: state.steps,
+      actionNumber: actions,
+      type: description.type,
+      inputValues,
+      resultValues,
+      boardAfter: afterBoard.filter(piece => !piece.empty).map(piece => piece.value),
+      moneyBefore,
+      money: state.money ?? 0,
+      moneyGain: (state.money ?? 0) - moneyBefore,
+      collections:
+        action.type === "reduce"
+          ? (state.lastCollectionEvents ?? []).map(event => ({...event}))
+          : []
+    });
 
 
 
@@ -2767,10 +2811,7 @@ export async function runSmartGame({
       beforeBoard,
 
       afterBoard:
-
-        snapshotBoard(
-          state
-        )
+        afterBoard
 
     });
 
@@ -3425,6 +3466,8 @@ export async function runSmartGame({
 
 
     collectionTimeline,
+
+    actionHistory,
 
     visitedStates:
       state.mazeVisitedCount,

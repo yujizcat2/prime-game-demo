@@ -156,8 +156,16 @@ async function runRegressionTests(){
   });
   assert.equal(limited.steps, 1, "configured Step limit must stop the game immediately");
   assert.equal(limited.hitLimit, true, "living route stopped by Step limit must be recorded");
+  assert.equal(limited.actionHistory.length, limited.steps, "actual MONEY path must be retained");
+  assert.equal(limited.actionHistory[0].money, limited.money, "path money must match final record");
+  assert.ok(
+    limited.actionHistory[0].collections.every(event =>
+      event.reward === 0 || (event.base > 0 && event.liquidity > 0 && event.price === event.reward)
+    ),
+    "paid collection history must retain formal price components"
+  );
 
-  console.log("Collection and money AI regression cases: 9 passed");
+  console.log("Collection and money AI regression cases: 10 passed");
 }
 
 
