@@ -1211,7 +1211,7 @@ export default function BoardCell({
             !isOne &&
             <div className="board-piece-price">
               ¥{price}
-              {priceDelta !== null && (
+              {price > 0 && priceDelta !== null && (
                 <span className={priceDelta > 0 ? "board-piece-price-delta--up" : "board-piece-price-delta--down"}>
                   {priceDelta > 0 ? "↑" : "↓"}{Math.abs(priceDelta)}
                 </span>

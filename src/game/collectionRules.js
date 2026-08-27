@@ -1394,13 +1394,11 @@ function applyGameCollection(
     foodType,
 
     reward:
-      isFirstNumber
-        ? getCurrentPrice(
-            discoveredValue,
-            state.collectionPricingBoard ?? state.board,
-            state.trend ?? 1
-          )
-        : 0,
+      getCurrentPrice(
+        discoveredValue,
+        state.collectionPricingBoard ?? state.board,
+        state.trend ?? 1
+      ),
 
     isFirstNumber,
 

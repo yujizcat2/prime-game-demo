@@ -144,6 +144,11 @@ function App(){
       (_, position) => game.preview.reduce.results?.[position]?.autoCollect
     );
     const collectedValues = new Set(game.collection);
+    const collectedSlots = new Set(
+      Object.entries(game.collectionPaths).flatMap(([value, slots]) =>
+        Object.keys(slots ?? {}).map(foodType => `${value}:${foodType}`)
+      )
+    );
     let previousCollection = game.collection.at(-1) ?? null;
     let settlementTrend = game.trend;
     const removedCells = indexes.flatMap((index, position) => {
@@ -160,11 +165,17 @@ function App(){
 
       if(collectible){
         const isFirstNumber = !collectedValues.has(value);
-        reward = isFirstNumber
+        const slotKey = `${value}:${foodType}`;
+        const isFirstSlot = !collectedSlots.has(slotKey);
+        reward = isFirstSlot
           ? getCurrentPrice(value, game.board, settlementTrend)
           : 0;
 
-        if(isFirstNumber){
+        if(isFirstSlot){
+          collectedSlots.add(slotKey);
+        }
+
+        if(isFirstNumber && isFirstSlot){
           collectedValues.add(value);
           settlementTrend = getTrend(previousCollection, value);
           previousCollection = value;

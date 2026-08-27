@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 
 import {
   getBasePrice,
+  getBoardPrices,
   getCurrentPrice,
   getLiquidity,
   getTrend
@@ -76,9 +77,30 @@ assert.equal(state.money, firstPrice, "first collection earns current price");
 assert.equal(state.latestCollection.reward, firstPrice);
 
 state = applyCollection(state, collectionPiece(10, "vegetable"));
-assert.equal(state.money, firstPrice, "repeated subject earns zero");
-assert.equal(state.latestCollection.reward, 0);
+assert.equal(state.money, firstPrice * 2, "same number in a new food slot earns its price");
+assert.equal(state.latestCollection.reward, firstPrice);
 assert.equal(state.previousCollection, 10, "repeat does not change trend history");
+
+state = applyCollection(state, collectionPiece(10, "vegetable"));
+assert.equal(state.money, firstPrice * 2, "same number and food type earns zero");
+assert.equal(state.latestCollection.reward, 0);
+
+const pricedBoard = [
+  {value: 10, foodType: "meat"},
+  {value: 10, foodType: "vegetable"}
+];
+const displayedPrices = getBoardPrices(pricedBoard, 1, {
+  10: {meat: [{}]}
+});
+assert.equal(displayedPrices[0], 0, "collected number and type stays at zero");
+assert.ok(displayedPrices[1] > 0, "uncollected type keeps its live price");
+assert.equal(
+  getBoardPrices([...pricedBoard, {value: 20, foodType: "seasoning"}], 1, {
+    10: {meat: [{}]}
+  })[0],
+  0,
+  "collected slot remains zero after board liquidity changes"
+);
 
 const beforeBoard = boardOf(14, 28, 7);
 const afterBoard = boardOf(7);

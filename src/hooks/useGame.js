@@ -254,7 +254,7 @@ export default function useGame(){
 
 
   const boardPrices =
-    getBoardPrices(board, trend);
+    getBoardPrices(board, trend, collectionPaths);
 
 
 

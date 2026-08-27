@@ -75,8 +75,16 @@ export function getCurrentPrice(value, board, trend = 1) {
 }
 
 
-export function getBoardPrices(board = [], trend = 1) {
-  return board.map(piece =>
-    piece ? getCurrentPrice(piece.value, board, trend) : 0
-  );
+export function getBoardPrices(board = [], trend = 1, collectionPaths = {}) {
+  return board.map(piece => {
+    if(!piece){
+      return 0;
+    }
+
+    const collected = Boolean(
+      collectionPaths?.[piece.value]?.[piece.foodType]
+    );
+
+    return collected ? 0 : getCurrentPrice(piece.value, board, trend);
+  });
 }

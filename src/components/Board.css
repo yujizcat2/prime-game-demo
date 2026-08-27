@@ -5410,16 +5410,15 @@
 }
 .board-piece-price {
   position: absolute;
-  left: 14px;
-  right: 14px;
-  bottom: 29px;
+  top: 14px;
+  right: 34px;
   z-index: 4;
   font-size: 14px;
   line-height: 1;
   font-weight: 600;
   color: #6f7c72;
   white-space: nowrap;
-  text-align: center;
+  text-align: right;
   pointer-events: none;
 }
 
@@ -5437,8 +5436,7 @@
 
 @media (max-width: 720px) {
   .board-piece-price {
-    left: 9px;
-    right: 9px;
-    bottom: 23px;
+    top: 12px;
+    right: 28px;
   }
 }
