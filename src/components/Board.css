@@ -200,14 +200,14 @@
     filter: brightness(1.13);
     box-shadow: 0 0 0 5px rgba(167,139,250,.14), 0 14px 28px rgba(109,40,217,.22);
   }
-  42% {
-    opacity: .96;
-    transform: translateY(-4px) scale(1.09) rotate(1deg);
-    filter: brightness(1.08);
+  40% {
+    opacity: 1;
+    transform: translateY(-5px) scale(.93) rotate(1deg);
+    filter: brightness(1.1);
   }
   100% {
     opacity: 0;
-    transform: translateY(-25px) scale(.74) rotate(3deg);
+    transform: translateY(-30px) scale(.7) rotate(4deg);
     filter: blur(0);
   }
 }
@@ -268,7 +268,10 @@
 .board-cell--cleared-dessert { color: #ad83b7; }
 .board-cell--cleared-default { color: #8ba3b8; }
 
+.board-cell--cleared::before,
 .board-cell--cleared::after {
+  content: "";
+  position: absolute;
   inset: 12%;
   z-index: 3;
   border: 2px solid color-mix(in srgb,currentColor 40%,transparent);
@@ -278,14 +281,32 @@
   animation: boardCellClearRipple .28s ease-out both;
 }
 
+.board-cell--cleared::before {
+  inset: 20%;
+  border-width: 1px;
+  border-color: color-mix(in srgb,currentColor 22%,transparent);
+  animation: boardCellClearRippleSecondary .3s .06s ease-out both;
+}
+
 @keyframes boardCellClearRipple {
   from {
     opacity: .5;
-    transform: scale(.55);
+    transform: scale(.5);
   }
   to {
     opacity: 0;
-    transform: scale(1.24);
+    transform: scale(1.35);
+  }
+}
+
+@keyframes boardCellClearRippleSecondary {
+  from {
+    opacity: .28;
+    transform: scale(.58);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.28);
   }
 }
 
@@ -323,7 +344,12 @@
   .board-piece-number--changed,
   .board-piece--remove,
   .board-piece-remove-flash,
+  .board-piece--remove .board-piece-number,
+  .board-piece--remove .board-piece-origin,
+  .board-piece--reduce-auto-exit .board-piece-number,
+  .board-piece--reduce-auto-exit .board-piece-origin,
   .board-cell--operation-pulse::after,
+  .board-cell--cleared::before,
   .board-cell--cleared::after {
     animation-duration: .01ms !important;
     animation-iteration-count: 1 !important;
@@ -1151,8 +1177,8 @@
     25;
 
   border:
-    1px solid
-    color-mix(in srgb,currentColor 68%,transparent);
+    2px solid
+    color-mix(in srgb,currentColor 84%,transparent);
 
   border-radius:
     19px;
@@ -1176,15 +1202,21 @@
     20;
 
   border-color:
-    color-mix(in srgb,currentColor 36%,transparent);
+    color-mix(in srgb,currentColor 78%,transparent);
+
+  border-width:
+    2px;
 
   box-shadow:
 
     0 4px 0
-    color-mix(in srgb,currentColor 9%,transparent),
+    color-mix(in srgb,currentColor 13%,transparent),
 
-    0 13px 24px
-    color-mix(in srgb,currentColor 17%,transparent);
+    0 0 0 3px
+    color-mix(in srgb,currentColor 10%,transparent),
+
+    0 10px 22px
+    color-mix(in srgb,currentColor 22%,transparent);
 
   animation:
     boardPieceSelected
@@ -1209,8 +1241,8 @@
   72% {
 
     transform:
-      translateY(-8px)
-      scale(1.04);
+      translateY(-2px)
+      scale(1.045);
 
   }
 
@@ -1218,7 +1250,7 @@
   100% {
 
     transform:
-      translateY(-7px)
+      translateY(-2px)
       scale(1.03);
 
   }
@@ -1260,11 +1292,11 @@
 .board-piece--combine-candidate {
 
   border-color:
-    color-mix(in srgb,currentColor 34%,transparent);
+    color-mix(in srgb,currentColor 46%,transparent);
 
   box-shadow:
-    0 0 0 3px color-mix(in srgb,currentColor 8%,transparent),
-    0 8px 18px color-mix(in srgb,currentColor 13%,transparent);
+    0 0 0 3px color-mix(in srgb,currentColor 12%,transparent),
+    0 8px 18px color-mix(in srgb,currentColor 18%,transparent);
 
 }
 
@@ -1272,11 +1304,11 @@
 .board-piece--reduce-candidate {
 
   border-color:
-    color-mix(in srgb,currentColor 38%,transparent);
+    color-mix(in srgb,currentColor 48%,transparent);
 
   box-shadow:
-    inset 0 0 0 3px color-mix(in srgb,currentColor 9%,transparent),
-    inset 0 0 18px color-mix(in srgb,currentColor 8%,transparent),
+    inset 0 0 0 2px color-mix(in srgb,currentColor 17%,transparent),
+    inset 0 0 20px color-mix(in srgb,currentColor 13%,transparent),
     0 6px 14px rgba(15,23,42,.08);
 
 }
@@ -1285,10 +1317,10 @@
 .board-piece--combine-candidate.board-piece--reduce-candidate {
 
   box-shadow:
-    inset 0 0 0 3px color-mix(in srgb,currentColor 9%,transparent),
-    inset 0 0 18px color-mix(in srgb,currentColor 8%,transparent),
-    0 0 0 3px color-mix(in srgb,currentColor 8%,transparent),
-    0 8px 18px color-mix(in srgb,currentColor 13%,transparent);
+    inset 0 0 0 2px color-mix(in srgb,currentColor 17%,transparent),
+    inset 0 0 20px color-mix(in srgb,currentColor 13%,transparent),
+    0 0 0 3px color-mix(in srgb,currentColor 12%,transparent),
+    0 8px 18px color-mix(in srgb,currentColor 18%,transparent);
 
 }
 
@@ -1299,13 +1331,13 @@
     12;
 
   border-color:
-    color-mix(in srgb,currentColor 52%,transparent);
+    color-mix(in srgb,currentColor 64%,transparent);
 
   box-shadow:
-    inset 0 0 0 2px color-mix(in srgb,currentColor 14%,transparent),
-    inset 0 0 20px color-mix(in srgb,currentColor 10%,transparent),
-    0 0 0 4px color-mix(in srgb,currentColor 10%,transparent),
-    0 10px 22px color-mix(in srgb,currentColor 19%,transparent);
+    inset 0 0 0 2px color-mix(in srgb,currentColor 21%,transparent),
+    inset 0 0 22px color-mix(in srgb,currentColor 15%,transparent),
+    0 0 0 4px color-mix(in srgb,currentColor 15%,transparent),
+    0 10px 22px color-mix(in srgb,currentColor 25%,transparent);
 
   filter:
     brightness(1.045)
@@ -1346,6 +1378,108 @@
 
   50% {
     transform: translateY(-1.5px) scale(1.015);
+  }
+
+}
+
+
+.board-piece-candidate-markers {
+
+  position:
+    absolute;
+
+  top:
+    7px;
+
+  right:
+    7px;
+
+  z-index:
+    32;
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  gap:
+    3px;
+
+  pointer-events:
+    none;
+
+}
+
+
+.board-piece-candidate-marker {
+
+  min-width:
+    10px;
+
+  height:
+    15px;
+
+  display:
+    grid;
+
+  place-items:
+    center;
+
+  color:
+    color-mix(in srgb,currentColor 86%,#ffffff);
+
+  font-size:
+    11px;
+
+  font-weight:
+    900;
+
+  line-height:
+    1;
+
+  opacity:
+    var(--candidate-marker-opacity,.82);
+
+  text-shadow:
+    0 0 5px color-mix(in srgb,currentColor 24%,transparent);
+
+  animation:
+    boardPieceCandidateMarkerIn
+    .15s
+    cubic-bezier(.2,.85,.3,1)
+    both;
+
+}
+
+
+.board-piece-candidate-marker--remove {
+
+  min-width:
+    12px;
+
+  height:
+    16px;
+
+  font-size:
+    12px;
+
+  --candidate-marker-opacity:
+    .9;
+
+}
+
+
+@keyframes boardPieceCandidateMarkerIn {
+
+  from {
+    opacity: 0;
+    transform: scale(.8);
+  }
+
+  to {
+    opacity: var(--candidate-marker-opacity,.82);
+    transform: scale(1);
   }
 
 }
@@ -2383,15 +2517,21 @@
       0 14px 28px rgba(37,99,235,.2);
   }
 
+  40% {
+    opacity: 1;
+    transform: translateY(-5px) scale(.93) rotate(1deg);
+    filter: brightness(1.1);
+  }
+
   100% {
 
     opacity:
       0;
 
     transform:
-      translateY(-25px)
-      scale(.74)
-      rotate(3deg);
+      translateY(-30px)
+      scale(.7)
+      rotate(4deg);
 
   }
 
@@ -3710,6 +3850,7 @@
   .board-piece--combine-candidate,
   .board-piece--reduce-candidate,
   .board-piece--remove-candidate,
+  .board-piece-candidate-marker,
   .board-piece--reducing,
   .board-piece-name--reducing,
   .board-piece-reduce-preview,

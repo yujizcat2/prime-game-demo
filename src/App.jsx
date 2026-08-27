@@ -155,7 +155,7 @@ function App(){
 
         if(removedCells.length > 0){
           setClearedCells(removedCells);
-          scheduleAnimation(() => setClearedCells([]), 280);
+          scheduleAnimation(() => setClearedCells([]), 360);
         }
       },
       commitDelay
@@ -212,7 +212,7 @@ function App(){
 
         scheduleAnimation(
           () => setClearedCells([]),
-          280
+          360
         );
 
 

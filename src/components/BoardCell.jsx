@@ -1021,6 +1021,38 @@ export default function BoardCell({
           }
 
 
+          {
+
+            (
+              showCombineCandidate ||
+              showReduceCandidate ||
+              showRemoveCandidate
+            ) &&
+
+            <div
+              className="board-piece-candidate-markers"
+              aria-hidden="true"
+            >
+
+              {
+                showCombineCandidate &&
+                <span className="board-piece-candidate-marker board-piece-candidate-marker--combine">
+                  +
+                </span>
+              }
+
+              {
+                showRemoveCandidate
+                  ? <span className="board-piece-candidate-marker board-piece-candidate-marker--remove">✦</span>
+                  : showReduceCandidate &&
+                    <span className="board-piece-candidate-marker board-piece-candidate-marker--reduce">÷</span>
+              }
+
+            </div>
+
+          }
+
+
           <div
             className="
               board-piece-type-bar
