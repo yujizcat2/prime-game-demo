@@ -6,6 +6,11 @@ import {
   getMainLineage
 } from "./numberOrigin";
 
+import {
+  getCurrentPrice,
+  getTrend
+} from "./price";
+
 
 
 
@@ -1174,7 +1179,19 @@ function applyGameCollection(
 
         +
 
-        SCORE_CONFIG.REPEAT_SCORE
+        SCORE_CONFIG.REPEAT_SCORE,
+
+      latestCollection: {
+        value: discoveredValue,
+        foodType,
+        reward: 0,
+        isFirstNumber: false,
+        trendFrom: null,
+        eventId: (state.collectionEventId ?? 0) + 1
+      },
+
+      collectionEventId:
+        (state.collectionEventId ?? 0) + 1
 
     };
 
@@ -1374,7 +1391,28 @@ function applyGameCollection(
     value:
       discoveredValue,
 
-    foodType
+    foodType,
+
+    reward:
+      isFirstNumber
+        ? getCurrentPrice(
+            discoveredValue,
+            state.collectionPricingBoard ?? state.board,
+            state.trend ?? 1
+          )
+        : 0,
+
+    isFirstNumber,
+
+    trendFrom:
+      isFirstNumber &&
+      state.previousCollection != null &&
+      discoveredValue < state.previousCollection
+        ? state.previousCollection
+        : null,
+
+    eventId:
+      (state.collectionEventId ?? 0) + 1
 
   };
 
@@ -1494,8 +1532,24 @@ function applyGameCollection(
     latestCollection:
       nextLatestCollection,
 
+    collectionEventId:
+      nextLatestCollection.eventId,
+
     score:
-      nextScore
+      nextScore,
+
+    money:
+      (state.money ?? 0) + nextLatestCollection.reward,
+
+    previousCollection:
+      isFirstNumber
+        ? discoveredValue
+        : (state.previousCollection ?? null),
+
+    trend:
+      isFirstNumber
+        ? getTrend(state.previousCollection, discoveredValue)
+        : (state.trend ?? 1)
 
   };
 

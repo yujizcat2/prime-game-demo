@@ -19,6 +19,10 @@ import {
 } from "../game/primeStatus";
 
 import {
+  getBoardPrices
+} from "../game/price";
+
+import {
   createGameState,
 
   getBoardPieces,
@@ -237,6 +241,20 @@ export default function useGame(){
     ??
 
     null;
+
+
+  const money =
+    gameState?.money
+    ?? 0;
+
+
+  const trend =
+    gameState?.trend
+    ?? 1;
+
+
+  const boardPrices =
+    getBoardPrices(board, trend);
 
 
 
@@ -1303,6 +1321,12 @@ export default function useGame(){
     collectionParents,
 
     latestCollection,
+
+    money,
+
+    trend,
+
+    boardPrices,
 
 
     // ========================================================

@@ -5373,3 +5373,26 @@
   }
 
 }
+.board-piece-price {
+  position: absolute;
+  top: 8px;
+  right: 9px;
+  z-index: 4;
+  font-size: 9px;
+  line-height: 1;
+  font-weight: 800;
+  color: #6f7c72;
+  white-space: nowrap;
+}
+
+.board-piece-price span {
+  margin-left: 3px;
+}
+
+.board-piece-price-delta--up {
+  color: #3f8b5d;
+}
+
+.board-piece-price-delta--down {
+  color: #b66555;
+}

@@ -922,7 +922,10 @@ export function reduceCells(
     ...state,
 
     board:
-      nextBoard
+      nextBoard,
+
+    collectionPricingBoard:
+      state.board
 
   };
 
@@ -965,8 +968,14 @@ export function reduceCells(
     );
 
 
+  const {
+    collectionPricingBoard: _collectionPricingBoard,
+    ...settledState
+  } = nextState;
 
-  return nextState;
+
+
+  return settledState;
 
 }
 

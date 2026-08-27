@@ -3,6 +3,12 @@ import {
 } from "../game/prime";
 
 import {
+  useEffect,
+  useRef,
+  useState
+} from "react";
+
+import {
   getFoodTypeShortName,
   getFoodName,
   getFoodDisplayName
@@ -19,6 +25,8 @@ export default function BoardCell({
   index,
 
   piece,
+
+  price = 0,
 
   selected = false,
 
@@ -47,6 +55,22 @@ export default function BoardCell({
   onClick,
 
 }) {
+
+  const previousPriceRef = useRef(price);
+  const [priceDelta, setPriceDelta] = useState(null);
+
+  useEffect(() => {
+    const previousPrice = previousPriceRef.current;
+    previousPriceRef.current = price;
+
+    if(previousPrice === price){
+      return undefined;
+    }
+
+    setPriceDelta(price - previousPrice);
+    const timer = window.setTimeout(() => setPriceDelta(null), 750);
+    return () => window.clearTimeout(timer);
+  }, [price]);
 
 
   // ==========================================================
@@ -1175,6 +1199,18 @@ export default function BoardCell({
             {value}
 
           </div>
+
+          {
+            !isOne &&
+            <div className="board-piece-price">
+              ¥{price}
+              {priceDelta !== null && (
+                <span className={priceDelta > 0 ? "board-piece-price-delta--up" : "board-piece-price-delta--down"}>
+                  {priceDelta > 0 ? "↑" : "↓"}{Math.abs(priceDelta)}
+                </span>
+              )}
+            </div>
+          }
 
 
 

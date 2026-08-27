@@ -398,7 +398,7 @@ function App(){
             }
 
             score={
-              game.score
+              game.money
             }
 
           />
@@ -670,6 +670,10 @@ function App(){
 
                 collection={
                   game.collection
+                }
+
+                prices={
+                  game.boardPrices
                 }
 
                 removingIndex={

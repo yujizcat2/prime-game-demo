@@ -236,6 +236,15 @@ export function createGameState(
     score:
       0,
 
+    money:
+      0,
+
+    previousCollection:
+      null,
+
+    trend:
+      1,
+
 
 
 

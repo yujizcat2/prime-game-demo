@@ -42,6 +42,8 @@ export default function Board({
 
   collection = [],
 
+  prices = [],
+
   removingIndex = null,
 
   preview = null,
@@ -1060,6 +1062,10 @@ export default function Board({
 
                 piece={
                   piece
+                }
+
+                price={
+                  prices[index] ?? 0
                 }
 
                 selected={
