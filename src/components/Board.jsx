@@ -8,7 +8,6 @@ import {
 
 import {
   FOOD_TYPES,
-  canReduce,
   getDessertMutationFoodType,
   isNormalFoodType
 } from "../game/rules";
@@ -50,6 +49,8 @@ export default function Board({
   mazeTurn = null,
 
   animationState = null,
+
+  actionCandidates = {},
 
 }) {
 
@@ -116,93 +117,6 @@ export default function Board({
           entry.piece
 
       );
-
-
-
-
-
-  // ==========================================================
-  // 单选后的可约分候选
-  // ==========================================================
-
-  const reduceCandidateIndexes =
-    new Set();
-
-
-
-  if(
-    selectedCells.length === 1
-  ){
-
-
-    const selectedEntry =
-      selectedCells[0];
-
-
-    const selectedPiece =
-      selectedEntry.piece;
-
-
-
-    cells.forEach(
-
-      (
-        piece,
-        index
-      ) => {
-
-
-        if(
-          !piece
-        ){
-
-          return;
-
-        }
-
-
-
-        if(
-          index ===
-          selectedEntry.index
-        ){
-
-          return;
-
-        }
-
-
-
-        if(
-          piece.value === 1 ||
-          selectedPiece.value === 1
-        ){
-
-          return;
-
-        }
-
-
-
-        if(
-          canReduce(
-            selectedPiece,
-            piece
-          )
-        ){
-
-
-          reduceCandidateIndexes.add(
-            index
-          );
-
-        }
-
-      }
-
-    );
-
-  }
 
 
 
@@ -912,11 +826,11 @@ export default function Board({
 
 
 
-            const reduceCandidate =
+            const candidate =
 
-              reduceCandidateIndexes.has(
-                index
-              );
+              actionCandidates[index]
+
+              ?? {};
 
 
 
@@ -1141,8 +1055,16 @@ export default function Board({
                   isSelected
                 }
 
+                combineCandidate={
+                  candidate.combine === true
+                }
+
                 reduceCandidate={
-                  reduceCandidate
+                  candidate.reduce === true
+                }
+
+                removeCandidate={
+                  candidate.remove === true
                 }
 
                 reducePreview={

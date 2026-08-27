@@ -21,7 +21,11 @@ export default function BoardCell({
 
   selected = false,
 
+  combineCandidate = false,
+
   reduceCandidate = false,
+
+  removeCandidate = false,
 
   reducePreview = null,
 
@@ -696,6 +700,35 @@ export default function BoardCell({
     !reducing;
 
 
+  const showCombineCandidate =
+
+    combineCandidate &&
+    !selected &&
+    !removing &&
+    !reducing;
+
+
+  const showRemoveCandidate =
+
+    removeCandidate &&
+    !selected &&
+    !removing &&
+    !reducing;
+
+
+  const combineMotionStyle =
+
+    animationState?.type === "combine" &&
+    animationState.targetIndex !== undefined
+
+      ? {
+          "--combine-shift-x": `${Math.sign((animationState.targetIndex % 3) - (index % 3)) * 5}px`,
+          "--combine-shift-y": `${Math.sign(Math.floor(animationState.targetIndex / 3) - Math.floor(index / 3)) * 4}px`
+        }
+
+      : undefined;
+
+
 
 
 
@@ -850,6 +883,10 @@ export default function BoardCell({
               : onClick
           }
 
+          style={
+            combineMotionStyle
+          }
+
           className={`
             board-piece
 
@@ -872,6 +909,25 @@ export default function BoardCell({
 
                 ? "board-piece--reducing"
 
+                : ""
+            }
+
+            ${
+              showCombineCandidate
+                ? "board-piece--combine-candidate"
+                : ""
+            }
+
+            ${
+              showReduceCandidate &&
+              !showRemoveCandidate
+                ? "board-piece--reduce-candidate"
+                : ""
+            }
+
+            ${
+              showRemoveCandidate
+                ? "board-piece--remove-candidate"
                 : ""
             }
 
@@ -959,6 +1015,38 @@ export default function BoardCell({
                 board-piece-selected-ring
               "
             />
+
+          }
+
+
+          {
+
+            (
+              showCombineCandidate ||
+              showReduceCandidate ||
+              showRemoveCandidate
+            ) &&
+
+            <div
+              className="board-piece-candidate-badges"
+              aria-label="可执行操作"
+            >
+
+              {
+                showCombineCandidate &&
+                <span className="board-piece-candidate-badge board-piece-candidate-badge--combine">
+                  +
+                </span>
+              }
+
+              {
+                showRemoveCandidate
+                  ? <span className="board-piece-candidate-badge board-piece-candidate-badge--remove">✦</span>
+                  : showReduceCandidate &&
+                    <span className="board-piece-candidate-badge board-piece-candidate-badge--reduce">÷</span>
+              }
+
+            </div>
 
           }
 

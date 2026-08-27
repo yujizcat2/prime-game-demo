@@ -864,6 +864,71 @@ export default function useGame(){
 
 
 
+  // ==========================================================
+  // 单选后的合法操作提示
+  //
+  // 只派生 UI 数据；合法性继续由 gameEngine 的真实判断负责。
+  // ==========================================================
+
+  const actionCandidates = {};
+
+
+  if(
+    gameState &&
+    !gameOver &&
+    selectedCells.length === 1
+  ){
+
+    const selectedIndex = selectedCells[0].index;
+    const selectedPiece = selectedCells[0].piece;
+
+
+    board.forEach(
+      (piece, index) => {
+
+        if(
+          !piece ||
+          index === selectedIndex ||
+          piece.value === 1
+        ){
+          return;
+        }
+
+        const combine = canCombineCells(
+          gameState,
+          selectedIndex,
+          index
+        );
+
+        const reduce = canReduceCells(
+          gameState,
+          selectedIndex,
+          index
+        );
+
+        const divisor = reduce
+          ? gcd(selectedPiece.value, piece.value)
+          : 1;
+
+        actionCandidates[index] = {
+          combine,
+          reduce,
+          remove:
+            reduce &&
+            (
+              selectedPiece.value / divisor === 1 ||
+              piece.value / divisor === 1
+            )
+        };
+
+      }
+    );
+
+  }
+
+
+
+
 
   // ==========================================================
   // 组合
@@ -1203,6 +1268,8 @@ export default function useGame(){
     // ========================================================
 
     preview,
+
+    actionCandidates,
 
 
     // ========================================================

@@ -132,7 +132,7 @@ function App(){
       (_, position) => game.preview.reduce.results?.[position]?.autoCollect
     );
     const token = ++animationTokenRef.current;
-    const commitDelay = removedIndexes.length > 0 ? 220 : 120;
+    const commitDelay = removedIndexes.length > 0 ? 420 : 150;
 
     clearAnimationTimers();
     setBoardAnimation({ type: "reduce", phase: "compress", indexes, removedIndexes, token });
@@ -147,7 +147,7 @@ function App(){
 
     scheduleAnimation(
       () => setBoardAnimation(null),
-      commitDelay + 280
+      commitDelay + (removedIndexes.length > 0 ? 80 : 300)
     );
 
   }
@@ -193,7 +193,7 @@ function App(){
 
 
       },
-      220
+      420
     );
 
   }
@@ -657,6 +657,10 @@ function App(){
 
                 animationState={
                   boardAnimation
+                }
+
+                actionCandidates={
+                  game.actionCandidates
                 }
 
               />
