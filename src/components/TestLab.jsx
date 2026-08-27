@@ -1970,7 +1970,11 @@ function MoneyActionHistory({game}){
                 Step {action.step} · {action.type === "combine" ? "合成" : action.type === "reduce" ? "约分" : "处理1"}
                 {" "}{action.inputValues.join(action.type === "combine" ? " + " : " / ")}
                 {" → "}{action.resultValues.join(" / ")}
-                {action.moneyGain > 0 ? ` · +¥${action.moneyGain}` : ""}
+                {action.moneyGain > 0
+                  ? ` · +¥${action.moneyGain}`
+                  : action.moneyGain < 0
+                    ? ` · -¥${Math.abs(action.moneyGain)}`
+                    : ""}
                 {" · "}总计 ¥{action.money}
               </strong>
 
@@ -1979,7 +1983,11 @@ function MoneyActionHistory({game}){
               {(action.collections ?? []).map((collection, index) => (
                 <div key={`${collection.value}-${collection.foodType}-${index}`}>
                   收藏：{collection.value} {formatFoodType(collection.foodType)}
-                  {" · "}{collection.reward > 0 ? `+¥${collection.reward}` : "¥0"}
+                  {" · "}{collection.reward > 0
+                    ? `+¥${collection.reward}`
+                    : collection.reward < 0
+                      ? `-¥${Math.abs(collection.reward)}`
+                      : "¥0"}
                   {" · "}{collection.first ? "首次" : "重复"}
                   <br />
                   Trend：{Number(collection.trendBefore ?? 1).toFixed(2)} → {Number(collection.trendAfter ?? 1).toFixed(2)}

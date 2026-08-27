@@ -75,6 +75,11 @@ export function getCurrentPrice(value, board, trend = 1) {
 }
 
 
+export function getRepeatPenalty(currentPrice) {
+  return Math.round(currentPrice * 0.5);
+}
+
+
 export function getBoardPrices(board = [], trend = 1, collectionPaths = {}) {
   return board.map(piece => {
     if(!piece){
@@ -85,6 +90,7 @@ export function getBoardPrices(board = [], trend = 1, collectionPaths = {}) {
       collectionPaths?.[piece.value]?.[piece.foodType]
     );
 
-    return collected ? 0 : getCurrentPrice(piece.value, board, trend);
+    const currentPrice = getCurrentPrice(piece.value, board, trend);
+    return collected ? -getRepeatPenalty(currentPrice) : currentPrice;
   });
 }

@@ -122,7 +122,11 @@ export default function BoardCell({
         {
           clearFeedback?.reward != null &&
           <div className="board-cell-money-reward">
-            {clearFeedback.reward > 0 ? "+" : ""}¥{clearFeedback.reward}
+            {clearFeedback.reward > 0
+              ? `+¥${clearFeedback.reward}`
+              : clearFeedback.reward < 0
+                ? `-¥${Math.abs(clearFeedback.reward)}`
+                : "¥0"}
           </div>
         }
 
@@ -1210,7 +1214,7 @@ export default function BoardCell({
           {
             !isOne &&
             <div className="board-piece-price">
-              ¥{price}
+              {price < 0 ? `-¥${Math.abs(price)}` : `¥${price}`}
               {price > 0 && priceDelta !== null && (
                 <span className={priceDelta > 0 ? "board-piece-price-delta--up" : "board-piece-price-delta--down"}>
                   {priceDelta > 0 ? "↑" : "↓"}{Math.abs(priceDelta)}

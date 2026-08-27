@@ -14,7 +14,8 @@ import {
 } from "./simulationEngine";
 
 import {
-  getCurrentPrice
+  getCurrentPrice,
+  getRepeatPenalty
 } from "../game/price";
 
 
@@ -143,8 +144,16 @@ async function runRegressionTests(){
   repeatedMoneyState.collection.add("2:meat");
   repeatedMoneyState.collectionNumbers.add(2);
   repeatedMoneyState.previousCollection = 2;
+  repeatedMoneyState.money = 20;
+  const repeatedPenalty = getRepeatPenalty(
+    getCurrentPrice(2, repeatedMoneyState.board, repeatedMoneyState.trend)
+  );
   applySimulationAction(repeatedMoneyState, {type: "reduce", indexes: [0, 1]});
-  assert.equal(repeatedMoneyState.money, 0, "repeated collection slot must earn zero");
+  assert.equal(
+    repeatedMoneyState.money,
+    20 - repeatedPenalty,
+    "MONEY simulation must use the formal repeat penalty"
+  );
 
   const limited = await runSmartGame({
     mode: SMART_AI_MODES.MONEY,

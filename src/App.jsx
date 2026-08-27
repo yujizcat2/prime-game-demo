@@ -25,8 +25,13 @@ import {
 } from "./game/activityStatus";
 
 import {
-  getCurrentPrice
+  getCurrentPrice,
+  getRepeatPenalty
 } from "./game/price";
+
+import {
+  settleMoneyChanges
+} from "./game/collectionRules";
 
 
 
@@ -162,9 +167,10 @@ function App(){
       if(collectible){
         const slotKey = `${value}:${foodType}`;
         const isFirstSlot = !collectedSlots.has(slotKey);
+        const currentPrice = getCurrentPrice(value, game.board, game.trend);
         reward = isFirstSlot
-          ? getCurrentPrice(value, game.board, game.trend)
-          : 0;
+          ? currentPrice
+          : -getRepeatPenalty(currentPrice);
 
         if(isFirstSlot){
           collectedSlots.add(slotKey);
@@ -173,6 +179,16 @@ function App(){
 
       return [{index, foodType, reward}];
     });
+    const moneySettlement = settleMoneyChanges(
+      game.money,
+      removedCells.filter(cell => cell.reward != null).map(cell => cell.reward)
+    );
+    let moneyChangeIndex = 0;
+    const settledRemovedCells = removedCells.map(cell =>
+      cell.reward == null
+        ? cell
+        : {...cell, reward: moneySettlement.actualChanges[moneyChangeIndex++]}
+    );
     const token = ++animationTokenRef.current;
     const commitDelay = removedIndexes.length > 0 ? 420 : 150;
 
@@ -185,8 +201,8 @@ function App(){
         game.reduceNumbers();
         setBoardAnimation({ type: "reduce", phase: "settle", indexes, removedIndexes, token });
 
-        if(removedCells.length > 0){
-          setClearedCells(removedCells);
+        if(settledRemovedCells.length > 0){
+          setClearedCells(settledRemovedCells);
           scheduleAnimation(() => setClearedCells([]), 1050);
         }
       },

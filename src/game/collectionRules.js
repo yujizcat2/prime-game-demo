@@ -10,8 +10,32 @@ import {
   getBasePrice,
   getCurrentPrice,
   getLiquidity,
+  getRepeatPenalty,
   getTrend
 } from "./price";
+
+
+export function settleMoneyChanges(startingMoney, intendedChanges) {
+  let available = startingMoney + intendedChanges.reduce(
+    (sum, change) => sum + Math.max(0, change),
+    0
+  );
+
+  const actualChanges = intendedChanges.map(change => {
+    if(change >= 0){
+      return change;
+    }
+
+    const deduction = Math.min(available, Math.abs(change));
+    available -= deduction;
+    return -deduction;
+  });
+
+  return {
+    actualChanges,
+    money: Math.max(0, startingMoney + actualChanges.reduce((sum, change) => sum + change, 0))
+  };
+}
 
 
 
@@ -906,15 +930,34 @@ function applySimulationCollection(
     )
   ){
 
+    const currentPrice = getCurrentPrice(
+      value,
+      state.collectionPricingBoard ?? state.board,
+      state.collectionPricingTrend ?? state.trend ?? 1
+    );
+    const penalty = getRepeatPenalty(currentPrice);
+    const actualPenalty = state.deferCollectionMoney
+      ? penalty
+      : Math.min(state.money ?? 0, penalty);
+
+    if(state.deferCollectionMoney){
+      state.deferredMoneyChanges.push(-penalty);
+    }
+    else{
+      state.money = Math.max(0, (state.money ?? 0) - penalty);
+    }
+
 
     state.latestCollectionReward =
-      0;
+      -actualPenalty;
 
     state.lastCollectionEvents?.push({
       value,
       foodType,
-      reward: 0,
+      reward: -actualPenalty,
       first: false,
+      price: currentPrice,
+      penalty,
       trendBefore: state.collectionPricingTrend ?? state.trend ?? 1,
       trendAfter: state.collectionPricingTrend ?? state.trend ?? 1
     });
@@ -942,8 +985,12 @@ function applySimulationCollection(
     state.collectionPricingTrend ?? state.trend ?? 1;
 
 
-  state.money =
-    (state.money ?? 0) + reward;
+  if(state.deferCollectionMoney){
+    state.deferredMoneyChanges.push(reward);
+  }
+  else{
+    state.money = (state.money ?? 0) + reward;
+  }
 
 
   state.latestCollectionReward =
@@ -1238,6 +1285,16 @@ function applyGameCollection(
     ]
   ){
 
+    const currentPrice = getCurrentPrice(
+      discoveredValue,
+      state.collectionPricingBoard ?? state.board,
+      state.collectionPricingTrend ?? state.trend ?? 1
+    );
+    const penalty = getRepeatPenalty(currentPrice);
+    const actualPenalty = state.deferCollectionMoney
+      ? penalty
+      : Math.min(state.money ?? 0, penalty);
+
 
     return {
 
@@ -1254,14 +1311,24 @@ function applyGameCollection(
       latestCollection: {
         value: discoveredValue,
         foodType,
-        reward: 0,
+        reward: -actualPenalty,
         isFirstNumber: false,
         trendFrom: null,
         eventId: (state.collectionEventId ?? 0) + 1
       },
 
       collectionEventId:
-        (state.collectionEventId ?? 0) + 1
+        (state.collectionEventId ?? 0) + 1,
+
+      money:
+        state.deferCollectionMoney
+          ? (state.money ?? 0)
+          : Math.max(0, (state.money ?? 0) - penalty),
+
+      deferredMoneyChanges:
+        state.deferCollectionMoney
+          ? [...(state.deferredMoneyChanges ?? []), -penalty]
+          : (state.deferredMoneyChanges ?? [])
 
     };
 
@@ -1607,7 +1674,14 @@ function applyGameCollection(
       nextScore,
 
     money:
-      (state.money ?? 0) + nextLatestCollection.reward,
+      state.deferCollectionMoney
+        ? (state.money ?? 0)
+        : (state.money ?? 0) + nextLatestCollection.reward,
+
+    deferredMoneyChanges:
+      state.deferCollectionMoney
+        ? [...(state.deferredMoneyChanges ?? []), nextLatestCollection.reward]
+        : (state.deferredMoneyChanges ?? []),
 
     previousCollection:
       isFirstNumber && !state.deferCollectionTrend
@@ -1714,13 +1788,16 @@ export function applyCollections(
 
   const lockedTrend = state.trend ?? 1;
   const startingPrevious = state.previousCollection ?? null;
+  const startingMoney = state.money ?? 0;
 
   let nextState = {
     ...state,
     collectionPricingBoard: pricingBoard,
     collectionPricingTrend: lockedTrend,
     deferCollectionTrend: true,
-    deferredFirstCollections: []
+    deferredFirstCollections: [],
+    deferCollectionMoney: true,
+    deferredMoneyChanges: []
   };
 
   for(const piece of pieces){
@@ -1735,10 +1812,31 @@ export function applyCollections(
     nextPrevious = value;
   }
 
+  const moneySettlement = settleMoneyChanges(
+    startingMoney,
+    nextState.deferredMoneyChanges ?? []
+  );
+
   if(Array.isArray(nextState.lastCollectionEvents)){
     nextState.lastCollectionEvents = nextState.lastCollectionEvents.map(
-      event => ({...event, trendAfter: nextTrend})
+      (event, index) => ({
+        ...event,
+        reward: moneySettlement.actualChanges[index] ?? event.reward,
+        trendAfter: nextTrend
+      })
     );
+  }
+
+  if(nextState.latestCollection && moneySettlement.actualChanges.length > 0){
+    nextState.latestCollection = {
+      ...nextState.latestCollection,
+      reward: moneySettlement.actualChanges[moneySettlement.actualChanges.length - 1]
+    };
+  }
+
+  if(moneySettlement.actualChanges.length > 0){
+    nextState.latestCollectionReward =
+      moneySettlement.actualChanges[moneySettlement.actualChanges.length - 1];
   }
 
   const {
@@ -1746,11 +1844,14 @@ export function applyCollections(
     collectionPricingTrend: _pricingTrend,
     deferCollectionTrend: _deferTrend,
     deferredFirstCollections: _deferredFirstCollections,
+    deferCollectionMoney: _deferMoney,
+    deferredMoneyChanges: _deferredMoneyChanges,
     ...settledState
   } = nextState;
 
   return {
     ...settledState,
+    money: moneySettlement.money,
     previousCollection: nextPrevious,
     trend: nextTrend
   };

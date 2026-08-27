@@ -738,7 +738,11 @@ export default function CollectionPanel({
           {
             showMoneyFeedback &&
             <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-[10px] font-bold text-emerald-700">
-              {latestCollection?.reward > 0 ? "+" : ""}¥{latestCollection?.reward ?? 0}
+              {latestCollection?.reward > 0
+                ? `+¥${latestCollection.reward}`
+                : latestCollection?.reward < 0
+                  ? `-¥${Math.abs(latestCollection.reward)}`
+                  : "¥0"}
             </span>
           }
 

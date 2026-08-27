@@ -5,6 +5,7 @@ import {
   getBoardPrices,
   getCurrentPrice,
   getLiquidity,
+  getRepeatPenalty,
   getTrend
 } from "../game/price";
 
@@ -83,8 +84,10 @@ assert.equal(state.latestCollection.reward, firstPrice);
 assert.equal(state.previousCollection, 10, "repeat does not change trend history");
 
 state = applyCollection(state, collectionPiece(10, "vegetable"));
-assert.equal(state.money, firstPrice * 2, "same number and food type earns zero");
-assert.equal(state.latestCollection.reward, 0);
+const repeatPenalty = getRepeatPenalty(firstPrice);
+assert.equal(state.money, firstPrice * 2 - repeatPenalty, "same number and food type pays penalty");
+assert.equal(state.latestCollection.reward, -repeatPenalty);
+assert.equal(state.trend, 1, "repeat penalty does not change Trend");
 
 const pricedBoard = [
   {value: 10, foodType: "meat"},
@@ -93,14 +96,14 @@ const pricedBoard = [
 const displayedPrices = getBoardPrices(pricedBoard, 1, {
   10: {meat: [{}]}
 });
-assert.equal(displayedPrices[0], 0, "collected number and type stays at zero");
+assert.equal(displayedPrices[0], -repeatPenalty, "collected number and type displays its penalty");
 assert.ok(displayedPrices[1] > 0, "uncollected type keeps its live price");
 assert.equal(
   getBoardPrices([...pricedBoard, {value: 20, foodType: "seasoning"}], 1, {
     10: {meat: [{}]}
   })[0],
-  0,
-  "collected slot remains zero after board liquidity changes"
+  -getRepeatPenalty(getCurrentPrice(10, [...pricedBoard, {value: 20, foodType: "seasoning"}], 1)),
+  "collected slot follows its current theoretical penalty"
 );
 
 const beforeBoard = boardOf(14, 28, 7);
@@ -183,8 +186,34 @@ const repeatedSettled = applyCollections(
 );
 assert.deepEqual(
   repeatedSettled.lastCollectionEvents.map(event => event.reward),
-  [0, batchPrice],
-  "repeated slot remains zero while a new slot uses the locked price"
+  [-getRepeatPenalty(batchPrice), batchPrice],
+  "mixed repeat and first collection use the locked batch price"
 );
+assert.deepEqual(
+  repeatedSettled.lastCollectionEvents.map(event => event.price),
+  [batchPrice, batchPrice],
+  "mixed repeat and first collection share one theoretical price context"
+);
+assert.equal(
+  repeatedSettled.money,
+  batchPrice - getRepeatPenalty(batchPrice),
+  "mixed batch commits one atomic net money result"
+);
+assert.equal(repeatedSettled.trend, 0.72, "repeat and new type of known number do not change Trend");
 
-console.log("Money system regression cases: 12 passed");
+const lowBalanceState = {
+  ...gameState(initialBoard),
+  collection: [10],
+  collectionPaths: {10: {meat: [{}]}},
+  money: 6,
+  previousCollection: 10,
+  trend: 0.83
+};
+const differentParentsPiece = collectionPiece(10, "meat");
+differentParentsPiece.origin.parent.parents = [3, 7];
+const lowBalanceSettled = applyCollection(lowBalanceState, differentParentsPiece);
+assert.equal(lowBalanceSettled.money, 0, "penalty cannot make money negative");
+assert.equal(lowBalanceSettled.latestCollection.reward, -6, "feedback uses actual affordable deduction");
+assert.equal(lowBalanceSettled.trend, 0.83, "repeat with different parents keeps Trend unchanged");
+
+console.log("Money system regression cases: 17 passed");
