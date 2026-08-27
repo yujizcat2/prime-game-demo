@@ -87,7 +87,7 @@ export default function Discovery({
           discovery-label
         "
       >
-        收藏
+        已获得的料理包
       </span>
 
 

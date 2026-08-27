@@ -3,7 +3,7 @@ import {
 } from "react";
 
 import {
-  getFoodTypeShortName
+  getFoodDisplayName
 } from "../data/food/foodRegistry";
 
 
@@ -47,6 +47,8 @@ export default function CollectionPanel({
   collection = [],
 
   collectionPaths = {},
+
+  collectionOrigins = {},
 
   collectionParents = {},
 
@@ -194,6 +196,37 @@ export default function CollectionPanel({
       :
 
         null;
+
+
+
+
+
+  const selectedOrigin =
+
+    selectedValue !== null
+    &&
+    selectedFoodType !== null
+
+      ? collectionOrigins?.[
+          selectedValue
+        ]?.[
+          selectedFoodType
+        ]
+
+        ?? null
+
+      : null;
+
+
+
+
+
+  const selectedParentFoods =
+
+    getParentFoodRecords(
+      selectedParents,
+      selectedOrigin
+    );
 
 
 
@@ -367,81 +400,105 @@ export default function CollectionPanel({
 
 
   // ==========================================================
-  // 食物状态名称
+  // 料理名称
   // ==========================================================
 
-  function getFoodStateName(
-    item
+  function getItemFoodName(
+    item,
+    fallbackFoodType = null
+  ){
+
+
+    return getFoodDisplayName(
+      item,
+      fallbackFoodType
+    );
+
+  }
+
+
+
+
+
+  // ==========================================================
+  // 父母料理快照
+  //
+  // 新旧状态均只读兼容：优先使用专用父母槽；若旧快照没有该槽，
+  // 则沿约分来源回溯到最近一次合成，并读取其中保存的双方快照。
+  // ==========================================================
+
+  function getParentFoodRecords(
+    parentInfo,
+    originRecord
   ){
 
 
     if(
-      !item?.foodType
+      Array.isArray(
+        parentInfo?.parentFoods
+      )
+      &&
+      parentInfo.parentFoods.length >= 2
     ){
 
 
-      return null;
+      return parentInfo.parentFoods;
 
     }
 
 
 
-    if(
-      item.foodType ===
-      "dessert"
+    let current =
+      originRecord;
+
+
+    while(
+      current
     ){
 
 
-      return "甜食系";
+      if(
+        Array.isArray(
+          current.parentFoods
+        )
+        &&
+        current.parentFoods.length >= 2
+      ){
+
+
+        return current.parentFoods;
+
+      }
+
+
+      if(
+        current.origin?.type === "combine"
+        &&
+        Array.isArray(
+          current.origin.parents
+        )
+        &&
+        current.origin.parents.length >= 2
+      ){
+
+
+        return current.origin.parents;
+
+      }
+
+
+      current =
+        current.origin?.type === "reduce"
+
+          ? current.origin.parent
+
+          : null;
 
     }
 
 
 
-    const foodTypeName =
-
-      getFoodTypeShortName(
-        item.foodType
-      );
-
-
-
-    if(
-      !foodTypeName
-    ){
-
-
-      return null;
-
-    }
-
-
-
-    if(
-      item.purity ===
-      "pure"
-    ){
-
-
-      return `纯${foodTypeName}`;
-
-    }
-
-
-
-    if(
-      item.purity ===
-      "mixed"
-    ){
-
-
-      return `半纯${foodTypeName}`;
-
-    }
-
-
-
-    return foodTypeName;
+    return [];
 
   }
 
@@ -618,6 +675,8 @@ export default function CollectionPanel({
           flex
           items-center
           justify-between
+          flex-wrap
+          gap-2
           mb-3
         "
       >
@@ -627,6 +686,7 @@ export default function CollectionPanel({
           className="
             flex
             items-center
+            flex-wrap
             gap-2
           "
         >
@@ -640,7 +700,7 @@ export default function CollectionPanel({
             "
           >
 
-            收藏
+            已获得的料理包
 
           </span>
 
@@ -687,13 +747,15 @@ export default function CollectionPanel({
 
         <span
           className="
+            hidden
+            sm:inline
             text-[10px]
             tracking-wider
             text-gray-300
           "
         >
 
-          COLLECTION
+          OBTAINED DISH PACKS
 
         </span>
 
@@ -730,7 +792,7 @@ export default function CollectionPanel({
           "
         >
 
-          尚未获得收藏
+          尚未获得料理包
 
         </div>
 
@@ -790,6 +852,46 @@ export default function CollectionPanel({
 
 
 
+                const foodNames =
+
+                  COLLECTION_TYPES.flatMap(
+
+                    type => {
+
+
+                      const path =
+                        slots[type.key];
+
+
+                      if(
+                        !Array.isArray(path)
+                        ||
+                        path.length === 0
+                      ){
+
+
+                        return [];
+
+                      }
+
+
+                      const name =
+                        getItemFoodName(
+                          path[0],
+                          type.key
+                        );
+
+
+                      return name
+                        ? [name]
+                        : [];
+
+                    }
+
+                  );
+
+
+
                 return (
 
                   <button
@@ -810,8 +912,8 @@ export default function CollectionPanel({
                     className={`
                       collection-item
                       relative
-                      min-w-[72px]
-                      h-[58px]
+                      min-w-[96px]
+                      min-h-[68px]
                       px-2
                       rounded-xl
                       border
@@ -842,14 +944,30 @@ export default function CollectionPanel({
 
                     <span
                       className="
-                        text-sm
+                        max-w-[112px]
+                        text-xs
                         font-black
                         text-gray-700
-                        leading-none
+                        leading-tight
+                        break-words
+                        text-center
                       "
                     >
 
-                      {value}
+                      {
+                        foodNames.join(" · ")
+
+                        || value
+                      }
+
+                    </span>
+
+
+                    <span
+                      className="mt-1 text-[8px] font-bold leading-none text-gray-400"
+                    >
+
+                      数字 {value}
 
                     </span>
 
@@ -859,7 +977,7 @@ export default function CollectionPanel({
 
                     <div
                       className="
-                        mt-1.5
+                        mt-1
                         flex
                         items-center
                         gap-1
@@ -1089,10 +1207,23 @@ export default function CollectionPanel({
               <div
                 className="
                   flex
-                  items-end
+                  flex-col
+                  items-start
                   gap-2
                 "
               >
+
+
+                <span
+                  className="text-[10px] font-bold text-gray-400"
+                >
+
+                  已获得的料理包详情
+
+                </span>
+
+
+                <div className="flex items-end gap-2">
 
 
                 <span
@@ -1106,7 +1237,6 @@ export default function CollectionPanel({
                   {selectedValue}
 
                 </span>
-
 
 
                 <span
@@ -1127,6 +1257,9 @@ export default function CollectionPanel({
                   {" / 3"}
 
                 </span>
+
+
+                </div>
 
 
               </div>
@@ -1247,8 +1380,9 @@ export default function CollectionPanel({
 
                     const stateName =
 
-                      getFoodStateName(
-                        finalState
+                      getItemFoodName(
+                        finalState,
+                        type.key
                       );
 
 
@@ -1265,15 +1399,24 @@ export default function CollectionPanel({
 
 
 
-                    const parentCount =
+                    const slotOrigin =
 
-                      Array.isArray(
-                        parentInfo?.parents
-                      )
+                      collectionOrigins?.[
+                        selectedValue
+                      ]?.[
+                        type.key
+                      ]
 
-                        ? parentInfo.parents.length
+                      ?? null;
 
-                        : 0;
+
+
+                    const slotParentFoods =
+
+                      getParentFoodRecords(
+                        parentInfo,
+                        slotOrigin
+                      );
 
 
 
@@ -1361,7 +1504,11 @@ export default function CollectionPanel({
                           `}
                         >
 
-                          {type.label}
+                          {
+                            filled
+                              ? type.label
+                              : `${type.label}料理`
+                          }
 
                         </span>
 
@@ -1370,9 +1517,12 @@ export default function CollectionPanel({
                         <span
                           className={`
                             mt-1
-                            text-lg
+                            max-w-full
+                            text-xs
                             font-black
-                            leading-none
+                            leading-tight
+                            break-words
+                            text-center
 
                             ${
                               filled
@@ -1391,7 +1541,7 @@ export default function CollectionPanel({
                           {
                             filled
 
-                              ? selectedValue
+                              ? stateName
 
                               : "—"
                           }
@@ -1417,7 +1567,7 @@ export default function CollectionPanel({
                             "
                           >
 
-                            {stateName}
+                            数字 {selectedValue}
 
                           </span>
 
@@ -1429,7 +1579,7 @@ export default function CollectionPanel({
 
                           filled
                           &&
-                          parentCount > 0
+                          slotParentFoods.length >= 2
                           &&
 
                           <span
@@ -1442,12 +1592,14 @@ export default function CollectionPanel({
                             "
                           >
 
-                            父母 {
-
-                              parentInfo.parents.join(
-                                " + "
-                              )
-
+                            {
+                              slotParentFoods
+                                .slice(0, 2)
+                                .map(parent =>
+                                  getItemFoodName(parent)
+                                  ?? parent.value
+                                )
+                                .join(" + ")
                             }
 
                           </span>
@@ -1525,7 +1677,7 @@ export default function CollectionPanel({
                 "
               >
 
-                ★ 三系收藏完成
+                ★ 三系料理包已获得
 
               </div>
 
@@ -1585,7 +1737,7 @@ export default function CollectionPanel({
                       "
                     >
 
-                      首次父母
+                      合成来源
 
                     </span>
 
@@ -1624,14 +1776,7 @@ export default function CollectionPanel({
 
                   {
 
-                    Array.isArray(
-                      selectedParents?.parentFoods
-                    )
-
-                    &&
-
-                    selectedParents.parentFoods.length >
-                    0
+                    selectedParentFoods.length >= 2
 
                     ?
 
@@ -1646,7 +1791,7 @@ export default function CollectionPanel({
 
                       {
 
-                        selectedParents.parentFoods.map(
+                        selectedParentFoods.slice(0, 2).map(
 
                           (
                             parent,
@@ -1654,9 +1799,9 @@ export default function CollectionPanel({
                           ) => {
 
 
-                            const parentStateName =
+                            const parentFoodName =
 
-                              getFoodStateName(
+                              getItemFoodName(
                                 parent
                               );
 
@@ -1680,8 +1825,8 @@ export default function CollectionPanel({
 
                                 <div
                                   className="
-                                    min-w-16
-                                    h-14
+                                    min-w-20
+                                    min-h-14
                                     px-2
                                     rounded-xl
                                     bg-gray-50
@@ -1697,14 +1842,20 @@ export default function CollectionPanel({
 
                                   <span
                                     className="
-                                      text-base
+                                      max-w-[84px]
+                                      text-xs
                                       font-black
                                       text-gray-700
-                                      leading-none
+                                      leading-tight
+                                      break-words
+                                      text-center
                                     "
                                   >
 
-                                    {parent.value}
+                                    {
+                                      parentFoodName
+                                      ?? parent.value
+                                    }
 
                                   </span>
 
@@ -1712,7 +1863,7 @@ export default function CollectionPanel({
 
                                   {
 
-                                    parentStateName &&
+                                    parent.value != null &&
 
                                     <span
                                       className="
@@ -1723,7 +1874,7 @@ export default function CollectionPanel({
                                       "
                                     >
 
-                                      {parentStateName}
+                                      数字 {parent.value}
 
                                     </span>
 
@@ -1822,7 +1973,7 @@ export default function CollectionPanel({
 
 
                 {/* ==============================================
-                    首次收藏路径
+                    首次获得路径
                 ============================================== */}
 
                 <div
@@ -1852,7 +2003,7 @@ export default function CollectionPanel({
                       "
                     >
 
-                      首次收藏路径
+                      首次获得路径
 
                     </span>
 
@@ -1915,10 +2066,11 @@ export default function CollectionPanel({
 
 
 
-                          const stateName =
+                          const foodName =
 
-                            getFoodStateName(
-                              item
+                            getItemFoodName(
+                              item,
+                              selectedFoodType
                             );
 
 
@@ -1941,8 +2093,8 @@ export default function CollectionPanel({
 
                               <div
                                 className="
-                                  min-w-14
-                                  h-12
+                                  min-w-20
+                                  min-h-12
                                   px-2
                                   rounded-xl
                                   bg-gray-50
@@ -1960,13 +2112,19 @@ export default function CollectionPanel({
 
                                 <span
                                   className="
-                                    text-sm
+                                    max-w-[92px]
+                                    text-xs
                                     font-black
-                                    leading-none
+                                    leading-tight
+                                    break-words
+                                    text-center
                                   "
                                 >
 
-                                  {item.value}
+                                  {
+                                    foodName
+                                    ?? item.value
+                                  }
 
                                 </span>
 
@@ -1974,7 +2132,7 @@ export default function CollectionPanel({
 
                                 {
 
-                                  stateName
+                                  item.value != null
 
                                   &&
 
@@ -1988,7 +2146,7 @@ export default function CollectionPanel({
                                     "
                                   >
 
-                                    {stateName}
+                                    数字 {item.value}
 
                                   </span>
 

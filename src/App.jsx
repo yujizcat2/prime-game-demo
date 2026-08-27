@@ -727,6 +727,14 @@ function App(){
             game.collectionPaths
           }
 
+          collectionOrigins={
+            game.collectionOrigins
+          }
+
+          collectionParents={
+            game.collectionParents
+          }
+
           latestCollection={
             game.latestCollection
           }

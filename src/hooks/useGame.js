@@ -221,6 +221,15 @@ export default function useGame(){
     {};
 
 
+  const collectionParents =
+
+    gameState?.collectionParents
+
+    ??
+
+    {};
+
+
   const latestCollection =
 
     gameState?.latestCollection
@@ -1290,6 +1299,8 @@ export default function useGame(){
     collectionPaths,
 
     collectionOrigins,
+
+    collectionParents,
 
     latestCollection,
 

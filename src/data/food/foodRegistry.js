@@ -95,6 +95,58 @@ export function getFoodName(
 
 
 // ============================================================
+// 棋子展示名称
+//
+// BoardCell、料理包和来源路径统一走这里，避免同一个历史节点
+// 因展示位置不同而得到不同名称。foodType 优先读取节点自身，
+// 只有旧记录缺少类型时才使用调用方提供的回退类型。
+// ============================================================
+
+export function getFoodDisplayName(
+  item,
+  fallbackFoodType = null
+){
+
+
+  if(
+    item?.value == null
+  ){
+
+
+    return null;
+
+  }
+
+
+
+  if(
+    item.value === 1
+  ){
+
+
+    return "水";
+
+  }
+
+
+
+  return getFoodName(
+
+    item.value,
+
+    item.foodType
+    ?? item.type
+    ?? fallbackFoodType
+
+  );
+
+}
+
+
+
+
+
+// ============================================================
 // 食物系名称
 // ============================================================
 

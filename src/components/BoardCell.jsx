@@ -4,7 +4,8 @@ import {
 
 import {
   getFoodTypeShortName,
-  getFoodName
+  getFoodName,
+  getFoodDisplayName
 } from "../data/food/foodRegistry";
 
 import "./Board.css";
@@ -402,17 +403,9 @@ export default function BoardCell({
 
   const foodName =
 
-    isOne
-
-      ? "水"
-
-      : getFoodName(
-
-          value,
-
-          foodType
-
-        );
+    getFoodDisplayName(
+      piece
+    );
 
 
 
