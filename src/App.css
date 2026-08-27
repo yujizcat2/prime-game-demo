@@ -1893,3 +1893,201 @@
 
 
 }
+
+
+
+/* ============================================================
+   主棋盘空间优化
+   HUD 保持紧凑，棋盘成为页面视觉中心
+   ============================================================ */
+
+.game-shell {
+
+  max-width:
+    720px;
+
+}
+
+
+.game-board {
+
+  box-sizing:
+    border-box;
+
+  min-height:
+    0;
+
+  padding:
+    24px 18px;
+
+  border-radius:
+    34px;
+
+}
+
+
+.game-board-layout {
+
+  grid-template-columns:
+    86px
+    minmax(0, 1fr);
+
+  gap:
+    10px;
+
+}
+
+
+.game-board-toolbar {
+
+  min-height:
+    38px;
+
+  margin-bottom:
+    8px;
+
+}
+
+
+.action-toolbar-button,
+.game-card-mode-toggle {
+
+  min-height:
+    38px;
+
+}
+
+
+@media (
+  max-width:
+    560px
+) {
+
+  .game-page {
+
+    padding:
+      10px 7px 46px;
+
+  }
+
+
+  .game-board-section {
+
+    margin-top:
+      10px;
+
+  }
+
+
+  .game-board-toolbar {
+
+    min-height:
+      40px;
+
+    margin-bottom:
+      7px;
+
+    gap:
+      7px;
+
+  }
+
+
+  .action-toolbar-button,
+  .game-card-mode-toggle {
+
+    min-height:
+      40px;
+
+  }
+
+
+  .action-toolbar-button {
+
+    min-width:
+      52px;
+
+    padding:
+      0 9px;
+
+  }
+
+
+  .game-card-mode-toggle {
+
+    padding:
+      0 9px;
+
+  }
+
+
+  .game-board-layout {
+
+    grid-template-columns:
+      minmax(0, 1fr);
+
+    gap:
+      8px;
+
+  }
+
+
+  .game-board {
+
+    min-height:
+      0;
+
+    padding:
+      18px 4px 17px;
+
+    border-radius:
+      25px;
+
+  }
+
+
+  .game-board::before {
+
+    top:
+      8px;
+
+  }
+
+
+  .game-board::after {
+
+    bottom:
+      5px;
+
+  }
+
+}
+
+
+@media (
+  max-width:
+    390px
+) {
+
+  .game-page {
+
+    padding-left:
+      6px;
+
+    padding-right:
+      6px;
+
+  }
+
+
+  .game-board {
+
+    padding-left:
+      4px;
+
+    padding-right:
+      4px;
+
+  }
+
+}

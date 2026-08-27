@@ -4031,6 +4031,297 @@
 }
 
 
+
+/* ============================================================
+   响应式棋盘比例
+   用正方形网格替代固定行高，并为状态动画保留格内余量
+   ============================================================ */
+
+.board {
+
+  width:
+    min(100%, 560px);
+
+  aspect-ratio:
+    1 / 1;
+
+  grid-template-rows:
+    repeat(3, minmax(0, 1fr));
+
+  gap:
+    9px;
+
+  padding:
+    6px;
+
+  border-radius:
+    28px;
+
+}
+
+
+.board-cell {
+
+  height:
+    100%;
+
+}
+
+
+.board-piece-wrapper {
+
+  width:
+    94%;
+
+  height:
+    94%;
+
+}
+
+
+.board-piece,
+.board-empty-tile,
+.board-preview {
+
+  width:
+    100%;
+
+  height:
+    100%;
+
+}
+
+
+@media (
+  min-width:
+    561px
+) and (
+  max-width:
+    720px
+) {
+
+  .board {
+
+    width:
+      min(100%, 520px);
+
+    grid-template-rows:
+      repeat(3, minmax(0, 1fr));
+
+    gap:
+      8px;
+
+    padding:
+      6px;
+
+  }
+
+
+  .board-cell {
+
+    height:
+      100%;
+
+  }
+
+
+  .board-piece-wrapper {
+
+    width:
+      94%;
+
+    height:
+      94%;
+
+  }
+
+
+  .board-piece,
+  .board-empty-tile,
+  .board-preview {
+
+    height:
+      100%;
+
+  }
+
+}
+
+
+@media (
+  max-width:
+    560px
+) {
+
+  .board {
+
+    width:
+      100%;
+
+    grid-template-rows:
+      repeat(3, minmax(0, 1fr));
+
+    gap:
+      clamp(7px, 2.1vw, 9px);
+
+    padding:
+      5px;
+
+    border-radius:
+      23px;
+
+  }
+
+
+  .board-cell {
+
+    height:
+      100%;
+
+  }
+
+
+  .board-piece-wrapper {
+
+    width:
+      94%;
+
+    height:
+      94%;
+
+  }
+
+
+  .board-piece,
+  .board-empty-tile,
+  .board-preview {
+
+    height:
+      100%;
+
+    border-radius:
+      18px;
+
+  }
+
+
+  .board-piece::before {
+
+    inset:
+      4px;
+
+    border-radius:
+      14px;
+
+  }
+
+
+  .board-piece-type-bar,
+  .board-preview-type-bar {
+
+    top:
+      12px;
+
+    left:
+      7px;
+
+    bottom:
+      12px;
+
+    width:
+      4px;
+
+  }
+
+
+  .board-piece-number,
+  .board-preview-number {
+
+    top:
+      14px;
+
+    left:
+      18px;
+
+    font-size:
+      clamp(28px, 8.4vw, 33px);
+
+  }
+
+
+  .board-piece-prime {
+
+    top:
+      18px;
+
+    right:
+      14px;
+
+  }
+
+
+  .board-piece-main,
+  .board-preview-main {
+
+    top:
+      44px;
+
+    left:
+      11px;
+
+    right:
+      11px;
+
+    bottom:
+      28px;
+
+  }
+
+
+  .board-piece-name,
+  .board-piece-reduce-name,
+  .board-preview-name {
+
+    font-size:
+      clamp(19px, 5.6vw, 22px);
+
+  }
+
+
+  .board-piece-pure,
+  .board-preview-pure {
+
+    left:
+      13px;
+
+    bottom:
+      9px;
+
+    font-size:
+      7px;
+
+  }
+
+
+  .board-piece-origin {
+
+    left:
+      11px;
+
+    right:
+      11px;
+
+    bottom:
+      8px;
+
+    font-size:
+      clamp(10px, 2.8vw, 11px);
+
+  }
+
+}
+
+
 /* ============================================================
    自动收藏 · GET 奖励预览
    ============================================================
