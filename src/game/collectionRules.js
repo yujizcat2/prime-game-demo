@@ -956,6 +956,8 @@ function applySimulationCollection(
     state.lastCollectionEvents?.push({
       value,
       foodType,
+      sourceKey: piece?.sourceKey ?? null,
+      sameSource: state.collectionBatchSameSource === true,
       reward: -actualPenalty,
       first: false,
       sameSourceRepeat,
@@ -1021,6 +1023,8 @@ function applySimulationCollection(
   state.lastCollectionEvents?.push({
     value,
     foodType,
+    sourceKey: piece?.sourceKey ?? null,
+    sameSource: state.collectionBatchSameSource === true,
     reward,
     first: true,
     base: getBasePrice(value),
@@ -1812,6 +1816,8 @@ export function applyCollections(
     && pieces[0]?.sourceKey != null
     && pieces[0].sourceKey === pieces[1]?.sourceKey;
 
+  nextState.collectionBatchSameSource = sameSourceTwins;
+
   for(let index = 0; index < pieces.length; index++){
     const piece = pieces[index];
     nextState = {
@@ -1864,6 +1870,7 @@ export function applyCollections(
     deferCollectionMoney: _deferMoney,
     deferredMoneyChanges: _deferredMoneyChanges,
     forceSameSourceRepeat: _forceSameSourceRepeat,
+    collectionBatchSameSource: _collectionBatchSameSource,
     ...settledState
   } = nextState;
 

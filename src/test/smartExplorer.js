@@ -2706,6 +2706,13 @@ export async function runSmartGame({
       action.indexes.map(index => state.board[index]?.sourceKey ?? null);
 
 
+    const sameSource =
+      action.type === "reduce"
+      && inputValues[0] === inputValues[1]
+      && inputSourceKeys[0] != null
+      && inputSourceKeys[0] === inputSourceKeys[1];
+
+
 
     const applied =
 
@@ -2751,6 +2758,7 @@ export async function runSmartGame({
       type: description.type,
       inputValues,
       inputSourceKeys,
+      sameSource,
       resultValues,
       boardAfter: afterBoard.filter(piece => !piece.empty).map(piece => piece.value),
       moneyBefore,

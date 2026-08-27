@@ -44,6 +44,67 @@ function collectionChoiceState(){
 }
 
 
+function assertSameSourceSimulationPath(parentA, parentB, expectedSourceKey){
+  const value = parentA + parentB;
+  const state = createSimulationState([parentA, parentB, 2]);
+
+  assert.equal(applySimulationAction(state, {type: "combine", indexes: [0, 1]}), true);
+  const firstGeneratedCard = state.board[3];
+  assert.equal(firstGeneratedCard.sourceKey, expectedSourceKey, `${value}: generated card keeps sourceKey`);
+  console.log(`${value} generated: ${firstGeneratedCard.sourceKey}`);
+  assert.equal(state.board[3].sourceKey, expectedSourceKey, `${value}: board keeps first sourceKey`);
+
+  assert.equal(applySimulationAction(state, {type: "combine", indexes: [0, 1]}), true);
+  const secondGeneratedCard = state.board[4];
+  assert.equal(secondGeneratedCard.sourceKey, expectedSourceKey, `${value}: second generated card keeps sourceKey`);
+  assert.equal(state.board[4].sourceKey, expectedSourceKey, `${value}: board keeps second sourceKey`);
+  console.log(`${value} board: ${state.board[3].sourceKey} / ${state.board[4].sourceKey}`);
+
+  const searchState = cloneSimulationState(state);
+  assert.deepEqual(
+    [searchState.board[3].sourceKey, searchState.board[4].sourceKey],
+    [expectedSourceKey, expectedSourceKey],
+    `${value}: simulation clone/search state keeps both sourceKeys`
+  );
+  console.log(`${value} clone/search: ${searchState.board[3].sourceKey} / ${searchState.board[4].sourceKey}`);
+
+  const preReduceSourceKeys = [
+    searchState.board[3].sourceKey,
+    searchState.board[4].sourceKey
+  ];
+  assert.deepEqual(
+    preReduceSourceKeys,
+    [expectedSourceKey, expectedSourceKey],
+    `${value}: C/C inputs retain sourceKeys before reduce`
+  );
+  console.log(`${value} before reduce: ${preReduceSourceKeys.join(" / ")}`);
+
+  const price = getCurrentPrice(value, searchState.board, searchState.trend);
+  assert.equal(applySimulationAction(searchState, {type: "reduce", indexes: [3, 4]}), true);
+  const events = searchState.lastCollectionEvents;
+
+  assert.deepEqual(
+    events.map(event => event.sourceKey),
+    [expectedSourceKey, expectedSourceKey],
+    `${value}: batch collection events retain both sourceKeys`
+  );
+  console.log(`${value} collection events: ${events.map(event => event.sourceKey).join(" / ")}`);
+  assert.deepEqual(
+    events.map(event => event.sameSource),
+    [true, true],
+    `${value}: final sameSource result is true for both batch events`
+  );
+  console.log(`${value} sameSource: ${events.every(event => event.sameSource)}`);
+  assert.deepEqual(
+    events.map(event => event.reward),
+    [price, -getRepeatPenalty(price)],
+    `${value}: same-source twins settle as +Price then one 50% penalty`
+  );
+  assert.equal(events[0].first, true);
+  assert.equal(events[1].sameSourceRepeat, true);
+}
+
+
 async function runRegressionTests(){
   const utils = collectionAITestUtils;
   const state = collectionChoiceState();
@@ -167,6 +228,10 @@ async function runRegressionTests(){
     "simulation uses the shared same-source twin settlement"
   );
 
+  assertSameSourceSimulationPath(9, 5, "5|9");
+  assertSameSourceSimulationPath(14, 13, "13|14");
+  assertSameSourceSimulationPath(13, 36, "13|36");
+
   const limited = await runSmartGame({
     mode: SMART_AI_MODES.MONEY,
     initialValues: [2, 4, 3],
@@ -186,7 +251,7 @@ async function runRegressionTests(){
     "paid collection history must retain formal price components"
   );
 
-  console.log("Collection and money AI regression cases: 11 passed");
+  console.log("Collection and money AI regression cases: 14 passed");
 }
 
 

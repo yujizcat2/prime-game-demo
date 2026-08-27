@@ -1981,7 +1981,10 @@ function MoneyActionHistory({game}){
               <div>盘面：{action.boardAfter.length > 0 ? action.boardAfter.join(" / ") : "空"}</div>
 
               {action.type === "reduce" && action.inputValues[0] === action.inputValues[1] && (
-                <div>来源：{action.inputSourceKeys?.map(source => source ?? "无").join(" / ")}</div>
+                <div>
+                  来源：{action.inputSourceKeys?.map(source => source ?? "无").join(" / ")}
+                  {" · "}{action.sameSource ? "同源" : "多源"}
+                </div>
               )}
 
               {(action.collections ?? []).map((collection, index) => (
