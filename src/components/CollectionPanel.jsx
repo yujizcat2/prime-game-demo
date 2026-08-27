@@ -945,7 +945,7 @@ export default function CollectionPanel({
                     <span
                       className="
                         max-w-[112px]
-                        text-xs
+                        text-sm
                         font-black
                         text-gray-700
                         leading-tight
@@ -964,10 +964,10 @@ export default function CollectionPanel({
 
 
                     <span
-                      className="mt-1 text-[8px] font-bold leading-none text-gray-400"
+                      className="mt-1 text-[10px] font-bold leading-none text-gray-400"
                     >
 
-                      数字 {value}
+                      {value}
 
                     </span>
 
@@ -1487,7 +1487,7 @@ export default function CollectionPanel({
 
                         <span
                           className={`
-                            text-[10px]
+                            text-xs
                             font-bold
 
                             ${
@@ -1518,7 +1518,7 @@ export default function CollectionPanel({
                           className={`
                             mt-1
                             max-w-full
-                            text-xs
+                            text-sm
                             font-black
                             leading-tight
                             break-words
@@ -1560,14 +1560,14 @@ export default function CollectionPanel({
                           <span
                             className="
                               mt-1
-                              text-[8px]
+                              text-[10px]
                               font-bold
                               leading-none
                               text-gray-400
                             "
                           >
 
-                            数字 {selectedValue}
+                            {selectedValue}
 
                           </span>
 
@@ -1585,7 +1585,7 @@ export default function CollectionPanel({
                           <span
                             className="
                               mt-1
-                              text-[7px]
+                              text-[9px]
                               font-bold
                               leading-none
                               text-gray-300
@@ -1843,7 +1843,7 @@ export default function CollectionPanel({
                                   <span
                                     className="
                                       max-w-[84px]
-                                      text-xs
+                                      text-sm
                                       font-black
                                       text-gray-700
                                       leading-tight
@@ -1868,13 +1868,13 @@ export default function CollectionPanel({
                                     <span
                                       className="
                                         mt-1
-                                        text-[8px]
+                                        text-[10px]
                                         font-bold
                                         text-gray-400
                                       "
                                     >
 
-                                      数字 {parent.value}
+                                      {parent.value}
 
                                     </span>
 
@@ -2113,7 +2113,7 @@ export default function CollectionPanel({
                                 <span
                                   className="
                                     max-w-[92px]
-                                    text-xs
+                                    text-sm
                                     font-black
                                     leading-tight
                                     break-words
@@ -2139,14 +2139,14 @@ export default function CollectionPanel({
                                   <span
                                     className="
                                       mt-1
-                                      text-[8px]
+                                      text-[10px]
                                       font-bold
                                       leading-none
                                       text-gray-400
                                     "
                                   >
 
-                                    数字 {item.value}
+                                    {item.value}
 
                                   </span>
 
