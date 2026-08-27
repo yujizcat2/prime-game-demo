@@ -529,8 +529,10 @@
 
   transition:
     transform .16s cubic-bezier(.2,.8,.3,1),
+    background .2s ease,
+    color .2s ease,
     box-shadow .16s ease,
-    border-color .16s ease,
+    border-color .2s ease,
     filter .16s ease;
 
 }
@@ -1121,7 +1123,7 @@
     hover
 ) {
 
-  .board-piece:not(:disabled):hover {
+  .board-piece:not(:disabled):not(.board-piece--selected):hover {
 
     transform:
       translateY(-4px);
@@ -1177,8 +1179,8 @@
     25;
 
   border:
-    2px solid
-    color-mix(in srgb,currentColor 84%,transparent);
+    1px solid
+    rgba(255,255,255,.48);
 
   border-radius:
     19px;
@@ -1202,27 +1204,131 @@
     20;
 
   border-color:
-    color-mix(in srgb,currentColor 78%,transparent);
+    rgba(255,255,255,.68);
 
   border-width:
     2px;
 
   box-shadow:
 
-    0 4px 0
-    color-mix(in srgb,currentColor 13%,transparent),
+    0 2px 0 rgba(15,23,42,.12),
 
-    0 0 0 3px
-    color-mix(in srgb,currentColor 10%,transparent),
-
-    0 10px 22px
-    color-mix(in srgb,currentColor 22%,transparent);
+    0 8px 18px rgba(15,23,42,.18);
 
   animation:
     boardPieceSelected
     .18s
     cubic-bezier(.2,.8,.3,1)
     both;
+
+}
+
+
+.board-piece--meat.board-piece--selected {
+
+  color:
+    #fff8f3;
+
+  background:
+    linear-gradient(145deg,#995b3f 0%,#653725 100%);
+
+}
+
+
+.board-piece--vegetable.board-piece--selected {
+
+  color:
+    #f5fff7;
+
+  background:
+    linear-gradient(145deg,#4d895f 0%,#2a5a3b 100%);
+
+}
+
+
+.board-piece--seasoning.board-piece--selected {
+
+  color:
+    #f2fdff;
+
+  background:
+    linear-gradient(145deg,#438797 0%,#285f6d 100%);
+
+}
+
+
+.board-piece--dessert.board-piece--selected {
+
+  color:
+    #fff8ff;
+
+  background:
+    linear-gradient(145deg,#8d659a 0%,#60446d 100%);
+
+}
+
+
+.board-piece--default.board-piece--selected {
+
+  color:
+    #f8fafc;
+
+  background:
+    linear-gradient(145deg,#64748b 0%,#3f4c60 100%);
+
+}
+
+
+.board-piece--selected::before {
+
+  border-color:
+    rgba(255,255,255,.16);
+
+}
+
+
+.board-piece--selected .board-piece-type-bar {
+
+  background:
+    rgba(255,255,255,.72);
+
+  box-shadow:
+    0 0 8px rgba(255,255,255,.16);
+
+}
+
+
+.board-piece--selected .board-piece-number,
+.board-piece--selected .board-piece-name {
+
+  color:
+    #ffffff;
+
+  text-shadow:
+    0 1px 2px rgba(15,23,42,.16);
+
+}
+
+
+.board-piece--selected .board-piece-origin,
+.board-piece--selected .board-piece-pure {
+
+  color:
+    rgba(255,255,255,.86);
+
+  opacity:
+    .78;
+
+}
+
+
+.board-piece--selected .board-piece-prime {
+
+  background:
+    #ffffff;
+
+  opacity:
+    .5;
 
 }
 
@@ -1242,7 +1348,7 @@
 
     transform:
       translateY(-2px)
-      scale(1.045);
+      scale(1.04);
 
   }
 
@@ -1251,7 +1357,7 @@
 
     transform:
       translateY(-2px)
-      scale(1.03);
+      scale(1.025);
 
   }
 
@@ -3877,7 +3983,7 @@
   .board-piece--selected {
 
     transform:
-      translateY(-4px)
+      translateY(-2px)
       scale(1.025);
 
   }
