@@ -1,5 +1,5 @@
 import "./StartScreen.css";
-import { createRandomInitialValues, INITIAL_VALUE_POOL } from "../game/initialValues";
+import { createRandomInitialValues } from "../game/initialValues";
 
 const OPENING_RULES = [
   { icon: "123", label: "三个数字", detail: "2–9 不重复" },
@@ -59,16 +59,6 @@ export default function StartScreen({ onStart, onOpenTest }) {
             ))}
           </div>
 
-          <div className="start-value-panel">
-            <div className="start-value-panel-header">开局数字池</div>
-            <div className="start-value-grid">
-              {INITIAL_VALUE_POOL.map(value => (
-                <div className="start-value-option" key={value}>
-                  <span className="start-value-number">{value}</span>
-                </div>
-              ))}
-            </div>
-          </div>
         </section>
 
         <button type="button" className="start-button" onClick={quickStart}>
