@@ -13,7 +13,8 @@ import {
 
 import {
   EIGHT_PALACE_SOLVER_DEFAULTS,
-  runEightPalaceSolver
+  runEightPalaceSolver,
+  runFixedEightPalaceAttempts
 } from "../test/eightPalaceSolver";
 
 import "./TestLab.css";
@@ -37,7 +38,10 @@ const TEST_MODES = {
     "money",
 
   EIGHT_PALACE:
-    "eight-palace"
+    "eight-palace",
+
+  FIXED_EIGHT_PALACE:
+    "fixed-eight-palace"
 
 };
 
@@ -78,6 +82,11 @@ const EIGHT_PALACE_GAME_OPTIONS = [
   1,
   10,
   100
+];
+
+
+const FIXED_EIGHT_PALACE_OPTIONS = [
+  10
 ];
 
 
@@ -185,13 +194,23 @@ export default function TestLab({
 
   const isEightPalaceMode =
 
+    mode === TEST_MODES.EIGHT_PALACE
+    || mode === TEST_MODES.FIXED_EIGHT_PALACE;
+
+
+  const isFixedEightPalaceMode =
+
     mode ===
-    TEST_MODES.EIGHT_PALACE;
+    TEST_MODES.FIXED_EIGHT_PALACE;
 
 
   const gameOptions =
 
-    isEightPalaceMode
+    isFixedEightPalaceMode
+
+      ? FIXED_EIGHT_PALACE_OPTIONS
+
+      : isEightPalaceMode
 
       ? EIGHT_PALACE_GAME_OPTIONS
 
@@ -250,6 +269,10 @@ export default function TestLab({
       || nextMode === TEST_MODES.EIGHT_PALACE
 
         ? 100
+
+        : nextMode === TEST_MODES.FIXED_EIGHT_PALACE
+
+        ? 10
 
         : 1
 
@@ -394,6 +417,20 @@ export default function TestLab({
 
         nextResult = await runEightPalaceSolver({
           games,
+          depth: EIGHT_PALACE_SOLVER_DEFAULTS.depth,
+          beamWidth: EIGHT_PALACE_SOLVER_DEFAULTS.beamWidth,
+          maxActions: EIGHT_PALACE_SOLVER_DEFAULTS.maxActions,
+          onProgress: setProgress
+        });
+
+      }
+
+
+      else if(mode === TEST_MODES.FIXED_EIGHT_PALACE){
+
+
+        nextResult = await runFixedEightPalaceAttempts({
+          attempts: games,
           depth: EIGHT_PALACE_SOLVER_DEFAULTS.depth,
           beamWidth: EIGHT_PALACE_SOLVER_DEFAULTS.beamWidth,
           maxActions: EIGHT_PALACE_SOLVER_DEFAULTS.maxActions,
@@ -676,6 +713,23 @@ export default function TestLab({
             </ModeButton>
 
 
+            <ModeButton
+
+              active={
+                mode === TEST_MODES.FIXED_EIGHT_PALACE
+              }
+
+              disabled={running}
+
+              onClick={() => changeMode(TEST_MODES.FIXED_EIGHT_PALACE)}
+
+            >
+
+              固定单局 · AI 多次尝试
+
+            </ModeButton>
+
+
           </div>
 
 
@@ -940,7 +994,11 @@ export default function TestLab({
 
           result && (
 
-          isEightPalaceMode
+          isFixedEightPalaceMode
+
+            ? <FixedEightPalaceResults result={result} />
+
+            : isEightPalaceMode
 
             ? <EightPalaceResults result={result} />
 
@@ -1305,6 +1363,80 @@ function EightPalaceResults({
       {result.singleGame && <EightPalaceRecord title="单局详细过程" game={result.singleGame} />}
     </section>
   );
+}
+
+
+function FixedEightPalaceResults({
+  result
+}){
+  return (
+    <section className="test-lab-results">
+      <div className="test-lab-result-title">固定单局 · AI 多次尝试</div>
+
+      <div className="test-lab-record">
+        <div className="test-lab-record-title">固定开局</div>
+        {formatEightPalaceBoard(result.fixedInitialBoard)}
+      </div>
+
+      <div className="test-lab-result-grid">
+        <ResultItem label="尝试次数" value={result.attempts} />
+        <ResultItem label="成功次数" value={result.successCount} highlight />
+        <ResultItem label="成功率" value={`${(result.successRate * 100).toFixed(1)}%`} />
+        <ResultItem label="失败次数" value={result.failureCount} />
+        <ResultItem label="平均最终钥匙" value={`${result.averageFinalKeyCount.toFixed(2)} / 8`} />
+        <ResultItem label="平均最低剩余" value={result.averageMinimumBoardCount.toFixed(2)} />
+        <ResultItem label="平均 Step" value={result.averageSteps.toFixed(2)} />
+        <ResultItem label="最短成功 Step" value={result.shortestSuccessSteps ?? "—"} />
+        <ResultItem label="最长成功 Step" value={result.longestSuccessSteps ?? "—"} />
+        <ResultItem label="不同路线数量" value={result.distinctRoutes} />
+        <ResultItem label="成功路线数量" value={result.successfulRouteCount} />
+        <ResultItem label="不同成功路线" value={result.distinctSuccessRoutes} />
+        <ResultItem label="清到≤2但钥匙未满" value={result.clearedWithoutKeysCount} />
+        <ResultItem label="8钥匙但未清盘" value={result.keysCompleteNotClearedCount} />
+        <ResultItem label="死局" value={result.failureCounts.deadlock} />
+        <ResultItem label="循环/重复状态" value={result.failureCounts["repeated-state / loop"]} />
+        <ResultItem label="搜索耗尽" value={result.failureCounts["search exhausted"]} />
+        <ResultItem label="达到搜索上限" value={result.failureCounts.maxActions} />
+      </div>
+
+      <div className="test-lab-record">
+        <div className="test-lab-record-title">迷惑度：{result.divergenceLabel}</div>
+        {result.hasRouteDivergence ? "存在路线分歧" : "本轮未出现成功/失败分歧"}
+      </div>
+
+      <div className="test-lab-section">
+        <div className="test-lab-section-title">逐次结果</div>
+        {result.results.map(attempt => (
+          <div className="test-lab-record" key={attempt.attemptIndex}>
+            <div className="test-lab-record-title">
+              尝试 #{attempt.attemptIndex} · {attempt.success ? "成功" : "失败"}
+            </div>
+            <div>
+              Step {attempt.steps}
+              {" · "}
+              最终剩余 {attempt.finalBoardCount} 张
+              {" · "}
+              钥匙 {attempt.finalKeyCount} / 8
+            </div>
+            <div className="test-lab-record-collection">
+              缺失钥匙：{formatKeyTypes(attempt.missingKeyTypes)}
+              {!attempt.success && <> · 失败原因：{formatEightPalaceFailure(attempt.failureReason)}</>}
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+
+function formatEightPalaceFailure(reason){
+  return {
+    deadlock: "死局",
+    "repeated-state / loop": "循环/重复状态",
+    "search exhausted": "搜索耗尽",
+    maxActions: "达到搜索上限"
+  }[reason] ?? reason ?? "无";
 }
 
 
@@ -3338,6 +3470,16 @@ function getModeTitle(
   ){
 
     return "八宫钥匙 AI";
+
+  }
+
+
+  if(
+    mode ===
+    TEST_MODES.FIXED_EIGHT_PALACE
+  ){
+
+    return "固定单局 · AI 多次尝试";
 
   }
 
