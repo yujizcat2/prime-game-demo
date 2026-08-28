@@ -1526,6 +1526,16 @@ export default function BoardCell({
           }
 
 
+          {
+            !isOne &&
+            foodType &&
+
+            <div className="board-piece-cuisine-type">
+              {getFoodTypeShortName(foodType)}
+            </div>
+          }
+
+
         </button>
 
 

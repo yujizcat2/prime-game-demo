@@ -5529,3 +5529,36 @@
   background: #ffffff;
   opacity: .62;
 }
+
+.board-piece-cuisine-type {
+  position: absolute;
+  left: 34px;
+  right: 34px;
+  bottom: 2px;
+  z-index: 7;
+  overflow: hidden;
+  color: currentColor;
+  font-size: 8px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: .14em;
+  text-align: center;
+  white-space: nowrap;
+  opacity: .68;
+  pointer-events: none;
+}
+
+.board-piece--selected .board-piece-cuisine-type {
+  color: rgba(255,255,255,.76);
+  opacity: 1;
+}
+
+@media (max-width: 720px) {
+  .board-piece-cuisine-type {
+    left: 28px;
+    right: 28px;
+    bottom: 1px;
+    font-size: 7px;
+    letter-spacing: .12em;
+  }
+}
