@@ -780,6 +780,26 @@
 
 }
 
+/* Nine-cuisine V1 palette. */
+.board-piece--land { color:#6b3424; background:#fff7f2; }
+.board-piece--aquatic { color:#155e75; background:#ecfeff; }
+.board-piece--vegetable { color:#29623b; background:#f0fdf4; }
+.board-piece--grainBean { color:#725514; background:#fffbeb; }
+.board-piece--dairyEgg { color:#795b16; background:#fffef0; }
+.board-piece--fruit { color:#9f2942; background:#fff1f2; }
+.board-piece--seasoning { color:#31596d; background:#f0f9ff; }
+.board-piece--spice { color:#9a3412; background:#fff7ed; }
+.board-piece--drink { color:#5b3b91; background:#f5f3ff; }
+.board-piece--land .board-piece-type-bar { background:#b85c38; }
+.board-piece--aquatic .board-piece-type-bar { background:#0891b2; }
+.board-piece--vegetable .board-piece-type-bar { background:#65a66e; }
+.board-piece--grainBean .board-piece-type-bar { background:#ca8a04; }
+.board-piece--dairyEgg .board-piece-type-bar { background:#eab308; }
+.board-piece--fruit .board-piece-type-bar { background:#e11d48; }
+.board-piece--seasoning .board-piece-type-bar { background:#4b91b0; }
+.board-piece--spice .board-piece-type-bar { background:#ea580c; }
+.board-piece--drink .board-piece-type-bar { background:#7c3aed; }
+
 
 
 

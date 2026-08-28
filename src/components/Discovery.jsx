@@ -2,9 +2,7 @@ import "./Discovery.css";
 
 
 const COLLECTION_TYPES = [
-  "meat",
-  "vegetable",
-  "seasoning"
+  "land","aquatic","vegetable","grainBean","dairyEgg","fruit","seasoning","spice","drink"
 ];
 
 

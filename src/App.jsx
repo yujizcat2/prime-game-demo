@@ -168,7 +168,7 @@ function App(){
       }
 
       const foodType = game.board[index]?.foodType ?? null;
-      const collectible = ["meat", "vegetable", "seasoning"].includes(foodType);
+      const collectible = ["land","aquatic","vegetable","grainBean","dairyEgg","fruit","seasoning","spice","drink"].includes(foodType);
       const value = result.collectValue;
       let reward = null;
 
@@ -752,6 +752,10 @@ function App(){
 
           collection={
             game.collection
+          }
+
+          collectionTimeline={
+            game.collectionTimeline
           }
 
           collectionPaths={

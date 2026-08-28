@@ -1,4 +1,4 @@
-import { getFoodName } from "../data/food/foodRegistry";
+import { getFoodName, getFoodTypeName } from "../data/food/foodRegistry";
 
 function getSourceName(source){
   if(source?.value == null) return null;
@@ -16,12 +16,7 @@ function getCombineSources(item){
 
 function getSourceFlavor(source){
   const name = getSourceName(source);
-  switch(source?.foodType ?? source?.type){
-    case "meat": return `${name}鲜味`;
-    case "vegetable": return `${name}风味`;
-    case "dessert": return `${name}甜香`;
-    default: return `${name}的调味风格`;
-  }
+  return `${name}风味`;
 }
 
 function describeRegularDish(sources){
@@ -42,9 +37,7 @@ function describeRegularDish(sources){
     ingredients.forEach(source => {
       const name = getSourceName(source);
       const type = source.foodType ?? source.type;
-      if(type === "meat") parts.push(`融入${name}鲜味`);
-      else if(type === "dessert") parts.push(`带有${name}甜香`);
-      else parts.push(`搭配${name}`);
+      parts.push(type === "drink" ? `融入${name}` : `搭配${name}`);
     });
   }
 
@@ -62,7 +55,7 @@ function describeCombinedDish(item, sources){
       : `带有${sources.map(getSourceFlavor).join("与")}。`;
   }
 
-  if(item.foodType === "dessert"){
+  if(item.foodType === "drink"){
     const seasonings = sources.filter(
       source => (source.foodType ?? source.type) === "seasoning"
     );
@@ -79,13 +72,7 @@ function describeCombinedDish(item, sources){
 }
 
 function getTypeFlavorName(foodType){
-  switch(foodType){
-    case "meat": return "荤系";
-    case "vegetable": return "素系";
-    case "seasoning": return "调料系";
-    case "dessert": return "甜食系";
-    default: return "料理";
-  }
+  return getFoodTypeName(foodType) || "料理";
 }
 
 export function getCookingDetails(item){

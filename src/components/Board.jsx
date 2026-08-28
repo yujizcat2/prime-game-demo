@@ -500,31 +500,7 @@ export default function Board({
 
   const combinePreviewTypeClass =
 
-    combinePreview?.foodType === "meat"
-
-      ? "board-preview--meat"
-
-      :
-
-    combinePreview?.foodType === "vegetable"
-
-      ? "board-preview--vegetable"
-
-      :
-
-    combinePreview?.foodType === "seasoning"
-
-      ? "board-preview--seasoning"
-
-      :
-
-    combinePreview?.foodType === "dessert"
-
-      ? "board-preview--dessert"
-
-      :
-
-        "board-preview--default";
+    `board-preview--${combinePreview?.foodType ?? "default"}`;
 
 
 
@@ -541,11 +517,7 @@ export default function Board({
     &&
 
     (
-      combinePreview?.foodType === "meat"
-      ||
-      combinePreview?.foodType === "vegetable"
-      ||
-      combinePreview?.foodType === "seasoning"
+      combinePreview?.foodType !== "drink"
     );
 
 

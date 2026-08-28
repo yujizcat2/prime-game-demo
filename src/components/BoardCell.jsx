@@ -691,23 +691,7 @@ export default function BoardCell({
 
       ? "board-piece--one"
 
-      : isMeat
-
-      ? "board-piece--meat"
-
-      : isVegetable
-
-      ? "board-piece--vegetable"
-
-      : isSeasoning
-
-      ? "board-piece--seasoning"
-
-      : isDessert
-
-      ? "board-piece--dessert"
-
-      : "board-piece--default";
+      : `board-piece--${foodType ?? "default"}`;
 
 
 

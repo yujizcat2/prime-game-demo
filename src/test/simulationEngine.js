@@ -324,15 +324,7 @@ export function createSimulationState(
 
 
 
-  const types = [
-
-    FOOD_TYPES.MEAT,
-
-    FOOD_TYPES.VEGETABLE,
-
-    FOOD_TYPES.SEASONING
-
-  ];
+  const types = [FOOD_TYPES.LAND, FOOD_TYPES.VEGETABLE, FOOD_TYPES.SEASONING];
 
 
 
@@ -1058,6 +1050,9 @@ function applyCombine(
     value,
 
     foodType,
+
+    crossed101:
+      front.value + back.value > 101,
 
     purity:
 

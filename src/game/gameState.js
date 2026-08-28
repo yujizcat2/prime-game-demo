@@ -4,7 +4,8 @@ import {
 
 import {
   FOOD_TYPES,
-  FOOD_PURITY
+  FOOD_PURITY,
+  BASE_FOOD_TYPES
 } from "./rules";
 
 import {
@@ -91,15 +92,9 @@ export function createGameState(
 
 
 
-  const initialFoodTypes = [
-
-    FOOD_TYPES.MEAT,
-
-    FOOD_TYPES.VEGETABLE,
-
-    FOOD_TYPES.SEASONING
-
-  ];
+  const initialFoodTypes = [...BASE_FOOD_TYPES]
+    .sort(() => Math.random() - 0.5)
+    .slice(0, 3);
 
 
 
@@ -127,7 +122,7 @@ export function createGameState(
 
           ??
 
-          FOOD_TYPES.MEAT,
+          FOOD_TYPES.LAND,
 
 
         purity:
@@ -175,6 +170,8 @@ export function createGameState(
     // ========================================================
 
     collection:
+      [],
+    collectionTimeline:
       [],
 
 
