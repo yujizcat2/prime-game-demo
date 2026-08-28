@@ -519,61 +519,24 @@ function App(){
           >
 
             <BoardStatus
-
-              primeEnergy={
-                game.primeEnergy
-              }
-
-              primeDensity={
-                game.primeDensity
-              }
-
-              primeState={
-                game.primeState
-              }
-
               activity={
                 activityStatus.activity
-              }
-
-              activityScore={
-                activityStatus.activityScore
-              }
-
-              activityMax={
-                activityStatus.activityMax
-              }
-
-              activityLegal={
-                activityStatus.legal
-              }
-
-              activityTotal={
-                activityStatus.total
               }
 
               activityCombineLegal={
                 activityStatus.combineLegal
               }
 
-              activityCombineTotal={
-                activityStatus.combineTotal
-              }
-
-              activityCombinePrimeLegal={
-                activityStatus.combinePrimeLegal
-              }
-
-              activityCombineNormalLegal={
-                activityStatus.combineNormalLegal
-              }
-
               activityReduceLegal={
                 activityStatus.reduceLegal
               }
 
-              activityReduceTotal={
-                activityStatus.reduceTotal
+              numberCount={
+                game.numbers.length
+              }
+
+              dead={
+                activityStatus.dead
               }
 
             />

@@ -8,28 +8,13 @@ import "./BoardStatus.css";
 
 
 export default function BoardStatus({
-
-  primeEnergy = 0,
-
-  primeDensity = 0,
-
-  primeState = "沉寂",
-
   activity = 0,
-
-  activityLegal = 0,
-
-  activityTotal = 0,
-
   activityCombineLegal = 0,
-
-  activityCombineTotal = 0,
-
-  activityCombinePrimeLegal = 0,
-
   activityReduceLegal = 0,
 
-  activityReduceTotal = 0,
+  numberCount = 0,
+
+  dead = false,
 
 }) {
 
@@ -110,6 +95,15 @@ export default function BoardStatus({
 
 
   function getActivityText() {
+
+
+    if(
+      dead
+    ){
+
+      return "无路可走";
+
+    }
 
 
     if(
@@ -272,7 +266,7 @@ export default function BoardStatus({
                     "
                   >
 
-                    当前环境
+                    当前局面
 
                   </div>
 
@@ -283,7 +277,9 @@ export default function BoardStatus({
                     "
                   >
 
-                    {getActivityText()}
+                    {dead
+                      ? "无路可走 · 0%"
+                      : `${getActivityText()} · ${activity}%`}
 
                   </div>
 
@@ -306,13 +302,13 @@ export default function BoardStatus({
 
 
 
-              <div
-                className="
-                  activity-detail-description
-                "
-              >
+              <div className="activity-detail-description">
 
-                活性表示当前局面还能产生多少有效变化。
+                {dead
+                  ? "当前没有可以进行的操作"
+                  : numberCount >= 9
+                    ? "暂时不能增加新料理，还可以继续处理"
+                    : "活动空间表示当前还有多少可选操作。"}
 
               </div>
 
@@ -331,60 +327,21 @@ export default function BoardStatus({
                 "
               >
 
-                环境参数
+                局面情况
 
               </div>
 
 
 
-              <div
-                className="
-                  activity-detail-row
-                "
-              >
+              <div className="activity-detail-row activity-detail-row-main">
 
                 <span>
-                  质能
+                  {numberCount >= 9 ? "料理台已满" : "料理台"}
                 </span>
 
                 <span>
-                  {primeEnergy}
-                </span>
-
-              </div>
-
-
-
-              <div
-                className="
-                  activity-detail-row
-                "
-              >
-
-                <span>
-                  质密
-                </span>
-
-                <span>
-                  {primeDensity}
-                </span>
-
-              </div>
-
-
-
-              <div
-                className="
-                  activity-detail-row
-                "
-              >
-
-                <span>
-                  质态
-                </span>
-
-                <span>
-                  {primeState}
+                  <strong>{numberCount}</strong>
+                  {" / 9"}
                 </span>
 
               </div>
@@ -404,34 +361,7 @@ export default function BoardStatus({
                 "
               >
 
-                动作空间
-
-              </div>
-
-
-
-              <div
-                className="
-                  activity-detail-row
-                  activity-detail-row-main
-                "
-              >
-
-                <span>
-                  可行动作
-                </span>
-
-                <span>
-
-                  <strong>
-                    {activityLegal}
-                  </strong>
-
-                  {" / "}
-
-                  {activityTotal}
-
-                </span>
+                可选操作
 
               </div>
 
@@ -444,16 +374,12 @@ export default function BoardStatus({
               >
 
                 <span>
-                  可以组合
+                  可以搭配
                 </span>
 
                 <span>
 
                   {activityCombineLegal}
-
-                  {" / "}
-
-                  {activityCombineTotal}
 
                 </span>
 
@@ -475,34 +401,10 @@ export default function BoardStatus({
 
                   {activityReduceLegal}
 
-                  {" / "}
-
-                  {activityReduceTotal}
-
                 </span>
 
               </div>
 
-
-
-              {
-
-                activityCombinePrimeLegal > 0 && (
-
-                  <div
-                    className="
-                      activity-detail-note
-                    "
-                  >
-
-                    当前有部分组合会生成质数，
-                    后续变化空间可能进一步收紧。
-
-                  </div>
-
-                )
-
-              }
 
 
             </div>
