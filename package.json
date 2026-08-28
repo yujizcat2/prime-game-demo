@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "oxlint",
-    "test": "vite build --ssr src/test/nineCuisine.test.js --outDir /tmp/prime-game-nine-test --emptyOutDir && node /tmp/prime-game-nine-test/nineCuisine.test.js && vite build --ssr src/test/activityStatus.test.js --outDir /tmp/prime-game-activity-status-test --emptyOutDir && node /tmp/prime-game-activity-status-test/activityStatus.test.js && vite build --ssr src/test/collectionAI.test.js --outDir /tmp/prime-game-collection-test --emptyOutDir && node /tmp/prime-game-collection-test/collectionAI.test.js && vite build --ssr src/test/price.test.js --outDir /tmp/prime-game-price-test --emptyOutDir && node /tmp/prime-game-price-test/price.test.js",
+    "test": "vite build --ssr src/test/nineCuisine.test.js --outDir /tmp/prime-game-nine-test --emptyOutDir && node /tmp/prime-game-nine-test/nineCuisine.test.js && vite build --ssr src/test/eightPalaceSolver.test.js --outDir /tmp/prime-game-eight-palace-solver-test --emptyOutDir && node /tmp/prime-game-eight-palace-solver-test/eightPalaceSolver.test.js && vite build --ssr src/test/activityStatus.test.js --outDir /tmp/prime-game-activity-status-test --emptyOutDir && node /tmp/prime-game-activity-status-test/activityStatus.test.js && vite build --ssr src/test/collectionAI.test.js --outDir /tmp/prime-game-collection-test --emptyOutDir && node /tmp/prime-game-collection-test/collectionAI.test.js && vite build --ssr src/test/price.test.js --outDir /tmp/prime-game-price-test --emptyOutDir && node /tmp/prime-game-price-test/price.test.js",
     "test:collection": "npm test -- --benchmark 1",
     "preview": "vite preview"
   },

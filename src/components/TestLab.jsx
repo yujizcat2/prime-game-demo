@@ -11,6 +11,11 @@ import {
   SMART_AI_MODES
 } from "../test/smartExplorer";
 
+import {
+  EIGHT_PALACE_SOLVER_DEFAULTS,
+  runEightPalaceSolver
+} from "../test/eightPalaceSolver";
+
 import "./TestLab.css";
 
 
@@ -29,7 +34,10 @@ const TEST_MODES = {
     "collection",
 
   MONEY:
-    "money"
+    "money",
+
+  EIGHT_PALACE:
+    "eight-palace"
 
 };
 
@@ -60,6 +68,13 @@ const SMART_GAME_OPTIONS = [
 
 
 const MONEY_GAME_OPTIONS = [
+  1,
+  10,
+  100
+];
+
+
+const EIGHT_PALACE_GAME_OPTIONS = [
   1,
   10,
   100
@@ -168,9 +183,19 @@ export default function TestLab({
     TEST_MODES.MONEY;
 
 
+  const isEightPalaceMode =
+
+    mode ===
+    TEST_MODES.EIGHT_PALACE;
+
+
   const gameOptions =
 
-    isMoneyMode
+    isEightPalaceMode
+
+      ? EIGHT_PALACE_GAME_OPTIONS
+
+      : isMoneyMode
 
       ? MONEY_GAME_OPTIONS
 
@@ -221,8 +246,8 @@ export default function TestLab({
 
     setGames(
 
-      nextMode ===
-      TEST_MODES.RANDOM
+      nextMode === TEST_MODES.RANDOM
+      || nextMode === TEST_MODES.EIGHT_PALACE
 
         ? 100
 
@@ -360,6 +385,20 @@ export default function TestLab({
               setProgress
 
           });
+
+      }
+
+
+      else if(mode === TEST_MODES.EIGHT_PALACE){
+
+
+        nextResult = await runEightPalaceSolver({
+          games,
+          depth: EIGHT_PALACE_SOLVER_DEFAULTS.depth,
+          beamWidth: EIGHT_PALACE_SOLVER_DEFAULTS.beamWidth,
+          maxActions: EIGHT_PALACE_SOLVER_DEFAULTS.maxActions,
+          onProgress: setProgress
+        });
 
       }
 
@@ -616,6 +655,27 @@ export default function TestLab({
             </ModeButton>
 
 
+            <ModeButton
+
+              active={
+                mode === TEST_MODES.EIGHT_PALACE
+              }
+
+              disabled={
+                running
+              }
+
+              onClick={() =>
+                changeMode(TEST_MODES.EIGHT_PALACE)
+              }
+
+            >
+
+              八宫清盘 AI
+
+            </ModeButton>
+
+
           </div>
 
 
@@ -666,17 +726,29 @@ export default function TestLab({
 
               <br />
 
-              Depth {SMART_DEPTH}
+              Depth {
+                isEightPalaceMode
+                  ? EIGHT_PALACE_SOLVER_DEFAULTS.depth
+                  : SMART_DEPTH
+              }
 
               {" · "}
 
-              Beam {SMART_BEAM_WIDTH}
+              Beam {
+                isEightPalaceMode
+                  ? EIGHT_PALACE_SOLVER_DEFAULTS.beamWidth
+                  : SMART_BEAM_WIDTH
+              }
 
               {" · "}
 
               最大 {
 
-                isMoneyMode
+                isEightPalaceMode
+
+                  ? EIGHT_PALACE_SOLVER_DEFAULTS.maxActions
+
+                  : isMoneyMode
 
                   ? formatNumber(MONEY_MAX_STEPS)
 
@@ -829,6 +901,10 @@ export default function TestLab({
                 isMoneyMode
               }
 
+              eightPalaceMode={
+                isEightPalaceMode
+              }
+
               smart={
                 isSmartMode
               }
@@ -862,9 +938,13 @@ export default function TestLab({
 
         {
 
-          result &&
+          result && (
 
-          <TestResults
+          isEightPalaceMode
+
+            ? <EightPalaceResults result={result} />
+
+            : <TestResults
 
             result={
               result
@@ -882,7 +962,7 @@ export default function TestLab({
               isMoneyMode
             }
 
-          />
+          />)
 
         }
 
@@ -959,7 +1039,9 @@ function ProgressPanel({
 
   collectionMode,
 
-  moneyMode
+  moneyMode,
+
+  eightPalaceMode
 
 }){
 
@@ -1036,7 +1118,22 @@ function ProgressPanel({
 
       {
 
+        eightPalaceMode &&
+        progress.currentGame &&
+
+        <div>
+          当前剩余 <strong>{progress.currentBoardCount}</strong> 张
+          {" · "}
+          {progress.currentSuccess ? "成功" : "未清至目标"}
+        </div>
+
+      }
+
+
+      {
+
         smart &&
+        !eightPalaceMode &&
         progress.currentGame &&
 
         <>
@@ -1162,6 +1259,115 @@ function ProgressPanel({
 
   );
 
+}
+
+
+function EightPalaceResults({
+  result
+}){
+  const distribution = Object.entries(
+    result.minimumBoardCountDistribution ?? {}
+  ).sort((a, b) => Number(a[0]) - Number(b[0]));
+
+  return (
+    <section className="test-lab-results">
+      <div className="test-lab-result-title">八宫清盘结果</div>
+
+      <div className="test-lab-result-grid">
+        <ResultItem label="测试局数" value={formatNumber(result.games)} />
+        <ResultItem label="成功清到 ≤2" value={formatNumber(result.successCount)} highlight />
+        <ResultItem label="成功率" value={`${(result.successRate * 100).toFixed(1)}%`} highlight />
+        <ResultItem label="平均成功 Step" value={Number(result.averageSuccessSteps).toFixed(2)} />
+        <ResultItem label="最短成功 Step" value={result.shortestSuccessSteps ?? "—"} />
+        <ResultItem label="最长成功 Step" value={result.longestSuccessSteps ?? "—"} />
+        <ResultItem label="平均最低剩余" value={Number(result.averageMinimumBoardCount).toFixed(2)} />
+        <ResultItem label="死局" value={result.failureCounts.deadlock} />
+        <ResultItem label="循环/重复状态" value={result.failureCounts["repeated-state / loop"]} />
+        <ResultItem label="达到搜索上限" value={result.failureCounts.maxActions} />
+        <ResultItem label="搜索耗尽" value={result.failureCounts["search exhausted"]} />
+      </div>
+
+      <div className="test-lab-section">
+        <div className="test-lab-section-title">最低剩余牌数分布</div>
+        <div className="test-lab-small-grid">
+          {distribution.map(([boardCount, count]) => (
+            <ResultItem key={boardCount} label={`最低达到 ${boardCount} 张`} value={count} />
+          ))}
+        </div>
+      </div>
+
+      <EightPalaceRecord title="最短成功纪录" game={result.shortestSuccess} />
+      <EightPalaceRecord title="最难成功纪录（成功局中 Step 最大）" game={result.hardestSuccess} />
+    </section>
+  );
+}
+
+
+function EightPalaceRecord({
+  title,
+  game
+}){
+  if(!game){
+    return (
+      <div className="test-lab-record">
+        <div className="test-lab-record-title">{title}</div>
+        无成功纪录
+      </div>
+    );
+  }
+
+  return (
+    <div className="test-lab-record">
+      <div className="test-lab-record-title">{title}</div>
+      <div>第 {game.gameIndex} 局</div>
+      <div className="test-lab-record-collection">
+        开局八张：{formatEightPalaceBoard(game.initialBoard)}
+      </div>
+      <div>
+        Step <strong>{game.steps}</strong>
+        {" · "}
+        操作 <strong>{game.actions}</strong>
+        {" · "}
+        最终剩余 <strong>{game.finalBoardCount}</strong> 张
+      </div>
+      <details className="test-lab-action-details">
+        <summary>展开完整操作路径（{game.actionPath.length} 项）</summary>
+        <ol>
+          {game.actionPath.map(action => (
+            <li key={action.number}>
+              <strong>{formatEightPalaceAction(action)}</strong>
+              {" · "}
+              Step {action.stepBefore} → {action.stepAfter}
+              {" · "}
+              牌数 {action.boardCountBefore} → {action.boardCountAfter}
+            </li>
+          ))}
+        </ol>
+      </details>
+    </div>
+  );
+}
+
+
+function formatEightPalaceBoard(board){
+  return board
+    .filter(Boolean)
+    .map(piece => `格${piece.index + 1} ${formatFoodType(piece.foodType)}${piece.value}`)
+    .join(" / ");
+}
+
+
+function formatEightPalaceAction(action){
+  const label = {
+    combine: "合成",
+    reduce: "约分",
+    remove: "处理 1"
+  }[action.type] ?? action.type;
+  const inputs = action.inputs
+    .map(piece => `格${piece.index + 1} ${formatFoodType(piece.foodType)}${piece.value}`)
+    .join(" + ");
+
+  return `${label}：${inputs}`;
 }
 
 
@@ -3101,6 +3307,16 @@ function getModeTitle(
   }
 
 
+  if(
+    mode ===
+    TEST_MODES.EIGHT_PALACE
+  ){
+
+    return "八宫清盘 AI";
+
+  }
+
+
 
   return "随机探路";
 
@@ -3122,7 +3338,14 @@ function formatFoodType(
 
     case "meat":
 
+    case "land":
+
       return "荤";
+
+
+    case "aquatic":
+
+      return "水产";
 
 
     case "vegetable":
@@ -3130,9 +3353,34 @@ function formatFoodType(
       return "素";
 
 
+    case "grainBean":
+
+      return "谷豆";
+
+
+    case "dairyEgg":
+
+      return "乳蛋";
+
+
+    case "fruit":
+
+      return "果物";
+
+
     case "seasoning":
 
       return "调料";
+
+
+    case "spice":
+
+      return "香辛";
+
+
+    case "drink":
+
+      return "饮品";
 
 
     case "dessert":

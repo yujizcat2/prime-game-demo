@@ -195,6 +195,29 @@
 }
 
 
+.test-lab-action-details {
+  margin-top: 12px;
+  font-size: 13px;
+}
+
+
+.test-lab-action-details summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+
+
+.test-lab-action-details ol {
+  margin: 12px 0 0;
+  padding-left: 22px;
+}
+
+
+.test-lab-action-details li + li {
+  margin-top: 8px;
+}
+
+
 @media (
   max-width: 700px
 ) {
