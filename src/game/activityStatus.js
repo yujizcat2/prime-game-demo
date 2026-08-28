@@ -169,28 +169,141 @@ function getCapacityFactor(
 
 
 
+function interpolateScore(
+  value,
+  points
+) {
+
+
+  for(
+    let index = 1;
+    index < points.length;
+    index++
+  ){
+
+    const [previousValue, previousScore] =
+      points[index - 1];
+
+    const [nextValue, nextScore] =
+      points[index];
+
+    if(
+      value <= nextValue
+    ){
+
+      const progress =
+        (value - previousValue) /
+        (nextValue - previousValue);
+
+      return previousScore +
+        (nextScore - previousScore) * progress;
+
+    }
+
+  }
+
+
+  return points[points.length - 1][1];
+
+}
+
+
+
+function getMoveScore(
+  legalActions
+) {
+
+  return interpolateScore(
+    legalActions,
+    [
+      [0, 0],
+      [1, 15],
+      [2, 30],
+      [3, 42],
+      [4, 52],
+      [6, 65],
+      [8, 74],
+      [12, 85],
+      [20, 100]
+    ]
+  );
+
+}
+
+
+
+function getSpaceScore(
+  count
+) {
+
+  const scores = [
+    100,
+    100,
+    100,
+    100,
+    95,
+    85,
+    70,
+    50,
+    25,
+    0
+  ];
+
+  return scores[
+    Math.max(
+      0,
+      Math.min(9, count)
+    )
+  ];
+
+}
+
+
+
+function getRescueScore(
+  reduceLegal
+) {
+
+  return interpolateScore(
+    reduceLegal,
+    [
+      [0, 0],
+      [1, 30],
+      [2, 55],
+      [3, 70],
+      [4, 82],
+      [5, 90],
+      [9, 100]
+    ]
+  );
+
+}
+
+
+
+export function getActivityText(
+  activity
+) {
+
+  if(activity >= 85) return "非常宽松";
+  if(activity >= 70) return "选择很多";
+  if(activity >= 55) return "还有余地";
+  if(activity >= 40) return "逐渐受限";
+  if(activity >= 25) return "有些拥挤";
+  if(activity >= 10) return "快没路了";
+  if(activity > 0) return "只剩一线";
+
+  return "无路可走";
+}
+
+
+
 
 
 // ============================================================
-// 获取棋盘活性
+// 获取棋盘活动空间
 //
-// 活性由以下因素共同决定：
-//
-// 1. 数字之间存在多少潜在关系
-// 2. 合成后是否得到质数
-// 3. 当前质密
-// 4. 当前数字数量所带来的容量压力
-// 5. 满盘以后合成通道被锁定
-//
-// ------------------------------------------------------------
-//
-// 合法动作 ≠ 活性
-//
-// 合法动作：
-// 玩家此刻真正能执行的动作数量。
-//
-// 活性：
-// 当前棋盘整体继续变化的潜力。
+// 最终百分比只由真正合法的动作、剩余格数和处理能力决定。
 // ============================================================
 
 export function getActivityStatus(
@@ -287,6 +400,14 @@ export function getActivityStatus(
       activityMax: 0,
 
       potentialActivity: 0,
+
+      moveScore: 0,
+
+      spaceScore: 100,
+
+      rescueScore: 0,
+
+      diversityBonus: 0,
 
 
       legal: 0,
@@ -421,18 +542,10 @@ export function getActivityStatus(
 
 
   // ==========================================================
-  // 理论最大活性
-  //
-  // 每一对理论最高：
-  //
-  // 合成 +1
-  // 约分 +1
+  // 活动空间使用百分制。
   // ==========================================================
 
-  const activityMax =
-
-    pairCount *
-    2;
+  const activityMax = 100;
 
 
 
@@ -678,51 +791,64 @@ export function getActivityStatus(
 
 
   // ==========================================================
-  // 最终有效活性
-  //
-  // 潜在活性
-  // ×
-  // 容量系数
-  //
-  // 于是形成：
-  //
-  // 1格 → 0%
-  // 2～5格 → 逐渐上升
-  // 6格 → 高峰
-  // 7格以后 → 逐渐受到容量压力
-  // 8格 → 警戒
-  // 9格 → 高压区域
+  // 活动空间的三个组成部分。
   // ==========================================================
+
+  const moveScore =
+
+    getMoveScore(
+      legal
+    );
+
+
+  const spaceScore =
+
+    getSpaceScore(
+      count
+    );
+
+
+  const rescueScore =
+
+    getRescueScore(
+      reduceLegal
+    );
+
+
+  const diversityBonus =
+
+    combineLegal > 0 &&
+    reduceLegal > 0
+
+      ? 5
+
+      : 0;
+
 
   const activityScore =
 
-    potentialActivity *
-    capacityFactor;
+    moveScore * 0.5 +
+    spaceScore * 0.3 +
+    rescueScore * 0.2 +
+    diversityBonus;
 
 
 
   // ==========================================================
-  // 最终活性百分比
-  //
-  // 保留1位小数
+  // 拥挤状态封顶。
   // ==========================================================
 
-  const calculatedActivity =
+  const activityCap =
 
-    activityMax === 0
+    count >= 9
 
-      ? 0
+      ? 35
 
-      : Math.round(
+      : count === 8
 
-          (
-            activityScore /
-            activityMax *
-            100
-          ) *
-          10
+        ? 60
 
-        ) / 10;
+        : 100;
 
 
 
@@ -746,7 +872,18 @@ export function getActivityStatus(
 
       ? 0
 
-      : calculatedActivity;
+      : Math.round(
+
+          Math.max(
+            0,
+            Math.min(
+              100,
+              activityCap,
+              activityScore
+            )
+          )
+
+        );
 
 
 
@@ -767,6 +904,14 @@ export function getActivityStatus(
     activityMax,
 
     potentialActivity,
+
+    moveScore,
+
+    spaceScore,
+
+    rescueScore,
+
+    diversityBonus,
 
 
     // ========================

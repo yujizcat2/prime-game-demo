@@ -6,6 +6,10 @@ import {
 
 import "./BoardStatus.css";
 
+import {
+  getActivityText
+} from "../game/activityStatus";
+
 
 export default function BoardStatus({
   activity = 0,
@@ -94,60 +98,6 @@ export default function BoardStatus({
 
 
 
-  function getActivityText() {
-
-
-    if(
-      dead
-    ){
-
-      return "无路可走";
-
-    }
-
-
-    if(
-      activity >= 70
-    ){
-
-      return "非常活跃";
-
-    }
-
-
-    if(
-      activity >= 45
-    ){
-
-      return "比较活跃";
-
-    }
-
-
-    if(
-      activity >= 25
-    ){
-
-      return "略显安静";
-
-    }
-
-
-    if(
-      activity > 0
-    ){
-
-      return "接近沉寂";
-
-    }
-
-
-    return "已经沉寂";
-
-  }
-
-
-
   return (
 
     <div
@@ -205,7 +155,7 @@ export default function BoardStatus({
               "
             >
 
-              {getActivityText()}
+              {getActivityText(activity)}
 
             </span>
 
@@ -279,24 +229,11 @@ export default function BoardStatus({
 
                     {dead
                       ? "无路可走 · 0%"
-                      : `${getActivityText()} · ${activity}%`}
+                      : `${getActivityText(activity)} · ${activity}%`}
 
                   </div>
 
                 </div>
-
-
-
-                <div
-                  className="
-                    activity-detail-percent
-                  "
-                >
-
-                  {activity}%
-
-                </div>
-
 
               </div>
 
