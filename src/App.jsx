@@ -126,7 +126,7 @@ function App(){
 
     scheduleAnimation(
       () => setBoardAnimation(null),
-      440
+      560
     );
 
   }
