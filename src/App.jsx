@@ -349,7 +349,9 @@ function App(){
 
       game.numbers,
 
-      game.primeDensity
+      game.primeDensity,
+
+      game.steps
 
     );
 
@@ -791,6 +793,10 @@ function App(){
 
           collection={
             game.collection
+          }
+
+          reason={
+            game.gameOverReason
           }
 
           onRestart={() =>

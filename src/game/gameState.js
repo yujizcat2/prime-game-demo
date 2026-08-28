@@ -273,6 +273,9 @@ export function createGameState(
     gameOver:
       false,
 
+    gameOverReason:
+      null,
+
 
 
 

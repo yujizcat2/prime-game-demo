@@ -308,7 +308,8 @@ export function getActivityText(
 
 export function getActivityStatus(
   numbers = [],
-  primeDensity = 0
+  primeDensity = 0,
+  steps = 0
 ) {
 
 
@@ -408,6 +409,8 @@ export function getActivityStatus(
       rescueScore: 0,
 
       diversityBonus: 0,
+
+      openingBoost: 0,
 
 
       legal: 0,
@@ -833,6 +836,25 @@ export function getActivityStatus(
     diversityBonus;
 
 
+  const openingBoost =
+
+    Number(steps) <= 3 &&
+    count >= 3 &&
+    legal >= 4
+
+      ? 15
+
+      : 0;
+
+
+  const boostedActivityScore =
+
+    Math.min(
+      95,
+      activityScore + openingBoost
+    );
+
+
 
   // ==========================================================
   // 拥挤状态封顶。
@@ -840,15 +862,27 @@ export function getActivityStatus(
 
   const activityCap =
 
-    count >= 9
+    legal === 1
 
-      ? 35
+      ? 5
 
-      : count === 8
+      : legal === 2
 
-        ? 60
+        ? 12
 
-        : 100;
+        : legal === 3
+
+          ? 22
+
+          : count >= 9
+
+            ? 35
+
+            : count === 8
+
+              ? 60
+
+              : 95;
 
 
 
@@ -868,6 +902,7 @@ export function getActivityStatus(
   // 死局不因潜在关系保留活动空间。
   const activity =
 
+    count <= 2 ||
     dead
 
       ? 0
@@ -877,9 +912,9 @@ export function getActivityStatus(
           Math.max(
             0,
             Math.min(
-              100,
+              95,
               activityCap,
-              activityScore
+              boostedActivityScore
             )
           )
 
@@ -912,6 +947,8 @@ export function getActivityStatus(
     rescueScore,
 
     diversityBonus,
+
+    openingBoost,
 
 
     // ========================

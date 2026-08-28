@@ -8,6 +8,8 @@ export default function GameOver({
 
   collection,
 
+  reason,
+
   onRestart
 
 }) {
@@ -118,9 +120,22 @@ export default function GameOver({
 
         >
 
-          本次数字路径已经完成
+          {reason === "board_depleted"
+            ? "剩余料理不足以继续维持盘面。"
+            : "本次数字路径已经完成"}
 
         </p>
+
+
+        {
+          reason === "board_depleted" && (
+
+            <p className="mt-3 text-sm font-bold text-gray-600">
+              结束原因：盘面活性耗尽
+            </p>
+
+          )
+        }
 
 
 

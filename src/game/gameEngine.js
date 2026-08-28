@@ -329,8 +329,56 @@ export function applyAction(
   // 统一进入迷宫历史系统。
   // ==========================================================
 
-  return resolveMazeHistoryAfterAction(
-    actionState
+  return resolveGameOver(
+
+    resolveMazeHistoryAfterAction(
+      actionState
+    )
+
   );
 
+}
+
+
+
+export function resolveGameOver(
+  state
+){
+
+  if(
+    !state
+  ){
+
+    return state;
+
+  }
+
+
+  if(
+    getBoardCount(state.board) <= 2
+  ){
+
+    return {
+      ...state,
+      gameOver: true,
+      gameOverReason: "board_depleted"
+    };
+
+  }
+
+
+  if(
+    getLegalActions(state).length === 0
+  ){
+
+    return {
+      ...state,
+      gameOver: true,
+      gameOverReason: "no_legal_actions"
+    };
+
+  }
+
+
+  return state;
 }

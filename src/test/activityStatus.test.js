@@ -5,6 +5,18 @@ import {
   getActivityText
 } from "../game/activityStatus";
 
+import {
+  applyAction,
+  createGameState,
+  resolveGameOver
+} from "../game/gameEngine";
+
+import {
+  applySimulationAction,
+  createSimulationState,
+  getSimulationLegalActions
+} from "./simulationEngine";
+
 
 function pieces(values){
   return values.map((value, index) => ({
@@ -15,6 +27,92 @@ function pieces(values){
     parentFoods: null
   }));
 }
+
+
+function blockCombination(piece, parent){
+  piece.parentFoods = [
+    ...(piece.parentFoods ?? []),
+    {
+      value: parent.value,
+      foodType: parent.foodType
+    }
+  ];
+}
+
+
+const healthyOpeningPieces =
+  pieces([2, 3, 5, 7]);
+
+const healthyOpening = getActivityStatus(
+  healthyOpeningPieces,
+  0,
+  3
+);
+
+const sameBoardAfterOpening = getActivityStatus(
+  healthyOpeningPieces,
+  0,
+  4
+);
+
+assert.equal(healthyOpening.openingBoost, 15);
+assert.equal(
+  healthyOpening.activity,
+  Math.min(95, sameBoardAfterOpening.activity + 15)
+);
+assert.ok(healthyOpening.activity <= 95);
+
+
+const threeRoads = getActivityStatus(
+  pieces([2, 3, 5]),
+  0,
+  0
+);
+
+assert.equal(threeRoads.legal, 3);
+assert.equal(threeRoads.openingBoost, 0);
+assert.ok(threeRoads.activity <= 22);
+
+
+const twoRoadPieces =
+  pieces([2, 3, 5]);
+
+blockCombination(twoRoadPieces[0], twoRoadPieces[1]);
+
+const twoRoads = getActivityStatus(
+  twoRoadPieces,
+  0,
+  0
+);
+
+assert.equal(twoRoads.legal, 2);
+assert.ok(twoRoads.activity <= 12);
+
+
+const oneRoadPieces =
+  pieces([2, 3, 5]);
+
+blockCombination(oneRoadPieces[0], oneRoadPieces[1]);
+blockCombination(oneRoadPieces[2], oneRoadPieces[0]);
+
+const oneRoad = getActivityStatus(
+  oneRoadPieces,
+  0,
+  0
+);
+
+assert.equal(oneRoad.legal, 1);
+assert.ok(oneRoad.activity <= 5);
+
+
+const depletedActivity = getActivityStatus(
+  pieces([2, 4]),
+  0,
+  0
+);
+
+assert.ok(depletedActivity.legal > 0);
+assert.equal(depletedActivity.activity, 0);
 
 
 const openFour = getActivityStatus(
@@ -124,6 +222,79 @@ assert.equal(getActivityText(10), "快没路了");
 assert.equal(getActivityText(9), "只剩一线");
 assert.equal(getActivityText(1), "只剩一线");
 assert.equal(getActivityText(0), "无路可走");
+
+
+const liveThreePieceGame = resolveGameOver(
+  createGameState([2, 3, 5])
+);
+
+assert.equal(liveThreePieceGame.gameOver, false);
+
+
+const depletedStart = resolveGameOver(
+  createGameState([2, 4])
+);
+
+assert.equal(depletedStart.gameOver, true);
+assert.equal(depletedStart.gameOverReason, "board_depleted");
+
+
+const reductionState = createGameState([2, 8, 4]);
+const settledDepletion = applyAction(reductionState, {
+  type: "reduce",
+  indexes: [1, 2]
+});
+
+assert.equal(settledDepletion.steps, 1);
+assert.equal(settledDepletion.board.filter(Boolean).length, 2);
+assert.ok(settledDepletion.latestCollection);
+assert.equal(settledDepletion.gameOver, true);
+assert.equal(settledDepletion.gameOverReason, "board_depleted");
+assert.strictEqual(
+  applyAction(settledDepletion, {
+    type: "combine",
+    indexes: [0, 1]
+  }),
+  settledDepletion
+);
+
+
+const noLegalState = createGameState(
+  [2, 3, 5]
+);
+
+noLegalState.board = pieces(
+  [2, 3, 5, 7, 11, 13, 17, 19, 23]
+);
+
+const noLegalGameOver = resolveGameOver(noLegalState);
+
+assert.equal(noLegalGameOver.gameOver, true);
+assert.equal(noLegalGameOver.gameOverReason, "no_legal_actions");
+
+
+for(const count of [0, 1, 2]){
+  const state = createGameState([2, 4, 8]);
+  state.board = state.board.map((piece, index) =>
+    index < count ? piece : null
+  );
+  const ended = resolveGameOver(state);
+  assert.equal(ended.gameOver, true);
+  assert.equal(ended.gameOverReason, "board_depleted");
+}
+
+
+const simulationState = createSimulationState([2, 8, 4]);
+assert.equal(
+  applySimulationAction(simulationState, {
+    type: "reduce",
+    indexes: [1, 2]
+  }),
+  true
+);
+assert.equal(simulationState.steps, 1);
+assert.equal(simulationState.board.filter(Boolean).length, 2);
+assert.equal(getSimulationLegalActions(simulationState).length, 0);
 
 
 console.log("activityStatus tests passed");

@@ -263,6 +263,7 @@ async function runRegressionTests(){
   const alive = cloneSimulationState(dead);
   alive.board[0] = piece(2, "meat");
   alive.board[1] = piece(4, "vegetable");
+  alive.board[2] = piece(3, "seasoning");
   assert.ok(
     utils.compareRanks(
       utils.createCollectionRank(alive, state),
@@ -333,7 +334,8 @@ async function runRegressionTests(){
     yieldEvery: 100
   });
   assert.equal(limited.steps, 1, "configured Step limit must stop the game immediately");
-  assert.equal(limited.hitLimit, true, "living route stopped by Step limit must be recorded");
+  assert.equal(limited.endedNaturally, true, "two-piece board must be recorded as an early ending");
+  assert.equal(limited.hitLimit, false, "depleted board must take priority over the Step limit");
   assert.equal(limited.actionHistory.length, limited.steps, "actual MONEY path must be retained");
   assert.equal(limited.actionHistory[0].money, limited.money, "path money must match final record");
   assert.equal(limited.actionHistory[0].boardMeanBefore, 3);

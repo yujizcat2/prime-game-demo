@@ -32,7 +32,8 @@ import {
   canCombineCells,
   canReduceCells,
 
-  applyAction
+  applyAction,
+  resolveGameOver
 
 } from "../game/gameEngine";
 
@@ -115,8 +116,12 @@ export default function useGame(){
 
     const state =
 
-      createGameState(
-        values
+      resolveGameOver(
+
+        createGameState(
+          values
+        )
+
       );
 
 
@@ -289,6 +294,15 @@ export default function useGame(){
     ??
 
     false;
+
+
+  const gameOverReason =
+
+    gameState?.gameOverReason
+
+    ??
+
+    null;
 
 
 
@@ -1306,6 +1320,8 @@ export default function useGame(){
     started,
 
     gameOver,
+
+    gameOverReason,
 
 
     // ========================================================

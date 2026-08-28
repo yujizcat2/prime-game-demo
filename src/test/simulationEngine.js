@@ -771,6 +771,15 @@ export function getSimulationLegalActions(
 ){
 
 
+  if(
+    getPieces(state.board).length <= 2
+  ){
+
+    return [];
+
+  }
+
+
   const actions =
     [];
 
