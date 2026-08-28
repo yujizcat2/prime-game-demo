@@ -10,6 +10,7 @@ import { FRUIT_DATA } from "../data/ingredients/fruitData";
 import { SEASONING_DATA } from "../data/ingredients/seasoningData";
 import { SPICE_DATA } from "../data/ingredients/spiceData";
 import { createGameState } from "../game/gameState";
+import { createEightPalaceInitialValues, createRandomInitialValues } from "../game/initialValues";
 import { applyCollection } from "../game/collectionRules";
 
 const p=(foodType,value=10)=>({foodType,value});
@@ -32,6 +33,32 @@ assert.equal(Object.keys(DRINK_DATA).length,100);
 const baseNames=new Set([LAND_DATA,AQUATIC_DATA,VEGETABLE_DATA,GRAIN_BEAN_DATA,DAIRY_EGG_DATA,FRUIT_DATA,SEASONING_DATA,SPICE_DATA].flatMap(data=>Object.values(data)));
 assert.deepEqual(Object.entries(DRINK_DATA).filter(([,name])=>baseNames.has(name)),[],"drink names must not duplicate frozen base names");
 for(let i=0;i<100;i++){const state=createGameState([2,3,4]);const types=state.board.filter(Boolean).map(x=>x.foodType);assert.equal(new Set(types).size,3);assert.ok(types.every(type=>BASE_FOOD_TYPES.includes(type)));}
+for(let i=0;i<1000;i++){
+  const state=createGameState(createEightPalaceInitialValues());
+  assert.equal(state.board.length,9);
+  assert.equal(state.board[4],null);
+  const pieces=state.board.filter(Boolean);
+  assert.equal(pieces.length,8);
+  assert.deepEqual([...pieces.map(piece=>piece.foodType)].sort(),[...BASE_FOOD_TYPES].sort());
+  assert.ok(pieces.every(piece=>piece.foodType!==T.DRINK));
+  assert.ok(pieces.every(piece=>piece.value>=2&&piece.value<=101));
+  assert.ok(pieces.every(piece=>piece.purity==="pure"&&piece.parents===null&&piece.parentFoods===null&&piece.sourceKey===null&&piece.origin===null));
+  assert.equal(state.nextId,9);
+  assert.equal(state.mazeHistory.entries.length,1);
+  assert.equal(state.mazeHistory.entries[0].reason,"initial");
+  const initialMazeBoard=JSON.parse(state.mazeHistory.entries[0].key).board;
+  assert.equal(initialMazeBoard.length,9);
+  assert.equal(initialMazeBoard[4].empty,true);
+  assert.equal(initialMazeBoard.filter(piece=>!piece.empty).length,8);
+}
+const originalRandom=Math.random;
+Math.random=()=>0;
+const duplicateValues=createEightPalaceInitialValues().map(item=>item.value);
+Math.random=originalRandom;
+assert.equal(new Set(duplicateValues).size,1,"eight-palace values may repeat");
+const classicState=createGameState(createRandomInitialValues());
+assert.equal(classicState.board.filter(Boolean).length,3);
+assert.equal(classicState.nextId,4);
 const collectionState=createGameState([2,3,4]);
 const collected={value:1,foodType:T.DRINK,origin:{type:"reduce",parent:{value:7,foodType:T.DRINK,parents:[3,4],parentFoods:[p(T.LAND,3),p(T.VEGETABLE,4)],origin:null,crossed101:false}}};
 const once=applyCollection(collectionState,collected);

@@ -1,15 +1,22 @@
 import "./StartScreen.css";
-import { createRandomInitialValues } from "../game/initialValues";
+import {
+  createEightPalaceInitialValues,
+  createRandomInitialValues
+} from "../game/initialValues";
 
 const OPENING_RULES = [
   { icon: "123", label: "三个数字", detail: "2–9 不重复" },
-  { icon: "✦", label: "三个料理系", detail: "八系不重复" },
+  { icon: "✦", label: "三个料理系", detail: "基础系不重复" },
   { icon: "◇", label: "饮品系", detail: "开局不出现" }
 ];
 
 export default function StartScreen({ onStart, onOpenTest }) {
   function quickStart() {
     onStart(createRandomInitialValues());
+  }
+
+  function startEightPalace() {
+    onStart(createEightPalaceInitialValues());
   }
 
   return (
@@ -49,7 +56,7 @@ export default function StartScreen({ onStart, onOpenTest }) {
         </div>
 
         <section className="start-picker">
-          <div className="start-picker-title">九系随机开局</div>
+          <div className="start-picker-title">随机开局</div>
           <div className="start-picker-groups">
             {OPENING_RULES.map(rule => (
               <div className="start-picker-group is-selected" key={rule.label}>
@@ -66,6 +73,18 @@ export default function StartScreen({ onStart, onOpenTest }) {
           <span className="start-button-label">随机探索</span>
           <span className="start-button-arrow">→</span>
         </button>
+
+        <button
+          type="button"
+          className="start-button start-button--eight-palace"
+          onClick={startEightPalace}
+          title="八系齐聚 · 2–101 随机 · 中宫留空"
+        >
+          <span className="start-button-space" />
+          <span className="start-button-label">八宫模式</span>
+          <span className="start-button-arrow">→</span>
+        </button>
+        <div className="start-mode-detail">八系齐聚 · 2–101 随机 · 中宫留空</div>
 
         <button type="button" className="start-test-button" onClick={onOpenTest}>TEST LAB</button>
         <div className="start-footer">EVERY PATH IS UNIQUE</div>

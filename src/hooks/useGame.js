@@ -95,9 +95,10 @@ export default function useGame(){
   // ==========================================================
   // 开始游戏
   //
-  // values 只需要 3 个数字。
+  // 经典模式传入 3 个数字。
+  // 八宫模式传入带 foodType / boardIndex 的 8 项开局结构。
   //
-  // gameEngine 会自动赋予：
+  // 经典模式下 gameEngine 会自动赋予料理系。
   //
   // 第0格 → 荤系 / pure
   // 第1格 → 素系 / pure

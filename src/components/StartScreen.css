@@ -1504,6 +1504,37 @@
 }
 
 
+.start-button--eight-palace {
+
+  margin-top:
+    10px;
+
+  background:
+    #425548;
+
+}
+
+
+.start-mode-detail {
+
+  margin-top:
+    8px;
+
+  color:
+    #8f9992;
+
+  font-size:
+    9px;
+
+  font-weight:
+    700;
+
+  letter-spacing:
+    .08em;
+
+}
+
+
 
 /* ============================================================
    TEST LAB

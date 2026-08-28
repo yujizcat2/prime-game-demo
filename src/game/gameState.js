@@ -73,7 +73,7 @@ export function createGameState(
 
 
 
-  const initialValues =
+  const suppliedValues =
 
     Array.isArray(
       values
@@ -81,15 +81,27 @@ export function createGameState(
 
       ?
 
-        values.slice(
-          0,
-          3
-        )
+        values
 
       :
 
         [];
 
+
+
+  const usesPlacedInitialValues =
+    suppliedValues.every(
+      item =>
+        item
+        && typeof item === "object"
+        && Number.isInteger(item.boardIndex)
+    );
+
+
+  const initialValues =
+    usesPlacedInitialValues
+      ? suppliedValues.slice(0, 8)
+      : suppliedValues.slice(0, 3);
 
 
   const initialFoodTypes = [...BASE_FOOD_TYPES]
@@ -101,12 +113,24 @@ export function createGameState(
   initialValues.forEach(
 
     (
-      value,
+      initialValue,
       index
     ) => {
 
 
-      board[index] = {
+      const value =
+        usesPlacedInitialValues
+          ? initialValue.value
+          : initialValue;
+
+
+      const boardIndex =
+        usesPlacedInitialValues
+          ? initialValue.boardIndex
+          : index;
+
+
+      board[boardIndex] = {
 
 
         id:
@@ -118,7 +142,11 @@ export function createGameState(
 
         foodType:
 
-          initialFoodTypes[index]
+          (
+            usesPlacedInitialValues
+              ? initialValue.foodType
+              : initialFoodTypes[index]
+          )
 
           ??
 
