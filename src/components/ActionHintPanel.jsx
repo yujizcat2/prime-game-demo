@@ -1,6 +1,7 @@
 import { getActionStatus } from "../game/actionStatus";
 import {
-  getFoodName
+  getFoodName,
+  getFoodTypeShortName
 } from "../data/food/foodRegistry";
 import { getCookingDetails } from "../utils/cookingLanguage";
 import "./ActionHintPanel.css";
@@ -12,13 +13,7 @@ function getItemName(item){
 }
 
 function getTypeShortName(foodType){
-  switch(foodType){
-    case "meat": return "荤";
-    case "vegetable": return "素";
-    case "seasoning": return "调";
-    case "dessert": return "甜";
-    default: return "";
-  }
+  return getFoodTypeShortName(foodType);
 }
 
 function EmptyHint(){

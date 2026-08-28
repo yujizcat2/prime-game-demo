@@ -294,7 +294,7 @@ async function runRegressionTests(){
   );
 
   const repeatedMoneyState = createSimulationState([2, 4, 3]);
-  repeatedMoneyState.collection.add("2:meat");
+  repeatedMoneyState.collection.add("2:land");
   repeatedMoneyState.collectionNumbers.add(2);
   repeatedMoneyState.previousCollection = 2;
   repeatedMoneyState.money = 20;
@@ -323,7 +323,7 @@ async function runRegressionTests(){
   assertSameSourceSimulationPath(9, 5, "5|9");
   assertSameSourceSimulationPath(14, 13, "13|14");
   assertSameSourceSimulationPath(13, 36, "13|36");
-  runFatigueLoopSmokeTest();
+  // The former 3/6/9 three-cuisine balance loop is obsolete under nine-cuisine V1.
 
   const limited = await runSmartGame({
     mode: SMART_AI_MODES.MONEY,

@@ -465,6 +465,9 @@ export function combineCells(
 
     ],
 
+    crossed101:
+      front.value + back.value > 101,
+
 
     origin:
 

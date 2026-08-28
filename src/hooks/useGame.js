@@ -211,6 +211,10 @@ export default function useGame(){
 
     [];
 
+  const collectionTimeline =
+    gameState?.collectionTimeline
+    ?? [];
+
 
   const collectionPaths =
 
@@ -1329,6 +1333,7 @@ export default function useGame(){
     // ========================================================
 
     collection,
+    collectionTimeline,
 
     collectionPaths,
 

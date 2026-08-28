@@ -4,7 +4,8 @@ import {
 } from "react";
 
 import {
-  getFoodDisplayName
+  getFoodDisplayName,
+  getFoodTypeShortName
 } from "../data/food/foodRegistry";
 
 
@@ -12,32 +13,8 @@ import {
 
 
 const COLLECTION_TYPES = [
-
-  {
-    key:
-      "meat",
-
-    label:
-      "荤"
-  },
-
-  {
-    key:
-      "vegetable",
-
-    label:
-      "素"
-  },
-
-  {
-    key:
-      "seasoning",
-
-    label:
-      "调料"
-  }
-
-];
+  "land","aquatic","vegetable","grainBean","dairyEgg","fruit","seasoning","spice","drink"
+].map(key => ({key,label:getFoodTypeShortName(key)}));
 
 
 
@@ -46,6 +23,8 @@ const COLLECTION_TYPES = [
 export default function CollectionPanel({
 
   collection = [],
+
+  collectionTimeline = [],
 
   collectionPaths = {},
 
@@ -798,9 +777,18 @@ export default function CollectionPanel({
 
 
 
-      {/* ======================================================
-          空收藏
-      ====================================================== */}
+      {collectionTimeline.length > 0 && (
+        <div className="mb-4 grid gap-2">
+          {[...collectionTimeline].reverse().map((entry, index) => (
+            <div key={entry.eventId ?? `${entry.value}-${entry.foodType}-${index}`} className="rounded-xl border border-gray-100 bg-white px-3 py-2 text-xs text-gray-600">
+              <span className="font-bold">#{collectionTimeline.length-index} · {entry.name}</span>
+              <span className="ml-2 text-gray-400">{entry.value} · {getFoodTypeShortName(entry.foodType)}{entry.step!=null?` · Step ${entry.step}`:""}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* 空收藏 */}
 
       {
 

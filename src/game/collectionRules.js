@@ -18,6 +18,7 @@ import {
   getFatiguedFirstReward,
   getFatiguedRepeatPenalty
 } from "./actionFatigue";
+import { getFoodName } from "../data/food/foodRegistry";
 
 
 export function settleMoneyChanges(startingMoney, intendedChanges) {
@@ -51,12 +52,8 @@ export function settleMoneyChanges(startingMoney, intendedChanges) {
 // ============================================================
 
 export const COLLECTIBLE_FOOD_TYPES = [
-
-  "meat",
-
-  "vegetable",
-
-  "seasoning"
+  "land", "aquatic", "vegetable", "grainBean", "dairyEgg",
+  "fruit", "seasoning", "spice", "drink", "meat"
 
 ];
 
@@ -1811,13 +1808,23 @@ export function applyCollection(
   ){
 
 
-    return applyGameCollection(
-
-      state,
-
-      piece
-
-    );
+    const nextState = applyGameCollection(state, piece);
+    const snapshot = getCollectionRecord(piece);
+    if(!snapshot) return nextState;
+    const eventId = nextState.collectionEventId ?? ((state.collectionEventId ?? 0) + 1);
+    return {
+      ...nextState,
+      collectionTimeline: [
+        ...(state.collectionTimeline ?? []),
+        {
+          ...structuredClone(snapshot),
+          eventId,
+          step: state.steps ?? null,
+          name: getFoodName(snapshot.value, snapshot.foodType),
+          reducePath: getMainLineage(snapshot)
+        }
+      ]
+    };
 
   }
 
