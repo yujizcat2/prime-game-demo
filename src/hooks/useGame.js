@@ -310,6 +310,16 @@ export default function useGame(){
     null;
 
 
+  const gameMode =
+    gameState?.gameMode
+    ?? null;
+
+
+  const eightPalaceKeys =
+    gameState?.eightPalaceKeys
+    ?? {};
+
+
 
 
 
@@ -1327,6 +1337,10 @@ export default function useGame(){
     gameOver,
 
     gameOverReason,
+
+    gameMode,
+
+    eightPalaceKeys,
 
 
     // ========================================================

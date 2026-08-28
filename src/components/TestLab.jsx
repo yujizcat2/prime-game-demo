@@ -671,7 +671,7 @@ export default function TestLab({
 
             >
 
-              八宫清盘 AI
+              八宫钥匙 AI
 
             </ModeButton>
 
@@ -1124,6 +1124,8 @@ function ProgressPanel({
         <div>
           当前剩余 <strong>{progress.currentBoardCount}</strong> 张
           {" · "}
+          钥匙 <strong>{progress.currentKeyCount} / 8</strong>
+          {" · "}
           {progress.currentSuccess ? "成功" : "未清至目标"}
         </div>
 
@@ -1266,21 +1268,23 @@ function EightPalaceResults({
   result
 }){
   const distribution = Object.entries(
-    result.minimumBoardCountDistribution ?? {}
+    result.finalKeyCountDistribution ?? {}
   ).sort((a, b) => Number(a[0]) - Number(b[0]));
 
   return (
     <section className="test-lab-results">
-      <div className="test-lab-result-title">八宫清盘结果</div>
+      <div className="test-lab-result-title">八宫钥匙结果</div>
 
       <div className="test-lab-result-grid">
         <ResultItem label="测试局数" value={formatNumber(result.games)} />
-        <ResultItem label="成功清到 ≤2" value={formatNumber(result.successCount)} highlight />
+        <ResultItem label="成功通关数" value={formatNumber(result.successCount)} highlight />
         <ResultItem label="成功率" value={`${(result.successRate * 100).toFixed(1)}%`} highlight />
         <ResultItem label="平均成功 Step" value={Number(result.averageSuccessSteps).toFixed(2)} />
         <ResultItem label="最短成功 Step" value={result.shortestSuccessSteps ?? "—"} />
         <ResultItem label="最长成功 Step" value={result.longestSuccessSteps ?? "—"} />
-        <ResultItem label="平均最低剩余" value={Number(result.averageMinimumBoardCount).toFixed(2)} />
+        <ResultItem label="平均最终钥匙数" value={`${Number(result.averageFinalKeyCount).toFixed(2)} / 8`} />
+        <ResultItem label="8钥匙但未清盘" value={result.keysCompleteNotClearedCount} />
+        <ResultItem label="清到≤2但钥匙未满" value={result.clearedWithoutKeysCount} />
         <ResultItem label="死局" value={result.failureCounts.deadlock} />
         <ResultItem label="循环/重复状态" value={result.failureCounts["repeated-state / loop"]} />
         <ResultItem label="达到搜索上限" value={result.failureCounts.maxActions} />
@@ -1288,16 +1292,17 @@ function EightPalaceResults({
       </div>
 
       <div className="test-lab-section">
-        <div className="test-lab-section-title">最低剩余牌数分布</div>
+        <div className="test-lab-section-title">最终钥匙数量分布</div>
         <div className="test-lab-small-grid">
-          {distribution.map(([boardCount, count]) => (
-            <ResultItem key={boardCount} label={`最低达到 ${boardCount} 张`} value={count} />
+          {distribution.map(([keyCount, count]) => (
+            <ResultItem key={keyCount} label={`${keyCount} / 8`} value={count} />
           ))}
         </div>
       </div>
 
       <EightPalaceRecord title="最短成功纪录" game={result.shortestSuccess} />
       <EightPalaceRecord title="最难成功纪录（成功局中 Step 最大）" game={result.hardestSuccess} />
+      {result.singleGame && <EightPalaceRecord title="单局详细过程" game={result.singleGame} />}
     </section>
   );
 }
@@ -1329,6 +1334,16 @@ function EightPalaceRecord({
         操作 <strong>{game.actions}</strong>
         {" · "}
         最终剩余 <strong>{game.finalBoardCount}</strong> 张
+        {" · "}
+        最终钥匙 <strong>{game.finalKeyCount} / 8</strong>
+      </div>
+      <div className="test-lab-record-collection">
+        结果：{game.success ? "成功" : "失败"}
+        {" · "}
+        已获得：{formatKeyTypes(game.acquiredKeyTypes)}
+        {" · "}
+        缺少：{formatKeyTypes(game.missingKeyTypes)}
+        {!game.success && <> · 失败原因：{game.failureReason}</>}
       </div>
       <details className="test-lab-action-details">
         <summary>展开完整操作路径（{game.actionPath.length} 项）</summary>
@@ -1339,13 +1354,23 @@ function EightPalaceRecord({
               {" · "}
               Step {action.stepBefore} → {action.stepAfter}
               {" · "}
-              牌数 {action.boardCountBefore} → {action.boardCountAfter}
+              剩余 {action.boardCountAfter} 张
+              {" · "}
+              钥匙 {action.keyCountAfter} / 8
+              {action.gainedKey && <> · 获得：{formatFoodType(action.gainedKey.foodType)}钥匙（{action.gainedKey.value}）</>}
             </li>
           ))}
         </ol>
       </details>
     </div>
   );
+}
+
+
+function formatKeyTypes(types){
+  return Array.isArray(types) && types.length > 0
+    ? types.map(formatFoodType).join("、")
+    : "无";
 }
 
 
@@ -3312,7 +3337,7 @@ function getModeTitle(
     TEST_MODES.EIGHT_PALACE
   ){
 
-    return "八宫清盘 AI";
+    return "八宫钥匙 AI";
 
   }
 

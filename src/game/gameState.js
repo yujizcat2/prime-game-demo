@@ -16,6 +16,11 @@ import {
   createEmptyBoard
 } from "./boardRules";
 
+import {
+  createEmptyEightPalaceKeys,
+  GAME_MODES
+} from "./eightPalaceKeys";
+
 
 
 
@@ -188,6 +193,17 @@ export function createGameState(
   const baseState = {
 
     board,
+
+    gameMode:
+      usesPlacedInitialValues
+        ? GAME_MODES.EIGHT_PALACE
+        : GAME_MODES.CLASSIC,
+
+    eightPalaceKeys:
+      createEmptyEightPalaceKeys(),
+
+    latestEightPalaceKey:
+      null,
 
 
 

@@ -35,6 +35,11 @@ import {
   resolveMazeHistoryAfterAction
 } from "./mazeEngine";
 
+import {
+  GAME_MODES,
+  getEightPalaceKeyCount
+} from "./eightPalaceKeys";
+
 
 
 
@@ -354,9 +359,23 @@ export function resolveGameOver(
   }
 
 
-  if(
-    getBoardCount(state.board) <= 2
-  ){
+  const boardCount = getBoardCount(state.board);
+  const isEightPalace = state.gameMode === GAME_MODES.EIGHT_PALACE;
+  const keyCount = getEightPalaceKeyCount(state.eightPalaceKeys);
+
+
+  if(isEightPalace && keyCount === 8 && boardCount <= 2){
+
+    return {
+      ...state,
+      gameOver: true,
+      gameOverReason: "eight_palace_cleared"
+    };
+
+  }
+
+
+  if(!isEightPalace && boardCount <= 2){
 
     return {
       ...state,
@@ -371,10 +390,18 @@ export function resolveGameOver(
     getLegalActions(state).length === 0
   ){
 
+    const gameOverReason = isEightPalace
+      ? keyCount === 8
+        ? "eight_palace_board_not_cleared"
+        : boardCount <= 2
+          ? "eight_palace_keys_missing"
+          : "no_legal_actions"
+      : "no_legal_actions";
+
     return {
       ...state,
       gameOver: true,
-      gameOverReason: "no_legal_actions"
+      gameOverReason
     };
 
   }

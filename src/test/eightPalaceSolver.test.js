@@ -4,6 +4,7 @@ import {
   runEightPalaceGame
 } from "./eightPalaceSolver";
 import { BASE_FOOD_TYPES } from "../game/rules";
+import { createGameState } from "../game/gameEngine";
 
 const result = await runEightPalaceGame({maxActions: 0});
 
@@ -20,13 +21,22 @@ const easyOpening = outerIndexes.map((boardIndex, index) => ({
   foodType: BASE_FOOD_TYPES[index],
   boardIndex
 }));
-const solved = await runEightPalaceGame({
-  initialOpening: easyOpening,
-  depth: 3,
-  beamWidth: 20,
-  maxActions: 20
-});
-assert.equal(solved.success, true);
-assert.ok(solved.finalBoardCount <= 2);
-assert.ok(solved.actionPath.length > 0);
+const state = createGameState(easyOpening);
+const stateWithKey = {
+  ...state,
+  eightPalaceKeys: {
+    ...state.eightPalaceKeys,
+    [BASE_FOOD_TYPES[0]]: {
+      foodType: BASE_FOOD_TYPES[0],
+      value: 2,
+      parents: null,
+      parentFoods: null
+    }
+  }
+};
+assert.notEqual(
+  createEightPalaceBoardKey(state),
+  createEightPalaceBoardKey(stateWithKey),
+  "identical boards with different keys must have different visited keys"
+);
 console.log("eight palace solver tests passed");

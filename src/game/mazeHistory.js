@@ -535,7 +535,12 @@ export function createMazeRuleState(
 
         state?.collectionFoodTypeHistory
 
-      )
+      ),
+
+    eightPalaceKeys:
+      Object.keys(state?.eightPalaceKeys ?? {})
+        .filter(foodType => Boolean(state.eightPalaceKeys[foodType]))
+        .sort()
 
   };
 

@@ -42,6 +42,10 @@ import {
   getActionFatigue
 } from "./actionFatigue";
 
+import {
+  applyEightPalaceKeyFromReduction
+} from "./eightPalaceKeys";
+
 
 
 
@@ -980,6 +984,15 @@ export function reduceCells(
     nextState,
     collectedPieces,
     state.board
+  );
+
+
+  nextState = applyEightPalaceKeyFromReduction(
+    nextState,
+    first,
+    second,
+    firstResult,
+    secondResult
   );
 
 

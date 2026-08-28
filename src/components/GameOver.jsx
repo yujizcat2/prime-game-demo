@@ -1,3 +1,8 @@
+import {
+  getEightPalaceKeyCount
+} from "../game/eightPalaceKeys";
+
+
 export default function GameOver({
 
   steps,
@@ -10,9 +15,27 @@ export default function GameOver({
 
   reason,
 
+  gameMode,
+
+  eightPalaceKeys = {},
+
+  boardCount = 0,
+
   onRestart
 
 }) {
+
+  const isEightPalace = gameMode === "eightPalace";
+  const keyCount = getEightPalaceKeyCount(eightPalaceKeys);
+  const eightPalaceSuccess = reason === "eight_palace_cleared";
+
+  const eightPalaceReason = reason === "eight_palace_keys_missing"
+    ? "钥匙未集齐"
+    : reason === "eight_palace_board_not_cleared"
+      ? "钥匙已集齐，但盘面未清至 2 张以内"
+      : reason === "no_legal_actions"
+        ? "已无合法操作"
+        : "八系钥匙已集齐";
 
 
   return (
@@ -103,7 +126,11 @@ export default function GameOver({
 
         >
 
-          探索结束
+          {isEightPalace
+            ? eightPalaceSuccess
+              ? "八宫通关"
+              : "挑战失败"
+            : "探索结束"}
 
         </h2>
 
@@ -120,7 +147,9 @@ export default function GameOver({
 
         >
 
-          {reason === "board_depleted"
+          {isEightPalace
+            ? eightPalaceReason
+            : reason === "board_depleted"
             ? "剩余料理不足以继续维持盘面。"
             : "本次数字路径已经完成"}
 
@@ -143,7 +172,7 @@ export default function GameOver({
             最终积分
             ========================= */}
 
-        <div
+        {!isEightPalace && <div
 
           className="
             mt-7
@@ -183,7 +212,21 @@ export default function GameOver({
 
           </div>
 
-        </div>
+        </div>}
+
+
+        {isEightPalace && (
+          <div className="mt-7 grid grid-cols-2 gap-3">
+            <div className="rounded-2xl bg-gray-50 py-4">
+              <div className="text-xs text-gray-400">钥匙</div>
+              <div className="mt-1 text-xl font-black text-gray-700">{keyCount} / 8</div>
+            </div>
+            <div className="rounded-2xl bg-gray-50 py-4">
+              <div className="text-xs text-gray-400">剩余</div>
+              <div className="mt-1 text-xl font-black text-gray-700">{boardCount} 张</div>
+            </div>
+          </div>
+        )}
 
 
 
@@ -191,7 +234,7 @@ export default function GameOver({
             数据
             ========================= */}
 
-        <div
+        {!isEightPalace && <div
 
           className="
             mt-7
@@ -310,7 +353,7 @@ export default function GameOver({
           </div>
 
 
-        </div>
+        </div>}
 
 
 

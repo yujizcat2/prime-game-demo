@@ -13,6 +13,7 @@ import Board from "./components/Board";
 import ActionButtons from "./components/ActionButtons";
 import ActionHintPanel from "./components/ActionHintPanel";
 import CollectionPanel from "./components/CollectionPanel";
+import EightPalaceKeyPanel from "./components/EightPalaceKeyPanel";
 import StepPanel from "./components/StepPanel";
 import Discovery from "./components/Discovery";
 import BoardStatus from "./components/BoardStatus";
@@ -748,6 +749,12 @@ function App(){
 
 
 
+        {game.gameMode === "eightPalace" ? (
+
+          <EightPalaceKeyPanel keys={game.eightPalaceKeys} />
+
+        ) : (
+
         <CollectionPanel
 
           collection={
@@ -776,6 +783,8 @@ function App(){
 
         />
 
+        )}
+
 
       </div>
 
@@ -802,6 +811,12 @@ function App(){
           reason={
             game.gameOverReason
           }
+
+          gameMode={game.gameMode}
+
+          eightPalaceKeys={game.eightPalaceKeys}
+
+          boardCount={game.numbers.length}
 
           onRestart={() =>
             window.location.reload()
