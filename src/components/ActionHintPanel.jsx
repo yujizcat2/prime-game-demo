@@ -1,9 +1,7 @@
 import { getActionStatus } from "../game/actionStatus";
-import { combineFoodType } from "../game/rules";
 import {
   getFoodName
 } from "../data/food/foodRegistry";
-import { getCombineBlockedText } from "../game/kitchenText";
 import { getCookingDetails } from "../utils/cookingLanguage";
 import "./ActionHintPanel.css";
 
@@ -26,9 +24,9 @@ function getTypeShortName(foodType){
 function EmptyHint(){
   return (
     <div className="cooking-hint cooking-hint--empty">
-      <div className="cooking-hint__eyebrow">TIPS</div>
-      <strong>选择一个数字</strong>
-      <span>查看料理信息，并寻找可以合成或约分的对象。</span>
+      <div className="cooking-hint__eyebrow">料理 TIPS</div>
+      <strong>选择一道料理</strong>
+      <span>查看它的风味与来源，再选择亮起的料理继续操作。</span>
     </div>
   );
 }
@@ -42,16 +40,15 @@ function SingleHint({item}){
 
   return (
     <div className="cooking-hint cooking-hint--single" key={item?.id}>
-      <div className="cooking-hint__identity">
-        <strong className="cooking-hint__number">{item?.value}</strong>
-        <span className="cooking-hint__name">{name}</span>
-        <span className={`cooking-hint__type cooking-hint__type--${item?.foodType ?? "water"}`}>
-          {typeName}
-        </span>
-        <small>{details?.kind}</small>
-      </div>
-
-      <div className="cooking-hint__detail">
+      <div className="cooking-hint__dish">
+        <div className="cooking-hint__identity">
+          <strong className="cooking-hint__number">{item?.value}</strong>
+          <span className="cooking-hint__name">{name}</span>
+          <span className={`cooking-hint__type cooking-hint__type--${item?.foodType ?? "water"}`}>
+            {typeName}
+          </span>
+          <small>{details?.kind}</small>
+        </div>
         <p>{details?.description}</p>
         <div className="cooking-hint__sources" aria-label="料理来源">
           <span className="cooking-hint__source-label">料理来源</span>
@@ -66,7 +63,10 @@ function SingleHint({item}){
         </div>
       </div>
 
-      <div className="cooking-hint__next">选择高亮料理继续操作 <b>›</b></div>
+      <div className="cooking-hint__next">
+        <small>下一步</small>
+        <span>选择亮起的料理继续搭配或处理。 <b>›</b></span>
+      </div>
     </div>
   );
 }
@@ -75,50 +75,54 @@ function PairHint({status}){
   const {first, second, combine, reduce} = status;
   const firstName = getItemName(first);
   const secondName = getItemName(second);
-  const resultFoodType = combineFoodType(first, second);
-  const combineResultName = combine.result != null
-    ? getFoodName(combine.result, resultFoodType)
-    : null;
   const canCombine = combine.allowed;
   const canReduce = reduce.allowed;
-  const operator = canReduce && !canCombine ? "÷" : "＋";
-  let title = "暂时无法操作";
-  let instruction = getCombineBlockedText({
-    reason: combine.reason,
-    firstName,
-    secondName
-  });
+  let title = "暂不适合料理";
+  let description = "换一道亮起的料理试试。";
+  let instruction = "重新选择料理，寻找合适的搭配。";
 
   if(canCombine && canReduce){
-    title = "可以合成，也可以约分";
-    instruction = "选择下方预览料理，完成对应操作。";
+    title = "多种料理方式";
+    description = "可以一起烹制，也可以进行处理。";
+    instruction = "选择下方预览，完成下一步料理。";
   }
   else if(canCombine){
-    title = "可以合成";
-    instruction = "点击预览料理完成合成。";
+    title = "料理搭配";
+    description = "这两种食材适合一起烹制。";
+    instruction = "点击预览料理完成烹制。";
   }
   else if(canReduce){
-    title = "可以约分";
-    instruction = "点击预览料理完成约分。";
+    title = "料理处理";
+    description = "这两份同类料理可以进一步处理。";
+    instruction = "点击预览确认处理结果。";
+  }
+  else if(combine.reason === "没有空位，放不下新的数字"){
+    description = "料理台已经放满，先处理一些料理。";
+  }
+  else if(
+    combine.reason === "它不能再和组成自己的数字合成" ||
+    combine.reason === "这两个数字已经合成过一次"
+  ){
+    description = "这两道料理已经有过直接搭配。";
+  }
+  else if(combine.reason === "1只能直接消除"){
+    description = "原汁暂时不能参与普通料理。";
   }
 
   return (
     <div className="cooking-hint cooking-hint--pair">
-      <div className="cooking-hint__pair-names">
-        <span>{firstName}</span><i>{operator}</i><span>{secondName}</span>
-      </div>
-
-      <div className="cooking-hint__operation">
-        <strong>{title}</strong>
-        <div className="cooking-hint__results">
-          {canCombine && <span>→ {combine.result} · {combineResultName}</span>}
-          {canReduce && (
-            <span>{first.value} → {reduce.firstResult}<i>·</i>{second.value} → {reduce.secondResult}</span>
-          )}
+      <div className="cooking-hint__dish cooking-hint__dish--pair">
+        <div className="cooking-hint__pair-names">
+          <span>{firstName}</span><i>＋</i><span>{secondName}</span>
         </div>
+        <strong>{title}</strong>
+        <p>{description}</p>
       </div>
 
-      <div className="cooking-hint__next">{instruction}</div>
+      <div className="cooking-hint__next">
+        <small>下一步</small>
+        <span>{instruction}</span>
+      </div>
     </div>
   );
 }

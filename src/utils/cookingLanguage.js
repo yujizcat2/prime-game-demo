@@ -102,7 +102,7 @@ export function getCookingDetails(item){
   const sources = getCombineSources(item);
   if(sources.length > 0){
     return {
-      kind: "合成料理",
+      kind: "搭配料理",
       description: describeCombinedDish(item, sources),
       sources: sources.map(source => ({
         name: getSourceName(source),
