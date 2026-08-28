@@ -43,10 +43,14 @@ assert.notEqual(
 const fixed = await runFixedEightPalaceAttempts({
   attempts: 2,
   fixedOpening: easyOpening,
-  maxActions: 0
+  depth: 1,
+  beamWidth: 2,
+  maxActions: 1
 });
 assert.equal(fixed.results.length, 2);
 assert.deepEqual(fixed.results[0].initialOpening, fixed.results[1].initialOpening);
 assert.notEqual(fixed.results[0].initialOpening, fixed.results[1].initialOpening);
-assert.equal(fixed.results.every(attempt => attempt.steps === 0 && attempt.finalKeyCount === 0), true);
+assert.equal(fixed.results.every(attempt => attempt.actionPath.length === attempt.actions), true);
+assert.equal(fixed.results.every(attempt => attempt.actionPath.length === 1), true);
+assert.equal(fixed.results.every(attempt => attempt.actionPath[0].number === 1), true);
 console.log("eight palace solver tests passed");

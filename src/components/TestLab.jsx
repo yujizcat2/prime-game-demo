@@ -86,7 +86,11 @@ const EIGHT_PALACE_GAME_OPTIONS = [
 
 
 const FIXED_EIGHT_PALACE_OPTIONS = [
-  10
+  10,
+  20,
+  30,
+  50,
+  100
 ];
 
 
@@ -1421,7 +1425,26 @@ function FixedEightPalaceResults({
             <div className="test-lab-record-collection">
               缺失钥匙：{formatKeyTypes(attempt.missingKeyTypes)}
               {!attempt.success && <> · 失败原因：{formatEightPalaceFailure(attempt.failureReason)}</>}
+              {" · "}
+              完整路径：{attempt.actionPath.length} 步
             </div>
+            <details className="test-lab-action-details">
+              <summary>展开完整操作路径（{attempt.actionPath.length}项）</summary>
+              <ol>
+                {attempt.actionPath.map(action => (
+                  <li key={action.number}>
+                    <strong>{formatEightPalaceAction(action)}</strong>
+                    {" · "}
+                    Step {action.stepBefore} → {action.stepAfter}
+                    {" · "}
+                    操作后剩余 {action.boardCountAfter} 张
+                    {" · "}
+                    钥匙 {action.keyCountAfter} / 8
+                    {action.gainedKey && <> · 获得：{formatFoodType(action.gainedKey.foodType)}钥匙（{action.gainedKey.value}）</>}
+                  </li>
+                ))}
+              </ol>
+            </details>
           </div>
         ))}
       </div>

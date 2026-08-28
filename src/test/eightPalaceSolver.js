@@ -28,6 +28,11 @@ function countMissingKeyOpportunities(state){
 
 function isSuccess(state){return getEightPalaceKeyCount(state.eightPalaceKeys)===8&&getBoardCount(state.board)<=2;}
 
+// Provenance is not part of the solver objective or any legal-action/key rule.
+// Drop its recursive UI-only payload between search nodes so 100 retained routes
+// do not also retain exponentially growing origin trees.
+function compactSolverState(state){return {...state,board:state.board.map(piece=>piece?{...piece,origin:null}:null),collectionTimeline:[],collectionOrigins:{},collectionPaths:{},collectionParents:{},latestCollection:null};}
+
 function shuffled(items){
   const result=[...items];
   for(let i=result.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[result[i],result[j]]=[result[j],result[i]];}
@@ -50,8 +55,9 @@ function searchNextAction(rootState,{depth,beamWidth,randomizeSearch},visited){
     const nextNodes=[];
     const expandedFrontier=randomizeSearch?shuffled(frontier):frontier;
     for(const node of expandedFrontier)for(const action of randomizeSearch?shuffled(getLegalActions(node.state)):getLegalActions(node.state)){
-      const nextState=applyAction(node.state,action);
-      if(nextState===node.state)continue;
+      const appliedState=applyAction(node.state,action);
+      if(appliedState===node.state)continue;
+      const nextState=compactSolverState(appliedState);
       generated++;
       const key=createEightPalaceBoardKey(nextState);
       if(visited.has(key)||searchSeen.has(key)){repeatedPrunes++;continue;}
@@ -72,12 +78,12 @@ function describeAction(state,action,nextState){
   const inputs=indexes.map(index=>({index,value:state.board[index]?.value??null,foodType:state.board[index]?.foodType??null}));
   const beforeKeys=new Set(Object.keys(state.eightPalaceKeys??{}).filter(type=>state.eightPalaceKeys[type]));
   const gainedType=Object.keys(nextState.eightPalaceKeys??{}).find(type=>nextState.eightPalaceKeys[type]&&!beforeKeys.has(type))??null;
-  return {number:null,type:action.type,indexes,inputs,stepBefore:state.steps,stepAfter:nextState.steps,boardCountAfter:getBoardCount(nextState.board),keyCountAfter:getEightPalaceKeyCount(nextState.eightPalaceKeys),gainedKey:gainedType?{...nextState.eightPalaceKeys[gainedType]}:null,boardAfter:snapshotBoard(nextState.board)};
+  return {number:null,type:action.type,indexes,inputs,stepBefore:state.steps,stepAfter:nextState.steps,boardCountAfter:getBoardCount(nextState.board),keyCountAfter:getEightPalaceKeyCount(nextState.eightPalaceKeys),gainedKey:gainedType?{...nextState.eightPalaceKeys[gainedType]}:null};
 }
 
 export async function runEightPalaceGame({depth=EIGHT_PALACE_SOLVER_DEFAULTS.depth,beamWidth=EIGHT_PALACE_SOLVER_DEFAULTS.beamWidth,maxActions=EIGHT_PALACE_SOLVER_DEFAULTS.maxActions,initialOpening=null,randomizeSearch=false}={}){
   const opening=initialOpening??createEightPalaceInitialValues();
-  let state=resolveGameOver(createGameState(opening));
+  let state=compactSolverState(resolveGameOver(createGameState(opening)));
   const initialBoard=snapshotBoard(state.board);
   const visited=new Set([createEightPalaceBoardKey(state)]),actionPath=[];
   let repeatedPrunes=0,failureReason=null,minimumBoardCount=getBoardCount(state.board);
@@ -87,8 +93,9 @@ export async function runEightPalaceGame({depth=EIGHT_PALACE_SOLVER_DEFAULTS.dep
     const choice=searchNextAction(state,{depth,beamWidth,randomizeSearch},visited);
     repeatedPrunes+=choice.repeatedPrunes;
     if(!choice.action){failureReason=choice.generated>0&&choice.repeatedPrunes>0?"repeated-state / loop":"search exhausted";break;}
-    const nextState=applyAction(state,choice.action);
-    if(nextState===state){failureReason="search exhausted";break;}
+    const appliedState=applyAction(state,choice.action);
+    if(appliedState===state){failureReason="search exhausted";break;}
+    const nextState=compactSolverState(appliedState);
     const entry=describeAction(state,choice.action,nextState);entry.number=actionPath.length+1;actionPath.push(entry);
     state=nextState;visited.add(createEightPalaceBoardKey(state));minimumBoardCount=Math.min(minimumBoardCount,getBoardCount(state.board));
   }
