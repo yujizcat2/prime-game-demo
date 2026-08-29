@@ -71,7 +71,7 @@ export default function ActionButtons({
 
         onClick={
           canCombine && !preview?.combine?.requiresTypeChoice
-            ? onCombine
+            ? () => onCombine()
             : undefined
         }
 
