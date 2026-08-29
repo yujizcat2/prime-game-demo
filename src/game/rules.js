@@ -17,17 +17,16 @@ export function isNormalFoodType(type){return BASE_FOOD_TYPES.includes(type);}
 export function flipFoodType(){return null;}
 export function getDessertMutationFoodType(){return null;}
 
-// Ordered type rule shared by player and AI. resultFoodType is required only
-// when exactly one input is a drink.
-export function combineFoodType(front,back,resultFoodType=null){
+// Ordered type rule shared by player and AI.
+export function combineFoodType(front,back){
   if(!front||!back||!front.foodType||!back.foodType)return null;
   const a=front.foodType==="meat"?FOOD_TYPES.LAND:front.foodType,b=back.foodType==="meat"?FOOD_TYPES.LAND:back.foodType;
   if(a===FOOD_TYPES.DRINK&&b===FOOD_TYPES.DRINK)return FOOD_TYPES.DRINK;
-  if(a===FOOD_TYPES.DRINK||b===FOOD_TYPES.DRINK)return isNormalFoodType(resultFoodType)?resultFoodType:null;
+  if(a===FOOD_TYPES.DRINK||b===FOOD_TYPES.DRINK)return isCrossing101(front.value,back.value)?FOOD_TYPES.DRINK:(a===FOOD_TYPES.DRINK?b:a);
   if(!isNormalFoodType(a)||!isNormalFoodType(b))return null;
   return isCrossing101(front.value,back.value)?FOOD_TYPES.DRINK:a;
 }
-export function combineFoodPurity(front,back,resultFoodType=null){const result=combineFoodType(front,back,resultFoodType);if(!result||result===FOOD_TYPES.DRINK)return null;return front.foodType===back.foodType&&result===front.foodType?FOOD_PURITY.PURE:FOOD_PURITY.MIXED;}
+export function combineFoodPurity(front,back){const result=combineFoodType(front,back);if(!result||result===FOOD_TYPES.DRINK)return null;return front.foodType===back.foodType&&result===front.foodType?FOOD_PURITY.PURE:FOOD_PURITY.MIXED;}
 export function createSpecialOne(sourceTypeA,sourceTypeB){
   if(sourceTypeA==="meat")sourceTypeA=FOOD_TYPES.LAND;
   if(sourceTypeB==="meat")sourceTypeB=FOOD_TYPES.LAND;

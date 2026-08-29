@@ -947,10 +947,6 @@ export default function BoardCell({
 
             ${animationState?.type==="claim_key"&&animationState.index===index?"board-piece--claim-key":""}
 
-            ${animationState?.type==="drink_convert"&&animationState.drinkIndex===index?"board-piece--drink-consuming":""}
-
-            ${animationState?.type==="drink_convert"&&animationState.normalIndex===index?"board-piece--drink-receiving":""}
-
             ${
               autoCollectPreview &&
               !removing

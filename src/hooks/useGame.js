@@ -10,7 +10,6 @@ import {
   combineValue,
   combineFoodType,
   combineFoodPurity,
-  FOOD_TYPES,
   SPECIAL_ONE_KINDS,
   canApplyFunctionOne
 } from "../game/rules";
@@ -759,21 +758,6 @@ export default function useGame(){
                 ),
 
 
-              requiresTypeChoice:
-
-                (
-                  orderedPair.front.foodType ===
-                  FOOD_TYPES.DRINK
-                )
-
-                !==
-
-                (
-                  orderedPair.back.foodType ===
-                  FOOD_TYPES.DRINK
-                ),
-
-
               purity:
 
                 combineFoodPurity(
@@ -1033,7 +1017,6 @@ export default function useGame(){
   // ==========================================================
 
   function combineNumbers(
-    resultFoodType = null,
     lockedIndexes = null
   ){
 
@@ -1129,9 +1112,7 @@ export default function useGame(){
 
             indexes[1]
 
-          ],
-
-          resultFoodType
+          ]
 
         }
 

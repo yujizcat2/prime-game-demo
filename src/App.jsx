@@ -108,30 +108,9 @@ function App(){
 
   // ==========================================================
   // 组合
-  //
-  // 关键：
-  //
-  // React onClick 可能把 MouseEvent 作为第一个参数传入。
-  //
-  // 普通组合这里只允许：
-  //
-  // null
-  //
-  // 饮品转系只允许：
-  //
-  // foodType 字符串
-  //
-  // 其他任何对象都强制转为 null。
   // ==========================================================
 
-  function handleCombine(
-    resultFoodType = null
-  ){
-
-    const normalizedFoodType =
-      typeof resultFoodType === "string"
-        ? resultFoodType
-        : null;
+  function handleCombine(){
 
 
     if(
@@ -149,40 +128,12 @@ function App(){
     ];
 
 
-    const isDrinkConvert = Boolean(
-      game.preview.combine.requiresTypeChoice &&
-      normalizedFoodType
+    const targetIndex = game.board.findIndex(
+      piece => !piece
     );
 
 
-    const drinkIndex =
-      isDrinkConvert
-        ? indexes.find(
-            index =>
-              game.board[index]?.foodType === "drink"
-          )
-        : null;
-
-
-    const normalIndex =
-      isDrinkConvert
-        ? indexes.find(
-            index =>
-              index !== drinkIndex
-          )
-        : null;
-
-
-    const targetIndex =
-      isDrinkConvert
-        ? normalIndex
-        : game.board.findIndex(
-            piece => !piece
-          );
-
-
     if(
-      !isDrinkConvert &&
       targetIndex === -1
     ){
       return;
@@ -199,63 +150,40 @@ function App(){
 
 
     setBoardAnimation(
-      isDrinkConvert
-        ? {
-            type: "drink_convert",
-            phase: "consume",
-            indexes,
-            drinkIndex,
-            normalIndex,
-            targetIndex,
-            token
-          }
-        : {
-            type: "combine",
-            phase: "exit",
-            indexes,
-            targetIndex,
-            token
-          }
+      {
+        type: "combine",
+        phase: "exit",
+        indexes,
+        targetIndex,
+        token
+      }
     );
 
 
     scheduleAnimation(
       () => {
 
-        game.combineNumbers(
-          normalizedFoodType,
-          indexes
-        );
+        game.combineNumbers(indexes);
 
 
         setBoardAnimation(
-          isDrinkConvert
-            ? {
-                type: "drink_convert",
-                phase: "absorb",
-                indexes,
-                drinkIndex,
-                normalIndex,
-                targetIndex,
-                token
-              }
-            : {
-                type: "combine",
-                phase: "enter",
-                indexes,
-                targetIndex,
-                token
-              }
+          {
+            type: "combine",
+            phase: "enter",
+            indexes,
+            targetIndex,
+            token
+          }
         );
 
       },
-      isDrinkConvert ? 240 : 140
+      140
     );
 
 
     scheduleAnimation(
       () => setBoardAnimation(null),
-      isDrinkConvert ? 480 : 560
+      560
     );
 
   }
@@ -834,12 +762,6 @@ function App(){
                     removingIndex ??
                     boardAnimation?.token ??
                     null
-                  }
-                  allowedFoodTypes={
-                    game.gameMode ===
-                    "simpleEightPalace"
-                      ? game.targetFoodTypes
-                      : undefined
                   }
                 />
 

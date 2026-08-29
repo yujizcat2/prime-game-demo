@@ -1462,12 +1462,7 @@
 .board-piece--apply-one-candidate { border-color:rgba(40,160,112,.72); box-shadow:inset 0 0 18px rgba(40,160,112,.16),0 0 0 3px rgba(40,160,112,.2),0 8px 20px rgba(24,120,84,.18); animation:boardPieceCandidateEnter .2s cubic-bezier(.2,.8,.3,1) both; }
 .board-piece-candidate-marker--apply-one { min-width:20px; color:#16865d; text-shadow:0 0 6px rgba(22,134,93,.38); }
 .board-piece--claim-key { pointer-events:none; animation:boardPieceClaimKey .26s ease-in-out both; }
-.board-piece--drink-consuming { pointer-events:none; animation:boardPieceDrinkConsume .24s ease-in both; }
-.board-piece--drink-receiving { pointer-events:none; animation:boardPieceDrinkReceive .32s ease-out both; }
-
 @keyframes boardPieceClaimKey { 0%{transform:scale(1)} 45%{transform:scale(1.07);filter:brightness(1.2)} 100%{transform:scale(.82);opacity:.15} }
-@keyframes boardPieceDrinkConsume { 0%{transform:scale(1);opacity:1} 100%{transform:scale(.72);opacity:0} }
-@keyframes boardPieceDrinkReceive { 0%{transform:scale(1)} 55%{transform:scale(1.045);filter:brightness(1.12)} 100%{transform:scale(1)} }
 
 
 .board-piece--combine-candidate {

@@ -68,7 +68,6 @@ function getActionPriority(state,action){
   const missing=new Set(getMissingEightPalaceKeyTypes(state.eightPalaceKeys));
   if(state.board.some(piece=>piece?.specialOne?.kind===SPECIAL_ONE_KINDS.KEY&&missing.has(piece.specialOne.keyType)))return 5;
   if(action?.type==="apply_one")return 3;
-  if(action?.type==="combine_drink_convert")return missing.has(action.resultFoodType)?2:0;
   if(action?.type==="reduce")return 2;
   return 1;
 }
@@ -125,7 +124,6 @@ export function getActionIndexes(action){
     case "apply_one": return action.oneIndex===undefined?[...(action.indexes??[])]:[action.oneIndex,action.targetIndex].filter(index=>index!==undefined);
     case "combine":
     case "combine_ordered":
-    case "combine_drink_convert":
     case "reduce":
     default: return [...(action?.indexes??[])];
   }
@@ -136,7 +134,7 @@ export function describeAction(state,action,nextState){
   const inputs=indexes.map(index=>({index,value:state.board[index]?.value??null,foodType:state.board[index]?.foodType??null}));
   const beforeKeys=new Set(Object.keys(state.eightPalaceKeys??{}).filter(type=>state.eightPalaceKeys[type]));
   const gainedType=Object.keys(nextState.eightPalaceKeys??{}).find(type=>nextState.eightPalaceKeys[type]&&!beforeKeys.has(type))??null;
-  return {number:null,type:action.type,indexes,resultFoodType:action.resultFoodType??null,inputs,stepBefore:state.steps,stepAfter:nextState.steps,boardCountAfter:getBoardCount(nextState.board),keyCountAfter:getEightPalaceKeyCount(nextState.eightPalaceKeys),gainedKey:gainedType?{...nextState.eightPalaceKeys[gainedType]}:null};
+  return {number:null,type:action.type,indexes,inputs,stepBefore:state.steps,stepAfter:nextState.steps,boardCountAfter:getBoardCount(nextState.board),keyCountAfter:getEightPalaceKeyCount(nextState.eightPalaceKeys),gainedKey:gainedType?{...nextState.eightPalaceKeys[gainedType]}:null};
 }
 
 export async function runEightPalaceGame({depth=EIGHT_PALACE_SOLVER_DEFAULTS.depth,beamWidth=EIGHT_PALACE_SOLVER_DEFAULTS.beamWidth,maxActions=EIGHT_PALACE_SOLVER_DEFAULTS.maxActions,initialOpening=null,randomizeSearch=false}={}){
@@ -161,7 +159,7 @@ export async function runEightPalaceGame({depth=EIGHT_PALACE_SOLVER_DEFAULTS.dep
   if(!success&&!failureReason)failureReason=actionPath.length>=maxActions?"maxActions":"search exhausted";
   const missingKeyTypes=getMissingEightPalaceKeyTypes(state.eightPalaceKeys);
   const extinctMissingTypes=missingKeyTypes.filter(type=>!state.board.some(piece=>piece?.foodType===type));
-  const lastDrinkAction=[...actionPath].reverse().find(action=>action.type==="combine_drink_convert"&&action.inputs.some(input=>input.foodType===FOOD_TYPES.DRINK));
+  const lastDrinkAction=[...actionPath].reverse().find(action=>action.type.startsWith("combine")&&action.inputs.some(input=>input.foodType===FOOD_TYPES.DRINK));
   return {success,initialOpening:opening.map(item=>({...item})),initialBoard,minimumBoardCount,finalBoardCount,finalKeyCount,acquiredKeyTypes:Object.keys(state.eightPalaceKeys).filter(type=>state.eightPalaceKeys[type]),missingKeyTypes,steps:state.steps,actions:actionPath.length,finalBoard:snapshotBoard(state.board),actionPath,failureReason,gameOverReason:state.gameOverReason,repeatedPrunes,prematureClear:finalKeyCount<8&&finalBoardCount<=2,extinctMissingTypes,lastDrinkConsumedStep:lastDrinkAction?.number??null,sevenKeyFailureMissingType:!success&&finalKeyCount===7?missingKeyTypes[0]??null:null};
 }
 
@@ -182,7 +180,7 @@ export async function runEightPalaceSolver({games=EIGHT_PALACE_SOLVER_DEFAULTS.g
   return {games,depth,beamWidth,maxActions,successCount:successes.length,successRate:games?successes.length/games:0,averageSuccessSteps:successes.length?successfulSteps.reduce((sum,value)=>sum+value,0)/successes.length:0,shortestSuccessSteps:successes.length?Math.min(...successfulSteps):null,longestSuccessSteps:successes.length?Math.max(...successfulSteps):null,averageFinalKeyCount:games?results.reduce((sum,result)=>sum+result.finalKeyCount,0)/games:0,keysCompleteNotClearedCount:results.filter(result=>result.finalKeyCount===8&&result.finalBoardCount>2).length,clearedWithoutKeysCount:results.filter(result=>result.finalBoardCount<=2&&result.finalKeyCount<8).length,finalKeyCountDistribution:createKeyDistribution(results),failureCounts,shortestSuccess,hardestSuccess,singleGame:games===1?results[0]:null,results};
 }
 
-export function routeSignature(result){return result.actionPath.map(action=>`${action.type}:${getActionIndexes(action).join("-")}${action.type==="combine_drink_convert"?`:${action.resultFoodType??""}`:""}`).join("|");}
+export function routeSignature(result){return result.actionPath.map(action=>`${action.type}:${getActionIndexes(action).join("-")}`).join("|");}
 function deepClone(value){return JSON.parse(JSON.stringify(value));}
 function deepFreeze(value){if(value&&typeof value==="object"){Object.freeze(value);for(const item of Object.values(value))deepFreeze(item);}return value;}
 

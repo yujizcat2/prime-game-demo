@@ -67,8 +67,5 @@ assert.doesNotThrow(()=>describeAction(actionState,{type:"claim_key",index:0},cl
 assert.doesNotThrow(()=>describeAction(actionState,{type:"apply_one",oneIndex:0,targetIndex:1},actionState));
 assert.equal(routeSignature({actionPath:[{type:"claim_key",index:6}]}),"claim_key:6");
 assert.equal(routeSignature({actionPath:[{type:"apply_one",oneIndex:3,targetIndex:7}]}),"apply_one:3-7");
-assert.notEqual(
-  routeSignature({actionPath:[{type:"combine_drink_convert",indexes:[1,4],resultFoodType:BASE_FOOD_TYPES[0]}]}),
-  routeSignature({actionPath:[{type:"combine_drink_convert",indexes:[1,4],resultFoodType:BASE_FOOD_TYPES[1]}]})
-);
+assert.equal(routeSignature({actionPath:[{type:"combine",indexes:[1,4]}]}),"combine:1-4");
 console.log("eight palace solver tests passed");

@@ -39,7 +39,7 @@ function getActionKey(action) {
     return (
       action.type +
       ":" +
-      (action.ids??action.indexes??[]).join("-") + ":" + (action.resultFoodType??"")
+      (action.ids??action.indexes??[]).join("-")
     );
 
   }

@@ -7,7 +7,6 @@ import {
   combineValue,
   combineFoodType,
   combineFoodPurity,
-  BASE_FOOD_TYPES,
   FOOD_PURITY,
   SPECIAL_ONE_KINDS,
   createSpecialOne,
@@ -256,11 +255,8 @@ export function canReduceCells(
 export function combineCells(
   state,
   indexA,
-  indexB,
-  resultFoodType = null
+  indexB
 ){
-
-  if(state?.gameMode==="simpleEightPalace"&&resultFoodType&&!state.targetFoodTypes?.includes(resultFoodType))return state;
 
 
   if(
@@ -372,8 +368,7 @@ export function combineCells(
     combineFoodType(
 
       front,
-      back,
-      resultFoodType
+      back
 
     );
 
@@ -397,8 +392,7 @@ export function combineCells(
     combineFoodPurity(
 
       front,
-      back,
-      resultFoodType
+      back
 
     );
 
@@ -494,13 +488,7 @@ export function combineCells(
     ...state.board
 
   ];
-  const drinkIndex=a.foodType===FOOD_TYPES.DRINK?indexA:b.foodType===FOOD_TYPES.DRINK?indexB:null;
-  const isDrinkConvert=drinkIndex!==null&&(a.foodType===FOOD_TYPES.DRINK)!==(b.foodType===FOOD_TYPES.DRINK);
-  const resultIndex=isDrinkConvert?(drinkIndex===indexA?indexB:indexA):targetIndex;
-  if(isDrinkConvert){
-    nextBoard[drinkIndex]=null;
-    nextBoard[resultIndex]={...newPiece,id:state.board[resultIndex].id};
-  }else nextBoard[targetIndex]=newPiece;
+  nextBoard[targetIndex]=newPiece;
 
 
 
@@ -511,7 +499,7 @@ export function combineCells(
     board:
       nextBoard,
 
-    nextId: isDrinkConvert?state.nextId:state.nextId + 1
+    nextId: state.nextId + 1
 
   };
 
@@ -1175,11 +1163,8 @@ export function getLegalCombineActions(
       ){
 
 
-        const a=state.board[i],b=state.board[j],oneDrink=(a.foodType===FOOD_TYPES.DRINK)!==(b.foodType===FOOD_TYPES.DRINK);
-        if(oneDrink){
-          const resultTypes=state.gameMode==="simpleEightPalace"?state.targetFoodTypes:BASE_FOOD_TYPES;
-          for(const resultFoodType of resultTypes)actions.push({type:"combine_drink_convert",indexes:[i,j],resultFoodType});
-        }else if(a.foodType!==FOOD_TYPES.DRINK&&b.foodType!==FOOD_TYPES.DRINK&&a.foodType!==b.foodType&&a.value+b.value<=101){
+        const a=state.board[i],b=state.board[j];
+        if(a.foodType!==FOOD_TYPES.DRINK&&b.foodType!==FOOD_TYPES.DRINK&&a.foodType!==b.foodType&&a.value+b.value<=101){
           actions.push({type:"combine_ordered",indexes:[i,j]},{type:"combine_ordered",indexes:[j,i]});
         }else actions.push({type:"combine",indexes:[i,j]});
 

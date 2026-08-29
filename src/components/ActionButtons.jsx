@@ -1,6 +1,4 @@
 import "./ActionButtons.css";
-import { BASE_FOOD_TYPES } from "../game/rules";
-import { FOOD_TYPE_LABELS } from "../data/specialOneRegistry";
 
 
 export default function ActionButtons({
@@ -16,8 +14,6 @@ export default function ActionButtons({
   gameOver,
 
   removingId = null,
-
-  allowedFoodTypes = BASE_FOOD_TYPES,
 
 }) {
 
@@ -70,13 +66,13 @@ export default function ActionButtons({
         type="button"
 
         onClick={
-          canCombine && !preview?.combine?.requiresTypeChoice
-            ? () => onCombine()
+          canCombine
+            ? onCombine
             : undefined
         }
 
         disabled={
-          !canCombine || preview?.combine?.requiresTypeChoice
+          !canCombine
         }
 
         className={`
@@ -121,11 +117,6 @@ export default function ActionButtons({
 
 
       </button>
-
-      {canCombine && preview?.combine?.requiresTypeChoice && <div className="action-toolbar-type-grid">
-        {allowedFoodTypes.map(foodType=><button type="button" className="action-toolbar-type-choice" key={foodType} onClick={()=>onCombine(foodType)}>{FOOD_TYPE_LABELS[foodType]}</button>)}
-      </div>}
-
 
 
       {/* ======================================================

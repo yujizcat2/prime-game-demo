@@ -218,7 +218,6 @@ export function applyAction(
 
     case "combine":
     case "combine_ordered":
-    case "combine_drink_convert":
 
 
       actionState =
@@ -230,7 +229,6 @@ export function applyAction(
           action.indexes?.[0],
 
           action.indexes?.[1]
-          ,action.resultFoodType ?? null
 
         );
 

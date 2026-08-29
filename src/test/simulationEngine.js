@@ -847,9 +847,7 @@ export function getSimulationLegalActions(
           j
         )
       ){
-        const oneDrink=(a.foodType===FOOD_TYPES.DRINK)!==(b.foodType===FOOD_TYPES.DRINK);
-        if(oneDrink)for(const resultFoodType of BASE_FOOD_TYPES)actions.push({type:"combine_drink_convert",indexes:[i,j],resultFoodType});
-        else if(a.foodType!==FOOD_TYPES.DRINK&&b.foodType!==FOOD_TYPES.DRINK&&a.foodType!==b.foodType&&a.value+b.value<=101)actions.push({type:"combine_ordered",indexes:[i,j]},{type:"combine_ordered",indexes:[j,i]});
+        if(a.foodType!==FOOD_TYPES.DRINK&&b.foodType!==FOOD_TYPES.DRINK&&a.foodType!==b.foodType&&a.value+b.value<=101)actions.push({type:"combine_ordered",indexes:[i,j]},{type:"combine_ordered",indexes:[j,i]});
         else actions.push({type:"combine",indexes:[i,j]});
 
       }
@@ -898,8 +896,7 @@ export function getSimulationLegalActions(
 function applyCombine(
   state,
   indexA,
-  indexB,
-  resultFoodType=null
+  indexB
 ){
 
 
@@ -978,8 +975,7 @@ function applyCombine(
     combineFoodType(
 
       front,
-      back,
-      resultFoodType
+      back
 
     );
 
@@ -1012,8 +1008,7 @@ function applyCombine(
       combineFoodPurity(
 
         front,
-        back,
-        resultFoodType
+        back
 
       ),
 
@@ -1064,10 +1059,7 @@ function applyCombine(
       null
 
   };
-  const drinkIndex=a.foodType===FOOD_TYPES.DRINK?indexA:b.foodType===FOOD_TYPES.DRINK?indexB:null;
-  const isDrinkConvert=drinkIndex!==null&&(a.foodType===FOOD_TYPES.DRINK)!==(b.foodType===FOOD_TYPES.DRINK);
-  if(isDrinkConvert){state.board[drinkIndex]=null;state.board[drinkIndex===indexA?indexB:indexA]=resultPiece;}
-  else state.board[targetIndex]=resultPiece;
+  state.board[targetIndex]=resultPiece;
 
 
 
@@ -1760,7 +1752,6 @@ export function applySimulationAction(
 
     case "combine":
     case "combine_ordered":
-    case "combine_drink_convert":
 
 
       applied =
@@ -1775,8 +1766,7 @@ export function applySimulationAction(
 
           action.indexes[
             1
-          ],
-          action.resultFoodType ?? null
+          ]
 
         );
 
