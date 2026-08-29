@@ -35,36 +35,26 @@ import {
 } from "./game/collectionRules";
 
 
-
 function App(){
 
-
-  const game =
-    useGame();
-
-
+  const game = useGame();
 
   const [
     showTestLab,
     setShowTestLab
   ] = useState(false);
 
-
-
   const removingIndex = null;
-
 
   const [
     boardAnimation,
     setBoardAnimation
   ] = useState(null);
 
-
   const [
     clearedCells,
     setClearedCells
   ] = useState([]);
-
 
   const animationTimersRef = useRef([]);
   const animationTokenRef = useRef(0);
@@ -81,10 +71,19 @@ function App(){
   }
 
 
-  function scheduleAnimation(callback, delay){
+  function scheduleAnimation(
+    callback,
+    delay
+  ){
 
-    const timer = window.setTimeout(callback, delay);
-    animationTimersRef.current.push(timer);
+    const timer = window.setTimeout(
+      callback,
+      delay
+    );
+
+    animationTimersRef.current.push(
+      timer
+    );
 
   }
 
@@ -95,7 +94,33 @@ function App(){
   );
 
 
-  function handleCombine(resultFoodType=null){
+  // ==========================================================
+  // 组合
+  //
+  // 关键：
+  //
+  // React onClick 可能把 MouseEvent 作为第一个参数传入。
+  //
+  // 普通组合这里只允许：
+  //
+  // null
+  //
+  // 饮品转系只允许：
+  //
+  // foodType 字符串
+  //
+  // 其他任何对象都强制转为 null。
+  // ==========================================================
+
+  function handleCombine(
+    resultFoodType = null
+  ){
+
+    const normalizedFoodType =
+      typeof resultFoodType === "string"
+        ? resultFoodType
+        : null;
+
 
     if(
       boardAnimation ||
@@ -106,32 +131,129 @@ function App(){
       return;
     }
 
-    const indexes = [...game.selectedIndexes];
-    const isDrinkConvert=game.preview.combine.requiresTypeChoice&&resultFoodType;
-    const drinkIndex=isDrinkConvert?indexes.find(index=>game.board[index]?.foodType==="drink"):null;
-    const normalIndex=isDrinkConvert?indexes.find(index=>index!==drinkIndex):null;
-    const targetIndex = isDrinkConvert?normalIndex:game.board.findIndex(piece => !piece);
-    const token = ++animationTokenRef.current;
+
+    const indexes = [
+      ...game.selectedIndexes
+    ];
+
+
+    const isDrinkConvert = Boolean(
+      game.preview.combine.requiresTypeChoice &&
+      normalizedFoodType
+    );
+
+
+    const drinkIndex =
+      isDrinkConvert
+        ? indexes.find(
+            index =>
+              game.board[index]?.foodType === "drink"
+          )
+        : null;
+
+
+    const normalIndex =
+      isDrinkConvert
+        ? indexes.find(
+            index =>
+              index !== drinkIndex
+          )
+        : null;
+
+
+    const targetIndex =
+      isDrinkConvert
+        ? normalIndex
+        : game.board.findIndex(
+            piece => !piece
+          );
+
+
+    if(
+      !isDrinkConvert &&
+      targetIndex === -1
+    ){
+      return;
+    }
+
+
+    const token =
+      ++animationTokenRef.current;
+
 
     clearAnimationTimers();
+
     setClearedCells([]);
-    setBoardAnimation(isDrinkConvert?{type:"drink_convert",phase:"consume",indexes,drinkIndex,normalIndex,targetIndex,token}:{ type: "combine", phase: "exit", indexes, targetIndex, token });
+
+
+    setBoardAnimation(
+      isDrinkConvert
+        ? {
+            type: "drink_convert",
+            phase: "consume",
+            indexes,
+            drinkIndex,
+            normalIndex,
+            targetIndex,
+            token
+          }
+        : {
+            type: "combine",
+            phase: "exit",
+            indexes,
+            targetIndex,
+            token
+          }
+    );
+
 
     scheduleAnimation(
       () => {
-        game.combineNumbers(resultFoodType);
-        setBoardAnimation(isDrinkConvert?{type:"drink_convert",phase:"absorb",indexes,drinkIndex,normalIndex,targetIndex,token}:{ type: "combine", phase: "enter", indexes, targetIndex, token });
+
+        game.combineNumbers(
+          normalizedFoodType,
+          indexes
+        );
+
+
+        setBoardAnimation(
+          isDrinkConvert
+            ? {
+                type: "drink_convert",
+                phase: "absorb",
+                indexes,
+                drinkIndex,
+                normalIndex,
+                targetIndex,
+                token
+              }
+            : {
+                type: "combine",
+                phase: "enter",
+                indexes,
+                targetIndex,
+                token
+              }
+        );
+
       },
-      isDrinkConvert?240:140
+      isDrinkConvert ? 240 : 140
     );
+
 
     scheduleAnimation(
       () => setBoardAnimation(null),
-      isDrinkConvert?480:560
+      isDrinkConvert ? 480 : 560
     );
 
   }
 
+
+  // ==========================================================
+  // 约分
+  //
+  // 保持原逻辑，不修改。
+  // ==========================================================
 
   function handleReduce(){
 
@@ -144,188 +266,382 @@ function App(){
       return;
     }
 
-    const indexes = [...game.selectedIndexes];
+
+    const indexes = [
+      ...game.selectedIndexes
+    ];
+
+
     const removedIndexes = indexes.filter(
-      (_, position) => game.preview.reduce.results?.[position]?.autoCollect
+      (_, position) =>
+        game.preview.reduce.results?.[position]?.autoCollect
     );
+
+
     const collectedSlots = new Set(
-      Object.entries(game.collectionPaths).flatMap(([value, slots]) =>
-        Object.keys(slots ?? {}).map(foodType => `${value}:${foodType}`)
+
+      Object.entries(
+        game.collectionPaths
+      ).flatMap(
+        ([value, slots]) =>
+          Object.keys(
+            slots ?? {}
+          ).map(
+            foodType =>
+              `${value}:${foodType}`
+          )
       )
+
     );
+
+
     const autoCollectIndexes = indexes.filter(
-      (_, position) => game.preview.reduce.results?.[position]?.autoCollect
+      (_, position) =>
+        game.preview.reduce.results?.[position]?.autoCollect
     );
+
+
     const sameSourceTwins =
-      autoCollectIndexes.length === 2
-      && game.board[autoCollectIndexes[0]]?.value === game.board[autoCollectIndexes[1]]?.value
-      && game.board[autoCollectIndexes[0]]?.sourceKey != null
-      && game.board[autoCollectIndexes[0]]?.sourceKey === game.board[autoCollectIndexes[1]]?.sourceKey;
-    const removedCells = indexes.flatMap((index, position) => {
-      const result = game.preview.reduce.results?.[position];
+      autoCollectIndexes.length === 2 &&
+      game.board[
+        autoCollectIndexes[0]
+      ]?.value ===
+        game.board[
+          autoCollectIndexes[1]
+        ]?.value &&
+      game.board[
+        autoCollectIndexes[0]
+      ]?.sourceKey != null &&
+      game.board[
+        autoCollectIndexes[0]
+      ]?.sourceKey ===
+        game.board[
+          autoCollectIndexes[1]
+        ]?.sourceKey;
 
-      if(!result?.autoCollect){
-        return [];
-      }
 
-      const foodType = game.board[index]?.foodType ?? null;
-      const collectible = ["land","aquatic","vegetable","grainBean","dairyEgg","fruit","seasoning","spice","drink"].includes(foodType);
-      const value = result.collectValue;
-      let reward = null;
+    const removedCells = indexes.flatMap(
+      (index, position) => {
 
-      if(collectible){
-        const slotKey = `${value}:${foodType}`;
-        const sameSourceRepeat = sameSourceTwins && index === autoCollectIndexes[1];
-        const isFirstSlot = !sameSourceRepeat && !collectedSlots.has(slotKey);
-        const currentPrice = getCurrentPrice(value, game.board, game.trend);
-        reward = isFirstSlot
-          ? currentPrice
-          : -getRepeatPenalty(currentPrice);
+        const result =
+          game.preview.reduce.results?.[position];
 
-        if(isFirstSlot){
-          collectedSlots.add(slotKey);
+        if(
+          !result?.autoCollect
+        ){
+          return [];
         }
-      }
 
-      return [{
-        index,
-        foodType,
-        reward,
-        sameSourceRepeat: sameSourceTwins && index === autoCollectIndexes[1]
-      }];
-    });
-    const moneySettlement = settleMoneyChanges(
-      game.money,
-      removedCells.filter(cell => cell.reward != null).map(cell => cell.reward)
+
+        const foodType =
+          game.board[index]?.foodType ?? null;
+
+
+        const collectible = [
+          "land",
+          "aquatic",
+          "vegetable",
+          "grainBean",
+          "dairyEgg",
+          "fruit",
+          "seasoning",
+          "spice",
+          "drink"
+        ].includes(
+          foodType
+        );
+
+
+        const value =
+          result.collectValue;
+
+
+        let reward =
+          null;
+
+
+        if(
+          collectible
+        ){
+
+          const slotKey =
+            `${value}:${foodType}`;
+
+
+          const sameSourceRepeat =
+            sameSourceTwins &&
+            index === autoCollectIndexes[1];
+
+
+          const isFirstSlot =
+            !sameSourceRepeat &&
+            !collectedSlots.has(slotKey);
+
+
+          const currentPrice =
+            getCurrentPrice(
+              value,
+              game.board,
+              game.trend
+            );
+
+
+          reward =
+            isFirstSlot
+              ? currentPrice
+              : -getRepeatPenalty(
+                  currentPrice
+                );
+
+
+          if(
+            isFirstSlot
+          ){
+            collectedSlots.add(
+              slotKey
+            );
+          }
+
+        }
+
+
+        return [
+          {
+            index,
+            foodType,
+            reward,
+            sameSourceRepeat:
+              sameSourceTwins &&
+              index === autoCollectIndexes[1]
+          }
+        ];
+
+      }
     );
-    let moneyChangeIndex = 0;
-    const settledRemovedCells = removedCells.map(cell =>
-      cell.reward == null
-        ? cell
-        : {...cell, reward: moneySettlement.actualChanges[moneyChangeIndex++]}
-    );
-    const token = ++animationTokenRef.current;
-    const commitDelay = removedIndexes.length > 0 ? 420 : 150;
+
+
+    const moneySettlement =
+      settleMoneyChanges(
+        game.money,
+        removedCells
+          .filter(
+            cell =>
+              cell.reward != null
+          )
+          .map(
+            cell =>
+              cell.reward
+          )
+      );
+
+
+    let moneyChangeIndex =
+      0;
+
+
+    const settledRemovedCells =
+      removedCells.map(
+        cell =>
+          cell.reward == null
+            ? cell
+            : {
+                ...cell,
+                reward:
+                  moneySettlement
+                    .actualChanges[
+                      moneyChangeIndex++
+                    ]
+              }
+      );
+
+
+    const token =
+      ++animationTokenRef.current;
+
+
+    const commitDelay =
+      removedIndexes.length > 0
+        ? 420
+        : 150;
+
 
     clearAnimationTimers();
+
     setClearedCells([]);
-    setBoardAnimation({ type: "reduce", phase: "compress", indexes, removedIndexes, token });
+
+
+    setBoardAnimation({
+      type: "reduce",
+      phase: "compress",
+      indexes,
+      removedIndexes,
+      token
+    });
+
 
     scheduleAnimation(
       () => {
-        game.reduceNumbers();
-        setBoardAnimation({ type: "reduce", phase: "settle", indexes, removedIndexes, token });
 
-        if(settledRemovedCells.length > 0){
-          setClearedCells(settledRemovedCells);
-          scheduleAnimation(() => setClearedCells([]), 1050);
+        game.reduceNumbers();
+
+
+        setBoardAnimation({
+          type: "reduce",
+          phase: "settle",
+          indexes,
+          removedIndexes,
+          token
+        });
+
+
+        if(
+          settledRemovedCells.length > 0
+        ){
+
+          setClearedCells(
+            settledRemovedCells
+          );
+
+
+          scheduleAnimation(
+            () =>
+              setClearedCells([]),
+            1050
+          );
+
         }
+
       },
       commitDelay
     );
 
+
     scheduleAnimation(
-      () => setBoardAnimation(null),
-      commitDelay + (removedIndexes.length > 0 ? 80 : 300)
+      () =>
+        setBoardAnimation(null),
+      commitDelay +
+        (
+          removedIndexes.length > 0
+            ? 80
+            : 300
+        )
     );
 
   }
-
 
 
   function handleSpecialOne(
     index
   ){
 
-
     if(
       removingIndex !== null ||
       boardAnimation
     ){
+      return;
+    }
+
+
+    const piece =
+      game.board[index];
+
+
+    if(
+      piece?.specialOne?.kind === "function"
+    ){
+
+      game.activateOne(
+        index
+      );
 
       return;
 
     }
 
 
-
-    const piece=game.board[index];
-    if(piece?.specialOne?.kind==="function"){game.activateOne(index);return;}
-
     const removedCell = {
       index,
-      foodType: game.board[index]?.foodType ?? null
+      foodType:
+        game.board[index]?.foodType ?? null
     };
 
 
-
     clearAnimationTimers();
+
     setClearedCells([]);
 
-    setBoardAnimation({type:"claim_key",index,token:++animationTokenRef.current});
+
+    setBoardAnimation({
+      type: "claim_key",
+      index,
+      token:
+        ++animationTokenRef.current
+    });
+
+
     scheduleAnimation(
       () => {
-        game.activateOne(index);
 
-        setClearedCells([removedCell]);
-
-        scheduleAnimation(
-          () => setClearedCells([]),
-          360
+        game.activateOne(
+          index
         );
 
+
+        setClearedCells([
+          removedCell
+        ]);
+
+
+        scheduleAnimation(
+          () =>
+            setClearedCells([]),
+          360
+        );
 
       },
       240
     );
-    scheduleAnimation(()=>setBoardAnimation(null),300);
+
+
+    scheduleAnimation(
+      () =>
+        setBoardAnimation(null),
+      300
+    );
 
   }
-
-
-
 
 
   if(
     showTestLab
   ){
 
-
     return (
 
       <TestLab
-
         onBack={() =>
           setShowTestLab(false)
         }
-
       />
 
     );
 
   }
-
-
-
 
 
   if(
     !game.started
   ){
 
-
     return (
 
       <StartScreen
-
         onStart={
           game.startGame
         }
-
         onOpenTest={() =>
           setShowTestLab(true)
         }
-
       />
 
     );
@@ -333,247 +649,130 @@ function App(){
   }
 
 
-
-
-
   const activityStatus =
-
     getActivityStatus(
-
       game.numbers,
-
       game.primeDensity,
-
       game.steps
-
     );
-
-
-
 
 
   const selectedIdsForLegacyUI =
-
     game.selectedNumbers.map(
-
       item =>
         item.id
-
     );
-
-
-
 
 
   return (
 
-    <div
-      className="
-        game-page
-      "
-    >
+    <div className="game-page">
 
+      <div className="game-shell">
 
-      <div
-        className="
-          game-shell
-        "
-      >
-
-
-        <header
-          className="
-            game-header
-          "
-        >
-
+        <header className="game-header">
 
           <div>
 
-
-            <div
-              className="
-                game-header-kicker
-              "
-            >
-
+            <div className="game-header-kicker">
               PRIME KITCHEN
-
             </div>
 
-
-            <h1
-              className="
-                game-header-title
-              "
-            >
-
+            <h1 className="game-header-title">
               料理迷宫
-
             </h1>
-
 
           </div>
 
 
-
-          <div
-            className="
-              game-header-status
-            "
-          >
+          <div className="game-header-status">
 
             <span>
               LABYRINTH
             </span>
 
-
-            <span
-              className="
-                game-header-dot
-              "
-            />
+            <span className="game-header-dot" />
 
           </div>
-
 
         </header>
 
 
-
-        <section
-          className="
-            game-top-status
-          "
-        >
-
+        <section className="game-top-status">
 
           <StepPanel
-
             steps={
               game.steps
             }
-
             score={
               game.money
             }
-
           />
 
 
           <Discovery
-
             collection={
               game.collection
             }
-
             collectionPaths={
               game.collectionPaths
             }
-
           />
-
 
         </section>
 
 
+        <section className="game-info-row">
 
-        <section
-          className="
-            game-info-row
-          "
-        >
-
-
-          <div
-            className="
-              game-info-item
-            "
-          >
+          <div className="game-info-item">
 
             <ActionHintPanel
-
               numbers={
                 game.numbers
               }
-
               selected={
                 selectedIdsForLegacyUI
               }
-
             />
 
           </div>
 
 
-
-          <div
-            className="
-              game-info-item
-            "
-          >
+          <div className="game-info-item">
 
             <BoardStatus
               activity={
                 activityStatus.activity
               }
-
               activityCombineLegal={
                 activityStatus.combineLegal
               }
-
               activityReduceLegal={
                 activityStatus.reduceLegal
               }
-
               numberCount={
                 game.numbers.length
               }
-
               dead={
                 activityStatus.dead
               }
-
             />
 
           </div>
 
-
         </section>
 
 
+        <section className="game-board-section">
 
-        <section
-          className="
-            game-board-section
-          "
-        >
+          <div className="game-board-toolbar">
 
-
-          <div
-            className="
-              game-board-toolbar
-            "
-          >
-
-
-            <div
-              className="
-                game-section-title
-              "
-            >
-
+            <div className="game-section-title">
               料理台
-
             </div>
 
 
-
-            <div
-              className="
-                game-section-count
-              "
-            >
+            <div className="game-section-count">
 
               {game.numbers.length}
 
@@ -583,247 +782,200 @@ function App(){
 
             </div>
 
-
           </div>
 
 
+          <div className="game-board-layout">
 
-          <div
-            className="
-              game-board-layout
-            "
-          >
+            <aside className="game-board-control-panel">
 
+              <div className="game-board-control-inner">
 
-            <aside
-              className="
-                game-board-control-panel
-              "
-            >
-
-
-              <div
-                className="
-                  game-board-control-inner
-                "
-              >
-
-
-                <div
-                  className="
-                    game-board-control-kicker
-                  "
-                >
-
+                <div className="game-board-control-kicker">
                   ACTION
-
                 </div>
 
 
-
                 <ActionButtons
-
                   selected={
                     selectedIdsForLegacyUI
                   }
-
                   preview={
                     game.preview
                   }
-
                   onCombine={
                     handleCombine
                   }
-
                   onReduce={
                     handleReduce
                   }
-
                   gameOver={
                     game.gameOver
                   }
-
                   removingId={
-                    removingIndex ?? boardAnimation?.token ?? null
+                    removingIndex ??
+                    boardAnimation?.token ??
+                    null
                   }
-
-                  allowedFoodTypes={game.gameMode==="simpleEightPalace"?game.targetFoodTypes:undefined}
-
+                  allowedFoodTypes={
+                    game.gameMode ===
+                    "simpleEightPalace"
+                      ? game.targetFoodTypes
+                      : undefined
+                  }
                 />
 
-
               </div>
-
 
             </aside>
 
 
-
-            <div
-              className="
-                game-board-main
-              "
-            >
-
+            <div className="game-board-main">
 
               <Board
-
                 board={
                   game.board
                 }
-
                 selectedIndexes={
                   game.selectedIndexes
                 }
-
-                functionOneIndex={game.functionOneIndex}
-
+                functionOneIndex={
+                  game.functionOneIndex
+                }
                 onSelectCell={
                   boardAnimation
                     ? undefined
                     : game.selectCell
                 }
-
-                  onRemoveOne={
+                onRemoveOne={
                   handleSpecialOne
                 }
-
                 onCombine={
                   handleCombine
                 }
-
                 collection={
                   game.collection
                 }
-
                 prices={
                   game.boardPrices
                 }
-
                 removingIndex={
                   removingIndex
                 }
-
                 preview={
                   game.preview
                 }
-
                 mazeTurn={
                   game.mazeTurn
                 }
-
                 animationState={
                   boardAnimation
                 }
-
                 actionCandidates={
                   game.actionCandidates
                 }
-
                 clearedCells={
                   clearedCells
                 }
-
               />
-
 
             </div>
 
-
           </div>
-
 
         </section>
 
 
-
-        <div
-          className="
-            game-collection-divider
-          "
-        />
+        <div className="game-collection-divider" />
 
 
+        {
+          [
+            "eightPalace",
+            "simpleEightPalace"
+          ].includes(
+            game.gameMode
+          )
 
-        {["eightPalace","simpleEightPalace"].includes(game.gameMode) ? (
+            ? (
 
-          <EightPalaceKeyPanel keys={game.eightPalaceKeys} targetFoodTypes={game.targetFoodTypes} simple={game.gameMode==="simpleEightPalace"} />
+                <EightPalaceKeyPanel
+                  keys={
+                    game.eightPalaceKeys
+                  }
+                  targetFoodTypes={
+                    game.targetFoodTypes
+                  }
+                  simple={
+                    game.gameMode ===
+                    "simpleEightPalace"
+                  }
+                />
 
-        ) : (
+              )
 
-        <CollectionPanel
+            : (
 
-          collection={
-            game.collection
-          }
+                <CollectionPanel
+                  collection={
+                    game.collection
+                  }
+                  collectionTimeline={
+                    game.collectionTimeline
+                  }
+                  collectionPaths={
+                    game.collectionPaths
+                  }
+                  collectionOrigins={
+                    game.collectionOrigins
+                  }
+                  collectionParents={
+                    game.collectionParents
+                  }
+                  latestCollection={
+                    game.latestCollection
+                  }
+                />
 
-          collectionTimeline={
-            game.collectionTimeline
-          }
-
-          collectionPaths={
-            game.collectionPaths
-          }
-
-          collectionOrigins={
-            game.collectionOrigins
-          }
-
-          collectionParents={
-            game.collectionParents
-          }
-
-          latestCollection={
-            game.latestCollection
-          }
-
-        />
-
-        )}
-
+              )
+        }
 
       </div>
 
 
-
       {
-
         game.gameOver &&
 
         <GameOver
-
           steps={
             game.steps
           }
-
           score={
             game.score
           }
-
           collection={
             game.collection
           }
-
           reason={
             game.gameOverReason
           }
-
-          gameMode={game.gameMode}
-
-          eightPalaceKeys={game.eightPalaceKeys}
-
-          targetFoodTypes={game.targetFoodTypes}
-
-          boardCount={game.numbers.length}
-
+          gameMode={
+            game.gameMode
+          }
+          eightPalaceKeys={
+            game.eightPalaceKeys
+          }
+          targetFoodTypes={
+            game.targetFoodTypes
+          }
+          boardCount={
+            game.numbers.length
+          }
           onRestart={() =>
             window.location.reload()
           }
-
         />
-
       }
-
 
     </div>
 

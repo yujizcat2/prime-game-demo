@@ -41,9 +41,6 @@ import {
 } from "../game/gameEngine";
 
 
-
-
-
 export default function useGame(){
 
 
@@ -62,7 +59,6 @@ export default function useGame(){
   );
 
 
-
   // ==========================================================
   // 游戏开始
   // ==========================================================
@@ -78,7 +74,6 @@ export default function useGame(){
   );
 
 
-
   // ==========================================================
   // 选择的是格子 index
   // ==========================================================
@@ -91,28 +86,14 @@ export default function useGame(){
 
   ] = useState([]);
 
-  const [functionOneIndex,setFunctionOneIndex]=useState(null);
-
-
-
+  const [
+    functionOneIndex,
+    setFunctionOneIndex
+  ] = useState(null);
 
 
   // ==========================================================
   // 开始游戏
-  //
-  // 经典模式传入 3 个数字。
-  // 八宫模式传入带 foodType / boardIndex 的 8 项开局结构。
-  //
-  // 经典模式下 gameEngine 会自动赋予料理系。
-  //
-  // 第0格 → 荤系 / pure
-  // 第1格 → 素系 / pure
-  // 第2格 → 调料系 / pure
-  //
-  // 同时：
-  //
-  // createGameState()
-  // 会建立初始 mazeHistory。
   // ==========================================================
 
   function startGame(
@@ -131,7 +112,6 @@ export default function useGame(){
       );
 
 
-
     setGameState(
       state
     );
@@ -147,9 +127,6 @@ export default function useGame(){
     );
 
   }
-
-
-
 
 
   // ==========================================================
@@ -172,27 +149,8 @@ export default function useGame(){
     );
 
 
-
-
-
   // ==========================================================
   // 普通棋子数组
-  //
-  // 当前所有正式棋子统一存在主棋盘：
-  //
-  // meat
-  // vegetable
-  // seasoning
-  // dessert
-  //
-  // 每个普通棋子还可以拥有：
-  //
-  // purity:
-  //
-  // pure
-  // mixed
-  //
-  // dessert 当前 purity 为 null。
   // ==========================================================
 
   const numbers =
@@ -200,9 +158,6 @@ export default function useGame(){
     getBoardPieces(
       board
     );
-
-
-
 
 
   // ==========================================================
@@ -217,9 +172,14 @@ export default function useGame(){
 
     [];
 
+
   const collectionTimeline =
+
     gameState?.collectionTimeline
-    ?? [];
+
+    ??
+
+    [];
 
 
   const collectionPaths =
@@ -259,20 +219,30 @@ export default function useGame(){
 
 
   const money =
+
     gameState?.money
-    ?? 0;
+
+    ??
+
+    0;
 
 
   const trend =
+
     gameState?.trend
-    ?? 1;
+
+    ??
+
+    1;
 
 
   const boardPrices =
-    getBoardPrices(board, trend, collectionPaths);
 
-
-
+    getBoardPrices(
+      board,
+      trend,
+      collectionPaths
+    );
 
 
   // ==========================================================
@@ -316,31 +286,34 @@ export default function useGame(){
 
 
   const gameMode =
+
     gameState?.gameMode
-    ?? null;
+
+    ??
+
+    null;
 
 
   const eightPalaceKeys =
+
     gameState?.eightPalaceKeys
-    ?? {};
 
-  const targetFoodTypes = gameState?.targetFoodTypes ?? [];
+    ??
+
+    {};
 
 
+  const targetFoodTypes =
 
+    gameState?.targetFoodTypes
+
+    ??
+
+    [];
 
 
   // ==========================================================
   // 迷宫回转
-  //
-  // null
-  // = 当前没有新的回转事件
-  //
-  // object
-  // = 最近一次回转事件
-  //
-  // 目前先对外暴露，
-  // 后面 UI 提示可以直接读取。
   // ==========================================================
 
   const mazeTurn =
@@ -375,20 +348,8 @@ export default function useGame(){
     0;
 
 
-
-
-
   // ==========================================================
   // 质数状态
-  //
-  // purity 目前不影响：
-  //
-  // primeEnergy
-  // primeDensity
-  // primeState
-  //
-  // 后续如果要让纯度参与环境状态，
-  // 再单独扩展。
   // ==========================================================
 
   const primeEnergy =
@@ -416,9 +377,6 @@ export default function useGame(){
     );
 
 
-
-
-
   // ==========================================================
   // 获取格子
   // ==========================================================
@@ -438,7 +396,6 @@ export default function useGame(){
     }
 
 
-
     return getPieceAt(
 
       gameState,
@@ -448,9 +405,6 @@ export default function useGame(){
     );
 
   }
-
-
-
 
 
   // ==========================================================
@@ -470,8 +424,8 @@ export default function useGame(){
     }
 
 
-
-    return [...selectedIndexes].map(
+    return [...selectedIndexes]
+      .map(
 
         index => ({
 
@@ -497,13 +451,9 @@ export default function useGame(){
   }
 
 
-
-
-
   const selectedCells =
 
     getSelectedCells();
-
 
 
   const selectedNumbers =
@@ -514,9 +464,6 @@ export default function useGame(){
         item.piece
 
     );
-
-
-
 
 
   // ==========================================================
@@ -539,7 +486,6 @@ export default function useGame(){
     }
 
 
-
     const target =
 
       getPieceAt(
@@ -548,11 +494,7 @@ export default function useGame(){
       );
 
 
-
-    // ========================================================
     // 空格不能选择
-    // ========================================================
-
     if(
       !target
     ){
@@ -562,20 +504,56 @@ export default function useGame(){
 
     }
 
-    if(functionOneIndex!==null){
-      const nextState=applyAction(gameState,{type:"apply_one",oneIndex:functionOneIndex,targetIndex:index});
-      if(nextState!==gameState){setGameState(nextState);setFunctionOneIndex(null);setSelectedIndexes([]);}
+
+    if(
+      functionOneIndex !== null
+    ){
+
+      const nextState =
+
+        applyAction(
+
+          gameState,
+
+          {
+            type:
+              "apply_one",
+
+            oneIndex:
+              functionOneIndex,
+
+            targetIndex:
+              index
+          }
+
+        );
+
+
+      if(
+        nextState !== gameState
+      ){
+
+        setGameState(
+          nextState
+        );
+
+        setFunctionOneIndex(
+          null
+        );
+
+        setSelectedIndexes(
+          []
+        );
+
+      }
+
+
       return;
+
     }
 
 
-
-    // ========================================================
-    // 1 由 Board 直接触发 removeOne
-    //
-    // 不进入普通选择逻辑。
-    // ========================================================
-
+    // 1 不进入普通选择逻辑
     if(
       target.value ===
       1
@@ -587,11 +565,7 @@ export default function useGame(){
     }
 
 
-
-    // ========================================================
     // 已选 → 取消
-    // ========================================================
-
     if(
       selectedIndexes.includes(
         index
@@ -616,11 +590,7 @@ export default function useGame(){
     }
 
 
-
-    // ========================================================
     // 少于两个
-    // ========================================================
-
     if(
       selectedIndexes.length <
       2
@@ -629,7 +599,10 @@ export default function useGame(){
 
       setSelectedIndexes(
 
-        [...selectedIndexes,index]
+        [
+          ...selectedIndexes,
+          index
+        ]
 
       );
 
@@ -639,49 +612,21 @@ export default function useGame(){
     }
 
 
-
-    // ========================================================
     // 第三个
-    //
-    // 删除第一个，
-    // 保留第二个，
-    // 加入新的。
-    // ========================================================
-
     setSelectedIndexes(
 
-      [selectedIndexes[1],index]
+      [
+        selectedIndexes[1],
+        index
+      ]
 
     );
 
   }
 
 
-
-
-
   // ==========================================================
   // Preview
-  //
-  // 合成预览现在同时计算：
-  //
-  // value
-  // foodType
-  // purity
-  //
-  // 例：
-  //
-  // 荤 + 荤
-  // → 荤系 / pure
-  //
-  // 荤 + 素
-  // → 调料系 / mixed
-  //
-  // 普通跨 101
-  // → 甜食系 / null
-  //
-  // 甜食 + 普通
-  // → 普通食物系 / mixed
   // ==========================================================
 
   function getPreviewResult(){
@@ -697,11 +642,9 @@ export default function useGame(){
     }
 
 
-
     const cells =
 
       getSelectedCells();
-
 
 
     if(
@@ -715,14 +658,12 @@ export default function useGame(){
     }
 
 
-
     const first =
       cells[0];
 
 
     const second =
       cells[1];
-
 
 
     const divisor =
@@ -734,7 +675,6 @@ export default function useGame(){
         second.piece.value
 
       );
-
 
 
     const combineAllowed =
@@ -750,7 +690,6 @@ export default function useGame(){
       );
 
 
-
     const reduceAllowed =
 
       canReduceCells(
@@ -762,7 +701,6 @@ export default function useGame(){
         second.index
 
       );
-
 
 
     const orderedPair =
@@ -778,7 +716,6 @@ export default function useGame(){
       );
 
 
-
     if(
       !orderedPair
     ){
@@ -787,7 +724,6 @@ export default function useGame(){
       return null;
 
     }
-
 
 
     return {
@@ -812,9 +748,30 @@ export default function useGame(){
                 ),
 
 
-              foodType: combineFoodType(orderedPair.front,orderedPair.back),
+              foodType:
 
-              requiresTypeChoice: (orderedPair.front.foodType===FOOD_TYPES.DRINK)!==(orderedPair.back.foodType===FOOD_TYPES.DRINK),
+                combineFoodType(
+
+                  orderedPair.front,
+
+                  orderedPair.back
+
+                ),
+
+
+              requiresTypeChoice:
+
+                (
+                  orderedPair.front.foodType ===
+                  FOOD_TYPES.DRINK
+                )
+
+                !==
+
+                (
+                  orderedPair.back.foodType ===
+                  FOOD_TYPES.DRINK
+                ),
 
 
               purity:
@@ -847,23 +804,47 @@ export default function useGame(){
               results: [
 
                 {
-                  value: first.piece.value / divisor,
-                  autoCollect: first.piece.value / divisor === 1,
-                  collectValue: first.piece.value / divisor === 1
-                    ? first.piece.value
-                    : null,
-                  foodType: first.piece.foodType,
-                  purity: first.piece.purity ?? null
+
+                  value:
+                    first.piece.value / divisor,
+
+                  autoCollect:
+                    first.piece.value / divisor === 1,
+
+                  collectValue:
+                    first.piece.value / divisor === 1
+                      ? first.piece.value
+                      : null,
+
+                  foodType:
+                    first.piece.foodType,
+
+                  purity:
+                    first.piece.purity
+                    ?? null
+
                 },
 
                 {
-                  value: second.piece.value / divisor,
-                  autoCollect: second.piece.value / divisor === 1,
-                  collectValue: second.piece.value / divisor === 1
-                    ? second.piece.value
-                    : null,
-                  foodType: second.piece.foodType,
-                  purity: second.piece.purity ?? null
+
+                  value:
+                    second.piece.value / divisor,
+
+                  autoCollect:
+                    second.piece.value / divisor === 1,
+
+                  collectValue:
+                    second.piece.value / divisor === 1
+                      ? second.piece.value
+                      : null,
+
+                  foodType:
+                    second.piece.foodType,
+
+                  purity:
+                    second.piece.purity
+                    ?? null
+
                 }
 
               ]
@@ -879,26 +860,49 @@ export default function useGame(){
   }
 
 
-
-
-
   const preview =
 
     getPreviewResult();
 
 
-
-
   // ==========================================================
   // 单选后的合法操作提示
-  //
-  // 只派生 UI 数据；合法性继续由 gameEngine 的真实判断负责。
   // ==========================================================
 
   const actionCandidates = {};
 
-  if(!gameOver&&functionOneIndex!==null){
-    board.forEach((piece,index)=>{if(canApplyFunctionOne(piece))actionCandidates[index]={applyOne:true};});
+
+  if(
+    !gameOver &&
+    functionOneIndex !== null
+  ){
+
+    board.forEach(
+
+      (
+        piece,
+        index
+      ) => {
+
+        if(
+          canApplyFunctionOne(
+            piece
+          )
+        ){
+
+          actionCandidates[index] = {
+
+            applyOne:
+              true
+
+          };
+
+        }
+
+      }
+
+    );
+
   }
 
 
@@ -908,74 +912,130 @@ export default function useGame(){
     selectedCells.length === 1
   ){
 
-    const selectedIndex = selectedCells[0].index;
-    const selectedPiece = selectedCells[0].piece;
+
+    const selectedIndex =
+      selectedCells[0].index;
+
+
+    const selectedPiece =
+      selectedCells[0].piece;
 
 
     board.forEach(
-      (piece, index) => {
+
+      (
+        piece,
+        index
+      ) => {
+
 
         if(
           !piece ||
           index === selectedIndex ||
           piece.value === 1
         ){
+
+
           return;
+
         }
 
-        const combine = canCombineCells(
-          gameState,
-          selectedIndex,
-          index
-        );
 
-        const reduce = canReduceCells(
-          gameState,
-          selectedIndex,
-          index
-        );
+        const combine =
 
-        const divisor = reduce
-          ? gcd(selectedPiece.value, piece.value)
-          : 1;
+          canCombineCells(
+
+            gameState,
+
+            selectedIndex,
+
+            index
+
+          );
+
+
+        const reduce =
+
+          canReduceCells(
+
+            gameState,
+
+            selectedIndex,
+
+            index
+
+          );
+
+
+        const divisor =
+
+          reduce
+
+            ?
+
+              gcd(
+
+                selectedPiece.value,
+
+                piece.value
+
+              )
+
+            :
+
+              1;
+
 
         actionCandidates[index] = {
+
           combine,
+
           reduce,
+
           remove:
-            reduce &&
+
+            reduce
+
+            &&
+
             (
-              selectedPiece.value / divisor === 1 ||
-              piece.value / divisor === 1
+
+              selectedPiece.value /
+              divisor === 1
+
+              ||
+
+              piece.value /
+              divisor === 1
+
             )
+
         };
 
       }
+
     );
 
   }
 
 
-
-
-
   // ==========================================================
   // 组合
   //
-  // 所有正式玩家动作统一通过：
+  // lockedIndexes：
   //
-  // applyAction()
+  // App 的动画在点击瞬间会锁定两个格子。
+  // 动画延迟结束后直接使用这两个格子执行动作，
+  // 避免重新依赖 React 的 selectedIndexes。
   //
-  // 因此动作完成后会继续执行：
-  //
-  // mazeHistory 检测
-  // ↓
-  // 必要时触发迷宫回转
-  //
-  // useGame 不再直接调用 combineCells。
+  // 没传 lockedIndexes 时仍使用当前 selectedIndexes，
+  // 因此保持旧调用兼容。
   // ==========================================================
 
-  function combineNumbers(resultFoodType=null){
+  function combineNumbers(
+    resultFoodType = null,
+    lockedIndexes = null
+  ){
 
 
     if(
@@ -984,28 +1044,72 @@ export default function useGame(){
     ){
 
 
-      return;
+      return false;
 
     }
 
 
+    const indexes =
 
-    const cells =
+      Array.isArray(
+        lockedIndexes
+      )
 
-      getSelectedCells();
+        ?
 
+          [
+            ...lockedIndexes
+          ]
+
+        :
+
+          [
+            ...selectedIndexes
+          ];
 
 
     if(
-      cells.length !==
+      indexes.length !==
       2
     ){
 
 
-      return;
+      return false;
 
     }
 
+
+    const first =
+
+      getPieceAt(
+
+        gameState,
+
+        indexes[0]
+
+      );
+
+
+    const second =
+
+      getPieceAt(
+
+        gameState,
+
+        indexes[1]
+
+      );
+
+
+    if(
+      !first ||
+      !second
+    ){
+
+
+      return false;
+
+    }
 
 
     const nextState =
@@ -1021,17 +1125,17 @@ export default function useGame(){
 
           indexes: [
 
-            cells[0].index,
+            indexes[0],
 
-            cells[1].index
+            indexes[1]
 
           ],
+
           resultFoodType
 
         }
 
       );
-
 
 
     if(
@@ -1040,10 +1144,9 @@ export default function useGame(){
     ){
 
 
-      return;
+      return false;
 
     }
-
 
 
     setGameState(
@@ -1055,24 +1158,14 @@ export default function useGame(){
       []
     );
 
+
+    return true;
+
   }
-
-
-
 
 
   // ==========================================================
   // 处理 / 约分
-  //
-  // 同样统一走 applyAction。
-  //
-  // gameEngine 负责：
-  //
-  // 数字变化
-  // foodType 保留
-  // purity 保留
-  // mazeHistory 检测
-  // 迷宫回转
   // ==========================================================
 
   function reduceNumbers(){
@@ -1089,11 +1182,9 @@ export default function useGame(){
     }
 
 
-
     const cells =
 
       getSelectedCells();
-
 
 
     if(
@@ -1105,7 +1196,6 @@ export default function useGame(){
       return;
 
     }
-
 
 
     const nextState =
@@ -1132,7 +1222,6 @@ export default function useGame(){
       );
 
 
-
     if(
       nextState ===
       gameState
@@ -1142,7 +1231,6 @@ export default function useGame(){
       return;
 
     }
-
 
 
     setGameState(
@@ -1157,21 +1245,8 @@ export default function useGame(){
   }
 
 
-
-
-
   // ==========================================================
   // 消除 1
-  //
-  // 同样统一走 applyAction。
-  //
-  // 这一步尤其重要：
-  //
-  // 很多循环都是在最后一次处理 1 后
-  // 回到过去的第二层状态。
-  //
-  // 因此如果这里绕过 applyAction，
-  // 迷宫回转就永远不会触发。
   // ==========================================================
 
   function removeOne(
@@ -1188,7 +1263,6 @@ export default function useGame(){
       return;
 
     }
-
 
 
     const nextState =
@@ -1209,7 +1283,6 @@ export default function useGame(){
       );
 
 
-
     if(
       nextState ===
       gameState
@@ -1221,11 +1294,9 @@ export default function useGame(){
     }
 
 
-
     setGameState(
       nextState
     );
-
 
 
     setSelectedIndexes(
@@ -1243,14 +1314,47 @@ export default function useGame(){
 
   }
 
-  function activateOne(index){
-    const piece=gameState?.board?.[index];
-    if(piece?.specialOne?.kind===SPECIAL_ONE_KINDS.FUNCTION){setFunctionOneIndex(index);setSelectedIndexes([]);return;}
-    removeOne(index);
+
+  function activateOne(
+    index
+  ){
+
+
+    const piece =
+
+      gameState
+        ?.board
+        ?.[index];
+
+
+    if(
+      piece
+        ?.specialOne
+        ?.kind ===
+      SPECIAL_ONE_KINDS.FUNCTION
+    ){
+
+
+      setFunctionOneIndex(
+        index
+      );
+
+
+      setSelectedIndexes(
+        []
+      );
+
+
+      return;
+
+    }
+
+
+    removeOne(
+      index
+    );
+
   }
-
-
-
 
 
   // ==========================================================
@@ -1269,9 +1373,6 @@ export default function useGame(){
   }
 
 
-
-
-
   // ==========================================================
   // 对外接口
   // ==========================================================
@@ -1279,40 +1380,29 @@ export default function useGame(){
   return {
 
 
-    // ========================================================
     // 棋盘
-    // ========================================================
-
     board,
 
     numbers,
 
 
-    // ========================================================
     // 选择
-    // ========================================================
-
     selectedIndexes,
 
     selectedCells,
 
     selectedNumbers,
+
     functionOneIndex,
 
 
-    // ========================================================
     // 预览
-    // ========================================================
-
     preview,
 
     actionCandidates,
 
 
-    // ========================================================
     // 游戏状态
-    // ========================================================
-
     started,
 
     gameOver,
@@ -1326,11 +1416,9 @@ export default function useGame(){
     targetFoodTypes,
 
 
-    // ========================================================
     // 收藏
-    // ========================================================
-
     collection,
+
     collectionTimeline,
 
     collectionPaths,
@@ -1348,19 +1436,13 @@ export default function useGame(){
     boardPrices,
 
 
-    // ========================================================
     // 分数 / 时间
-    // ========================================================
-
     score,
 
     steps,
 
 
-    // ========================================================
     // 迷宫回转
-    // ========================================================
-
     mazeTurn,
 
     mazeTurnCount,
@@ -1368,10 +1450,7 @@ export default function useGame(){
     mazeVisitedStates,
 
 
-    // ========================================================
     // 环境状态
-    // ========================================================
-
     primeEnergy,
 
     primeDensity,
@@ -1379,10 +1458,7 @@ export default function useGame(){
     primeState,
 
 
-    // ========================================================
     // 操作
-    // ========================================================
-
     startGame,
 
     selectCell,
@@ -1392,13 +1468,11 @@ export default function useGame(){
     reduceNumbers,
 
     removeOne,
+
     activateOne,
 
 
-    // ========================================================
     // UI 辅助
-    // ========================================================
-
     getCell,
 
     isCellSelected

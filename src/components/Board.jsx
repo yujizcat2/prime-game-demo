@@ -129,32 +129,6 @@ export default function Board({
 
   // ==========================================================
   // 双选约分 Preview
-  //
-  // reducePreviewMap
-  //
-  // {
-  //   [index]: resultValue
-  // }
-  //
-  //
-  // mutationPreviewMap
-  //
-  // {
-  //   [index]: {
-  //
-  //     triggered: true,
-  //
-  //     role:
-  //       "target" | "dessert",
-  //
-  //     fromType,
-  //     toType,
-  //
-  //     resultValue
-  //
-  //   }
-  // }
-  //
   // ==========================================================
 
   const reducePreviewMap =
@@ -685,8 +659,8 @@ export default function Board({
 
                     type="button"
 
-                    onClick={
-                      onCombine
+                    onClick={() =>
+                      onCombine?.()
                     }
 
                     className={`
@@ -793,7 +767,16 @@ export default function Board({
 
 
 
-            const isSelected = selected.includes(index)||functionOneIndex===index;
+            const isSelected =
+
+              selected.includes(
+                index
+              )
+
+              ||
+
+              functionOneIndex ===
+              index;
 
 
 
@@ -846,8 +829,14 @@ export default function Board({
             const animation =
 
               animationState?.indexes?.includes(index)
-              || animationState?.targetIndex === index
-              || animationState?.removedIndexes?.includes(index)
+
+              ||
+
+              animationState?.targetIndex === index
+
+              ||
+
+              animationState?.removedIndexes?.includes(index)
 
                 ? animationState
 
@@ -857,7 +846,10 @@ export default function Board({
             const clearFeedback =
 
               clearedCells.find(
-                entry => entry.index === index
+
+                entry =>
+                  entry.index === index
+
               )
 
               ?? null;
@@ -891,7 +883,9 @@ export default function Board({
 
             const reduceFrom =
 
-              piece?.value === 1 &&
+              piece?.value === 1
+
+              &&
 
               piece.origin?.type === "reduce"
 
@@ -911,9 +905,13 @@ export default function Board({
 
             const isNewDiscovery =
 
-              piece?.value === 1 &&
+              piece?.value === 1
 
-              reduceFrom !== null &&
+              &&
+
+              reduceFrom !== null
+
+              &&
 
               !collection.includes(
                 reduceFrom
@@ -930,7 +928,9 @@ export default function Board({
 
             if(
 
-              piece?.value === 1 &&
+              piece?.value === 1
+
+              &&
 
               reduceFrom !== null
 
@@ -1053,7 +1053,9 @@ export default function Board({
                   candidate.remove === true
                 }
 
-                applyOneCandidate={candidate.applyOne === true}
+                applyOneCandidate={
+                  candidate.applyOne === true
+                }
 
                 reducePreview={
                   reducePreview
