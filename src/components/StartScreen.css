@@ -1514,6 +1514,12 @@
 
 }
 
+.start-button--simple-palace {
+  margin-top: 10px;
+  background: #607468;
+  box-shadow: 0 10px 24px rgba(38,53,44,.12),0 2px 0 rgba(21,31,24,.06);
+}
+
 
 .start-mode-detail {
 

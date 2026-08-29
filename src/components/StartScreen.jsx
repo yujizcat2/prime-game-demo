@@ -1,6 +1,7 @@
 import "./StartScreen.css";
 import {
   createEightPalaceInitialValues,
+  createSimpleEightPalaceInitialValues,
   createRandomInitialValues
 } from "../game/initialValues";
 
@@ -17,6 +18,10 @@ export default function StartScreen({ onStart, onOpenTest }) {
 
   function startEightPalace() {
     onStart(createEightPalaceInitialValues());
+  }
+
+  function startSimpleEightPalace(){
+    onStart(createSimpleEightPalaceInitialValues());
   }
 
   return (
@@ -71,6 +76,12 @@ export default function StartScreen({ onStart, onOpenTest }) {
         <button type="button" className="start-button" onClick={quickStart}>
           <span className="start-button-space" />
           <span className="start-button-label">随机探索</span>
+          <span className="start-button-arrow">→</span>
+        </button>
+
+        <button type="button" className="start-button start-button--simple-palace" onClick={startSimpleEightPalace} title="随机两系 · 四张开局 · 收藏 2/2">
+          <span className="start-button-space" />
+          <span className="start-button-label">新手入门</span>
           <span className="start-button-arrow">→</span>
         </button>
 

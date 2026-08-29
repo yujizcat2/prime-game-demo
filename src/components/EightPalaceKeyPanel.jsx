@@ -29,22 +29,24 @@ function formatParents(key){
 
 
 export default function EightPalaceKeyPanel({
-  keys = {}
+  keys = {},
+  targetFoodTypes = BASE_FOOD_TYPES,
+  simple = false
 }){
-  const keyCount = getEightPalaceKeyCount(keys);
+  const keyCount = getEightPalaceKeyCount(keys,targetFoodTypes);
 
   return (
     <section className="eight-key-panel">
       <div className="eight-key-heading">
         <div>
-          <div className="eight-key-kicker">EIGHT PALACE GATE</div>
-          <h2>八系钥匙门</h2>
+          <div className="eight-key-kicker">{simple?"BEGINNER COLLECTION":"EIGHT PALACE GATE"}</div>
+          <h2>{simple?"两系收藏":"八系钥匙门"}</h2>
         </div>
-        <strong>{keyCount} / 8</strong>
+        <strong>收藏 {keyCount} / {targetFoodTypes.length}</strong>
       </div>
 
       <div className="eight-key-grid">
-        {BASE_FOOD_TYPES.map((foodType, index) => {
+        {targetFoodTypes.map((foodType, index) => {
           const key = keys[foodType];
 
           return (
@@ -63,7 +65,7 @@ export default function EightPalaceKeyPanel({
             </div>
           );
         })}
-        <div className="eight-key-center" aria-hidden="true">钥匙</div>
+        {!simple&&<div className="eight-key-center" aria-hidden="true">钥匙</div>}
       </div>
     </section>
   );

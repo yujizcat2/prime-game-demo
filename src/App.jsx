@@ -647,6 +647,8 @@ function App(){
                     removingIndex ?? boardAnimation?.token ?? null
                   }
 
+                  allowedFoodTypes={game.gameMode==="simpleEightPalace"?game.targetFoodTypes:undefined}
+
                 />
 
 
@@ -743,9 +745,9 @@ function App(){
 
 
 
-        {game.gameMode === "eightPalace" ? (
+        {["eightPalace","simpleEightPalace"].includes(game.gameMode) ? (
 
-          <EightPalaceKeyPanel keys={game.eightPalaceKeys} />
+          <EightPalaceKeyPanel keys={game.eightPalaceKeys} targetFoodTypes={game.targetFoodTypes} simple={game.gameMode==="simpleEightPalace"} />
 
         ) : (
 
@@ -809,6 +811,8 @@ function App(){
           gameMode={game.gameMode}
 
           eightPalaceKeys={game.eightPalaceKeys}
+
+          targetFoodTypes={game.targetFoodTypes}
 
           boardCount={game.numbers.length}
 

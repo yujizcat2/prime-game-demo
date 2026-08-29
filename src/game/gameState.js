@@ -102,6 +102,11 @@ export function createGameState(
         && Number.isInteger(item.boardIndex)
     );
 
+  const suppliedGameMode=suppliedValues[0]?.gameMode;
+  const targetFoodTypes=Array.isArray(suppliedValues[0]?.targetFoodTypes)
+    ? [...suppliedValues[0].targetFoodTypes]
+    : [...BASE_FOOD_TYPES];
+
 
   const initialValues =
     usesPlacedInitialValues
@@ -195,9 +200,13 @@ export function createGameState(
     board,
 
     gameMode:
-      usesPlacedInitialValues
+      suppliedGameMode===GAME_MODES.SIMPLE_EIGHT_PALACE
+        ? GAME_MODES.SIMPLE_EIGHT_PALACE
+        : usesPlacedInitialValues
         ? GAME_MODES.EIGHT_PALACE
         : GAME_MODES.CLASSIC,
+
+    targetFoodTypes,
 
     eightPalaceKeys:
       createEmptyEightPalaceKeys(),

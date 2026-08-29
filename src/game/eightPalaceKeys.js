@@ -5,7 +5,8 @@ import {
 
 export const GAME_MODES = Object.freeze({
   CLASSIC: "classic",
-  EIGHT_PALACE: "eightPalace"
+  EIGHT_PALACE: "eightPalace",
+  SIMPLE_EIGHT_PALACE: "simpleEightPalace"
 });
 
 
@@ -16,8 +17,8 @@ export function createEmptyEightPalaceKeys(){
 }
 
 
-export function getEightPalaceKeyCount(keys){
-  return BASE_FOOD_TYPES.filter(foodType => Boolean(keys?.[foodType])).length;
+export function getEightPalaceKeyCount(keys, targetFoodTypes = BASE_FOOD_TYPES){
+  return targetFoodTypes.filter(foodType => Boolean(keys?.[foodType])).length;
 }
 
 
@@ -46,7 +47,7 @@ export function applyEightPalaceKeyFromReduction(
   secondResult
 ){
   if(
-    state?.gameMode !== GAME_MODES.EIGHT_PALACE
+    ![GAME_MODES.EIGHT_PALACE,GAME_MODES.SIMPLE_EIGHT_PALACE].includes(state?.gameMode)
     || first?.foodType !== second?.foodType
     || !BASE_FOOD_TYPES.includes(first.foodType)
   ){

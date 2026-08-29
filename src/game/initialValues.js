@@ -160,3 +160,19 @@ export function createEightPalaceInitialValues(){
   );
 
 }
+
+export function createSimpleEightPalaceInitialValues(){
+  const shuffledTypes=[...BASE_FOOD_TYPES].sort(()=>Math.random()-.5);
+  const targetFoodTypes=shuffledTypes.slice(0,2);
+  const patterns=[[1,3,5,7],[0,2,6,8]];
+  const boardIndexes=patterns[Math.floor(Math.random()*patterns.length)];
+  const values=[...INITIAL_VALUE_POOL].sort(()=>Math.random()-.5).slice(0,4);
+  const foodTypes=[targetFoodTypes[0],targetFoodTypes[1],targetFoodTypes[1],targetFoodTypes[0]];
+  return boardIndexes.map((boardIndex,index)=>({
+    value:values[index],
+    foodType:foodTypes[index],
+    boardIndex,
+    gameMode:"simpleEightPalace",
+    targetFoodTypes:[...targetFoodTypes]
+  }));
+}

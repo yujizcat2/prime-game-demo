@@ -324,6 +324,8 @@ export default function useGame(){
     gameState?.eightPalaceKeys
     ?? {};
 
+  const targetFoodTypes = gameState?.targetFoodTypes ?? [];
+
 
 
 
@@ -1320,6 +1322,8 @@ export default function useGame(){
     gameMode,
 
     eightPalaceKeys,
+
+    targetFoodTypes,
 
 
     // ========================================================

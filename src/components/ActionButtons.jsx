@@ -17,6 +17,8 @@ export default function ActionButtons({
 
   removingId = null,
 
+  allowedFoodTypes = BASE_FOOD_TYPES,
+
 }) {
 
 
@@ -121,7 +123,7 @@ export default function ActionButtons({
       </button>
 
       {canCombine && preview?.combine?.requiresTypeChoice && <div className="action-toolbar-type-grid">
-        {BASE_FOOD_TYPES.map(foodType=><button type="button" className="action-toolbar-type-choice" key={foodType} onClick={()=>onCombine(foodType)}>{FOOD_TYPE_LABELS[foodType]}</button>)}
+        {allowedFoodTypes.map(foodType=><button type="button" className="action-toolbar-type-choice" key={foodType} onClick={()=>onCombine(foodType)}>{FOOD_TYPE_LABELS[foodType]}</button>)}
       </div>}
 
 

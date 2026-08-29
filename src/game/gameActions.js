@@ -250,6 +250,8 @@ export function combineCells(
   resultFoodType = null
 ){
 
+  if(state?.gameMode==="simpleEightPalace"&&resultFoodType&&!state.targetFoodTypes?.includes(resultFoodType))return state;
+
 
   if(
     !state ||
@@ -1157,7 +1159,8 @@ export function getLegalCombineActions(
 
         const a=state.board[i],b=state.board[j],oneDrink=(a.foodType===FOOD_TYPES.DRINK)!==(b.foodType===FOOD_TYPES.DRINK);
         if(oneDrink){
-          for(const resultFoodType of BASE_FOOD_TYPES)actions.push({type:"combine_drink_convert",indexes:[i,j],resultFoodType});
+          const resultTypes=state.gameMode==="simpleEightPalace"?state.targetFoodTypes:BASE_FOOD_TYPES;
+          for(const resultFoodType of resultTypes)actions.push({type:"combine_drink_convert",indexes:[i,j],resultFoodType});
         }else if(a.foodType!==FOOD_TYPES.DRINK&&b.foodType!==FOOD_TYPES.DRINK&&a.foodType!==b.foodType&&a.value+b.value<=101){
           actions.push({type:"combine_ordered",indexes:[i,j]},{type:"combine_ordered",indexes:[j,i]});
         }else actions.push({type:"combine",indexes:[i,j]});

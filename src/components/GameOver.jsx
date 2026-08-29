@@ -19,15 +19,18 @@ export default function GameOver({
 
   eightPalaceKeys = {},
 
+  targetFoodTypes = [],
+
   boardCount = 0,
 
   onRestart
 
 }) {
 
-  const isEightPalace = gameMode === "eightPalace";
-  const keyCount = getEightPalaceKeyCount(eightPalaceKeys);
-  const eightPalaceSuccess = reason === "eight_palace_cleared";
+  const isSimple = gameMode === "simpleEightPalace";
+  const isEightPalace = gameMode === "eightPalace" || isSimple;
+  const keyCount = getEightPalaceKeyCount(eightPalaceKeys,isSimple?targetFoodTypes:undefined);
+  const eightPalaceSuccess = reason === "eight_palace_cleared" || reason === "simple_eight_palace_cleared";
 
   const eightPalaceReason = reason === "eight_palace_keys_missing"
     ? "钥匙未集齐"
@@ -128,7 +131,7 @@ export default function GameOver({
 
           {isEightPalace
             ? eightPalaceSuccess
-              ? "八宫通关"
+              ? isSimple ? "入门通关" : "八宫通关"
               : "挑战失败"
             : "探索结束"}
 
@@ -218,8 +221,8 @@ export default function GameOver({
         {isEightPalace && (
           <div className="mt-7 grid grid-cols-2 gap-3">
             <div className="rounded-2xl bg-gray-50 py-4">
-              <div className="text-xs text-gray-400">钥匙</div>
-              <div className="mt-1 text-xl font-black text-gray-700">{keyCount} / 8</div>
+              <div className="text-xs text-gray-400">{isSimple?"收藏":"钥匙"}</div>
+              <div className="mt-1 text-xl font-black text-gray-700">{keyCount} / {isSimple?2:8}</div>
             </div>
             <div className="rounded-2xl bg-gray-50 py-4">
               <div className="text-xs text-gray-400">剩余</div>
