@@ -7,12 +7,15 @@ import {
   FOOD_PURITY,
   combineValue,
   combineFoodType,
+  combineFoodTypeByBoardPosition,
+  getCombinedDrinkOriginValue,
   combineFoodPurity,
   BASE_FOOD_TYPES,
   canReduce,
   canCombine,
   getDessertMutationFoodType
 } from "../game/rules";
+import { getEightPalacePositionFoodType } from "../game/eightPalaceBoardTypes";
 
 import {
   createMazeStateKey
@@ -287,7 +290,8 @@ function recordVisitedState(
 // ============================================================
 
 export function createSimulationState(
-  values
+  values,
+  gameMode="classic"
 ){
 
 
@@ -372,6 +376,8 @@ export function createSimulationState(
 
 
   const state = {
+
+    gameMode,
 
     board,
 
@@ -857,7 +863,7 @@ export function getSimulationLegalActions(
           j
         )
       ){
-        if(a.foodType!==FOOD_TYPES.DRINK&&b.foodType!==FOOD_TYPES.DRINK&&a.foodType!==b.foodType&&a.value+b.value<=101)actions.push({type:"combine_ordered",indexes:[i,j]},{type:"combine_ordered",indexes:[j,i]});
+        if(!["eightPalace","simpleEightPalace"].includes(state.gameMode)&&a.foodType!==FOOD_TYPES.DRINK&&b.foodType!==FOOD_TYPES.DRINK&&a.foodType!==b.foodType&&a.value+b.value<=101)actions.push({type:"combine_ordered",indexes:[i,j]},{type:"combine_ordered",indexes:[j,i]});
         else actions.push({type:"combine",indexes:[i,j]});
 
       }
@@ -980,14 +986,9 @@ function applyCombine(
 
 
 
-  const foodType =
-
-    combineFoodType(
-
-      front,
-      back
-
-    );
+  const foodType=["eightPalace","simpleEightPalace"].includes(state.gameMode)
+    ? combineFoodTypeByBoardPosition(a,indexA,b,indexB)
+    : combineFoodType(front,back);
 
 
 
@@ -1010,6 +1011,11 @@ function applyCombine(
 
     foodType,
 
+    drinkOriginValue:
+      ["eightPalace","simpleEightPalace"].includes(state.gameMode)&&foodType===FOOD_TYPES.DRINK
+        ? getCombinedDrinkOriginValue(a,indexA,b,indexB,value)
+        : undefined,
+
     crossed101:
       front.value + back.value > 101,
 
@@ -1018,7 +1024,8 @@ function applyCombine(
       combineFoodPurity(
 
         front,
-        back
+        back,
+        foodType
 
       ),
 
@@ -1437,8 +1444,14 @@ function applyReduce(
     state.usedKeyTriggerValues=[...(state.usedKeyTriggerValues??[]),keyTriggerValue];
   }
 
-  if(firstResult===1)state.board[indexA]=null;
-  if(secondResult===1)state.board[indexB]=null;
+  if(firstResult===1){
+    const restoredType=firstFoodType===FOOD_TYPES.DRINK?getEightPalacePositionFoodType(indexA):null;
+    if(["eightPalace","simpleEightPalace"].includes(state.gameMode)&&restoredType&&first.drinkOriginValue!=null){first.value=first.drinkOriginValue;first.foodType=restoredType;delete first.drinkOriginValue;}else state.board[indexA]=null;
+  }
+  if(secondResult===1){
+    const restoredType=secondFoodType===FOOD_TYPES.DRINK?getEightPalacePositionFoodType(indexB):null;
+    if(["eightPalace","simpleEightPalace"].includes(state.gameMode)&&restoredType&&second.drinkOriginValue!=null){second.value=second.drinkOriginValue;second.foodType=restoredType;delete second.drinkOriginValue;}else state.board[indexB]=null;
+  }
 
   for(const event of collectionEvents){
     state.collectionEventHistory.push(event);
@@ -1841,8 +1854,6 @@ export function applySimulationAction(
     state
   );
 
-
-
   return true;
 
 }
@@ -1878,6 +1889,10 @@ function clonePiece(
 
     foodType:
       piece.foodType,
+
+    drinkOriginValue:
+      piece.drinkOriginValue
+      ?? null,
 
     purity:
       piece.purity,
@@ -1951,6 +1966,8 @@ export function cloneSimulationState(
 
 
   return {
+
+    gameMode:state.gameMode??"classic",
 
     board:
 

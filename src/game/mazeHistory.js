@@ -418,6 +418,10 @@ export function createMazePieceSnapshot(
       piece.foodType
       ?? null,
 
+    drinkOriginValue:
+      piece.drinkOriginValue
+      ?? null,
+
 
     purity:
       piece.purity

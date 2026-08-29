@@ -6,6 +6,8 @@ import {
   FOOD_TYPES,
   combineValue,
   combineFoodType,
+  combineFoodTypeByBoardPosition,
+  getCombinedDrinkOriginValue,
   combineFoodPurity,
   FOOD_PURITY,
   SPECIAL_ONE_KINDS,
@@ -15,6 +17,7 @@ import {
   canCombine,
   getDessertMutationFoodType
 } from "./rules";
+import { getEightPalacePositionFoodType } from "./eightPalaceBoardTypes";
 
 import {
   createCombineOrigin,
@@ -367,14 +370,9 @@ export function combineCells(
 
 
 
-  const foodType =
-
-    combineFoodType(
-
-      front,
-      back
-
-    );
+  const foodType=isEightPalaceMode(state)
+    ? combineFoodTypeByBoardPosition(a,indexA,b,indexB)
+    : combineFoodType(front,back);
 
 
 
@@ -396,7 +394,8 @@ export function combineCells(
     combineFoodPurity(
 
       front,
-      back
+      back,
+      foodType
 
     );
 
@@ -416,6 +415,11 @@ export function combineCells(
 
 
     foodType,
+
+    drinkOriginValue:
+      isEightPalaceMode(state)&&foodType===FOOD_TYPES.DRINK
+        ? getCombinedDrinkOriginValue(a,indexA,b,indexB,result)
+        : undefined,
 
 
     purity,
@@ -936,11 +940,17 @@ export function reduceCells(
     if(secondResult === 1)secondReducedPiece.specialOne=specialOne;
   }
 
-  nextBoard[indexA] = eightPalace && firstResult === 1 ? null : firstReducedPiece;
+  if(eightPalace&&firstResult===1&&first.foodType===FOOD_TYPES.DRINK){
+    const restoredType=getEightPalacePositionFoodType(indexA);
+    nextBoard[indexA]=restoredType&&first.drinkOriginValue!=null?{...firstReducedPiece,value:first.drinkOriginValue,foodType:restoredType,drinkOriginValue:undefined}:null;
+  }else nextBoard[indexA] = eightPalace && firstResult === 1 ? null : firstReducedPiece;
 
 
 
-  nextBoard[indexB] = eightPalace && secondResult === 1 ? null : secondReducedPiece;
+  if(eightPalace&&secondResult===1&&second.foodType===FOOD_TYPES.DRINK){
+    const restoredType=getEightPalacePositionFoodType(indexB);
+    nextBoard[indexB]=restoredType&&second.drinkOriginValue!=null?{...secondReducedPiece,value:second.drinkOriginValue,foodType:restoredType,drinkOriginValue:undefined}:null;
+  }else nextBoard[indexB] = eightPalace && secondResult === 1 ? null : secondReducedPiece;
 
 
 
@@ -1169,7 +1179,7 @@ export function getLegalCombineActions(
 
 
         const a=state.board[i],b=state.board[j];
-        if(a.foodType!==FOOD_TYPES.DRINK&&b.foodType!==FOOD_TYPES.DRINK&&a.foodType!==b.foodType&&a.value+b.value<=101){
+        if(!isEightPalaceMode(state)&&a.foodType!==FOOD_TYPES.DRINK&&b.foodType!==FOOD_TYPES.DRINK&&a.foodType!==b.foodType&&a.value+b.value<=101){
           actions.push({type:"combine_ordered",indexes:[i,j]},{type:"combine_ordered",indexes:[j,i]});
         }else actions.push({type:"combine",indexes:[i,j]});
 

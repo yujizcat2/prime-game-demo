@@ -26,7 +26,19 @@ export function combineFoodType(front,back){
   if(!isNormalFoodType(a)||!isNormalFoodType(b))return null;
   return isCrossing101(front.value,back.value)?FOOD_TYPES.DRINK:a;
 }
-export function combineFoodPurity(front,back){const result=combineFoodType(front,back);if(!result||result===FOOD_TYPES.DRINK)return null;return front.foodType===back.foodType&&result===front.foodType?FOOD_PURITY.PURE:FOOD_PURITY.MIXED;}
+export function combineFoodTypeByBoardPosition(first,indexA,second,indexB){
+  if(!first||!second)return null;
+  if(first.value+second.value>100)return FOOD_TYPES.DRINK;
+  const earlier=indexA<=indexB?first:second;
+  const type=earlier?.foodType==="meat"?FOOD_TYPES.LAND:earlier?.foodType;
+  return isNormalFoodType(type)||type===FOOD_TYPES.DRINK?type:null;
+}
+export function getCombinedDrinkOriginValue(first,indexA,second,indexB,resultValue){
+  if(first.value+second.value>100)return resultValue;
+  const earlier=indexA<=indexB?first:second;
+  return earlier?.foodType===FOOD_TYPES.DRINK?earlier.drinkOriginValue??null:null;
+}
+export function combineFoodPurity(front,back,resultFoodType=combineFoodType(front,back)){const result=resultFoodType;if(!result||result===FOOD_TYPES.DRINK)return null;return front.foodType===back.foodType&&result===front.foodType?FOOD_PURITY.PURE:FOOD_PURITY.MIXED;}
 export function createSpecialOne(sourceTypeA,sourceTypeB){
   if(sourceTypeA==="meat")sourceTypeA=FOOD_TYPES.LAND;
   if(sourceTypeB==="meat")sourceTypeB=FOOD_TYPES.LAND;

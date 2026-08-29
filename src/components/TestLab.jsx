@@ -1349,6 +1349,7 @@ function EightPalaceResults({
         <ResultItem label="清到≤2但钥匙未满" value={result.clearedWithoutKeysCount} />
         <ResultItem label="死局" value={result.failureCounts.deadlock} />
         <ResultItem label="循环/重复状态" value={result.failureCounts["repeated-state / loop"]} />
+        <ResultItem label="停滞 / stalled" value={result.failureCounts.stalled} />
         <ResultItem label="达到搜索上限" value={result.failureCounts.maxActions} />
         <ResultItem label="搜索耗尽" value={result.failureCounts["search exhausted"]} />
       </div>
@@ -1399,6 +1400,7 @@ function FixedEightPalaceResults({
         <ResultItem label="8钥匙但未清盘" value={result.keysCompleteNotClearedCount} />
         <ResultItem label="死局" value={result.failureCounts.deadlock} />
         <ResultItem label="循环/重复状态" value={result.failureCounts["repeated-state / loop"]} />
+        <ResultItem label="停滞 / stalled" value={result.failureCounts.stalled} />
         <ResultItem label="搜索耗尽" value={result.failureCounts["search exhausted"]} />
         <ResultItem label="达到搜索上限" value={result.failureCounts.maxActions} />
       </div>
@@ -1457,6 +1459,7 @@ function formatEightPalaceFailure(reason){
   return {
     deadlock: "死局",
     "repeated-state / loop": "循环/重复状态",
+    stalled: "停滞 / stalled",
     "search exhausted": "搜索耗尽",
     maxActions: "达到搜索上限"
   }[reason] ?? reason ?? "无";
@@ -1498,7 +1501,7 @@ function EightPalaceRecord({
         已获得：{formatKeyTypes(game.acquiredKeyTypes)}
         {" · "}
         缺少：{formatKeyTypes(game.missingKeyTypes)}
-        {!game.success && <> · 失败原因：{game.failureReason}</>}
+        {!game.success && <> · 失败原因：{formatEightPalaceFailure(game.failureReason)}</>}
       </div>
       <details className="test-lab-action-details">
         <summary>展开完整操作路径（{game.actionPath.length} 项）</summary>

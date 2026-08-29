@@ -9,6 +9,7 @@ import {
 import {
   combineValue,
   combineFoodType,
+  combineFoodTypeByBoardPosition,
   combineFoodPurity,
   BASE_FOOD_TYPES,
   SPECIAL_ONE_KINDS,
@@ -120,6 +121,7 @@ export default function useGame(){
     setSelectedIndexes(
       []
     );
+
 
 
     setStarted(
@@ -750,26 +752,12 @@ export default function useGame(){
                 ),
 
 
-              foodType:
-
-                combineFoodType(
-
-                  orderedPair.front,
-
-                  orderedPair.back
-
-                ),
+              foodType:["eightPalace","simpleEightPalace"].includes(gameState?.gameMode)
+                ? combineFoodTypeByBoardPosition(first.piece,first.index,second.piece,second.index)
+                : combineFoodType(orderedPair.front,orderedPair.back),
 
 
-              purity:
-
-                combineFoodPurity(
-
-                  orderedPair.front,
-
-                  orderedPair.back
-
-                )
+              purity:(()=>{const resultType=["eightPalace","simpleEightPalace"].includes(gameState?.gameMode)?combineFoodTypeByBoardPosition(first.piece,first.index,second.piece,second.index):combineFoodType(orderedPair.front,orderedPair.back);return combineFoodPurity(orderedPair.front,orderedPair.back,resultType);})()
 
             }
 

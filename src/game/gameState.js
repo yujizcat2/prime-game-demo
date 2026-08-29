@@ -174,6 +174,11 @@ export function createGameState(
         parentFoods:
           null,
 
+        drinkOriginValue:
+          usesPlacedInitialValues
+            ? initialValue.drinkOriginValue ?? null
+            : null,
+
         sourceKey:
           null,
 

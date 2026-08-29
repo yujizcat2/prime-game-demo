@@ -5,11 +5,20 @@ import { gcd } from "../utils/math";
 import { BASE_FOOD_TYPES, FOOD_TYPES, SPECIAL_ONE_KINDS } from "../game/rules";
 
 export const EIGHT_PALACE_SOLVER_DEFAULTS = Object.freeze({games:100,depth:6,beamWidth:100,maxActions:500});
+export const EIGHT_PALACE_STALL_ACTION_LIMIT = 40;
 
-function snapshotBoard(board){return board.map((piece,index)=>piece?{index,value:piece.value,foodType:piece.foodType,purity:piece.purity??null,parents:piece.parents?[...piece.parents]:null,parentFoods:piece.parentFoods?piece.parentFoods.map(parent=>({...parent})):null,sourceKey:piece.sourceKey??null}:null);}
+export function advanceEightPalaceKeyProgress(previousKeyCount,nextKeyCount,actionsSinceLastNewKey){
+  return nextKeyCount>previousKeyCount?0:actionsSinceLastNewKey+1;
+}
+
+export function isEightPalaceKeyProgressStalled(keyCount,actionsSinceLastNewKey){
+  return keyCount<8&&actionsSinceLastNewKey>=EIGHT_PALACE_STALL_ACTION_LIMIT;
+}
+
+function snapshotBoard(board){return board.map((piece,index)=>piece?{index,value:piece.value,foodType:piece.foodType,drinkOriginValue:piece.drinkOriginValue??null,purity:piece.purity??null,parents:piece.parents?[...piece.parents]:null,parentFoods:piece.parentFoods?piece.parentFoods.map(parent=>({...parent})):null,sourceKey:piece.sourceKey??null}:null);}
 
 export function createEightPalaceBoardKey(state){
-  const board=state.board.map(piece=>piece?[piece.value,piece.foodType,piece.purity??null,piece.sourceKey??null,piece.specialOne?.identity??null,piece.parents??null,piece.parentFoods?.map(parent=>[parent.value,parent.foodType,parent.purity??null])??null]:null);
+  const board=state.board.map(piece=>piece?[piece.value,piece.foodType,piece.drinkOriginValue??null,piece.purity??null,piece.sourceKey??null,piece.specialOne?.identity??null,piece.parents??null,piece.parentFoods?.map(parent=>[parent.value,parent.foodType,parent.purity??null])??null]:null);
   const keys=Object.keys(state.eightPalaceKeys??{}).filter(type=>state.eightPalaceKeys[type]).sort();
   return JSON.stringify({board,keys,usedCombinationPairs:[...(state.usedCombinationPairs??[])].sort(),usedKeyTriggerValues:[...(state.usedKeyTriggerValues??[])].sort((a,b)=>a-b)});
 }
@@ -144,6 +153,7 @@ export async function runEightPalaceGame({depth=EIGHT_PALACE_SOLVER_DEFAULTS.dep
   const initialBoard=snapshotBoard(state.board);
   const visited=new Set([createEightPalaceBoardKey(state)]),actionPath=[];
   let repeatedPrunes=0,generatedNodes=0,failureReason=null,minimumBoardCount=getBoardCount(state.board);
+  let currentKeyCount=getEightPalaceKeyCount(state.eightPalaceKeys),actionsSinceLastNewKey=0;
   while(actionPath.length<maxActions&&!isSuccess(state)){
     if(getMissingEightPalaceKeyTypes(state.eightPalaceKeys).some(type=>isMissingFoodTypeExtinct(state,type))){failureReason="extinct food type";break;}
     const legalActions=getLegalActions(state);
@@ -156,14 +166,18 @@ export async function runEightPalaceGame({depth=EIGHT_PALACE_SOLVER_DEFAULTS.dep
     if(appliedState===state){failureReason="search exhausted";break;}
     const nextState=compactSolverState(appliedState);
     const entry=describeAction(state,choice.action,nextState);entry.number=actionPath.length+1;actionPath.push(entry);
+    const nextKeyCount=getEightPalaceKeyCount(nextState.eightPalaceKeys);
+    actionsSinceLastNewKey=advanceEightPalaceKeyProgress(currentKeyCount,nextKeyCount,actionsSinceLastNewKey);
+    currentKeyCount=nextKeyCount;
     state=nextState;visited.add(createEightPalaceBoardKey(state));minimumBoardCount=Math.min(minimumBoardCount,getBoardCount(state.board));
+    if(isEightPalaceKeyProgressStalled(currentKeyCount,actionsSinceLastNewKey)){failureReason="stalled";break;}
   }
   const finalBoardCount=getBoardCount(state.board),finalKeyCount=getEightPalaceKeyCount(state.eightPalaceKeys),success=isSuccess(state);
   if(!success&&!failureReason)failureReason=actionPath.length>=maxActions?"maxActions":"search exhausted";
   const missingKeyTypes=getMissingEightPalaceKeyTypes(state.eightPalaceKeys);
   const extinctMissingTypes=missingKeyTypes.filter(type=>isMissingFoodTypeExtinct(state,type));
   const lastDrinkAction=[...actionPath].reverse().find(action=>action.type.startsWith("combine")&&action.inputs.some(input=>input.foodType===FOOD_TYPES.DRINK));
-  return {success,initialOpening:opening.map(item=>({...item})),initialBoard,minimumBoardCount,finalBoardCount,finalKeyCount,acquiredKeyTypes:Object.keys(state.eightPalaceKeys).filter(type=>state.eightPalaceKeys[type]),missingKeyTypes,usedKeyTriggerValues:[...(state.usedKeyTriggerValues??[])],steps:state.steps,actions:actionPath.length,finalBoard:snapshotBoard(state.board),actionPath,failureReason,gameOverReason:state.gameOverReason,repeatedPrunes,generatedNodes,prematureClear:finalKeyCount<8&&finalBoardCount<=2,extinctMissingTypes,lastDrinkCombineStep:lastDrinkAction?.number??null,sevenKeyFailureMissingType:!success&&finalKeyCount===7?missingKeyTypes[0]??null:null};
+  return {success,initialOpening:opening.map(item=>({...item})),initialBoard,minimumBoardCount,finalBoardCount,finalKeyCount,acquiredKeyTypes:Object.keys(state.eightPalaceKeys).filter(type=>state.eightPalaceKeys[type]),missingKeyTypes,usedKeyTriggerValues:[...(state.usedKeyTriggerValues??[])],steps:state.steps,actions:actionPath.length,actionsSinceLastNewKey,finalBoard:snapshotBoard(state.board),actionPath,failureReason,gameOverReason:state.gameOverReason,repeatedPrunes,generatedNodes,prematureClear:finalKeyCount<8&&finalBoardCount<=2,extinctMissingTypes,lastDrinkCombineStep:lastDrinkAction?.number??null,sevenKeyFailureMissingType:!success&&finalKeyCount===7?missingKeyTypes[0]??null:null};
 }
 
 function createKeyDistribution(results){const distribution=Object.fromEntries(Array.from({length:9},(_,count)=>[count,0]));for(const result of results)distribution[result.finalKeyCount]++;return distribution;}
@@ -176,7 +190,7 @@ export async function runEightPalaceSolver({games=EIGHT_PALACE_SOLVER_DEFAULTS.g
     await new Promise(resolve=>setTimeout(resolve,0));
   }
   const successes=results.filter(result=>result.success),successfulSteps=successes.map(result=>result.steps);
-  const failureCounts={deadlock:0,"extinct food type":0,"repeated-state / loop":0,maxActions:0,"search exhausted":0};
+  const failureCounts={deadlock:0,"extinct food type":0,"repeated-state / loop":0,stalled:0,maxActions:0,"search exhausted":0};
   for(const result of results)if(!result.success)failureCounts[result.failureReason]++;
   const shortestSuccess=successes.length?successes.reduce((best,result)=>result.steps<best.steps?result:best):null;
   const hardestSuccess=successes.length?successes.reduce((best,result)=>result.steps>best.steps?result:best):null;
@@ -197,7 +211,7 @@ export async function runFixedEightPalaceAttempts({attempts=10,depth=EIGHT_PALAC
     await new Promise(resolve=>setTimeout(resolve,0));
   }
   const successes=results.filter(result=>result.success),successSteps=successes.map(result=>result.steps);
-  const failureCounts={deadlock:0,"extinct food type":0,"repeated-state / loop":0,maxActions:0,"search exhausted":0};
+  const failureCounts={deadlock:0,"extinct food type":0,"repeated-state / loop":0,stalled:0,maxActions:0,"search exhausted":0};
   for(const result of results)if(!result.success)failureCounts[result.failureReason]++;
   const distinctRoutes=new Set(results.map(result=>result.routeSignature)).size;
   const distinctSuccessRoutes=new Set(successes.map(result=>result.routeSignature)).size;

@@ -1241,9 +1241,12 @@ export default function BoardCell({
 
 
           <div
-            className="
+            className={`
               board-piece-main
-            "
+              ${foodType === "drink" && piece.drinkOriginValue != null
+                ? "board-piece-main--with-drink-origin"
+                : ""}
+            `}
           >
 
 
@@ -1266,6 +1269,15 @@ export default function BoardCell({
               {foodName}
 
             </span>
+
+            {foodType === "drink" && piece.drinkOriginValue != null && (
+              <span className="board-piece-drink-origin">
+                <span className="board-piece-drink-origin-label">原液</span>
+                <strong className="board-piece-drink-origin-value">
+                  {piece.drinkOriginValue}
+                </strong>
+              </span>
+            )}
 
 
           </div>

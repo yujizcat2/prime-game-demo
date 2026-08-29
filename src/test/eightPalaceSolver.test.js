@@ -1,10 +1,12 @@
 import assert from "node:assert/strict";
 import {
   createEightPalaceBoardKey,
+  advanceEightPalaceKeyProgress,
   describeAction,
   getKeyPotential,
   getStrategicScore,
   isMissingFoodTypeExtinct,
+  isEightPalaceKeyProgressStalled,
   routeSignature,
   runEightPalaceGame,
   runFixedEightPalaceAttempts
@@ -13,6 +15,12 @@ import { BASE_FOOD_TYPES, FOOD_TYPES, SPECIAL_ONE_KINDS } from "../game/rules";
 import { createGameState } from "../game/gameEngine";
 
 const result = await runEightPalaceGame({maxActions: 0});
+
+assert.equal(isEightPalaceKeyProgressStalled(7,39),false);
+assert.equal(isEightPalaceKeyProgressStalled(7,40),true);
+assert.equal(advanceEightPalaceKeyProgress(6,7,39),0);
+assert.equal(advanceEightPalaceKeyProgress(7,7,39),40);
+assert.equal(isEightPalaceKeyProgressStalled(8,40),false);
 
 assert.equal(result.initialBoard.length, 9);
 assert.equal(result.initialBoard[4], null);
