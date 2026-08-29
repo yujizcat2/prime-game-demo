@@ -1018,9 +1018,7 @@ function applyCombine(
 
 
 
-  state.board[
-    targetIndex
-  ] = {
+  const resultPiece = {
 
     value,
 
@@ -1086,6 +1084,10 @@ function applyCombine(
       null
 
   };
+  const drinkIndex=a.foodType===FOOD_TYPES.DRINK?indexA:b.foodType===FOOD_TYPES.DRINK?indexB:null;
+  const isDrinkConvert=drinkIndex!==null&&(a.foodType===FOOD_TYPES.DRINK)!==(b.foodType===FOOD_TYPES.DRINK);
+  if(isDrinkConvert){state.board[drinkIndex]=null;state.board[drinkIndex===indexA?indexB:indexA]=resultPiece;}
+  else state.board[targetIndex]=resultPiece;
 
 
 

@@ -482,13 +482,13 @@ export function combineCells(
     ...state.board
 
   ];
-
-
-
-  nextBoard[
-    targetIndex
-  ] =
-    newPiece;
+  const drinkIndex=a.foodType===FOOD_TYPES.DRINK?indexA:b.foodType===FOOD_TYPES.DRINK?indexB:null;
+  const isDrinkConvert=drinkIndex!==null&&(a.foodType===FOOD_TYPES.DRINK)!==(b.foodType===FOOD_TYPES.DRINK);
+  const resultIndex=isDrinkConvert?(drinkIndex===indexA?indexB:indexA):targetIndex;
+  if(isDrinkConvert){
+    nextBoard[drinkIndex]=null;
+    nextBoard[resultIndex]={...newPiece,id:state.board[resultIndex].id};
+  }else nextBoard[targetIndex]=newPiece;
 
 
 
@@ -499,8 +499,7 @@ export function combineCells(
     board:
       nextBoard,
 
-    nextId:
-      state.nextId + 1
+    nextId: isDrinkConvert?state.nextId:state.nextId + 1
 
   };
 

@@ -11,7 +11,8 @@ import {
   combineFoodType,
   combineFoodPurity,
   FOOD_TYPES,
-  SPECIAL_ONE_KINDS
+  SPECIAL_ONE_KINDS,
+  canApplyFunctionOne
 } from "../game/rules";
 
 import {
@@ -893,6 +894,10 @@ export default function useGame(){
   // ==========================================================
 
   const actionCandidates = {};
+
+  if(!gameOver&&functionOneIndex!==null){
+    board.forEach((piece,index)=>{if(canApplyFunctionOne(piece))actionCandidates[index]={applyOne:true};});
+  }
 
 
   if(

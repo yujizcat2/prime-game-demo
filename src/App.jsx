@@ -51,10 +51,7 @@ function App(){
 
 
 
-  const [
-    removingIndex,
-    setRemovingIndex
-  ] = useState(null);
+  const removingIndex = null;
 
 
   const [
@@ -110,24 +107,27 @@ function App(){
     }
 
     const indexes = [...game.selectedIndexes];
-    const targetIndex = game.board.findIndex(piece => !piece);
+    const isDrinkConvert=game.preview.combine.requiresTypeChoice&&resultFoodType;
+    const drinkIndex=isDrinkConvert?indexes.find(index=>game.board[index]?.foodType==="drink"):null;
+    const normalIndex=isDrinkConvert?indexes.find(index=>index!==drinkIndex):null;
+    const targetIndex = isDrinkConvert?normalIndex:game.board.findIndex(piece => !piece);
     const token = ++animationTokenRef.current;
 
     clearAnimationTimers();
     setClearedCells([]);
-    setBoardAnimation({ type: "combine", phase: "exit", indexes, targetIndex, token });
+    setBoardAnimation(isDrinkConvert?{type:"drink_convert",phase:"consume",indexes,drinkIndex,normalIndex,targetIndex,token}:{ type: "combine", phase: "exit", indexes, targetIndex, token });
 
     scheduleAnimation(
       () => {
         game.combineNumbers(resultFoodType);
-        setBoardAnimation({ type: "combine", phase: "enter", indexes, targetIndex, token });
+        setBoardAnimation(isDrinkConvert?{type:"drink_convert",phase:"absorb",indexes,drinkIndex,normalIndex,targetIndex,token}:{ type: "combine", phase: "enter", indexes, targetIndex, token });
       },
-      140
+      isDrinkConvert?240:140
     );
 
     scheduleAnimation(
       () => setBoardAnimation(null),
-      560
+      isDrinkConvert?480:560
     );
 
   }
@@ -233,7 +233,7 @@ function App(){
 
 
 
-  function handleRemoveOne(
+  function handleSpecialOne(
     index
   ){
 
@@ -249,9 +249,8 @@ function App(){
 
 
 
-    setRemovingIndex(
-      index
-    );
+    const piece=game.board[index];
+    if(piece?.specialOne?.kind==="function"){game.activateOne(index);return;}
 
     const removedCell = {
       index,
@@ -263,13 +262,10 @@ function App(){
     clearAnimationTimers();
     setClearedCells([]);
 
+    setBoardAnimation({type:"claim_key",index,token:++animationTokenRef.current});
     scheduleAnimation(
       () => {
-
-
-        game.removeOne(
-          index
-        );
+        game.activateOne(index);
 
         setClearedCells([removedCell]);
 
@@ -279,14 +275,10 @@ function App(){
         );
 
 
-        setRemovingIndex(
-          null
-        );
-
-
       },
-      420
+      240
     );
+    scheduleAnimation(()=>setBoardAnimation(null),300);
 
   }
 
@@ -682,6 +674,8 @@ function App(){
                   game.selectedIndexes
                 }
 
+                functionOneIndex={game.functionOneIndex}
+
                 onSelectCell={
                   boardAnimation
                     ? undefined
@@ -689,7 +683,7 @@ function App(){
                 }
 
                   onRemoveOne={
-                  game.activateOne
+                  handleSpecialOne
                 }
 
                 onCombine={

@@ -13,7 +13,7 @@ import {
   getFoodName,
   getFoodDisplayName
 } from "../data/food/foodRegistry";
-import { getSpecialOneName } from "../data/specialOneRegistry";
+import { getSpecialOneDisplayName, getSpecialOneName } from "../data/specialOneRegistry";
 
 import "./Board.css";
 
@@ -36,6 +36,7 @@ export default function BoardCell({
   reduceCandidate = false,
 
   removeCandidate = false,
+  applyOneCandidate = false,
 
   reducePreview = null,
 
@@ -437,11 +438,7 @@ export default function BoardCell({
   // 当前食物名称
   // ==========================================================
 
-  const foodName =
-
-    getFoodDisplayName(
-      piece
-    );
+  const foodName = isOne&&piece.specialOne?getSpecialOneDisplayName(piece):getFoodDisplayName(piece);
 
 
 
@@ -946,6 +943,14 @@ export default function BoardCell({
                 : ""
             }
 
+            ${applyOneCandidate?"board-piece--apply-one-candidate":""}
+
+            ${animationState?.type==="claim_key"&&animationState.index===index?"board-piece--claim-key":""}
+
+            ${animationState?.type==="drink_convert"&&animationState.drinkIndex===index?"board-piece--drink-consuming":""}
+
+            ${animationState?.type==="drink_convert"&&animationState.normalIndex===index?"board-piece--drink-receiving":""}
+
             ${
               autoCollectPreview &&
               !removing
@@ -1039,7 +1044,8 @@ export default function BoardCell({
             (
               showCombineCandidate ||
               showReduceCandidate ||
-              showRemoveCandidate
+              showRemoveCandidate ||
+              applyOneCandidate
             ) &&
 
             <div
@@ -1053,6 +1059,8 @@ export default function BoardCell({
                   +
                 </span>
               }
+
+              {applyOneCandidate&&<span className="board-piece-candidate-marker board-piece-candidate-marker--apply-one">+1</span>}
 
               {
                 showRemoveCandidate

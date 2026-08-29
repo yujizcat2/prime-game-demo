@@ -33,6 +33,7 @@ export default function Board({
   board = [],
 
   selectedIndexes = [],
+  functionOneIndex = null,
 
   onSelectCell,
 
@@ -792,11 +793,7 @@ export default function Board({
 
 
 
-            const isSelected =
-
-              selected.includes(
-                index
-              );
+            const isSelected = selected.includes(index)||functionOneIndex===index;
 
 
 
@@ -1055,6 +1052,8 @@ export default function Board({
                 removeCandidate={
                   candidate.remove === true
                 }
+
+                applyOneCandidate={candidate.applyOne === true}
 
                 reducePreview={
                   reducePreview
