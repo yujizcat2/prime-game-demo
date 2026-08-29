@@ -31,7 +31,7 @@ function isSuccess(state){return getEightPalaceKeyCount(state.eightPalaceKeys)==
 
 function canReduceToOne(a,b){const divisor=gcd(a.value,b.value);return divisor>1&&(a.value/divisor===1||b.value/divisor===1);}
 
-function getKeyPotential(state,foodType){
+export function getKeyPotential(state,foodType){
   const pieces=state.board.filter(piece=>piece?.foodType===foodType&&!piece.specialOne);
   let directPairs=0,functionRepairs=0;
   for(let i=0;i<pieces.length;i++)for(let j=i+1;j<pieces.length;j++){
@@ -39,28 +39,30 @@ function getKeyPotential(state,foodType){
     if(canReduceToOne({...pieces[i],value:pieces[i].value+1},pieces[j])||canReduceToOne(pieces[i],{...pieces[j],value:pieces[j].value+1}))functionRepairs++;
   }
   const hasFunction=state.board.some(piece=>piece?.specialOne?.kind===SPECIAL_ONE_KINDS.FUNCTION);
-  const hasDrink=state.board.some(piece=>piece?.foodType===FOOD_TYPES.DRINK);
   const pendingKey=state.board.some(piece=>piece?.specialOne?.kind===SPECIAL_ONE_KINDS.KEY&&piece.specialOne.keyType===foodType);
-  return pieces.length*2+directPairs*8+(hasFunction?functionRepairs*3:0)+(hasDrink?3:0)+(pendingKey?20:0);
+  return pieces.length*2+directPairs*8+(hasFunction?functionRepairs*3:0)+(pendingKey?20:0);
 }
 
-function getStrategicScore(state){
+export function getStrategicScore(state){
   const keyCount=getEightPalaceKeyCount(state.eightPalaceKeys),missing=getMissingEightPalaceKeyTypes(state.eightPalaceKeys);
-  const boardCount=getBoardCount(state.board),drinkCount=state.board.filter(piece=>piece?.foodType===FOOD_TYPES.DRINK).length;
+  const boardCount=getBoardCount(state.board);
   let score=0;
   if(keyCount===8)return (9-boardCount)*80_000_000_000;
   for(const type of missing){
     const count=state.board.filter(piece=>piece?.foodType===type&&!piece.specialOne).length;
-    if(count===0)score-=drinkCount>0?45_000_000_000:180_000_000_000;
+    if(count===0)score-=180_000_000_000;
     else if(count===1)score-=28_000_000_000;
     else score+=Math.min(count,3)*8_000_000_000;
     score+=getKeyPotential(state,type)*4_000_000_000;
   }
-  if(missing.length>0&&drinkCount>0)score+=drinkCount===1?55_000_000_000:70_000_000_000;
   if(boardCount<=3)score-=160_000_000_000;
   if(missing.length>=3&&boardCount<=2)score-=350_000_000_000;
   if(boardCount===0)score-=900_000_000_000;
   return score;
+}
+
+export function isMissingFoodTypeExtinct(state,foodType){
+  return !state.board.some(piece=>piece?.foodType===foodType&&(!piece.specialOne||(piece.specialOne.kind===SPECIAL_ONE_KINDS.KEY&&piece.specialOne.keyType===foodType)));
 }
 
 function getActionPriority(state,action){
@@ -142,12 +144,14 @@ export async function runEightPalaceGame({depth=EIGHT_PALACE_SOLVER_DEFAULTS.dep
   let state=compactSolverState(resolveGameOver(createGameState(opening)));
   const initialBoard=snapshotBoard(state.board);
   const visited=new Set([createEightPalaceBoardKey(state)]),actionPath=[];
-  let repeatedPrunes=0,failureReason=null,minimumBoardCount=getBoardCount(state.board);
+  let repeatedPrunes=0,generatedNodes=0,failureReason=null,minimumBoardCount=getBoardCount(state.board);
   while(actionPath.length<maxActions&&!isSuccess(state)){
+    if(getMissingEightPalaceKeyTypes(state.eightPalaceKeys).some(type=>isMissingFoodTypeExtinct(state,type))){failureReason="extinct food type";break;}
     const legalActions=getLegalActions(state);
     if(legalActions.length===0){failureReason="deadlock";break;}
     const choice=searchNextAction(state,{depth,beamWidth,randomizeSearch},visited);
     repeatedPrunes+=choice.repeatedPrunes;
+    generatedNodes+=choice.generated;
     if(!choice.action){failureReason=choice.generated>0&&choice.repeatedPrunes>0?"repeated-state / loop":"search exhausted";break;}
     const appliedState=applyAction(state,choice.action);
     if(appliedState===state){failureReason="search exhausted";break;}
@@ -158,9 +162,9 @@ export async function runEightPalaceGame({depth=EIGHT_PALACE_SOLVER_DEFAULTS.dep
   const finalBoardCount=getBoardCount(state.board),finalKeyCount=getEightPalaceKeyCount(state.eightPalaceKeys),success=isSuccess(state);
   if(!success&&!failureReason)failureReason=actionPath.length>=maxActions?"maxActions":"search exhausted";
   const missingKeyTypes=getMissingEightPalaceKeyTypes(state.eightPalaceKeys);
-  const extinctMissingTypes=missingKeyTypes.filter(type=>!state.board.some(piece=>piece?.foodType===type));
+  const extinctMissingTypes=missingKeyTypes.filter(type=>isMissingFoodTypeExtinct(state,type));
   const lastDrinkAction=[...actionPath].reverse().find(action=>action.type.startsWith("combine")&&action.inputs.some(input=>input.foodType===FOOD_TYPES.DRINK));
-  return {success,initialOpening:opening.map(item=>({...item})),initialBoard,minimumBoardCount,finalBoardCount,finalKeyCount,acquiredKeyTypes:Object.keys(state.eightPalaceKeys).filter(type=>state.eightPalaceKeys[type]),missingKeyTypes,steps:state.steps,actions:actionPath.length,finalBoard:snapshotBoard(state.board),actionPath,failureReason,gameOverReason:state.gameOverReason,repeatedPrunes,prematureClear:finalKeyCount<8&&finalBoardCount<=2,extinctMissingTypes,lastDrinkConsumedStep:lastDrinkAction?.number??null,sevenKeyFailureMissingType:!success&&finalKeyCount===7?missingKeyTypes[0]??null:null};
+  return {success,initialOpening:opening.map(item=>({...item})),initialBoard,minimumBoardCount,finalBoardCount,finalKeyCount,acquiredKeyTypes:Object.keys(state.eightPalaceKeys).filter(type=>state.eightPalaceKeys[type]),missingKeyTypes,steps:state.steps,actions:actionPath.length,finalBoard:snapshotBoard(state.board),actionPath,failureReason,gameOverReason:state.gameOverReason,repeatedPrunes,generatedNodes,prematureClear:finalKeyCount<8&&finalBoardCount<=2,extinctMissingTypes,lastDrinkCombineStep:lastDrinkAction?.number??null,sevenKeyFailureMissingType:!success&&finalKeyCount===7?missingKeyTypes[0]??null:null};
 }
 
 function createKeyDistribution(results){const distribution=Object.fromEntries(Array.from({length:9},(_,count)=>[count,0]));for(const result of results)distribution[result.finalKeyCount]++;return distribution;}
@@ -173,7 +177,7 @@ export async function runEightPalaceSolver({games=EIGHT_PALACE_SOLVER_DEFAULTS.g
     await new Promise(resolve=>setTimeout(resolve,0));
   }
   const successes=results.filter(result=>result.success),successfulSteps=successes.map(result=>result.steps);
-  const failureCounts={deadlock:0,"repeated-state / loop":0,maxActions:0,"search exhausted":0};
+  const failureCounts={deadlock:0,"extinct food type":0,"repeated-state / loop":0,maxActions:0,"search exhausted":0};
   for(const result of results)if(!result.success)failureCounts[result.failureReason]++;
   const shortestSuccess=successes.length?successes.reduce((best,result)=>result.steps<best.steps?result:best):null;
   const hardestSuccess=successes.length?successes.reduce((best,result)=>result.steps>best.steps?result:best):null;
@@ -194,11 +198,11 @@ export async function runFixedEightPalaceAttempts({attempts=10,depth=EIGHT_PALAC
     await new Promise(resolve=>setTimeout(resolve,0));
   }
   const successes=results.filter(result=>result.success),successSteps=successes.map(result=>result.steps);
-  const failureCounts={deadlock:0,"repeated-state / loop":0,maxActions:0,"search exhausted":0};
+  const failureCounts={deadlock:0,"extinct food type":0,"repeated-state / loop":0,maxActions:0,"search exhausted":0};
   for(const result of results)if(!result.success)failureCounts[result.failureReason]++;
   const distinctRoutes=new Set(results.map(result=>result.routeSignature)).size;
   const distinctSuccessRoutes=new Set(successes.map(result=>result.routeSignature)).size;
   const successCount=successes.length;
   const divergenceLabel=successCount===0?"本轮未找到解":successCount<=4?"高迷惑局":successCount<=8?"中等路线分歧":"稳定可解";
-  return {attempts,fixedOpening:deepClone(opening),fixedInitialBoard:results[0]?.initialBoard??[],successCount,successRate:attempts?successCount/attempts:0,failureCount:attempts-successCount,averageFinalKeyCount:attempts?results.reduce((sum,result)=>sum+result.finalKeyCount,0)/attempts:0,averageMinimumBoardCount:attempts?results.reduce((sum,result)=>sum+result.minimumBoardCount,0)/attempts:0,averageSteps:attempts?results.reduce((sum,result)=>sum+result.steps,0)/attempts:0,shortestSuccessSteps:successSteps.length?Math.min(...successSteps):null,longestSuccessSteps:successSteps.length?Math.max(...successSteps):null,clearedWithoutKeysCount:results.filter(result=>result.prematureClear).length,prematureClearCount:results.filter(result=>result.prematureClear).length,extinctMissingTypeCounts:Object.fromEntries(BASE_FOOD_TYPES.map(type=>[type,results.filter(result=>result.extinctMissingTypes.includes(type)).length])),lastDrinkConsumedSteps:results.map(result=>result.lastDrinkConsumedStep).filter(step=>step!==null),sevenKeyFailureMissingTypes:results.map(result=>result.sevenKeyFailureMissingType).filter(Boolean),keysCompleteNotClearedCount:results.filter(result=>result.finalKeyCount===8&&result.finalBoardCount>2).length,failureCounts,distinctRoutes,successfulRouteCount:successCount,distinctSuccessRoutes,hasRouteDivergence:successCount>0&&successCount<attempts,divergenceLabel,results};
+  return {attempts,fixedOpening:deepClone(opening),fixedInitialBoard:results[0]?.initialBoard??[],successCount,successRate:attempts?successCount/attempts:0,failureCount:attempts-successCount,averageFinalKeyCount:attempts?results.reduce((sum,result)=>sum+result.finalKeyCount,0)/attempts:0,averageMinimumBoardCount:attempts?results.reduce((sum,result)=>sum+result.minimumBoardCount,0)/attempts:0,averageSteps:attempts?results.reduce((sum,result)=>sum+result.steps,0)/attempts:0,shortestSuccessSteps:successSteps.length?Math.min(...successSteps):null,longestSuccessSteps:successSteps.length?Math.max(...successSteps):null,clearedWithoutKeysCount:results.filter(result=>result.prematureClear).length,prematureClearCount:results.filter(result=>result.prematureClear).length,extinctMissingTypeCounts:Object.fromEntries(BASE_FOOD_TYPES.map(type=>[type,results.filter(result=>result.extinctMissingTypes.includes(type)).length])),lastDrinkCombineSteps:results.map(result=>result.lastDrinkCombineStep).filter(step=>step!==null),sevenKeyFailureMissingTypes:results.map(result=>result.sevenKeyFailureMissingType).filter(Boolean),keysCompleteNotClearedCount:results.filter(result=>result.finalKeyCount===8&&result.finalBoardCount>2).length,failureCounts,distinctRoutes,successfulRouteCount:successCount,distinctSuccessRoutes,hasRouteDivergence:successCount>0&&successCount<attempts,divergenceLabel,results};
 }
