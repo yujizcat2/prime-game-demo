@@ -30,7 +30,7 @@ export function getMissingEightPalaceKeyTypes(keys){
 function createKeyRecord(piece){
   return {
     foodType: piece.foodType,
-    value: piece.value,
+    value: 1,
     parents: Array.isArray(piece.parents) ? [...piece.parents] : null,
     parentFoods: Array.isArray(piece.parentFoods)
       ? piece.parentFoods.map(parent => ({...parent}))

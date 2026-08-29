@@ -423,6 +423,6 @@ assert.equal(
 assert.equal(formalFatigueResult.latestCollection,null);
 assert.equal(simulationFatigueState.lastCollectionEvents.length,0);
 assert.equal(formalFatigueResult.board[0].specialOne.kind,"function");
-assert.equal(simulationFatigueState.board[0].specialOne.kind,"function");
+assert.equal(simulationFatigueState.board[0],null);
 
 console.log("Money system regression cases: 33 passed");

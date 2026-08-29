@@ -9,9 +9,6 @@ import {
   combineFoodType,
   combineFoodPurity,
   BASE_FOOD_TYPES,
-  SPECIAL_ONE_KINDS,
-  createSpecialOne,
-  canApplyFunctionOne,
   canReduce,
   canCombine,
   getDessertMutationFoodType
@@ -886,14 +883,6 @@ export function getSimulationLegalActions(
 
   }
 
-  for(let i=0;i<SIM_BOARD_SIZE;i++){
-    const one=board[i];
-    if(one?.specialOne?.kind===SPECIAL_ONE_KINDS.KEY)actions.push({type:"claim_key",index:i});
-    if(one?.specialOne?.kind===SPECIAL_ONE_KINDS.FUNCTION)for(let j=0;j<SIM_BOARD_SIZE;j++)if(canApplyFunctionOne(board[j]))actions.push({type:"apply_one",oneIndex:i,targetIndex:j});
-  }
-
-
-
   return actions;
 
 }
@@ -1436,9 +1425,14 @@ function applyReduce(
 
 
 
-  const specialOne=createSpecialOne(firstFoodType,secondFoodType);
-  if(firstResult===1)first.specialOne=specialOne;
-  if(secondResult===1)second.specialOne=specialOne;
+  if(firstFoodType===secondFoodType&&BASE_FOOD_TYPES.includes(firstFoodType)&&!state.eightPalaceKeys?.[firstFoodType]&&(firstResult===1||secondResult===1)){
+    state.eightPalaceKeys ??= Object.fromEntries(BASE_FOOD_TYPES.map(type=>[type,null]));
+    state.eightPalaceKeys[firstFoodType]={foodType:firstFoodType,value:1};
+    state.latestEightPalaceKey=state.eightPalaceKeys[firstFoodType];
+  }
+
+  if(firstResult===1)state.board[indexA]=null;
+  if(secondResult===1)state.board[indexB]=null;
 
   for(const event of collectionEvents){
     state.collectionEventHistory.push(event);
@@ -1788,23 +1782,6 @@ export function applySimulationAction(
 
 
       break;
-
-    case "claim_key": {
-      const one=state.board[action.index];
-      if(one?.specialOne?.kind!==SPECIAL_ONE_KINDS.KEY)return false;
-      state.eightPalaceKeys[one.specialOne.keyType]={foodType:one.specialOne.keyType,value:1};
-      state.board[action.index]=null; applied=true; break;
-    }
-
-    case "apply_one": {
-      const one=state.board[action.oneIndex],target=state.board[action.targetIndex];
-      if(one?.specialOne?.kind!==SPECIAL_ONE_KINDS.FUNCTION||!canApplyFunctionOne(target))return false;
-      state.board[action.oneIndex]=null; target.value+=1; state.steps++; applied=true; break;
-    }
-
-
-
-
 
     case "reduce":
 

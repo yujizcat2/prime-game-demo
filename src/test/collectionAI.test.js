@@ -222,8 +222,8 @@ async function runRegressionTests(){
   const freshState = cloneSimulationState(state);
   applySimulationAction(repeatState, repeated);
   applySimulationAction(freshState, fresh);
-  assert.ok(repeatState.board.some(piece=>piece?.specialOne));
-  assert.ok(freshState.board.some(piece=>piece?.specialOne));
+  assert.equal(repeatState.board.some(piece=>piece?.value===1),false);
+  assert.equal(freshState.board.some(piece=>piece?.value===1),false);
 
   const imbalanced = createSimulationState([2, 3, 5]);
   imbalanced.collectionFoodTypeHistory = [

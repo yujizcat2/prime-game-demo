@@ -1319,6 +1319,13 @@ export default function useGame(){
     index
   ){
 
+    if(
+      gameState?.gameMode === "eightPalace" ||
+      gameState?.gameMode === "simpleEightPalace"
+    ){
+      return;
+    }
+
 
     const piece =
 

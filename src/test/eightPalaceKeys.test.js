@@ -7,7 +7,8 @@ import {
 } from "../game/gameEngine";
 import {
   createEmptyEightPalaceKeys,
-  getEightPalaceKeyCount
+  getEightPalaceKeyCount,
+  GAME_MODES
 } from "../game/eightPalaceKeys";
 import {
   BASE_FOOD_TYPES,
@@ -30,21 +31,34 @@ const sameType = reduce(
   {value: 3, foodType: FOOD_TYPES.LAND}
 );
 assert.equal(sameType.board[0].value, 2);
-assert.equal(sameType.board[1].value, 1);
-assert.equal(sameType.board[1].specialOne.kind, "key");
-assert.equal(getEightPalaceKeyCount(sameType.eightPalaceKeys), 0);
-const claimed=applyAction(sameType,{type:"claim_key",index:1});
-assert.equal(claimed.board[1],null);
-assert.equal(getEightPalaceKeyCount(claimed.eightPalaceKeys),1);
+assert.equal(sameType.board[1], null);
+assert.equal(getEightPalaceKeyCount(sameType.eightPalaceKeys), 1);
+assert.equal(sameType.latestEightPalaceKey.foodType,FOOD_TYPES.LAND);
+const claimed=sameType;
 
 const crossType = reduce(
   {value: 6, foodType: FOOD_TYPES.AQUATIC},
   {value: 3, foodType: FOOD_TYPES.LAND}
 );
 assert.equal(crossType.board[0].value, 2);
-assert.equal(crossType.board[1].value, 1);
-assert.equal(crossType.board[1].specialOne.kind,"function");
+assert.equal(crossType.board[1], null);
 assert.equal(getEightPalaceKeyCount(crossType.eightPalaceKeys), 0);
+
+const bothOne = reduce(
+  {value: 7, foodType: FOOD_TYPES.FRUIT},
+  {value: 7, foodType: FOOD_TYPES.FRUIT}
+);
+assert.equal(bothOne.board[0],null);
+assert.equal(bothOne.board[1],null);
+assert.equal(bothOne.eightPalaceKeys[FOOD_TYPES.FRUIT].value,1);
+
+const simpleBase=createGameState([
+  {...opening({value:6,foodType:FOOD_TYPES.DAIRY_EGG},{value:3,foodType:FOOD_TYPES.DAIRY_EGG})[0],gameMode:GAME_MODES.SIMPLE_EIGHT_PALACE,targetFoodTypes:[FOOD_TYPES.DAIRY_EGG,FOOD_TYPES.FRUIT]},
+  opening({value:6,foodType:FOOD_TYPES.DAIRY_EGG},{value:3,foodType:FOOD_TYPES.DAIRY_EGG})[1]
+]);
+const simpleResult=applyAction(simpleBase,{type:"reduce",indexes:[0,1]});
+assert.equal(simpleResult.board[1],null);
+assert.equal(simpleResult.eightPalaceKeys[FOOD_TYPES.DAIRY_EGG].value,1);
 
 const noOne = reduce(
   {value: 6, foodType: FOOD_TYPES.LAND},
@@ -64,6 +78,7 @@ const duplicateResult = applyAction(
 );
 assert.equal(getEightPalaceKeyCount(duplicateResult.eightPalaceKeys), 1);
 assert.equal(duplicateResult.eightPalaceKeys[FOOD_TYPES.LAND].value, 1);
+assert.equal(duplicateResult.latestEightPalaceKey,null);
 
 const base = createGameState(opening(
   {value: 2, foodType: FOOD_TYPES.LAND},

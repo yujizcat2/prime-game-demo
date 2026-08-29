@@ -34,6 +34,8 @@ import {
   settleMoneyChanges
 } from "./game/collectionRules";
 
+import { FOOD_TYPE_LABELS } from "./data/specialOneRegistry";
+
 
 function App(){
 
@@ -55,6 +57,8 @@ function App(){
     clearedCells,
     setClearedCells
   ] = useState([]);
+
+  const [keyNotice,setKeyNotice] = useState(null);
 
   const animationTimersRef = useRef([]);
   const animationTokenRef = useRef(0);
@@ -92,6 +96,14 @@ function App(){
     () => () => clearAnimationTimers(),
     []
   );
+
+  useEffect(() => {
+    const key = game.latestEightPalaceKey;
+    if(!key)return undefined;
+    setKeyNotice(`恭喜获得${FOOD_TYPE_LABELS[key.foodType] ?? key.foodType}钥匙！`);
+    const timer=window.setTimeout(()=>setKeyNotice(null),2200);
+    return ()=>window.clearTimeout(timer);
+  },[game.latestEightPalaceKey]);
 
 
   // ==========================================================
@@ -667,6 +679,12 @@ function App(){
   return (
 
     <div className="game-page">
+
+      {keyNotice && (
+        <div role="status" aria-live="polite" style={{position:"fixed",top:20,left:"50%",transform:"translateX(-50%)",zIndex:1000,padding:"10px 18px",borderRadius:10,background:"rgba(31,41,55,.94)",color:"white",boxShadow:"0 8px 24px rgba(0,0,0,.22)",fontWeight:700}}>
+          {keyNotice}
+        </div>
+      )}
 
       <div className="game-shell">
 

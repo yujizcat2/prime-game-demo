@@ -285,8 +285,8 @@ assert.equal(
   true
 );
 assert.equal(simulationState.steps, 1);
-assert.equal(simulationState.board.filter(Boolean).length, 3);
-assert.ok(getSimulationLegalActions(simulationState).some(action=>action.type==="apply_one"));
+assert.equal(simulationState.board.filter(Boolean).length, 2);
+assert.equal(getSimulationLegalActions(simulationState).some(action=>action.type==="apply_one"),false);
 
 
 console.log("activityStatus tests passed");

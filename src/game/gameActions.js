@@ -41,6 +41,16 @@ import {
   getActionFatigue
 } from "./actionFatigue";
 
+import {
+  applyEightPalaceKeyFromReduction,
+  GAME_MODES
+} from "./eightPalaceKeys";
+
+function isEightPalaceMode(state){
+  return state?.gameMode === GAME_MODES.EIGHT_PALACE
+    || state?.gameMode === GAME_MODES.SIMPLE_EIGHT_PALACE;
+}
+
 
 
 
@@ -926,15 +936,18 @@ export function reduceCells(
 
 
 
-  const specialOne = createSpecialOne(first.foodType, second.foodType);
-  if(firstResult === 1)firstReducedPiece.specialOne=specialOne;
-  if(secondResult === 1)secondReducedPiece.specialOne=specialOne;
+  const eightPalace = isEightPalaceMode(state);
+  if(!eightPalace){
+    const specialOne = createSpecialOne(first.foodType, second.foodType);
+    if(firstResult === 1)firstReducedPiece.specialOne=specialOne;
+    if(secondResult === 1)secondReducedPiece.specialOne=specialOne;
+  }
 
-  nextBoard[indexA] = firstReducedPiece;
+  nextBoard[indexA] = eightPalace && firstResult === 1 ? null : firstReducedPiece;
 
 
 
-  nextBoard[indexB] = secondReducedPiece;
+  nextBoard[indexB] = eightPalace && secondResult === 1 ? null : secondReducedPiece;
 
 
 
@@ -950,6 +963,10 @@ export function reduceCells(
     actionFatigue
 
   };
+
+  if(eightPalace){
+    nextState = applyEightPalaceKeyFromReduction(nextState,first,second,firstResult,secondResult);
+  }
 
 
 
@@ -1005,7 +1022,8 @@ export function removeOne(
 
   if(
     !state ||
-    state.gameOver
+    state.gameOver ||
+    isEightPalaceMode(state)
   ){
 
 
@@ -1070,7 +1088,7 @@ export function removeOne(
 }
 
 export function applyFunctionOne(state,oneIndex,targetIndex){
-  if(!state||state.gameOver||oneIndex===targetIndex)return state;
+  if(!state||state.gameOver||isEightPalaceMode(state)||oneIndex===targetIndex)return state;
   const one=getPieceAt(state,oneIndex),target=getPieceAt(state,targetIndex);
   if(one?.specialOne?.kind!==SPECIAL_ONE_KINDS.FUNCTION||!canApplyFunctionOne(target))return state;
   const board=[...state.board];
@@ -1291,7 +1309,8 @@ export function getLegalRemoveActions(
 
   if(
     !state ||
-    state.gameOver
+    state.gameOver ||
+    isEightPalaceMode(state)
   ){
 
 
@@ -1338,6 +1357,7 @@ export function getLegalRemoveActions(
 }
 
 export function getLegalApplyOneActions(state){
+  if(isEightPalaceMode(state))return [];
   const actions=[];
   for(let i=0;i<BOARD_CONFIG.SIZE;i++)if(state.board[i]?.specialOne?.kind===SPECIAL_ONE_KINDS.FUNCTION)for(let j=0;j<BOARD_CONFIG.SIZE;j++)if(canApplyFunctionOne(state.board[j]))actions.push({type:"apply_one",oneIndex:i,targetIndex:j});
   return actions;
