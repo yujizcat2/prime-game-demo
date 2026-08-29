@@ -73,12 +73,25 @@ function searchNextAction(rootState,{depth,beamWidth,randomizeSearch},visited){
   return {action:best?.firstAction??null,repeatedPrunes,generated};
 }
 
-function describeAction(state,action,nextState){
-  const indexes=action.type==="remove"?[action.index]:[...action.indexes];
+export function getActionIndexes(action){
+  switch(action?.type){
+    case "remove":
+    case "claim_key": return action.index===undefined?[...(action.indexes??[])]:[action.index];
+    case "apply_one": return action.oneIndex===undefined?[...(action.indexes??[])]:[action.oneIndex,action.targetIndex].filter(index=>index!==undefined);
+    case "combine":
+    case "combine_ordered":
+    case "combine_drink_convert":
+    case "reduce":
+    default: return [...(action?.indexes??[])];
+  }
+}
+
+export function describeAction(state,action,nextState){
+  const indexes=getActionIndexes(action);
   const inputs=indexes.map(index=>({index,value:state.board[index]?.value??null,foodType:state.board[index]?.foodType??null}));
   const beforeKeys=new Set(Object.keys(state.eightPalaceKeys??{}).filter(type=>state.eightPalaceKeys[type]));
   const gainedType=Object.keys(nextState.eightPalaceKeys??{}).find(type=>nextState.eightPalaceKeys[type]&&!beforeKeys.has(type))??null;
-  return {number:null,type:action.type,indexes,inputs,stepBefore:state.steps,stepAfter:nextState.steps,boardCountAfter:getBoardCount(nextState.board),keyCountAfter:getEightPalaceKeyCount(nextState.eightPalaceKeys),gainedKey:gainedType?{...nextState.eightPalaceKeys[gainedType]}:null};
+  return {number:null,type:action.type,indexes,resultFoodType:action.resultFoodType??null,inputs,stepBefore:state.steps,stepAfter:nextState.steps,boardCountAfter:getBoardCount(nextState.board),keyCountAfter:getEightPalaceKeyCount(nextState.eightPalaceKeys),gainedKey:gainedType?{...nextState.eightPalaceKeys[gainedType]}:null};
 }
 
 export async function runEightPalaceGame({depth=EIGHT_PALACE_SOLVER_DEFAULTS.depth,beamWidth=EIGHT_PALACE_SOLVER_DEFAULTS.beamWidth,maxActions=EIGHT_PALACE_SOLVER_DEFAULTS.maxActions,initialOpening=null,randomizeSearch=false}={}){
@@ -121,7 +134,7 @@ export async function runEightPalaceSolver({games=EIGHT_PALACE_SOLVER_DEFAULTS.g
   return {games,depth,beamWidth,maxActions,successCount:successes.length,successRate:games?successes.length/games:0,averageSuccessSteps:successes.length?successfulSteps.reduce((sum,value)=>sum+value,0)/successes.length:0,shortestSuccessSteps:successes.length?Math.min(...successfulSteps):null,longestSuccessSteps:successes.length?Math.max(...successfulSteps):null,averageFinalKeyCount:games?results.reduce((sum,result)=>sum+result.finalKeyCount,0)/games:0,keysCompleteNotClearedCount:results.filter(result=>result.finalKeyCount===8&&result.finalBoardCount>2).length,clearedWithoutKeysCount:results.filter(result=>result.finalBoardCount<=2&&result.finalKeyCount<8).length,finalKeyCountDistribution:createKeyDistribution(results),failureCounts,shortestSuccess,hardestSuccess,singleGame:games===1?results[0]:null,results};
 }
 
-function routeSignature(result){return result.actionPath.map(action=>`${action.type}:${action.indexes.join("-")}`).join("|");}
+export function routeSignature(result){return result.actionPath.map(action=>`${action.type}:${getActionIndexes(action).join("-")}${action.type==="combine_drink_convert"?`:${action.resultFoodType??""}`:""}`).join("|");}
 function deepClone(value){return JSON.parse(JSON.stringify(value));}
 function deepFreeze(value){if(value&&typeof value==="object"){Object.freeze(value);for(const item of Object.values(value))deepFreeze(item);}return value;}
 

@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import {
   createEightPalaceBoardKey,
+  describeAction,
+  routeSignature,
   runEightPalaceGame,
   runFixedEightPalaceAttempts
 } from "./eightPalaceSolver";
@@ -53,4 +55,15 @@ assert.notEqual(fixed.results[0].initialOpening, fixed.results[1].initialOpening
 assert.equal(fixed.results.every(attempt => attempt.actionPath.length === attempt.actions), true);
 assert.equal(fixed.results.every(attempt => attempt.actionPath.length === 1), true);
 assert.equal(fixed.results.every(attempt => attempt.actionPath[0].number === 1), true);
+
+const actionState=createGameState(easyOpening);
+const claimedState={...actionState,board:[...actionState.board],eightPalaceKeys:{...actionState.eightPalaceKeys,[BASE_FOOD_TYPES[0]]:{foodType:BASE_FOOD_TYPES[0],value:1}}};
+assert.doesNotThrow(()=>describeAction(actionState,{type:"claim_key",index:0},claimedState));
+assert.doesNotThrow(()=>describeAction(actionState,{type:"apply_one",oneIndex:0,targetIndex:1},actionState));
+assert.equal(routeSignature({actionPath:[{type:"claim_key",index:6}]}),"claim_key:6");
+assert.equal(routeSignature({actionPath:[{type:"apply_one",oneIndex:3,targetIndex:7}]}),"apply_one:3-7");
+assert.notEqual(
+  routeSignature({actionPath:[{type:"combine_drink_convert",indexes:[1,4],resultFoodType:BASE_FOOD_TYPES[0]}]}),
+  routeSignature({actionPath:[{type:"combine_drink_convert",indexes:[1,4],resultFoodType:BASE_FOOD_TYPES[1]}]})
+);
 console.log("eight palace solver tests passed");
