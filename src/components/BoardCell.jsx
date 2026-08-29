@@ -13,6 +13,7 @@ import {
   getFoodName,
   getFoodDisplayName
 } from "../data/food/foodRegistry";
+import { getSpecialOneName } from "../data/specialOneRegistry";
 
 import "./Board.css";
 
@@ -1194,6 +1195,11 @@ export default function BoardCell({
             {value}
 
           </div>
+
+          {isOne && piece.specialOne && <div className="board-piece-special-one">
+            <strong>{piece.specialOne.kind==="key"?"🔑 点击领取":"+1 选择目标"}</strong>
+            <span>{getSpecialOneName(piece.specialOne)}</span>
+          </div>}
 
           {
             !isOne &&

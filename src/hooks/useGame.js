@@ -9,7 +9,9 @@ import {
 import {
   combineValue,
   combineFoodType,
-  combineFoodPurity
+  combineFoodPurity,
+  FOOD_TYPES,
+  SPECIAL_ONE_KINDS
 } from "../game/rules";
 
 import {
@@ -87,6 +89,8 @@ export default function useGame(){
     setSelectedIndexes
 
   ] = useState([]);
+
+  const [functionOneIndex,setFunctionOneIndex]=useState(null);
 
 
 
@@ -464,19 +468,7 @@ export default function useGame(){
 
 
 
-    return [
-
-      ...selectedIndexes
-
-    ]
-      .sort(
-        (
-          a,
-          b
-        ) =>
-          a - b
-      )
-      .map(
+    return [...selectedIndexes].map(
 
         index => ({
 
@@ -567,6 +559,12 @@ export default function useGame(){
 
     }
 
+    if(functionOneIndex!==null){
+      const nextState=applyAction(gameState,{type:"apply_one",oneIndex:functionOneIndex,targetIndex:index});
+      if(nextState!==gameState){setGameState(nextState);setFunctionOneIndex(null);setSelectedIndexes([]);}
+      return;
+    }
+
 
 
     // ========================================================
@@ -628,20 +626,7 @@ export default function useGame(){
 
       setSelectedIndexes(
 
-        [
-
-          ...selectedIndexes,
-
-          index
-
-        ]
-          .sort(
-            (
-              a,
-              b
-            ) =>
-              a - b
-          )
+        [...selectedIndexes,index]
 
       );
 
@@ -662,20 +647,7 @@ export default function useGame(){
 
     setSelectedIndexes(
 
-      [
-
-        selectedIndexes[1],
-
-        index
-
-      ]
-        .sort(
-          (
-            a,
-            b
-          ) =>
-            a - b
-        )
+      [selectedIndexes[1],index]
 
     );
 
@@ -837,15 +809,9 @@ export default function useGame(){
                 ),
 
 
-              foodType:
+              foodType: combineFoodType(orderedPair.front,orderedPair.back),
 
-                combineFoodType(
-
-                  orderedPair.front,
-
-                  orderedPair.back
-
-                ),
+              requiresTypeChoice: (orderedPair.front.foodType===FOOD_TYPES.DRINK)!==(orderedPair.back.foodType===FOOD_TYPES.DRINK),
 
 
               purity:
@@ -1002,7 +968,7 @@ export default function useGame(){
   // useGame 不再直接调用 combineCells。
   // ==========================================================
 
-  function combineNumbers(){
+  function combineNumbers(resultFoodType=null){
 
 
     if(
@@ -1052,7 +1018,8 @@ export default function useGame(){
 
             cells[1].index
 
-          ]
+          ],
+          resultFoodType
 
         }
 
@@ -1269,6 +1236,12 @@ export default function useGame(){
 
   }
 
+  function activateOne(index){
+    const piece=gameState?.board?.[index];
+    if(piece?.specialOne?.kind===SPECIAL_ONE_KINDS.FUNCTION){setFunctionOneIndex(index);setSelectedIndexes([]);return;}
+    removeOne(index);
+  }
+
 
 
 
@@ -1317,6 +1290,7 @@ export default function useGame(){
     selectedCells,
 
     selectedNumbers,
+    functionOneIndex,
 
 
     // ========================================================
@@ -1409,6 +1383,7 @@ export default function useGame(){
     reduceNumbers,
 
     removeOne,
+    activateOne,
 
 
     // ========================================================

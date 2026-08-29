@@ -32,26 +32,26 @@ export const SCORE_BEAM_CONFIG = {
 function getActionKey(action) {
 
   if(
-    action.type === "combine" ||
+    action.type?.startsWith("combine") ||
     action.type === "reduce"
   ){
 
     return (
       action.type +
       ":" +
-      action.ids.join("-")
+      (action.ids??action.indexes??[]).join("-") + ":" + (action.resultFoodType??"")
     );
 
   }
 
 
   if(
-    action.type === "remove"
+    action.type === "remove" || action.type === "claim_key"
   ){
 
     return (
       "remove:" +
-      action.id
+      (action.id??action.index)
     );
 
   }
@@ -96,6 +96,10 @@ function getStateKey(state) {
           return (
             item.value +
             ":" +
+            (item.foodType??"-") +
+            ":" +
+            (item.specialOne?.identity??"-") +
+            ":" +
             parents +
             ":" +
             (
@@ -127,6 +131,8 @@ function getStateKey(state) {
   return [
 
     numbers,
+
+    Object.keys(state.eightPalaceKeys??{}).filter(type=>state.eightPalaceKeys[type]).sort().join(","),
 
     collection,
 

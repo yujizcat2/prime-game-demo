@@ -8,6 +8,10 @@ import {
   combineValue,
   combineFoodType,
   combineFoodPurity,
+  BASE_FOOD_TYPES,
+  SPECIAL_ONE_KINDS,
+  createSpecialOne,
+  canApplyFunctionOne,
   canReduce,
   canCombine,
   getDessertMutationFoodType
@@ -16,10 +20,6 @@ import {
 import {
   createMazeStateKey
 } from "../game/mazeHistory";
-
-import {
-  applyCollections
-} from "../game/collectionRules";
 
 import {
   appendRecentActionSignature,
@@ -469,7 +469,9 @@ export function createSimulationState(
 
 
     lastMazeTurn:
-      null
+      null,
+
+    eightPalaceKeys: Object.fromEntries(BASE_FOOD_TYPES.map(type=>[type,null]))
 
   };
 
@@ -857,19 +859,10 @@ export function getSimulationLegalActions(
           j
         )
       ){
-
-
-        actions.push({
-
-          type:
-            "combine",
-
-          indexes: [
-            i,
-            j
-          ]
-
-        });
+        const oneDrink=(a.foodType===FOOD_TYPES.DRINK)!==(b.foodType===FOOD_TYPES.DRINK);
+        if(oneDrink)for(const resultFoodType of BASE_FOOD_TYPES)actions.push({type:"combine_drink_convert",indexes:[i,j],resultFoodType});
+        else if(a.foodType!==FOOD_TYPES.DRINK&&b.foodType!==FOOD_TYPES.DRINK&&a.foodType!==b.foodType&&a.value+b.value<=101)actions.push({type:"combine_ordered",indexes:[i,j]},{type:"combine_ordered",indexes:[j,i]});
+        else actions.push({type:"combine",indexes:[i,j]});
 
       }
 
@@ -902,6 +895,12 @@ export function getSimulationLegalActions(
 
   }
 
+  for(let i=0;i<SIM_BOARD_SIZE;i++){
+    const one=board[i];
+    if(one?.specialOne?.kind===SPECIAL_ONE_KINDS.KEY)actions.push({type:"claim_key",index:i});
+    if(one?.specialOne?.kind===SPECIAL_ONE_KINDS.FUNCTION)for(let j=0;j<SIM_BOARD_SIZE;j++)if(canApplyFunctionOne(board[j]))actions.push({type:"apply_one",oneIndex:i,targetIndex:j});
+  }
+
 
 
   return actions;
@@ -919,7 +918,8 @@ export function getSimulationLegalActions(
 function applyCombine(
   state,
   indexA,
-  indexB
+  indexB,
+  resultFoodType=null
 ){
 
 
@@ -970,33 +970,8 @@ function applyCombine(
 
 
 
-  const front =
-
-    indexA <
-    indexB
-
-      ?
-
-        a
-
-      :
-
-        b;
-
-
-
-  const back =
-
-    indexA <
-    indexB
-
-      ?
-
-        b
-
-      :
-
-        a;
+  const front=a;
+  const back=b;
 
 
 
@@ -1023,8 +998,8 @@ function applyCombine(
     combineFoodType(
 
       front,
-
-      back
+      back,
+      resultFoodType
 
     );
 
@@ -1059,8 +1034,8 @@ function applyCombine(
       combineFoodPurity(
 
         front,
-
-        back
+        back,
+        resultFoodType
 
       ),
 
@@ -1468,23 +1443,9 @@ function applyReduce(
 
 
 
-  const collectedPieces = [
-    firstResult === 1 ? first : null,
-    secondResult === 1 ? second : null
-  ].filter(Boolean);
-
-  Object.assign(
-    state,
-    applyCollections({...state, actionFatigue}, collectedPieces, collectionPricingBoard)
-  );
-
-  if(firstResult === 1){
-    state.board[indexA] = null;
-  }
-
-  if(secondResult === 1){
-    state.board[indexB] = null;
-  }
+  const specialOne=createSpecialOne(firstFoodType,secondFoodType);
+  if(firstResult===1)first.specialOne=specialOne;
+  if(secondResult===1)second.specialOne=specialOne;
 
   for(const event of collectionEvents){
     state.collectionEventHistory.push(event);
@@ -1811,6 +1772,8 @@ export function applySimulationAction(
 
 
     case "combine":
+    case "combine_ordered":
+    case "combine_drink_convert":
 
 
       applied =
@@ -1825,12 +1788,26 @@ export function applySimulationAction(
 
           action.indexes[
             1
-          ]
+          ],
+          action.resultFoodType ?? null
 
         );
 
 
       break;
+
+    case "claim_key": {
+      const one=state.board[action.index];
+      if(one?.specialOne?.kind!==SPECIAL_ONE_KINDS.KEY)return false;
+      state.eightPalaceKeys[one.specialOne.keyType]={foodType:one.specialOne.keyType,value:1};
+      state.board[action.index]=null; applied=true; break;
+    }
+
+    case "apply_one": {
+      const one=state.board[action.oneIndex],target=state.board[action.targetIndex];
+      if(one?.specialOne?.kind!==SPECIAL_ONE_KINDS.FUNCTION||!canApplyFunctionOne(target))return false;
+      state.board[action.oneIndex]=null; target.value+=1; state.steps++; applied=true; break;
+    }
 
 
 
@@ -1978,7 +1955,9 @@ function clonePiece(
 
     sourceKey:
       piece.sourceKey
-      ?? null
+      ?? null,
+
+    specialOne: piece.specialOne ? {...piece.specialOne,sourceTypes:[...(piece.specialOne.sourceTypes??[])]} : null
 
   };
 

@@ -98,7 +98,7 @@ function App(){
   );
 
 
-  function handleCombine(){
+  function handleCombine(resultFoodType=null){
 
     if(
       boardAnimation ||
@@ -119,7 +119,7 @@ function App(){
 
     scheduleAnimation(
       () => {
-        game.combineNumbers();
+        game.combineNumbers(resultFoodType);
         setBoardAnimation({ type: "combine", phase: "enter", indexes, targetIndex, token });
       },
       140
@@ -688,8 +688,8 @@ function App(){
                     : game.selectCell
                 }
 
-                onRemoveOne={
-                  handleRemoveOne
+                  onRemoveOne={
+                  game.activateOne
                 }
 
                 onCombine={

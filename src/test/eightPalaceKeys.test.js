@@ -30,16 +30,20 @@ const sameType = reduce(
   {value: 3, foodType: FOOD_TYPES.LAND}
 );
 assert.equal(sameType.board[0].value, 2);
-assert.equal(sameType.board[1], null);
-assert.equal(getEightPalaceKeyCount(sameType.eightPalaceKeys), 1);
-assert.equal(sameType.eightPalaceKeys[FOOD_TYPES.LAND].value, 3);
+assert.equal(sameType.board[1].value, 1);
+assert.equal(sameType.board[1].specialOne.kind, "key");
+assert.equal(getEightPalaceKeyCount(sameType.eightPalaceKeys), 0);
+const claimed=applyAction(sameType,{type:"claim_key",index:1});
+assert.equal(claimed.board[1],null);
+assert.equal(getEightPalaceKeyCount(claimed.eightPalaceKeys),1);
 
 const crossType = reduce(
   {value: 6, foodType: FOOD_TYPES.AQUATIC},
   {value: 3, foodType: FOOD_TYPES.LAND}
 );
 assert.equal(crossType.board[0].value, 2);
-assert.equal(crossType.board[1], null);
+assert.equal(crossType.board[1].value, 1);
+assert.equal(crossType.board[1].specialOne.kind,"function");
 assert.equal(getEightPalaceKeyCount(crossType.eightPalaceKeys), 0);
 
 const noOne = reduce(
@@ -55,11 +59,11 @@ const duplicateBase = createGameState(opening(
   {value: 5, foodType: FOOD_TYPES.LAND}
 ));
 const duplicateResult = applyAction(
-  {...duplicateBase, eightPalaceKeys: sameType.eightPalaceKeys},
+  {...duplicateBase, eightPalaceKeys: claimed.eightPalaceKeys},
   {type: "reduce", indexes: [0, 1]}
 );
 assert.equal(getEightPalaceKeyCount(duplicateResult.eightPalaceKeys), 1);
-assert.equal(duplicateResult.eightPalaceKeys[FOOD_TYPES.LAND].value, 3);
+assert.equal(duplicateResult.eightPalaceKeys[FOOD_TYPES.LAND].value, 1);
 
 const base = createGameState(opening(
   {value: 2, foodType: FOOD_TYPES.LAND},

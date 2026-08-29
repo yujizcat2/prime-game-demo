@@ -447,7 +447,14 @@ export function createMazePieceSnapshot(
 
       getPendingDiscoveryValue(
         piece
-      )
+      ),
+
+    specialOne: piece.specialOne ? {
+      kind: piece.specialOne.kind,
+      keyType: piece.specialOne.keyType ?? null,
+      identity: piece.specialOne.identity,
+      sourceTypes: [...(piece.specialOne.sourceTypes ?? [])]
+    } : null
 
   };
 

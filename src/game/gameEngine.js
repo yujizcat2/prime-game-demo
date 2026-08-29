@@ -22,6 +22,7 @@ import {
   combineCells,
   reduceCells,
   removeOne,
+  applyFunctionOne,
   getLegalCombineActions,
   getLegalReduceActions,
   getLegalRemoveActions,
@@ -110,6 +111,8 @@ export {
   reduceCells,
 
   removeOne,
+
+  applyFunctionOne,
 
   getLegalCombineActions,
 
@@ -214,6 +217,8 @@ export function applyAction(
     // ========================================================
 
     case "combine":
+    case "combine_ordered":
+    case "combine_drink_convert":
 
 
       actionState =
@@ -225,6 +230,7 @@ export function applyAction(
           action.indexes?.[0],
 
           action.indexes?.[1]
+          ,action.resultFoodType ?? null
 
         );
 
@@ -266,6 +272,7 @@ export function applyAction(
     // ========================================================
 
     case "remove":
+    case "claim_key":
 
 
       actionState =
@@ -279,6 +286,10 @@ export function applyAction(
         );
 
 
+      break;
+
+    case "apply_one":
+      actionState = applyFunctionOne(state,action.oneIndex,action.targetIndex);
       break;
 
 

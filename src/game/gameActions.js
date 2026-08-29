@@ -7,6 +7,11 @@ import {
   combineValue,
   combineFoodType,
   combineFoodPurity,
+  BASE_FOOD_TYPES,
+  FOOD_PURITY,
+  SPECIAL_ONE_KINDS,
+  createSpecialOne,
+  canApplyFunctionOne,
   canReduce,
   canCombine,
   getDessertMutationFoodType
@@ -22,7 +27,6 @@ import {
   isBoardFull,
   getNextEmptyIndex,
   getPieceAt,
-  getOrderedPair,
   BOARD_CONFIG
 } from "./boardRules";
 
@@ -31,20 +35,11 @@ import {
 } from "./gameState";
 
 import {
-  applyCollection,
-  applyCollections
-} from "./collectionRules";
-
-import {
   appendRecentActionSignature,
   createCombineActionSignature,
   createReduceActionSignature,
   getActionFatigue
 } from "./actionFatigue";
-
-import {
-  applyEightPalaceKeyFromReduction
-} from "./eightPalaceKeys";
 
 
 
@@ -251,7 +246,8 @@ export function canReduceCells(
 export function combineCells(
   state,
   indexA,
-  indexB
+  indexB,
+  resultFoodType = null
 ){
 
 
@@ -318,17 +314,7 @@ export function combineCells(
 
 
 
-  const orderedPair =
-
-    getOrderedPair(
-
-      state,
-
-      indexA,
-
-      indexB
-
-    );
+  const orderedPair = {front:a,back:b};
 
 
 
@@ -374,8 +360,8 @@ export function combineCells(
     combineFoodType(
 
       front,
-
-      back
+      back,
+      resultFoodType
 
     );
 
@@ -399,8 +385,8 @@ export function combineCells(
     combineFoodPurity(
 
       front,
-
-      back
+      back,
+      resultFoodType
 
     );
 
@@ -939,23 +925,15 @@ export function reduceCells(
 
 
 
-  nextBoard[
-    indexA
-  ] =
+  const specialOne = createSpecialOne(first.foodType, second.foodType);
+  if(firstResult === 1)firstReducedPiece.specialOne=specialOne;
+  if(secondResult === 1)secondReducedPiece.specialOne=specialOne;
 
-    firstResult === 1
-      ? null
-      : firstReducedPiece;
+  nextBoard[indexA] = firstReducedPiece;
 
 
 
-  nextBoard[
-    indexB
-  ] =
-
-    secondResult === 1
-      ? null
-      : secondReducedPiece;
+  nextBoard[indexB] = secondReducedPiece;
 
 
 
@@ -971,29 +949,6 @@ export function reduceCells(
     actionFatigue
 
   };
-
-
-
-  const collectedPieces = [
-    firstResult === 1 ? firstReducedPiece : null,
-    secondResult === 1 ? secondReducedPiece : null
-  ].filter(Boolean);
-
-
-  nextState = applyCollections(
-    nextState,
-    collectedPieces,
-    state.board
-  );
-
-
-  nextState = applyEightPalaceKeyFromReduction(
-    nextState,
-    first,
-    second,
-    firstResult,
-    secondResult
-  );
 
 
 
@@ -1080,15 +1035,10 @@ export function removeOne(
 
 
 
-  let nextState =
-
-    applyCollection(
-
-      state,
-
-      target
-
-    );
+  if(target.specialOne?.kind!==SPECIAL_ONE_KINDS.KEY)return state;
+  const keyType=target.specialOne.keyType;
+  const keyRecord={foodType:keyType,value:1,parents:null,parentFoods:null};
+  const nextState={...state,eightPalaceKeys:{...state.eightPalaceKeys,[keyType]:state.eightPalaceKeys?.[keyType]??keyRecord},latestEightPalaceKey:keyRecord};
 
 
 
@@ -1116,6 +1066,16 @@ export function removeOne(
 
   };
 
+}
+
+export function applyFunctionOne(state,oneIndex,targetIndex){
+  if(!state||state.gameOver||oneIndex===targetIndex)return state;
+  const one=getPieceAt(state,oneIndex),target=getPieceAt(state,targetIndex);
+  if(one?.specialOne?.kind!==SPECIAL_ONE_KINDS.FUNCTION||!canApplyFunctionOne(target))return state;
+  const board=[...state.board];
+  board[oneIndex]=null;
+  board[targetIndex]={...target,value:target.value+1,foodType:target.foodType,purity:target.purity??FOOD_PURITY.PURE,origin:{type:"applyOne",previousValue:target.value,specialOne:{...one.specialOne}}};
+  return consumeStep({...state,board});
 }
 
 
@@ -1196,17 +1156,12 @@ export function getLegalCombineActions(
       ){
 
 
-        actions.push({
-
-          type:
-            "combine",
-
-          indexes: [
-            i,
-            j
-          ]
-
-        });
+        const a=state.board[i],b=state.board[j],oneDrink=(a.foodType===FOOD_TYPES.DRINK)!==(b.foodType===FOOD_TYPES.DRINK);
+        if(oneDrink){
+          for(const resultFoodType of BASE_FOOD_TYPES)actions.push({type:"combine_drink_convert",indexes:[i,j],resultFoodType});
+        }else if(a.foodType!==FOOD_TYPES.DRINK&&b.foodType!==FOOD_TYPES.DRINK&&a.foodType!==b.foodType&&a.value+b.value<=101){
+          actions.push({type:"combine_ordered",indexes:[i,j]},{type:"combine_ordered",indexes:[j,i]});
+        }else actions.push({type:"combine",indexes:[i,j]});
 
       }
 
@@ -1357,14 +1312,14 @@ export function getLegalRemoveActions(
 
 
     if(
-      state.board[index]?.value === 1
+      state.board[index]?.specialOne?.kind === SPECIAL_ONE_KINDS.KEY
     ){
 
 
       actions.push({
 
         type:
-          "remove",
+          "claim_key",
 
         index
 
@@ -1378,6 +1333,12 @@ export function getLegalRemoveActions(
 
   return actions;
 
+}
+
+export function getLegalApplyOneActions(state){
+  const actions=[];
+  for(let i=0;i<BOARD_CONFIG.SIZE;i++)if(state.board[i]?.specialOne?.kind===SPECIAL_ONE_KINDS.FUNCTION)for(let j=0;j<BOARD_CONFIG.SIZE;j++)if(canApplyFunctionOne(state.board[j]))actions.push({type:"apply_one",oneIndex:i,targetIndex:j});
+  return actions;
 }
 
 
@@ -1417,7 +1378,8 @@ export function getLegalActions(
 
     ...getLegalRemoveActions(
       state
-    )
+    ),
+    ...getLegalApplyOneActions(state)
 
   ];
 

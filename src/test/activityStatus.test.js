@@ -246,17 +246,9 @@ const settledDepletion = applyAction(reductionState, {
 });
 
 assert.equal(settledDepletion.steps, 1);
-assert.equal(settledDepletion.board.filter(Boolean).length, 2);
-assert.ok(settledDepletion.latestCollection);
-assert.equal(settledDepletion.gameOver, true);
-assert.equal(settledDepletion.gameOverReason, "board_depleted");
-assert.strictEqual(
-  applyAction(settledDepletion, {
-    type: "combine",
-    indexes: [0, 1]
-  }),
-  settledDepletion
-);
+assert.equal(settledDepletion.board.filter(Boolean).length, 3);
+assert.equal(settledDepletion.board[2].specialOne.kind,"function");
+assert.equal(settledDepletion.gameOver, false);
 
 
 const noLegalState = createGameState(
@@ -293,8 +285,8 @@ assert.equal(
   true
 );
 assert.equal(simulationState.steps, 1);
-assert.equal(simulationState.board.filter(Boolean).length, 2);
-assert.equal(getSimulationLegalActions(simulationState).length, 0);
+assert.equal(simulationState.board.filter(Boolean).length, 3);
+assert.ok(getSimulationLegalActions(simulationState).some(action=>action.type==="apply_one"));
 
 
 console.log("activityStatus tests passed");

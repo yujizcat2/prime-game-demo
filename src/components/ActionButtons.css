@@ -38,6 +38,9 @@
 
 }
 
+.action-toolbar-type-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:4px; }
+.action-toolbar-type-choice { border:1px solid #94a3b8; border-radius:8px; background:#fff; padding:5px 2px; cursor:pointer; font-size:12px; }
+
 
 
 /* ============================================================

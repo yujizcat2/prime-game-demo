@@ -711,7 +711,7 @@ function analyzeState(
 
 
     if(
-      action.type === "combine"
+      action.type.startsWith("combine")
     ){
 
 
@@ -2371,6 +2371,9 @@ function describeAction(
 ){
 
 
+  if(action.type==="claim_key")return {type:"claim_key",text:`领取钥匙：格${action.index+1}`};
+  if(action.type==="apply_one")return {type:"apply_one",text:`功能1：格${action.oneIndex+1} → 格${action.targetIndex+1}`};
+
   const [
     aIndex,
     bIndex
@@ -2389,7 +2392,7 @@ function describeAction(
 
 
   if(
-    action.type === "combine"
+    action.type.startsWith("combine")
   ){
 
 
@@ -2712,12 +2715,12 @@ export async function runSmartGame({
       state.money ?? 0;
 
 
-    const inputValues =
-      action.indexes.map(index => state.board[index]?.value ?? null);
+    const actionIndexes=action.indexes??(action.type==="apply_one"?[action.oneIndex,action.targetIndex]:[action.index]);
+    const inputValues = actionIndexes.map(index => state.board[index]?.value ?? null);
 
 
     const inputSourceKeys =
-      action.indexes.map(index => state.board[index]?.sourceKey ?? null);
+      actionIndexes.map(index => state.board[index]?.sourceKey ?? null);
 
 
     const recentActionSignaturesBefore =

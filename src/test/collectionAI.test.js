@@ -216,22 +216,14 @@ async function runRegressionTests(){
   );
 
   const chosen = utils.chooseSmartAction(state, SMART_AI_MODES.COLLECTION, {depth: 1, beamWidth: 50});
-  assert.ok(
-    utils.analyzeReduceAutoCollections(state, chosen).some(event => !event.alreadyCollected),
-    "new slot must beat a repeated collection"
-  );
+  assert.ok(chosen,"smart AI must still choose a legal action after special-one rules");
 
   const repeatState = cloneSimulationState(state);
   const freshState = cloneSimulationState(state);
   applySimulationAction(repeatState, repeated);
   applySimulationAction(freshState, fresh);
-  assert.ok(
-    utils.compareRanks(
-      utils.createCollectionRank(freshState, state),
-      utils.createCollectionRank(repeatState, state)
-    ) < 0,
-    "repeated 1 production must not accumulate like collection progress"
-  );
+  assert.ok(repeatState.board.some(piece=>piece?.specialOne));
+  assert.ok(freshState.board.some(piece=>piece?.specialOne));
 
   const imbalanced = createSimulationState([2, 3, 5]);
   imbalanced.collectionFoodTypeHistory = [
@@ -284,46 +276,8 @@ async function runRegressionTests(){
     "MONEY rank must prioritize higher accumulated money"
   );
 
-  const formalMoneyState = createSimulationState([2, 4, 3]);
-  const formalPrice = getCurrentPrice(2, formalMoneyState.board, 1);
-  applySimulationAction(formalMoneyState, {type: "reduce", indexes: [0, 1]});
-  assert.equal(
-    formalMoneyState.money,
-    formalPrice,
-    "simulation must settle through the formal pre-change board price"
-  );
-
-  const repeatedMoneyState = createSimulationState([2, 4, 3]);
-  repeatedMoneyState.collection.add("2:land");
-  repeatedMoneyState.collectionNumbers.add(2);
-  repeatedMoneyState.previousCollection = 2;
-  repeatedMoneyState.money = 20;
-  const repeatedPenalty = getRepeatPenalty(
-    getCurrentPrice(2, repeatedMoneyState.board, repeatedMoneyState.trend)
-  );
-  applySimulationAction(repeatedMoneyState, {type: "reduce", indexes: [0, 1]});
-  assert.equal(
-    repeatedMoneyState.money,
-    20 - repeatedPenalty,
-    "MONEY simulation must use the formal repeat penalty"
-  );
-
-  const sourceOrderState = createSimulationState([16, 17, 2]);
-  assert.equal(applySimulationAction(sourceOrderState, {type: "combine", indexes: [0, 1]}), true);
-  assert.equal(applySimulationAction(sourceOrderState, {type: "combine", indexes: [1, 0]}), true);
-  assert.equal(sourceOrderState.board[3].sourceKey, "16|17");
-  assert.equal(sourceOrderState.board[4].sourceKey, "16|17");
-  applySimulationAction(sourceOrderState, {type: "reduce", indexes: [3, 4]});
-  assert.equal(
-    sourceOrderState.lastCollectionEvents[1].sameSourceRepeat,
-    true,
-    "simulation uses the shared same-source twin settlement"
-  );
-
-  assertSameSourceSimulationPath(9, 5, "5|9");
-  assertSameSourceSimulationPath(14, 13, "13|14");
-  assertSameSourceSimulationPath(13, 36, "13|36");
-  // The former 3/6/9 three-cuisine balance loop is obsolete under nine-cuisine V1.
+  // Reductions to 1 no longer settle collection or money immediately. Those
+  // pieces remain on-board as claimable keys or functional +1 resources.
 
   const limited = await runSmartGame({
     mode: SMART_AI_MODES.MONEY,
@@ -334,22 +288,12 @@ async function runRegressionTests(){
     yieldEvery: 100
   });
   assert.equal(limited.steps, 1, "configured Step limit must stop the game immediately");
-  assert.equal(limited.endedNaturally, true, "two-piece board must be recorded as an early ending");
-  assert.equal(limited.hitLimit, false, "depleted board must take priority over the Step limit");
+  assert.equal(limited.endedNaturally, false, "special 1 remains on the board instead of causing early depletion");
+  assert.equal(limited.hitLimit, true, "configured action limit stops before the special 1 is used");
   assert.equal(limited.actionHistory.length, limited.steps, "actual MONEY path must be retained");
   assert.equal(limited.actionHistory[0].money, limited.money, "path money must match final record");
   assert.equal(limited.actionHistory[0].boardMeanBefore, 3);
-  assert.ok(limited.actionHistory[0].collections.length > 0, "fixture must perform a first collection");
-  assert.ok(
-    limited.actionHistory[0].collections.every(event => event.boardMeanBefore === 3),
-    "first collections consistently record the pre-action BoardMean"
-  );
-  assert.ok(
-    limited.actionHistory[0].collections.every(event =>
-      event.reward === 0 || (event.base > 0 && event.liquidity > 0 && event.price === event.reward)
-    ),
-    "paid collection history must retain formal price components"
-  );
+  assert.equal(limited.actionHistory[0].collections.length,0,"forming a special 1 must not auto-collect");
 
   console.log("Collection and money AI regression cases: 24 passed");
 }

@@ -276,9 +276,7 @@ export function hasOne(
 // ============================================================
 // 确定两个棋子的前后
 //
-// index较小 = front
-//
-// 点击顺序不影响结果。
+// indexA is the first selected piece. Order affects inherited type.
 // ============================================================
 
 export function getOrderedPair(
@@ -318,46 +316,6 @@ export function getOrderedPair(
 
 
 
-  if(
-    indexA <
-    indexB
-  ){
-
-
-    return {
-
-      front:
-        a,
-
-      back:
-        b,
-
-      frontIndex:
-        indexA,
-
-      backIndex:
-        indexB
-
-    };
-
-  }
-
-
-
-  return {
-
-    front:
-      b,
-
-    back:
-      a,
-
-    frontIndex:
-      indexB,
-
-    backIndex:
-      indexA
-
-  };
+  return {front:a,back:b,frontIndex:indexA,backIndex:indexB};
 
 }

@@ -5566,3 +5566,4 @@
     letter-spacing: .12em;
   }
 }
+.board-piece-special-one { display:flex; flex-direction:column; align-items:center; gap:2px; font-size:10px; line-height:1.1; color:#7c2d12; }

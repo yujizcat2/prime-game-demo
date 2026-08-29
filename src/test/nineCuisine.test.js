@@ -14,20 +14,13 @@ import { createEightPalaceInitialValues, createRandomInitialValues } from "../ga
 import { applyCollection } from "../game/collectionRules";
 
 const p=(foodType,value=10)=>({foodType,value});
-const cases=[
- [T.LAND,T.VEGETABLE,T.DAIRY_EGG],[T.AQUATIC,T.GRAIN_BEAN,T.DAIRY_EGG],[T.LAND,T.GRAIN_BEAN,T.FRUIT],[T.AQUATIC,T.VEGETABLE,T.FRUIT],
- [T.VEGETABLE,T.DAIRY_EGG,T.SEASONING],[T.VEGETABLE,T.FRUIT,T.SPICE],[T.DAIRY_EGG,T.SEASONING,T.LAND],[T.DAIRY_EGG,T.SPICE,T.AQUATIC],
- [T.SEASONING,T.LAND,T.VEGETABLE],[T.SEASONING,T.AQUATIC,T.GRAIN_BEAN],
- [T.AQUATIC,T.AQUATIC,T.LAND],[T.LAND,T.AQUATIC,T.AQUATIC],[T.SPICE,T.SPICE,T.SEASONING],
- [T.LAND,T.DAIRY_EGG,T.VEGETABLE],[T.LAND,T.FRUIT,T.SPICE],[T.VEGETABLE,T.SEASONING,T.DAIRY_EGG],[T.VEGETABLE,T.SPICE,T.AQUATIC]
-];
-for(const [a,b,result] of cases){assert.equal(combineFoodType(p(a),p(b)),result);assert.equal(combineFoodType(p(b),p(a)),result);}
+for(const a of BASE_FOOD_TYPES)for(const b of BASE_FOOD_TYPES){assert.equal(combineFoodType(p(a),p(b)),a);}
 assert.equal(combineFoodType(p(T.LAND,58),p(T.VEGETABLE,67)),T.DRINK);
 assert.equal(combineValue(58,67),25);
-assert.equal(combineFoodType(p(T.LAND,50),p(T.VEGETABLE,51)),T.DAIRY_EGG);
+assert.equal(combineFoodType(p(T.LAND,50),p(T.VEGETABLE,51)),T.LAND);
 assert.equal(combineFoodType(p(T.LAND,50),p(T.VEGETABLE,52)),T.DRINK);
-assert.equal(combineFoodType(p(T.DRINK),p(T.LAND)),T.AQUATIC);
-assert.equal(combineFoodType(p(T.DRINK),p(T.AQUATIC)),T.LAND);
+assert.equal(combineFoodType(p(T.DRINK),p(T.LAND)),null);
+assert.equal(combineFoodType(p(T.DRINK),p(T.LAND),T.SPICE),T.SPICE);
 assert.equal(combineFoodType(p(T.DRINK),p(T.DRINK)),T.DRINK);
 assert.equal(Object.keys(DRINK_DATA).length,100);
 const baseNames=new Set([LAND_DATA,AQUATIC_DATA,VEGETABLE_DATA,GRAIN_BEAN_DATA,DAIRY_EGG_DATA,FRUIT_DATA,SEASONING_DATA,SPICE_DATA].flatMap(data=>Object.values(data)));
