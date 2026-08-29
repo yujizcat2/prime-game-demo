@@ -373,6 +373,9 @@ export function resolveGameOver(
   const boardCount = getBoardCount(state.board);
   const isEightPalace = state.gameMode === GAME_MODES.EIGHT_PALACE;
   const keyCount = getEightPalaceKeyCount(state.eightPalaceKeys);
+  const activeState = state.gameOver
+    ? {...state, gameOver: false, gameOverReason: null}
+    : state;
 
 
   if(isEightPalace && keyCount === 8 && boardCount <= 2){
@@ -398,7 +401,7 @@ export function resolveGameOver(
 
 
   if(
-    getLegalActions(state).length === 0
+    getLegalActions(activeState).length === 0
   ){
 
     const gameOverReason = isEightPalace
@@ -418,5 +421,5 @@ export function resolveGameOver(
   }
 
 
-  return state;
+  return activeState;
 }

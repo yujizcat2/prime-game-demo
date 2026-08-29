@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { applyAction, createGameState, getLegalActions } from "../game/gameEngine";
+import { applyAction, createGameState, getLegalActions, resolveGameOver } from "../game/gameEngine";
 import { BASE_FOOD_TYPES, FOOD_TYPES as T, createSpecialOne } from "../game/rules";
 import { createMazeStateKey } from "../game/mazeHistory";
 import { createSimulationState, getSimulationLegalActions, applySimulationAction } from "./simulationEngine";
@@ -35,4 +35,9 @@ const keyStateA=stateWith([{value:1,foodType:T.LAND}]),keyStateB=stateWith([{val
 
 const sim=createSimulationState([10,20,30]);sim.board[0].foodType=T.LAND;sim.board[1].foodType=T.FRUIT;assert.equal(getSimulationLegalActions(sim).filter(a=>a.type==="combine_ordered"&&a.indexes.includes(0)&&a.indexes.includes(1)).length,2);const simAction=getSimulationLegalActions(sim).find(a=>a.type==="combine_ordered"&&a.indexes[0]===1&&a.indexes[1]===0);assert.equal(applySimulationAction(sim,simAction),true);assert.equal(sim.board.find(p=>p?.value===30&&p.parents)?.foodType,T.FRUIT);
 const simDrink=createSimulationState([3,2,7]);simDrink.board[0].foodType=T.DRINK;simDrink.board[1].foodType=T.LAND;assert.equal(applySimulationAction(simDrink,{type:"combine_drink_convert",indexes:[0,1],resultFoodType:T.DAIRY_EGG}),true);assert.equal(simDrink.board.filter(Boolean).length,2);assert.equal(simDrink.board[0],null);assert.equal(simDrink.board[1].value,5);assert.equal(simDrink.board[1].foodType,T.DAIRY_EGG);
+
+const fullSpecialState=(specialOne,normalTarget=false)=>{const state=stateWith([{value:1,foodType:T.LAND}]);state.board=Array(9).fill(null);state.board[0]={...state.board[0],value:1,foodType:T.LAND,specialOne};const primes=normalTarget?[23,2,3,5,7,11,13,17]:[2,3,5,7,11,13,17,19];for(let i=1;i<9;i++)state.board[i]={id:100+i,value:primes[i-1],foodType:normalTarget&&i===1?T.LAND:T.DRINK,purity:"pure",parents:null,parentFoods:null};state.gameOver=true;state.gameOverReason="no_legal_actions";return state;};
+const fullKey=resolveGameOver(fullSpecialState(createSpecialOne(T.LAND,T.LAND)));assert.equal(fullKey.gameOver,false);assert.ok(getLegalActions(fullKey).some(action=>action.type==="claim_key"));
+const fullFunction=resolveGameOver(fullSpecialState(createSpecialOne(T.LAND,T.FRUIT),true));assert.equal(fullFunction.gameOver,false);assert.ok(getLegalActions(fullFunction).some(action=>action.type==="apply_one"));
+const inertFunction=resolveGameOver(fullSpecialState(createSpecialOne(T.LAND,T.FRUIT),false));assert.equal(inertFunction.gameOver,true);assert.equal(getLegalActions({...inertFunction,gameOver:false}).length,0);
 console.log("special rules tests passed");
