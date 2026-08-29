@@ -11,7 +11,7 @@ function snapshotBoard(board){return board.map((piece,index)=>piece?{index,value
 export function createEightPalaceBoardKey(state){
   const board=state.board.map(piece=>piece?[piece.value,piece.foodType,piece.purity??null,piece.sourceKey??null,piece.specialOne?.identity??null,piece.parents??null,piece.parentFoods?.map(parent=>[parent.value,parent.foodType,parent.purity??null])??null]:null);
   const keys=Object.keys(state.eightPalaceKeys??{}).filter(type=>state.eightPalaceKeys[type]).sort();
-  return JSON.stringify({board,keys});
+  return JSON.stringify({board,keys,usedCombinationPairs:[...(state.usedCombinationPairs??[])].sort(),usedKeyTriggerValues:[...(state.usedKeyTriggerValues??[])].sort((a,b)=>a-b)});
 }
 
 function countMissingKeyOpportunities(state){
@@ -21,22 +21,21 @@ function countMissingKeyOpportunities(state){
   for(let i=0;i<pieces.length;i++)for(let j=i+1;j<pieces.length;j++){
     const first=pieces[i],second=pieces[j];
     if(first.foodType!==second.foodType||!missing.has(first.foodType))continue;
-    const divisor=gcd(first.value,second.value);
-    if(divisor>1&&(first.value/divisor===1||second.value/divisor===1))count++;
+    if(getAvailableKeyTriggerValue(state,first,second)!==null)count++;
   }
   return count;
 }
 
 function isSuccess(state){return getEightPalaceKeyCount(state.eightPalaceKeys)===8&&getBoardCount(state.board)<=2;}
 
-function canReduceToOne(a,b){const divisor=gcd(a.value,b.value);return divisor>1&&(a.value/divisor===1||b.value/divisor===1);}
-
+function getKeyTriggerValue(a,b){const divisor=gcd(a.value,b.value);if(divisor<=1)return null;if(a.value/divisor===1)return a.value;if(b.value/divisor===1)return b.value;return null;}
+function getAvailableKeyTriggerValue(state,a,b){const value=getKeyTriggerValue(a,b);return value!==null&&!(state.usedKeyTriggerValues??[]).includes(value)?value:null;}
 export function getKeyPotential(state,foodType){
   const pieces=state.board.filter(piece=>piece?.foodType===foodType&&!piece.specialOne);
   let directPairs=0,functionRepairs=0;
   for(let i=0;i<pieces.length;i++)for(let j=i+1;j<pieces.length;j++){
-    if(canReduceToOne(pieces[i],pieces[j]))directPairs++;
-    if(canReduceToOne({...pieces[i],value:pieces[i].value+1},pieces[j])||canReduceToOne(pieces[i],{...pieces[j],value:pieces[j].value+1}))functionRepairs++;
+    if(getAvailableKeyTriggerValue(state,pieces[i],pieces[j])!==null)directPairs++;
+    if(getAvailableKeyTriggerValue(state,{...pieces[i],value:pieces[i].value+1},pieces[j])!==null||getAvailableKeyTriggerValue(state,pieces[i],{...pieces[j],value:pieces[j].value+1})!==null)functionRepairs++;
   }
   const hasFunction=state.board.some(piece=>piece?.specialOne?.kind===SPECIAL_ONE_KINDS.FUNCTION);
   const pendingKey=state.board.some(piece=>piece?.specialOne?.kind===SPECIAL_ONE_KINDS.KEY&&piece.specialOne.keyType===foodType);
@@ -164,7 +163,7 @@ export async function runEightPalaceGame({depth=EIGHT_PALACE_SOLVER_DEFAULTS.dep
   const missingKeyTypes=getMissingEightPalaceKeyTypes(state.eightPalaceKeys);
   const extinctMissingTypes=missingKeyTypes.filter(type=>isMissingFoodTypeExtinct(state,type));
   const lastDrinkAction=[...actionPath].reverse().find(action=>action.type.startsWith("combine")&&action.inputs.some(input=>input.foodType===FOOD_TYPES.DRINK));
-  return {success,initialOpening:opening.map(item=>({...item})),initialBoard,minimumBoardCount,finalBoardCount,finalKeyCount,acquiredKeyTypes:Object.keys(state.eightPalaceKeys).filter(type=>state.eightPalaceKeys[type]),missingKeyTypes,steps:state.steps,actions:actionPath.length,finalBoard:snapshotBoard(state.board),actionPath,failureReason,gameOverReason:state.gameOverReason,repeatedPrunes,generatedNodes,prematureClear:finalKeyCount<8&&finalBoardCount<=2,extinctMissingTypes,lastDrinkCombineStep:lastDrinkAction?.number??null,sevenKeyFailureMissingType:!success&&finalKeyCount===7?missingKeyTypes[0]??null:null};
+  return {success,initialOpening:opening.map(item=>({...item})),initialBoard,minimumBoardCount,finalBoardCount,finalKeyCount,acquiredKeyTypes:Object.keys(state.eightPalaceKeys).filter(type=>state.eightPalaceKeys[type]),missingKeyTypes,usedKeyTriggerValues:[...(state.usedKeyTriggerValues??[])],steps:state.steps,actions:actionPath.length,finalBoard:snapshotBoard(state.board),actionPath,failureReason,gameOverReason:state.gameOverReason,repeatedPrunes,generatedNodes,prematureClear:finalKeyCount<8&&finalBoardCount<=2,extinctMissingTypes,lastDrinkCombineStep:lastDrinkAction?.number??null,sevenKeyFailureMissingType:!success&&finalKeyCount===7?missingKeyTypes[0]??null:null};
 }
 
 function createKeyDistribution(results){const distribution=Object.fromEntries(Array.from({length:9},(_,count)=>[count,0]));for(const result of results)distribution[result.finalKeyCount]++;return distribution;}

@@ -39,6 +39,7 @@ const functionOnly={...extinctWithDrink,board:extinctWithDrink.board.map((piece,
 assert.equal(isMissingFoodTypeExtinct(functionOnly,FOOD_TYPES.FRUIT),true);
 const pendingKey={...extinctWithDrink,board:extinctWithDrink.board.map((piece,index)=>index===fruitIndex?{...piece,foodType:FOOD_TYPES.FRUIT,specialOne:{kind:SPECIAL_ONE_KINDS.KEY,keyType:FOOD_TYPES.FRUIT,identity:"key:fruit"}}:piece)};
 assert.equal(isMissingFoodTypeExtinct(pendingKey,FOOD_TYPES.FRUIT),false);
+const keyPotentialState={...state,board:state.board.map((piece,index)=>index===fruitIndex?{...piece,value:4,foodType:FOOD_TYPES.LAND}:piece)};const usedTriggerPotential={...keyPotentialState,usedKeyTriggerValues:[2]};assert.ok(getKeyPotential(usedTriggerPotential,FOOD_TYPES.LAND)<getKeyPotential(keyPotentialState,FOOD_TYPES.LAND));
 const extinctOpening=easyOpening.filter(piece=>piece.foodType!==FOOD_TYPES.FRUIT);
 const extinctResult=await runEightPalaceGame({initialOpening:extinctOpening});
 assert.equal(extinctResult.failureReason,"extinct food type");
@@ -61,6 +62,8 @@ assert.notEqual(
   createEightPalaceBoardKey(stateWithKey),
   "identical boards with different keys must have different visited keys"
 );
+assert.notEqual(createEightPalaceBoardKey(state),createEightPalaceBoardKey({...state,usedCombinationPairs:["6-89"]}));
+assert.notEqual(createEightPalaceBoardKey(state),createEightPalaceBoardKey({...state,usedKeyTriggerValues:[2]}));
 const fixed = await runFixedEightPalaceAttempts({
   attempts: 2,
   fixedOpening: easyOpening,

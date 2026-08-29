@@ -10,6 +10,7 @@ import {
   combineValue,
   combineFoodType,
   combineFoodPurity,
+  BASE_FOOD_TYPES,
   SPECIAL_ONE_KINDS,
   canApplyFunctionOne
 } from "../game/rules";
@@ -300,6 +301,8 @@ export default function useGame(){
     ??
 
     {};
+
+  const usedKeyTriggerValues=gameState?.usedKeyTriggerValues??[];
 
 
   const targetFoodTypes =
@@ -784,6 +787,18 @@ export default function useGame(){
             {
 
               divisor,
+
+              keyOutcome:(()=>{
+                if(!["eightPalace","simpleEightPalace"].includes(gameState?.gameMode))return null;
+                const firstResult=first.piece.value/divisor,secondResult=second.piece.value/divisor;
+                const triggerPiece=firstResult===1?first.piece:secondResult===1?second.piece:null;
+                if(!triggerPiece)return null;
+                const triggerValue=triggerPiece.value,foodType=triggerPiece.foodType;
+                if(first.piece.foodType!==second.piece.foodType||!BASE_FOOD_TYPES.includes(foodType))return {status:"ineligible",triggerValue,foodType};
+                if(gameState.eightPalaceKeys?.[foodType])return {status:"owned",triggerValue,foodType};
+                if((gameState.usedKeyTriggerValues??[]).includes(triggerValue))return {status:"used",triggerValue,foodType};
+                return {status:"available",triggerValue,foodType};
+              })(),
 
               results: [
 
@@ -1400,6 +1415,8 @@ export default function useGame(){
     gameMode,
 
     eightPalaceKeys,
+
+    usedKeyTriggerValues,
 
     targetFoodTypes,
 

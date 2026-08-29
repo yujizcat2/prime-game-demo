@@ -20,9 +20,11 @@ import {
 
 import {
   appendRecentActionSignature,
+  createCombinationPairKey,
   createCombineActionSignature,
   createReduceActionSignature,
-  getActionFatigue
+  getActionFatigue,
+  hasUsedCombinationPair
 } from "../game/actionFatigue";
 
 
@@ -405,6 +407,12 @@ export function createSimulationState(
     recentActionSignatures:
       [],
 
+    usedCombinationPairs:
+      [],
+
+    usedKeyTriggerValues:
+      [],
+
     latestCollectionReward:
       0,
 
@@ -669,6 +677,8 @@ function canCombineIndexes(
     return false;
 
   }
+
+  if(hasUsedCombinationPair(state,a.value,b.value))return false;
 
 
 
@@ -1070,6 +1080,8 @@ function applyCombine(
     actionSignature
   );
 
+  state.usedCombinationPairs=[...(state.usedCombinationPairs??[]),createCombinationPairKey(a.value,b.value)];
+
 
 
   return true;
@@ -1417,10 +1429,12 @@ function applyReduce(
 
 
 
-  if(firstFoodType===secondFoodType&&BASE_FOOD_TYPES.includes(firstFoodType)&&!state.eightPalaceKeys?.[firstFoodType]&&(firstResult===1||secondResult===1)){
+  const keyTriggerValue=firstResult===1?oldA:secondResult===1?oldB:null;
+  if(firstFoodType===secondFoodType&&BASE_FOOD_TYPES.includes(firstFoodType)&&!state.eightPalaceKeys?.[firstFoodType]&&keyTriggerValue!==null&&!(state.usedKeyTriggerValues??[]).includes(keyTriggerValue)){
     state.eightPalaceKeys ??= Object.fromEntries(BASE_FOOD_TYPES.map(type=>[type,null]));
-    state.eightPalaceKeys[firstFoodType]={foodType:firstFoodType,value:1};
+    state.eightPalaceKeys[firstFoodType]={foodType:firstFoodType,value:1,triggerValue:keyTriggerValue};
     state.latestEightPalaceKey=state.eightPalaceKeys[firstFoodType];
+    state.usedKeyTriggerValues=[...(state.usedKeyTriggerValues??[]),keyTriggerValue];
   }
 
   if(firstResult===1)state.board[indexA]=null;
@@ -1972,6 +1986,12 @@ export function cloneSimulationState(
     recentActionSignatures:
       [...(state.recentActionSignatures ?? [])],
 
+    usedCombinationPairs:
+      [...(state.usedCombinationPairs ?? [])],
+
+    usedKeyTriggerValues:
+      [...(state.usedKeyTriggerValues ?? [])],
+
     latestCollectionReward:
       state.latestCollectionReward ?? 0,
 
@@ -2093,6 +2113,22 @@ export function getSimulationHistorySignature(
     +
 
     (state.recentActionSignatures ?? []).join(",")
+
+    +
+
+    ":"
+
+    +
+
+    [...(state.usedCombinationPairs??[])].sort().join(",")
+
+    +
+
+    ":"
+
+    +
+
+    [...(state.usedKeyTriggerValues??[])].sort((a,b)=>a-b).join(",")
 
   );
 

@@ -66,7 +66,7 @@ function SingleHint({item}){
   );
 }
 
-function PairHint({status}){
+function PairHint({status,keyOutcome}){
   const {first, second, combine, reduce} = status;
   const firstName = getItemName(first);
   const secondName = getItemName(second);
@@ -90,6 +90,13 @@ function PairHint({status}){
     title = "料理处理";
     description = "这两份同类料理可以进一步处理。";
     instruction = "点击预览确认处理结果。";
+  }
+  if(canReduce&&keyOutcome){
+    const typeName=getTypeShortName(keyOutcome.foodType);
+    if(keyOutcome.status==="available")description=`${keyOutcome.triggerValue} → 1 · 可获得：${typeName}钥匙`;
+    else if(keyOutcome.status==="used")description=`${keyOutcome.triggerValue} → 1 · 已触发过钥匙，本次无新钥匙`;
+    else if(keyOutcome.status==="owned")description=`${keyOutcome.triggerValue} → 1 · ${typeName}钥匙已获得，本次不会重复获得`;
+    else description=`${keyOutcome.triggerValue} → 1 · 本次不会获得钥匙`;
   }
   else if(combine.reason === "没有空位，放不下新的数字"){
     description = "料理台已经放满，先处理一些料理。";
@@ -122,10 +129,10 @@ function PairHint({status}){
   );
 }
 
-export default function ActionHintPanel({numbers, selected}){
+export default function ActionHintPanel({numbers, selected, keyOutcome=null}){
   const status = getActionStatus(numbers, selected);
 
-  if(status.type === "pair") return <PairHint status={status} />;
+  if(status.type === "pair") return <PairHint status={status} keyOutcome={keyOutcome} />;
 
   if(status.type === "single" || status.type === "one"){
     const item = status.item ?? numbers.find(number => number.id === selected[0]);

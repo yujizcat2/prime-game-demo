@@ -100,10 +100,10 @@ function App(){
   useEffect(() => {
     const key = game.latestEightPalaceKey;
     if(!key)return undefined;
-    setKeyNotice(`恭喜获得${FOOD_TYPE_LABELS[key.foodType] ?? key.foodType}钥匙！`);
-    const timer=window.setTimeout(()=>setKeyNotice(null),2200);
-    return ()=>window.clearTimeout(timer);
+    setKeyNotice(`恭喜获得${FOOD_TYPE_LABELS[key.foodType] ?? key.foodType}钥匙！ · 触发数字 ${key.triggerValue}`);
   },[game.latestEightPalaceKey]);
+
+  useEffect(()=>{if(!keyNotice)return undefined;const timer=window.setTimeout(()=>setKeyNotice(null),2200);return()=>window.clearTimeout(timer);},[keyNotice]);
 
 
   // ==========================================================
@@ -424,6 +424,8 @@ function App(){
 
         game.reduceNumbers();
 
+        if(game.preview.reduce.keyOutcome?.status==="used")setKeyNotice(`${game.preview.reduce.keyOutcome.triggerValue} 已经触发过钥匙，本次没有获得新钥匙`);
+
 
         setBoardAnimation({
           type: "reduce",
@@ -679,6 +681,7 @@ function App(){
               selected={
                 selectedIdsForLegacyUI
               }
+              keyOutcome={game.preview?.reduce?.keyOutcome??null}
             />
 
           </div>
@@ -843,6 +846,7 @@ function App(){
                   keys={
                     game.eightPalaceKeys
                   }
+                  usedKeyTriggerValues={game.usedKeyTriggerValues}
                   targetFoodTypes={
                     game.targetFoodTypes
                   }

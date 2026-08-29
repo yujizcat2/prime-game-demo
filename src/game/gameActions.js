@@ -35,9 +35,11 @@ import {
 
 import {
   appendRecentActionSignature,
+  createCombinationPairKey,
   createCombineActionSignature,
   createReduceActionSignature,
-  getActionFatigue
+  getActionFatigue,
+  hasUsedCombinationPair
 } from "./actionFatigue";
 
 import {
@@ -140,6 +142,8 @@ export function canCombineCells(
     return false;
 
   }
+
+  if(hasUsedCombinationPair(state,a.value,b.value))return false;
 
 
 
@@ -513,6 +517,7 @@ export function combineCells(
 
   nextState = {
     ...nextState,
+    usedCombinationPairs:[...(state.usedCombinationPairs??[]),createCombinationPairKey(a.value,b.value)],
     recentActionSignatures: appendRecentActionSignature(
       state.recentActionSignatures,
       createCombineActionSignature(a.value, b.value, result)

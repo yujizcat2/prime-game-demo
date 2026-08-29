@@ -31,6 +31,7 @@ function createKeyRecord(piece){
   return {
     foodType: piece.foodType,
     value: 1,
+    triggerValue: piece.value,
     parents: Array.isArray(piece.parents) ? [...piece.parents] : null,
     parentFoods: Array.isArray(piece.parentFoods)
       ? piece.parentFoods.map(parent => ({...parent}))
@@ -64,8 +65,11 @@ export function applyEightPalaceKeyFromReduction(
     return state;
   }
 
+  if((state.usedKeyTriggerValues??[]).includes(reducedToOne.value))return state;
+
   return {
     ...state,
+    usedKeyTriggerValues:[...(state.usedKeyTriggerValues??[]),reducedToOne.value],
     eightPalaceKeys: {
       ...state.eightPalaceKeys,
       [reducedToOne.foodType]: createKeyRecord(reducedToOne)

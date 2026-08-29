@@ -301,6 +301,12 @@ export function createGameState(
     recentActionSignatures:
       [],
 
+    usedCombinationPairs:
+      [],
+
+    usedKeyTriggerValues:
+      [],
+
 
 
 

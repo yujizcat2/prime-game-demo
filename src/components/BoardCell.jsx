@@ -526,13 +526,7 @@ export default function BoardCell({
 
 
 
-            return getFoodName(
-
-              parent.value,
-
-              parent.foodType
-
-            );
+            return `${parent.value} ${getFoodName(parent.value,parent.foodType)}`;
 
           }
 

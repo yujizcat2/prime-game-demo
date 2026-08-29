@@ -1,5 +1,13 @@
 export const ACTION_FATIGUE_WINDOW = 20;
 
+export function createCombinationPairKey(valueA,valueB){
+  return `${Math.min(valueA,valueB)}-${Math.max(valueA,valueB)}`;
+}
+
+export function hasUsedCombinationPair(state,valueA,valueB){
+  return (state?.usedCombinationPairs??[]).includes(createCombinationPairKey(valueA,valueB));
+}
+
 
 export function createCombineActionSignature(valueA, valueB, result){
   const [left, right] = [valueA, valueB].sort((a, b) => a - b);

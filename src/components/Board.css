@@ -3600,9 +3600,19 @@
       6px;
 
     font-size:
-      9px;
+      8px;
+
+    flex-direction: column;
+
+    line-height: 1.1;
+
+    white-space: normal;
 
   }
+
+  .board-piece-origin-plus { display: none; }
+
+  .board-piece-origin > span:not(.board-piece-origin-plus) { white-space: nowrap; }
 
 
   .board-preview-status {
@@ -5807,4 +5817,16 @@
   .board-piece:has(.board-piece-candidate-markers) .board-piece-cuisine-mark {
     top: 27px;
   }
+}
+
+@media (max-width: 560px) {
+  .board-piece-origin {
+    flex-direction: column;
+    font-size: 8px;
+    line-height: 1.1;
+    white-space: normal;
+  }
+
+  .board-piece-origin-plus { display: none; }
+  .board-piece-origin > span:not(.board-piece-origin-plus) { white-space: nowrap; }
 }

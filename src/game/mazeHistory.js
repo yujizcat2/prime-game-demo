@@ -544,6 +544,12 @@ export function createMazeRuleState(
 
       ),
 
+    usedCombinationPairs:
+      [...(state?.usedCombinationPairs??[])].sort(),
+
+    usedKeyTriggerValues:
+      [...(state?.usedKeyTriggerValues??[])].sort((a,b)=>a-b),
+
     eightPalaceKeys:
       Object.keys(state?.eightPalaceKeys ?? {})
         .filter(foodType => Boolean(state.eightPalaceKeys[foodType]))

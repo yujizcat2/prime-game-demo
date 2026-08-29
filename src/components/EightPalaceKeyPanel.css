@@ -37,6 +37,14 @@
   gap: 8px;
 }
 
+.eight-key-used-values {
+  margin: -7px 0 12px;
+  color: #66766b;
+  font-size: 11px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
 .eight-key-cell,
 .eight-key-center {
   min-height: 88px;
@@ -66,6 +74,8 @@
   margin: 3px 0;
   font-size: 20px;
 }
+
+.eight-key-cell.is-unlocked strong { font-size: 14px; }
 
 .eight-key-type {
   font-size: 12px;

@@ -30,6 +30,7 @@ function formatParents(key){
 
 export default function EightPalaceKeyPanel({
   keys = {},
+  usedKeyTriggerValues = [],
   targetFoodTypes = BASE_FOOD_TYPES,
   simple = false
 }){
@@ -45,6 +46,8 @@ export default function EightPalaceKeyPanel({
         <strong>收藏 {keyCount} / {targetFoodTypes.length}</strong>
       </div>
 
+      {!simple&&<div className="eight-key-used-values">已用钥匙数字：{usedKeyTriggerValues.length?usedKeyTriggerValues.join(" · "):"暂无"}</div>}
+
       <div className="eight-key-grid">
         {targetFoodTypes.map((foodType, index) => {
           const key = keys[foodType];
@@ -57,7 +60,7 @@ export default function EightPalaceKeyPanel({
               <span className="eight-key-type">{getFoodTypeShortName(foodType)}</span>
               {key
                 ? <>
-                    <strong>{key.value}</strong>
+                    <strong>触发 {key.triggerValue}</strong>
                     <span>父母：{formatParents(key)}</span>
                   </>
                 : <span>未解锁</span>
