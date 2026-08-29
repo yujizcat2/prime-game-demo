@@ -685,6 +685,11 @@ export default function Board({
                       "
                     />
 
+                    <span
+                      className="board-piece-cuisine-mark"
+                      aria-hidden="true"
+                    />
+
 
 
                     {

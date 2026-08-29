@@ -5577,3 +5577,239 @@
   }
 }
 .board-piece-special-one { display:flex; flex-direction:column; align-items:center; gap:2px; font-size:10px; line-height:1.1; color:#7c2d12; }
+
+/* ============================================================
+   Nine-cuisine visual system
+
+   The type selectors below are the single source of truth for card and
+   preview colour, border, pattern, emblem and selected highlight tokens.
+   Operational states intentionally only add rings/markers above this layer.
+   ============================================================ */
+
+:is(.board-piece, .board-preview) {
+  --cuisine-primary: #64748b;
+  --cuisine-secondary: #94a3b8;
+  --cuisine-border: #cbd5e1;
+  --cuisine-surface: #f8fafc;
+  --cuisine-glow: rgba(100, 116, 139, .28);
+  --cuisine-pattern: linear-gradient(145deg, rgba(255,255,255,.7), transparent);
+  --cuisine-symbol: "·";
+  color: var(--cuisine-primary);
+  border-color: color-mix(in srgb, var(--cuisine-border) 62%, white);
+  background-color: var(--cuisine-surface);
+  background-image: var(--cuisine-pattern);
+  background-size: auto;
+  background-position: center;
+}
+
+:is(.board-piece--land, .board-preview--land) {
+  --cuisine-primary: #315f78;
+  --cuisine-secondary: #7899a8;
+  --cuisine-border: #7093a4;
+  --cuisine-surface: #f1f6f7;
+  --cuisine-glow: rgba(49, 95, 120, .34);
+  --cuisine-symbol: "▰";
+  --cuisine-pattern:
+    linear-gradient(28deg, transparent 0 42%, rgba(49,95,120,.055) 43% 47%, transparent 48% 100%),
+    linear-gradient(145deg, rgba(255,255,255,.72), transparent 68%);
+  background-size: 24px 18px, auto;
+}
+
+:is(.board-piece--aquatic, .board-preview--aquatic) {
+  --cuisine-primary: #177184;
+  --cuisine-secondary: #67a8b2;
+  --cuisine-border: #5aa0ad;
+  --cuisine-surface: #edf8f8;
+  --cuisine-glow: rgba(23, 113, 132, .34);
+  --cuisine-symbol: "≈";
+  --cuisine-pattern:
+    repeating-radial-gradient(ellipse at 8px 4px, transparent 0 8px, rgba(23,113,132,.06) 9px 10px, transparent 11px 16px),
+    linear-gradient(145deg, rgba(255,255,255,.72), transparent 70%);
+  background-size: 36px 20px, auto;
+}
+
+:is(.board-piece--vegetable, .board-preview--vegetable) {
+  --cuisine-primary: #39704b;
+  --cuisine-secondary: #7ca285;
+  --cuisine-border: #78a184;
+  --cuisine-surface: #f0f7f1;
+  --cuisine-glow: rgba(57, 112, 75, .34);
+  --cuisine-symbol: "◇";
+  --cuisine-pattern:
+    radial-gradient(ellipse at 20% 20%, rgba(57,112,75,.065) 0 2px, transparent 3px),
+    linear-gradient(58deg, transparent 47%, rgba(57,112,75,.045) 48% 51%, transparent 52%),
+    linear-gradient(145deg, rgba(255,255,255,.68), transparent 70%);
+  background-size: 22px 22px, 30px 30px, auto;
+}
+
+:is(.board-piece--grainBean, .board-preview--grainBean) {
+  --cuisine-primary: #747326;
+  --cuisine-secondary: #aaa15e;
+  --cuisine-border: #aaa25f;
+  --cuisine-surface: #f8f6e9;
+  --cuisine-glow: rgba(116, 115, 38, .34);
+  --cuisine-symbol: "∥";
+  --cuisine-pattern:
+    repeating-linear-gradient(90deg, transparent 0 11px, rgba(116,115,38,.055) 12px 13px, transparent 14px 22px),
+    linear-gradient(145deg, rgba(255,255,255,.7), transparent 72%);
+  background-size: auto;
+}
+
+:is(.board-piece--dairyEgg, .board-preview--dairyEgg) {
+  --cuisine-primary: #766196;
+  --cuisine-secondary: #aa99bb;
+  --cuisine-border: #a697b6;
+  --cuisine-surface: #f7f3f8;
+  --cuisine-glow: rgba(118, 97, 150, .34);
+  --cuisine-symbol: "○";
+  --cuisine-pattern:
+    radial-gradient(ellipse at center, transparent 0 7px, rgba(118,97,150,.06) 8px 9px, transparent 10px),
+    linear-gradient(145deg, rgba(255,255,255,.72), transparent 70%);
+  background-size: 34px 26px, auto;
+}
+
+:is(.board-piece--fruit, .board-preview--fruit) {
+  --cuisine-primary: #a04470;
+  --cuisine-secondary: #c3829d;
+  --cuisine-border: #be8199;
+  --cuisine-surface: #fbf1f5;
+  --cuisine-glow: rgba(160, 68, 112, .34);
+  --cuisine-symbol: "●";
+  --cuisine-pattern:
+    radial-gradient(circle at center, rgba(160,68,112,.065) 0 2px, transparent 3px 100%),
+    linear-gradient(145deg, rgba(255,255,255,.74), transparent 72%);
+  background-size: 19px 19px, auto;
+}
+
+:is(.board-piece--seasoning, .board-preview--seasoning) {
+  --cuisine-primary: #a06427;
+  --cuisine-secondary: #c49768;
+  --cuisine-border: #bd8e5d;
+  --cuisine-surface: #fbf4e9;
+  --cuisine-glow: rgba(160, 100, 39, .34);
+  --cuisine-symbol: "+";
+  --cuisine-pattern:
+    radial-gradient(circle, rgba(160,100,39,.075) 0 1px, transparent 2px),
+    radial-gradient(circle, rgba(160,100,39,.045) 0 1px, transparent 2px),
+    linear-gradient(145deg, rgba(255,255,255,.72), transparent 70%);
+  background-position: 0 0, 7px 9px, center;
+  background-size: 17px 17px, 19px 19px, auto;
+}
+
+:is(.board-piece--spice, .board-preview--spice) {
+  --cuisine-primary: #b14b3d;
+  --cuisine-secondary: #d08067;
+  --cuisine-border: #ca7865;
+  --cuisine-surface: #fbf0ec;
+  --cuisine-glow: rgba(177, 75, 61, .34);
+  --cuisine-symbol: "✦";
+  --cuisine-pattern:
+    repeating-linear-gradient(132deg, transparent 0 17px, rgba(177,75,61,.06) 18px 19px, transparent 20px 29px),
+    linear-gradient(145deg, rgba(255,255,255,.72), transparent 70%);
+}
+
+:is(.board-piece--drink, .board-preview--drink) {
+  --cuisine-primary: #4356a6;
+  --cuisine-secondary: #7d8fd0;
+  --cuisine-border: #7889c5;
+  --cuisine-surface: #f0f2fb;
+  --cuisine-glow: rgba(67, 86, 166, .36);
+  --cuisine-symbol: "◉";
+  --cuisine-pattern:
+    radial-gradient(circle at center, transparent 0 3px, rgba(67,86,166,.085) 4px 5px, transparent 6px),
+    radial-gradient(circle at center, rgba(67,86,166,.06) 0 2px, transparent 3px),
+    linear-gradient(165deg, rgba(255,255,255,.78) 0 48%, rgba(67,86,166,.035) 49% 53%, transparent 54%);
+  background-position: 0 0, 13px 11px, center;
+  background-size: 28px 28px, 31px 31px, auto;
+}
+
+:is(.board-piece, .board-preview) :is(.board-piece-type-bar, .board-preview-type-bar) {
+  background: var(--cuisine-secondary);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--cuisine-primary) 8%, transparent);
+}
+
+.board-piece-cuisine-mark {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 6;
+  display: grid;
+  width: 18px;
+  height: 18px;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--cuisine-border) 48%, transparent);
+  border-radius: 6px;
+  color: var(--cuisine-primary);
+  background: color-mix(in srgb, var(--cuisine-surface) 78%, white 22%);
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
+  opacity: .72;
+  pointer-events: none;
+}
+
+.board-piece-cuisine-mark::before { content: var(--cuisine-symbol); }
+.board-piece:has(.board-piece-candidate-markers) .board-piece-cuisine-mark { top: 30px; }
+.board-piece--aquatic .board-piece-cuisine-mark { border-radius: 5px 9px 5px 9px; }
+.board-piece--vegetable .board-piece-cuisine-mark { transform: rotate(45deg); border-radius: 5px 9px 5px 9px; }
+.board-piece--vegetable .board-piece-cuisine-mark::before { transform: rotate(-45deg); }
+.board-piece--grainBean .board-piece-cuisine-mark { border-radius: 9px 4px; }
+.board-piece--dairyEgg .board-piece-cuisine-mark { border-radius: 50% 50% 46% 46%; }
+.board-piece--fruit .board-piece-cuisine-mark { border-radius: 50%; }
+.board-piece--seasoning .board-piece-cuisine-mark { border-radius: 4px; }
+.board-piece--spice .board-piece-cuisine-mark { transform: rotate(45deg); border-radius: 4px; }
+.board-piece--spice .board-piece-cuisine-mark::before { transform: rotate(-45deg); }
+.board-piece--drink .board-piece-cuisine-mark { border-radius: 50%; box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--cuisine-secondary) 9%, transparent); }
+
+.board-piece--selected {
+  color: var(--cuisine-primary) !important;
+  border-color: var(--cuisine-primary) !important;
+  background-color: color-mix(in srgb, var(--cuisine-surface) 88%, var(--cuisine-secondary) 12%) !important;
+  background-image: var(--cuisine-pattern) !important;
+  box-shadow:
+    inset 0 0 0 2px color-mix(in srgb, var(--cuisine-secondary) 34%, transparent),
+    0 0 0 3px color-mix(in srgb, var(--cuisine-primary) 22%, transparent),
+    0 9px 20px var(--cuisine-glow) !important;
+  filter: saturate(1.06);
+}
+
+.board-piece--selected::before { border-color: color-mix(in srgb, var(--cuisine-primary) 16%, transparent); }
+.board-piece--selected .board-piece-selected-ring { border-color: color-mix(in srgb, var(--cuisine-secondary) 32%, white); }
+.board-piece--selected :is(.board-piece-number, .board-piece-name) {
+  color: var(--cuisine-primary) !important;
+  text-shadow: none;
+}
+.board-piece--selected :is(.board-piece-price, .board-piece-price span, .board-piece-origin, .board-piece-pure, .board-piece-cuisine-type) {
+  color: color-mix(in srgb, var(--cuisine-primary) 82%, #334155) !important;
+}
+.board-piece--selected .board-piece-cuisine-mark { opacity: 1; box-shadow: 0 0 0 2px color-mix(in srgb, var(--cuisine-primary) 12%, transparent); }
+
+.board-piece--combine-candidate,
+.board-piece--reduce-candidate,
+.board-piece--remove-candidate {
+  background-color: var(--cuisine-surface);
+  background-image: var(--cuisine-pattern);
+}
+
+.board-preview {
+  opacity: .84;
+  border-color: color-mix(in srgb, var(--cuisine-border) 72%, transparent);
+  filter: saturate(.96) brightness(1.01);
+}
+.board-preview .board-piece-cuisine-mark { opacity: .64; }
+
+@media (max-width: 560px) {
+  .board-piece-cuisine-mark {
+    top: 8px;
+    right: 8px;
+    width: 15px;
+    height: 15px;
+    border-radius: 5px;
+    font-size: 10px;
+  }
+
+  .board-piece:has(.board-piece-candidate-markers) .board-piece-cuisine-mark {
+    top: 27px;
+  }
+}

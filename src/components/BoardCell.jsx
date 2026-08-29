@@ -1080,6 +1080,14 @@ export default function BoardCell({
             "
           />
 
+          {
+            !isOne && foodType &&
+            <span
+              className="board-piece-cuisine-mark"
+              aria-hidden="true"
+            />
+          }
+
 
 
 
