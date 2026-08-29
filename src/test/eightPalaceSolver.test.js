@@ -55,6 +55,11 @@ assert.notEqual(fixed.results[0].initialOpening, fixed.results[1].initialOpening
 assert.equal(fixed.results.every(attempt => attempt.actionPath.length === attempt.actions), true);
 assert.equal(fixed.results.every(attempt => attempt.actionPath.length === 1), true);
 assert.equal(fixed.results.every(attempt => attempt.actionPath[0].number === 1), true);
+assert.equal(typeof fixed.prematureClearCount,"number");
+assert.deepEqual(Object.keys(fixed.extinctMissingTypeCounts).sort(),[...BASE_FOOD_TYPES].sort());
+assert.ok(Array.isArray(fixed.lastDrinkConsumedSteps));
+assert.ok(Array.isArray(fixed.sevenKeyFailureMissingTypes));
+assert.equal(fixed.results.every(attempt=>typeof attempt.prematureClear==="boolean"&&Array.isArray(attempt.extinctMissingTypes)),true);
 
 const actionState=createGameState(easyOpening);
 const claimedState={...actionState,board:[...actionState.board],eightPalaceKeys:{...actionState.eightPalaceKeys,[BASE_FOOD_TYPES[0]]:{foodType:BASE_FOOD_TYPES[0],value:1}}};

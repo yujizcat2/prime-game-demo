@@ -2,13 +2,14 @@ import { createEightPalaceInitialValues } from "../game/initialValues";
 import { applyAction, createGameState, getBoardCount, getLegalActions, resolveGameOver } from "../game/gameEngine";
 import { getEightPalaceKeyCount, getMissingEightPalaceKeyTypes } from "../game/eightPalaceKeys";
 import { gcd } from "../utils/math";
+import { BASE_FOOD_TYPES, FOOD_TYPES, SPECIAL_ONE_KINDS } from "../game/rules";
 
 export const EIGHT_PALACE_SOLVER_DEFAULTS = Object.freeze({games:100,depth:6,beamWidth:100,maxActions:500});
 
 function snapshotBoard(board){return board.map((piece,index)=>piece?{index,value:piece.value,foodType:piece.foodType,purity:piece.purity??null,parents:piece.parents?[...piece.parents]:null,parentFoods:piece.parentFoods?piece.parentFoods.map(parent=>({...parent})):null,sourceKey:piece.sourceKey??null}:null);}
 
 export function createEightPalaceBoardKey(state){
-  const board=state.board.map(piece=>piece?[piece.value,piece.foodType,piece.purity??null,piece.sourceKey??null,piece.parents??null,piece.parentFoods?.map(parent=>[parent.value,parent.foodType,parent.purity??null])??null]:null);
+  const board=state.board.map(piece=>piece?[piece.value,piece.foodType,piece.purity??null,piece.sourceKey??null,piece.specialOne?.identity??null,piece.parents??null,piece.parentFoods?.map(parent=>[parent.value,parent.foodType,parent.purity??null])??null]:null);
   const keys=Object.keys(state.eightPalaceKeys??{}).filter(type=>state.eightPalaceKeys[type]).sort();
   return JSON.stringify({board,keys});
 }
@@ -28,6 +29,50 @@ function countMissingKeyOpportunities(state){
 
 function isSuccess(state){return getEightPalaceKeyCount(state.eightPalaceKeys)===8&&getBoardCount(state.board)<=2;}
 
+function canReduceToOne(a,b){const divisor=gcd(a.value,b.value);return divisor>1&&(a.value/divisor===1||b.value/divisor===1);}
+
+function getKeyPotential(state,foodType){
+  const pieces=state.board.filter(piece=>piece?.foodType===foodType&&!piece.specialOne);
+  let directPairs=0,functionRepairs=0;
+  for(let i=0;i<pieces.length;i++)for(let j=i+1;j<pieces.length;j++){
+    if(canReduceToOne(pieces[i],pieces[j]))directPairs++;
+    if(canReduceToOne({...pieces[i],value:pieces[i].value+1},pieces[j])||canReduceToOne(pieces[i],{...pieces[j],value:pieces[j].value+1}))functionRepairs++;
+  }
+  const hasFunction=state.board.some(piece=>piece?.specialOne?.kind===SPECIAL_ONE_KINDS.FUNCTION);
+  const hasDrink=state.board.some(piece=>piece?.foodType===FOOD_TYPES.DRINK);
+  const pendingKey=state.board.some(piece=>piece?.specialOne?.kind===SPECIAL_ONE_KINDS.KEY&&piece.specialOne.keyType===foodType);
+  return pieces.length*2+directPairs*8+(hasFunction?functionRepairs*3:0)+(hasDrink?3:0)+(pendingKey?20:0);
+}
+
+function getStrategicScore(state){
+  const keyCount=getEightPalaceKeyCount(state.eightPalaceKeys),missing=getMissingEightPalaceKeyTypes(state.eightPalaceKeys);
+  const boardCount=getBoardCount(state.board),drinkCount=state.board.filter(piece=>piece?.foodType===FOOD_TYPES.DRINK).length;
+  let score=0;
+  if(keyCount===8)return (9-boardCount)*80_000_000_000;
+  for(const type of missing){
+    const count=state.board.filter(piece=>piece?.foodType===type&&!piece.specialOne).length;
+    if(count===0)score-=drinkCount>0?45_000_000_000:180_000_000_000;
+    else if(count===1)score-=28_000_000_000;
+    else score+=Math.min(count,3)*8_000_000_000;
+    score+=getKeyPotential(state,type)*4_000_000_000;
+  }
+  if(missing.length>0&&drinkCount>0)score+=drinkCount===1?55_000_000_000:70_000_000_000;
+  if(boardCount<=3)score-=160_000_000_000;
+  if(missing.length>=3&&boardCount<=2)score-=350_000_000_000;
+  if(boardCount===0)score-=900_000_000_000;
+  return score;
+}
+
+function getActionPriority(state,action){
+  if(action?.type==="claim_key")return 6;
+  const missing=new Set(getMissingEightPalaceKeyTypes(state.eightPalaceKeys));
+  if(state.board.some(piece=>piece?.specialOne?.kind===SPECIAL_ONE_KINDS.KEY&&missing.has(piece.specialOne.keyType)))return 5;
+  if(action?.type==="apply_one")return 3;
+  if(action?.type==="combine_drink_convert")return missing.has(action.resultFoodType)?2:0;
+  if(action?.type==="reduce")return 2;
+  return 1;
+}
+
 // Provenance is not part of the solver objective or any legal-action/key rule.
 // Drop its recursive UI-only payload between search nodes so 100 retained routes
 // do not also retain exponentially growing origin trees.
@@ -44,7 +89,7 @@ function evaluateState(state,lastAction){
   const boardCount=getBoardCount(state.board);
   const legalActions=getLegalActions(state);
   const terminalFailure=state.gameOver&&!isSuccess(state);
-  return {score:keyCount*1_000_000_000_000-boardCount*1_000_000_000+countMissingKeyOpportunities(state)*10_000_000+legalActions.length*1_000+(lastAction?.type==="reduce"?100:0)-(terminalFailure?5_000_000_000_000:0),keyCount,boardCount};
+  return {score:keyCount*1_000_000_000_000+getStrategicScore(state)+countMissingKeyOpportunities(state)*12_000_000_000+legalActions.length*1_000_000+(lastAction?.type==="reduce"?100_000:0)-(terminalFailure?5_000_000_000_000:0),keyCount,boardCount};
 }
 
 function searchNextAction(rootState,{depth,beamWidth,randomizeSearch},visited){
@@ -62,11 +107,11 @@ function searchNextAction(rootState,{depth,beamWidth,randomizeSearch},visited){
       const key=createEightPalaceBoardKey(nextState);
       if(visited.has(key)||searchSeen.has(key)){repeatedPrunes++;continue;}
       searchSeen.add(key);
-      const candidate={state:nextState,firstAction:node.firstAction??action,...evaluateState(nextState,action),tieBreaker:randomizeSearch?Math.random():0};
+      const candidate={state:nextState,firstAction:node.firstAction??action,...evaluateState(nextState,action),actionPriority:getActionPriority(nextState,action),tieBreaker:randomizeSearch?Math.random():0};
       if(isSuccess(nextState))return {action:candidate.firstAction,repeatedPrunes,generated};
       nextNodes.push(candidate);
     }
-    frontier=nextNodes.sort((a,b)=>b.score-a.score||b.tieBreaker-a.tieBreaker).slice(0,beamWidth);
+    frontier=nextNodes.sort((a,b)=>b.score-a.score||b.actionPriority-a.actionPriority||b.tieBreaker-a.tieBreaker).slice(0,beamWidth);
     if(frontier.length===0)break;
     if(!best||frontier[0].score>best.score)best=frontier[0];
   }
@@ -114,7 +159,10 @@ export async function runEightPalaceGame({depth=EIGHT_PALACE_SOLVER_DEFAULTS.dep
   }
   const finalBoardCount=getBoardCount(state.board),finalKeyCount=getEightPalaceKeyCount(state.eightPalaceKeys),success=isSuccess(state);
   if(!success&&!failureReason)failureReason=actionPath.length>=maxActions?"maxActions":"search exhausted";
-  return {success,initialOpening:opening.map(item=>({...item})),initialBoard,minimumBoardCount,finalBoardCount,finalKeyCount,acquiredKeyTypes:Object.keys(state.eightPalaceKeys).filter(type=>state.eightPalaceKeys[type]),missingKeyTypes:getMissingEightPalaceKeyTypes(state.eightPalaceKeys),steps:state.steps,actions:actionPath.length,finalBoard:snapshotBoard(state.board),actionPath,failureReason,gameOverReason:state.gameOverReason,repeatedPrunes};
+  const missingKeyTypes=getMissingEightPalaceKeyTypes(state.eightPalaceKeys);
+  const extinctMissingTypes=missingKeyTypes.filter(type=>!state.board.some(piece=>piece?.foodType===type));
+  const lastDrinkAction=[...actionPath].reverse().find(action=>action.type==="combine_drink_convert"&&action.inputs.some(input=>input.foodType===FOOD_TYPES.DRINK));
+  return {success,initialOpening:opening.map(item=>({...item})),initialBoard,minimumBoardCount,finalBoardCount,finalKeyCount,acquiredKeyTypes:Object.keys(state.eightPalaceKeys).filter(type=>state.eightPalaceKeys[type]),missingKeyTypes,steps:state.steps,actions:actionPath.length,finalBoard:snapshotBoard(state.board),actionPath,failureReason,gameOverReason:state.gameOverReason,repeatedPrunes,prematureClear:finalKeyCount<8&&finalBoardCount<=2,extinctMissingTypes,lastDrinkConsumedStep:lastDrinkAction?.number??null,sevenKeyFailureMissingType:!success&&finalKeyCount===7?missingKeyTypes[0]??null:null};
 }
 
 function createKeyDistribution(results){const distribution=Object.fromEntries(Array.from({length:9},(_,count)=>[count,0]));for(const result of results)distribution[result.finalKeyCount]++;return distribution;}
@@ -154,5 +202,5 @@ export async function runFixedEightPalaceAttempts({attempts=10,depth=EIGHT_PALAC
   const distinctSuccessRoutes=new Set(successes.map(result=>result.routeSignature)).size;
   const successCount=successes.length;
   const divergenceLabel=successCount===0?"本轮未找到解":successCount<=4?"高迷惑局":successCount<=8?"中等路线分歧":"稳定可解";
-  return {attempts,fixedOpening:deepClone(opening),fixedInitialBoard:results[0]?.initialBoard??[],successCount,successRate:attempts?successCount/attempts:0,failureCount:attempts-successCount,averageFinalKeyCount:attempts?results.reduce((sum,result)=>sum+result.finalKeyCount,0)/attempts:0,averageMinimumBoardCount:attempts?results.reduce((sum,result)=>sum+result.minimumBoardCount,0)/attempts:0,averageSteps:attempts?results.reduce((sum,result)=>sum+result.steps,0)/attempts:0,shortestSuccessSteps:successSteps.length?Math.min(...successSteps):null,longestSuccessSteps:successSteps.length?Math.max(...successSteps):null,clearedWithoutKeysCount:results.filter(result=>result.finalBoardCount<=2&&result.finalKeyCount<8).length,keysCompleteNotClearedCount:results.filter(result=>result.finalKeyCount===8&&result.finalBoardCount>2).length,failureCounts,distinctRoutes,successfulRouteCount:successCount,distinctSuccessRoutes,hasRouteDivergence:successCount>0&&successCount<attempts,divergenceLabel,results};
+  return {attempts,fixedOpening:deepClone(opening),fixedInitialBoard:results[0]?.initialBoard??[],successCount,successRate:attempts?successCount/attempts:0,failureCount:attempts-successCount,averageFinalKeyCount:attempts?results.reduce((sum,result)=>sum+result.finalKeyCount,0)/attempts:0,averageMinimumBoardCount:attempts?results.reduce((sum,result)=>sum+result.minimumBoardCount,0)/attempts:0,averageSteps:attempts?results.reduce((sum,result)=>sum+result.steps,0)/attempts:0,shortestSuccessSteps:successSteps.length?Math.min(...successSteps):null,longestSuccessSteps:successSteps.length?Math.max(...successSteps):null,clearedWithoutKeysCount:results.filter(result=>result.prematureClear).length,prematureClearCount:results.filter(result=>result.prematureClear).length,extinctMissingTypeCounts:Object.fromEntries(BASE_FOOD_TYPES.map(type=>[type,results.filter(result=>result.extinctMissingTypes.includes(type)).length])),lastDrinkConsumedSteps:results.map(result=>result.lastDrinkConsumedStep).filter(step=>step!==null),sevenKeyFailureMissingTypes:results.map(result=>result.sevenKeyFailureMissingType).filter(Boolean),keysCompleteNotClearedCount:results.filter(result=>result.finalKeyCount===8&&result.finalBoardCount>2).length,failureCounts,distinctRoutes,successfulRouteCount:successCount,distinctSuccessRoutes,hasRouteDivergence:successCount>0&&successCount<attempts,divergenceLabel,results};
 }
