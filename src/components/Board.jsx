@@ -18,6 +18,7 @@ import {
 } from "../data/food/foodRegistry";
 
 import BoardCell from "./BoardCell";
+import { getCombinePreviewPlacement } from "../game/combinePreview";
 
 import "./Board.css";
 
@@ -450,6 +451,8 @@ export default function Board({
     preview?.combine
     ?? null;
 
+  const combinePreviewPlacement=getCombinePreviewPlacement(combinePreview,{preferReduce:Boolean(preview?.reduce)});
+
 
 
   const combinePreviewName =
@@ -636,6 +639,8 @@ export default function Board({
 
               combinePreview &&
 
+              combinePreviewPlacement.showThirdCell &&
+
               index ===
               nextEmptyIndex
 
@@ -800,6 +805,16 @@ export default function Board({
 
               functionOneIndex ===
               index;
+
+            const absorbPreviewRole=combinePreviewPlacement.drinkIndex===index
+              ? "drink"
+              : combinePreviewPlacement.ingredientIndex===index
+                ? "ingredient"
+                : null;
+
+            const displayedPiece=absorbPreviewRole==="drink"
+              ? combinePreviewPlacement.resultPiece
+              : piece;
 
 
 
@@ -1053,8 +1068,10 @@ export default function Board({
                 }
 
                 piece={
-                  piece
+                  displayedPiece
                 }
+
+                absorbPreviewRole={absorbPreviewRole}
 
                 price={
                   prices[index] ?? 0

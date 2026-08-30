@@ -292,7 +292,11 @@ export function createCombineOutcome(state,indexA,indexB){
     crossed101:main.value+pairing.value>101,
     origin:createCombineOrigin(value,main,pairing)
   };
-  return {kind:drinkIndex===null?"new":"absorb",value,foodType,piece,drinkIndex,targetIndex:drinkIndex};
+  return {
+    kind:drinkIndex===null?"new":"absorb",
+    value,foodType,piece,drinkIndex,targetIndex:drinkIndex,
+    ingredientIndex:drinkIndex===null?null:drinkIndex===indexA?indexB:indexA
+  };
 }
 
 // Compatibility for existing consumers that need the resulting card only.

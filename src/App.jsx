@@ -141,6 +141,10 @@ function App(){
     const token =
       ++animationTokenRef.current;
 
+    const combineKind=game.preview.combine.kind;
+    const drinkIndex=game.preview.combine.drinkIndex??null;
+    const ingredientIndex=game.preview.combine.ingredientIndex??null;
+
 
     clearAnimationTimers();
 
@@ -153,6 +157,9 @@ function App(){
         phase: "exit",
         indexes,
         targetIndex,
+        combineKind,
+        drinkIndex,
+        ingredientIndex,
         token
       }
     );
@@ -170,6 +177,9 @@ function App(){
             phase: "enter",
             indexes,
             targetIndex,
+            combineKind,
+            drinkIndex,
+            ingredientIndex,
             token
           }
         );

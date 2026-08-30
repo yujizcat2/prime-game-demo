@@ -7,6 +7,7 @@ import { createCombinationPairKey } from "../game/actionFatigue";
 import { getSpecialOneDisplayName } from "../data/specialOneRegistry";
 import { getDrinkName } from "../data/ingredients/drinkData";
 import { getNextSelectionIndexes } from "../game/selection";
+import { getCombinePreviewPlacement } from "../game/combinePreview";
 
 const stateWith=(pieces)=>{const seed=createGameState(pieces.map((piece,index)=>({...piece,boardIndex:index})));return {...seed,gameOver:false,board:[...seed.board]};};
 const combine=(a,b)=>applyAction({...stateWith([a,b]),gameMode:"classic"},{type:"combine_ordered",indexes:[0,1]});
@@ -99,8 +100,12 @@ const simPosition=createSimulationState([2,3,5],"eightPalace");simPosition.board
 const drinkState=(drinkValue,normalValue,normalType=T.LAND,drinkIndex=1,normalIndex=7)=>positionedEight({value:drinkValue,foodType:T.DRINK},drinkIndex,{value:normalValue,foodType:normalType},normalIndex);
 const absorbed=applyAction(drinkState(120,17),{type:"combine",indexes:[7,1]});assert.equal(absorbed.board[1].value,137);assert.equal(absorbed.board[1].foodType,T.DRINK);assert.equal(absorbed.board[7],null);
 const absorbedReverse=applyAction(drinkState(120,17),{type:"combine",indexes:[1,7]});assert.equal(absorbedReverse.board[1].value,137);assert.equal(absorbedReverse.board[7],null);
+const absorbForwardPlacement=getCombinePreviewPlacement(createCombineOutcome(drinkState(120,17),1,7)),absorbReversePlacement=getCombinePreviewPlacement(createCombineOutcome(drinkState(120,17),7,1));assert.equal(absorbForwardPlacement.showThirdCell,false);assert.equal(absorbForwardPlacement.drinkIndex,1);assert.equal(absorbForwardPlacement.ingredientIndex,7);assert.equal(absorbForwardPlacement.resultPiece.value,137);assert.equal(absorbReversePlacement.showThirdCell,false);assert.equal(absorbReversePlacement.drinkIndex,1);assert.equal(absorbReversePlacement.ingredientIndex,7);assert.equal(absorbReversePlacement.resultPiece.value,137);
+const normalPreviewPlacement=getCombinePreviewPlacement(createCombineOutcome(positionedEight({value:40,foodType:T.LAND},1,{value:30,foodType:T.VEGETABLE},7),1,7));assert.equal(normalPreviewPlacement.showThirdCell,true);assert.equal(normalPreviewPlacement.drinkIndex,null);
+const reducePreferredPlacement=getCombinePreviewPlacement(createCombineOutcome(drinkState(110,10),1,7),{preferReduce:true});assert.equal(reducePreferredPlacement.drinkIndex,null);assert.equal(reducePreferredPlacement.ingredientIndex,null);assert.equal(reducePreferredPlacement.showThirdCell,false);
 assert.equal(applyAction(drinkState(180,22),{type:"combine",indexes:[1,7]}).board[1].value,202);
 const burstState=drinkState(180,23),burstPreview=createCombineOutcome(burstState,1,7),burst=applyAction(burstState,{type:"combine",indexes:[1,7]});assert.equal(burstPreview.kind,"burst");assert.equal(burst.board[1],null);assert.equal(burst.board[7],null);
+assert.equal(getCombinePreviewPlacement(burstPreview).showThirdCell,false);
 const drinkReduceState=drinkState(110,20,T.LAND),reducePreview=createReduceOutcome(drinkReduceState,1,7),drinkReduced=applyAction(drinkReduceState,{type:"reduce",indexes:[1,7]});assert.deepEqual(reducePreview.results.map(item=>[item.value,item.foodType]),[[11,T.LAND],[2,T.LAND]]);assert.equal(drinkReduced.board[1].value,11);assert.equal(drinkReduced.board[1].foodType,T.LAND);assert.equal(drinkReduced.board[7].value,2);assert.equal(drinkReduced.board[7].foodType,T.LAND);
 const vegetableReduced=applyAction(drinkState(110,20,T.VEGETABLE),{type:"reduce",indexes:[7,1]});assert.equal(vegetableReduced.board[1].foodType,T.VEGETABLE);assert.equal(vegetableReduced.board[7].foodType,T.VEGETABLE);
 const drinkCollect=applyAction(drinkState(110,10,T.LAND),{type:"reduce",indexes:[1,7]});assert.equal(drinkCollect.board[1].value,11);assert.equal(drinkCollect.board[7],null);assert.ok(drinkCollect.collectionCards.some(card=>card.value===10));
