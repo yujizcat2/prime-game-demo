@@ -132,8 +132,8 @@ export function canCombineCells(
   }
 
   const hasDrink=a.foodType===FOOD_TYPES.DRINK||b.foodType===FOOD_TYPES.DRINK;
-  const isBurst=hasDrink&&a.value+b.value>202;
-  if(!isBurst&&isBoardFull(state.board))return false;
+  const wrapsToNormal=hasDrink&&a.value+b.value>202;
+  if(!wrapsToNormal&&isBoardFull(state.board))return false;
 
   if(hasUsedCombinationPair(state,a.value,b.value))return false;
 
@@ -272,7 +272,7 @@ export function createReduceOutcome(state,indexA,indexB){
 // 组合
 // ============================================================
 
-// Preview 与正式执行共用：new = 第三格新卡；burst = 只消除原饮品。
+// Preview 与正式执行共用：new = 第三格新卡；wrap = 饮品格原位回到普通料理。
 export function createCombineOutcome(state,indexA,indexB){
   const main=getPieceAt(state,indexA),pairing=getPieceAt(state,indexB);
   if(!main||!pairing)return null;
@@ -282,7 +282,22 @@ export function createCombineOutcome(state,indexA,indexB){
   const foodType=combineFoodType(main,pairing);
   if(!foodType)return null;
   const ingredientIndex=drinkIndex===null?null:drinkIndex===indexA?indexB:indexA;
-  if(drinkIndex!==null&&value>202)return {kind:"burst",value,foodType,drinkIndex,ingredientIndex,consumedIndexes:[drinkIndex],parents:[main.value,pairing.value],parentFoods:[main,pairing]};
+  if(drinkIndex!==null&&value>202){
+    const normal=drinkIndex===indexA?pairing:main;
+    const wrappedValue=value-200;
+    const piece={
+      ...getPieceAt(state,drinkIndex),
+      value:wrappedValue,
+      foodType:normal.foodType,
+      purity:normal.purity??FOOD_PURITY.PURE,
+      parents:[main.value,pairing.value],
+      sourceKey:[main.value,pairing.value].sort((left,right)=>left-right).join("|"),
+      parentFoods:[main,pairing].map(piece=>({value:piece.value,foodType:piece.foodType,purity:piece.purity??null})),
+      crossed101:false,
+      origin:createCombineOrigin(wrappedValue,main,pairing)
+    };
+    return {kind:"wrap",value:wrappedValue,foodType:normal.foodType,purity:piece.purity,piece,drinkIndex,ingredientIndex,targetIndex:drinkIndex};
+  }
   const piece={
     id:state.nextId,
     value,
@@ -379,8 +394,8 @@ export function combineCells(
     ...state.board
 
   ];
-  if(outcome.kind==="burst"){
-    nextBoard[outcome.drinkIndex]=null;
+  if(outcome.kind==="wrap"){
+    nextBoard[outcome.drinkIndex]=outcome.piece;
   }else{
     const targetIndex=getNextEmptyIndex(state.board);
     if(targetIndex===-1)return state;
@@ -396,7 +411,7 @@ export function combineCells(
     board:
       nextBoard,
 
-    nextId: state.nextId + (outcome.kind==="burst"?0:1)
+    nextId: state.nextId + (outcome.kind==="wrap"?0:1)
 
   };
 

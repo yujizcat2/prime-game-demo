@@ -741,7 +741,7 @@ export default function Board({
                         board-preview-number
                       "
                     >
-                      {combinePreview.burst?"!":combinePreview.value}
+                      {combinePreview.value}
                     </div>
 
                     <div className="board-preview-meta">
@@ -762,7 +762,7 @@ export default function Board({
                           board-preview-name
                         "
                       >
-                        {combinePreview.burst?"饮品会爆掉":combinePreviewName}
+                        {combinePreviewName}
                       </span>
 
                     </div>
@@ -774,11 +774,11 @@ export default function Board({
                         board-preview-action
                       "
                     >
-                      {combinePreview.burst?"饮品消失":"+ 组合"}
+                      + 组合
                     </div>
 
                     <div className="board-preview-parents">
-                      {combinePreview.burst?"这杯已经装不下了":"由料理烹制"}：{combinePreviewParents.map(parent=>`${parent.name} ${parent.value}`).join(" + ")}
+                      由料理烹制：{combinePreviewParents.map(parent=>`${parent.name} ${parent.value}`).join(" + ")}
                     </div>
 
 
@@ -807,9 +807,9 @@ export default function Board({
               index;
 
             const combinePreviewRole=combinePreviewPlacement.drinkIndex===index
-              ? "burst-drink"
+              ? "wrap-drink"
               : combinePreviewPlacement.ingredientIndex===index
-                ? "burst-ingredient"
+                ? "wrap-ingredient"
                 : null;
 
 
@@ -1064,7 +1064,9 @@ export default function Board({
                 }
 
                 piece={
-                  piece
+                  combinePreviewPlacement.drinkIndex===index
+                    ? combinePreviewPlacement.resultPiece
+                    : piece
                 }
 
                 combinePreviewRole={combinePreviewRole}

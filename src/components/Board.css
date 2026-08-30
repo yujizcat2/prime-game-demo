@@ -114,12 +114,12 @@
   }
 }
 
-.board-cell--combine-preview-burst-drink .board-piece {
+.board-cell--combine-preview-wrap-drink .board-piece {
   opacity:.68;
   transform:scale(.94);
 }
-.board-cell--combine-preview-burst-drink .board-piece::after {
-  content:"即将爆掉";
+.board-cell--combine-preview-wrap-drink .board-piece::after {
+  content:"即将变成";
   position:absolute;
   z-index:14;
   top:8px;
@@ -130,8 +130,8 @@
   font-size:9px;
   font-weight:900;
 }
-.board-cell--combine-preview-burst-ingredient .board-piece::after {
-  content:"加入后会爆杯";
+.board-cell--combine-preview-wrap-ingredient .board-piece::after {
+  content:"加入后仍保留";
   position:absolute;
   z-index:14;
   left:50%;
@@ -144,13 +144,13 @@
   font-weight:900;
   white-space:nowrap;
 }
-.board-piece.board-piece--burst-drink-exit {
+.board-piece.board-piece--wrap-drink {
   pointer-events:none;
-  animation:boardPieceBurstDrink .24s ease-in forwards;
+  animation:boardPieceWrapDrink .24s ease-in forwards;
 }
-.board-piece.board-piece--burst-ingredient-stay { animation:boardPieceBurstIngredient .2s ease-out both; }
-@keyframes boardPieceBurstDrink { 35% { transform:scale(1.05); } to { opacity:0; transform:scale(.7); } }
-@keyframes boardPieceBurstIngredient { 50% { transform:scale(.98); } }
+.board-piece.board-piece--wrap-ingredient-stay { animation:boardPieceWrapIngredient .2s ease-out both; }
+@keyframes boardPieceWrapDrink { 50% { transform:scale(.94); } }
+@keyframes boardPieceWrapIngredient { 50% { transform:scale(.98); } }
 
 .board-piece-wrapper.board-piece-wrapper--created {
   animation: boardPieceCreated .42s cubic-bezier(.16,.84,.25,1) both;
@@ -4170,8 +4170,8 @@
   .board-piece-type-bar::after,
   .board-piece-mutation-preview,
   .board-piece-dessert-trigger,
-  .board-piece--burst-drink-exit,
-  .board-piece--burst-ingredient-stay {
+  .board-piece--wrap-drink,
+  .board-piece--wrap-ingredient-stay {
 
     animation:
       none;

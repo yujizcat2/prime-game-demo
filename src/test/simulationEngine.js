@@ -679,8 +679,8 @@ function canCombineIndexes(
 
   if(hasUsedCombinationPair(state,a.value,b.value))return false;
   const hasDrink=a.foodType===FOOD_TYPES.DRINK||b.foodType===FOOD_TYPES.DRINK;
-  const isBurst=hasDrink&&a.value+b.value>202;
-  if(!isBurst&&isBoardFull(state.board))return false;
+  const wrapsToNormal=hasDrink&&a.value+b.value>202;
+  if(!wrapsToNormal&&isBoardFull(state.board))return false;
 
 
 
@@ -965,8 +965,21 @@ function applyCombine(
 
   const drinkIndex=a.foodType===FOOD_TYPES.DRINK?indexA:b.foodType===FOOD_TYPES.DRINK?indexB:null;
   if(drinkIndex!==null&&value>202){
-    state.board[drinkIndex]=null;state.steps++;
-    state.recentActionSignatures=appendRecentActionSignature(state.recentActionSignatures,actionSignature);
+    const normal=drinkIndex===indexA?b:a;
+    const wrappedValue=value-200;
+    state.board[drinkIndex]={
+      ...state.board[drinkIndex],
+      value:wrappedValue,
+      foodType:normal.foodType,
+      purity:normal.purity??FOOD_PURITY.PURE,
+      crossed101:false,
+      parents:[a.value,b.value],
+      sourceKey:[a.value,b.value].sort((left,right)=>left-right).join("|"),
+      parentFoods:[a,b].map(piece=>({value:piece.value,foodType:piece.foodType,purity:piece.purity??null})),
+      previousValue:null
+    };
+    state.steps++;
+    state.recentActionSignatures=appendRecentActionSignature(state.recentActionSignatures,createCombineActionSignature(a.value,b.value,wrappedValue));
     state.usedCombinationPairs=[...(state.usedCombinationPairs??[]),createCombinationPairKey(a.value,b.value)];
     return true;
   }
@@ -1165,6 +1178,8 @@ function applyReduce(
     return false;
 
   }
+
+  if(first.foodType===FOOD_TYPES.DRINK&&second.foodType===FOOD_TYPES.DRINK)return false;
 
 
 

@@ -1848,6 +1848,10 @@ function createConcreteParentSnapshots(record){
   }));
 }
 
+function getEightPalaceCollectionKey(record){
+  return `${record?.foodType ?? "default"}:${record?.value ?? ""}`;
+}
+
 // The 100 Step Eight Palace mode collects the concrete card that existed
 // immediately before reduction. Names and direct parents are captured now,
 // rather than reconstructed from a future registry.
@@ -1856,12 +1860,21 @@ export function applyEightPalaceCollection(state, piece){
   if(!record) return state;
 
   const value = record.value;
+  const collectionKey = getEightPalaceCollectionKey(record);
+  const alreadyCollected = (state.collectionCards ?? []).some(card =>
+    (card.collectionKey ?? getEightPalaceCollectionKey(card)) === collectionKey
+  );
+  if(alreadyCollected) return state;
+
   const snapshot = {
     id: (state.collectionEventId ?? 0) + 1,
+    collectionKey,
     value,
     name: getFoodName(value, record.foodType),
     foodType: record.foodType ?? null,
     parents: createConcreteParentSnapshots(record),
+    originType: record.origin?.type ?? null,
+    scoreGain: value,
     step: (state.steps ?? 0) + 1
   };
 

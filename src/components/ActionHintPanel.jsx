@@ -118,10 +118,10 @@ function PairHint({status,keyOutcome,preview}){
     const normal=drink===first?second:drink===second?first:null;
     const resultName=getFoodName(result.value,result.foodType);
     const resultType=getTypeShortName(result.foodType);
-    if(result.burst)return (
+    if(result.kind==="wrap")return (
       <div className="cooking-hint cooking-hint--pair cooking-hint--combine-detail">
-        <div className="cooking-hint__dish cooking-hint__dish--pair-detail"><strong>这杯饮品装不下了</strong><span>饮品　<b>{getItemName(drink)} {drink.value}</b></span><span>加入　<b>{getItemName(normal)} {normal.value} · {getTypeShortName(normal.foodType)}</b></span></div>
-        <div className="cooking-hint__next"><small>饮品会爆掉</small><span>执行后饮品会消失，加入的料理会留在原位。</span></div>
+        <div className="cooking-hint__dish cooking-hint__dish--pair-detail"><strong>这杯饮品会回到普通料理</strong><span>饮品　<b>{getItemName(drink)} {drink.value}</b></span><span>加入　<b>{getItemName(normal)} {normal.value} · {getTypeShortName(normal.foodType)}</b></span></div>
+        <div className="cooking-hint__next"><small>将得到</small><span><b>{result.value} · {resultName} · {resultType}</b></span><span>新料理会在原饮品的位置，加入的料理会留在原位。</span></div>
       </div>
     );
     const becameDrink=result.foodType==="drink";

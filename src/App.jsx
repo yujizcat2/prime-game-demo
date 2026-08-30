@@ -128,7 +128,7 @@ function App(){
     ];
 
 
-    const targetIndex = game.preview.combine.kind==="burst"
+    const targetIndex = game.preview.combine.kind==="wrap"
       ? game.preview.combine.drinkIndex
       : game.board.findIndex(piece => !piece);
 

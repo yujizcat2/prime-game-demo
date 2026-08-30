@@ -1,4 +1,5 @@
 import "./EightPalaceCollectionPanel.css";
+import { getCollectionSourceText } from "./collectionDisplay";
 
 export default function EightPalaceCollectionPanel({cards = [], score = 0}){
   return (
@@ -18,12 +19,8 @@ export default function EightPalaceCollectionPanel({cards = [], score = 0}){
           {[...cards].reverse().map(card => (
             <article className="eight-collection-card" key={card.id}>
               <strong>{card.name}</strong>
-              <span>数字 {card.value} · +{card.value} 分</span>
-              {card.parents.length > 0 && (
-                <small>
-                  父母：{card.parents.map(parent => `${parent.name} ${parent.value}`).join(" + ")}
-                </small>
-              )}
+              <small>{getCollectionSourceText(card)}</small>
+              <span>+{card.scoreGain ?? card.value}</span>
             </article>
           ))}
         </div>

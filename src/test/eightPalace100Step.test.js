@@ -4,6 +4,7 @@ import { createEightPalaceInitialValues } from "../game/initialValues";
 import { createGameState } from "../game/gameState";
 import { applyAction, resolveGameOver } from "../game/gameEngine";
 import { applyEightPalaceCollection } from "../game/collectionRules";
+import { getCollectionSourceText } from "../components/collectionDisplay";
 import { BASE_FOOD_TYPES } from "../game/rules";
 
 for(let attempt = 0; attempt < 200; attempt++){
@@ -64,14 +65,36 @@ function collectible(value, leftParent, rightParent){
 let collectionState = createGameState(actionOpening);
 collectionState = applyEightPalaceCollection(collectionState, collectible(24, 7, 17));
 collectionState = applyEightPalaceCollection(collectionState, collectible(24, 11, 13));
+collectionState = applyEightPalaceCollection(collectionState, {
+  value: 1,
+  foodType: BASE_FOOD_TYPES[0],
+  origin: {type: "reduce", parent: {value: 24, foodType: BASE_FOOD_TYPES[0], origin: {type: "reduce", parent: {value: 48, foodType: BASE_FOOD_TYPES[0]}}}}
+});
 collectionState = applyEightPalaceCollection(collectionState, collectible(83, 41, 42));
-assert.equal(collectionState.collectionCards.length, 3);
+assert.equal(collectionState.collectionCards.length, 2);
 assert.equal(collectionState.collectionCards[0].value, 24);
 assert.equal(typeof collectionState.collectionCards[0].name, "string");
 assert.deepEqual(collectionState.collectionCards[0].parents.map(parent => parent.value), [7, 17]);
 assert.ok(collectionState.collectionCards[0].parents.every(parent => typeof parent.name === "string"));
-assert.notDeepEqual(collectionState.collectionCards[0].parents, collectionState.collectionCards[1].parents);
-assert.equal(collectionState.score, 24 + 24 + 83);
+assert.equal(collectionState.collectionTimeline.length, 2);
+assert.equal(collectionState.score, 24 + 83);
+
+const nativeCollection = applyEightPalaceCollection(createGameState(actionOpening), {
+  value: 1,
+  foodType: BASE_FOOD_TYPES[0],
+  origin: {type: "reduce", parent: {value: 37, foodType: BASE_FOOD_TYPES[0], origin: null}}
+});
+const reducedCollection = applyEightPalaceCollection(createGameState(actionOpening), {
+  value: 1,
+  foodType: BASE_FOOD_TYPES[0],
+  origin: {type: "reduce", parent: {value: 37, foodType: BASE_FOOD_TYPES[0], origin: {type: "reduce", parent: {value: 74, foodType: BASE_FOOD_TYPES[0]}}}}
+});
+assert.equal(getCollectionSourceText(nativeCollection.collectionCards[0]), "原生");
+assert.equal(getCollectionSourceText(reducedCollection.collectionCards[0]), "被约分的");
+assert.match(getCollectionSourceText(collectionState.collectionCards[0]), / · /);
+assert.equal(nativeCollection.collectionCards[0].scoreGain, 37);
+const collectionPanelSource = readFileSync("src/components/EightPalaceCollectionPanel.jsx", "utf8");
+assert.match(collectionPanelSource, /\+\{card\.scoreGain/);
 
 const hudSource = readFileSync("src/components/StepPanel.jsx", "utf8");
 assert.match(hudSource, /isEightPalace \? "积分" : "金钱"/);

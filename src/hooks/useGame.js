@@ -669,7 +669,7 @@ export default function useGame(){
 
           ?
 
-            {...(combineOutcome?.piece??{}),...combineOutcome,burst:combineOutcome?.kind==="burst"}
+            {...(combineOutcome?.piece??{}),...combineOutcome}
 
           :
 

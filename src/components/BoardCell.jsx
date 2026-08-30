@@ -777,7 +777,7 @@ export default function BoardCell({
               animationState?.type === "combine" &&
               animationState.phase === "enter" &&
               animationState.targetIndex === index &&
-              animationState.combineKind !== "burst"
+              animationState.combineKind === "new"
               ? "board-piece-wrapper--created"
               : ""
           }
@@ -932,10 +932,10 @@ export default function BoardCell({
               animationState?.type === "combine" &&
               animationState.phase === "exit" &&
               animationState.indexes.includes(index)
-                ? animationState.combineKind==="burst"
+                ? animationState.combineKind==="wrap"
                   ? animationState.drinkIndex===index
-                    ? "board-piece--burst-drink-exit"
-                    : "board-piece--burst-ingredient-stay"
+                    ? "board-piece--wrap-drink"
+                    : "board-piece--wrap-ingredient-stay"
                   : "board-piece--combine-source"
                 : ""
             }
