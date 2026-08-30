@@ -17,6 +17,12 @@ import {
   runFixedEightPalaceAttempts
 } from "../test/eightPalaceSolver";
 
+import {
+  SCORE_AI_DEFAULTS,
+  runFixedScoreAttempts,
+  runScoreGames
+} from "../ai/eightPalaceScoreAI";
+
 import "./TestLab.css";
 
 
@@ -41,7 +47,13 @@ const TEST_MODES = {
     "eight-palace",
 
   FIXED_EIGHT_PALACE:
-    "fixed-eight-palace"
+    "fixed-eight-palace",
+
+  SCORE:
+    "eight-palace-score",
+
+  FIXED_SCORE:
+    "fixed-eight-palace-score"
 
 };
 
@@ -92,6 +104,9 @@ const FIXED_EIGHT_PALACE_OPTIONS = [
   50,
   100
 ];
+
+const SCORE_GAME_OPTIONS = [1, 10, 100];
+const FIXED_SCORE_OPTIONS = [10, 20, 50, 100];
 
 
 
@@ -207,10 +222,21 @@ export default function TestLab({
     mode ===
     TEST_MODES.FIXED_EIGHT_PALACE;
 
+  const isScoreMode = mode === TEST_MODES.SCORE || mode === TEST_MODES.FIXED_SCORE;
+  const isFixedScoreMode = mode === TEST_MODES.FIXED_SCORE;
+
 
   const gameOptions =
 
-    isFixedEightPalaceMode
+    isFixedScoreMode
+
+      ? FIXED_SCORE_OPTIONS
+
+      : mode === TEST_MODES.SCORE
+
+      ? SCORE_GAME_OPTIONS
+
+      : isFixedEightPalaceMode
 
       ? FIXED_EIGHT_PALACE_OPTIONS
 
@@ -271,10 +297,12 @@ export default function TestLab({
 
       nextMode === TEST_MODES.RANDOM
       || nextMode === TEST_MODES.EIGHT_PALACE
+      || nextMode === TEST_MODES.SCORE
 
         ? 100
 
         : nextMode === TEST_MODES.FIXED_EIGHT_PALACE
+          || nextMode === TEST_MODES.FIXED_SCORE
 
         ? 10
 
@@ -438,6 +466,31 @@ export default function TestLab({
           depth: EIGHT_PALACE_SOLVER_DEFAULTS.depth,
           beamWidth: EIGHT_PALACE_SOLVER_DEFAULTS.beamWidth,
           maxActions: EIGHT_PALACE_SOLVER_DEFAULTS.maxActions,
+          onProgress: setProgress
+        });
+
+      }
+
+      else if(mode === TEST_MODES.SCORE){
+
+        nextResult = await runScoreGames({
+          games,
+          depth: SCORE_AI_DEFAULTS.depth,
+          beamWidth: SCORE_AI_DEFAULTS.beamWidth,
+          maxActions: SCORE_AI_DEFAULTS.maxActions,
+          onProgress: setProgress,
+          compareRandom: true
+        });
+
+      }
+
+      else if(mode === TEST_MODES.FIXED_SCORE){
+
+        nextResult = await runFixedScoreAttempts({
+          attempts: games,
+          depth: SCORE_AI_DEFAULTS.depth,
+          beamWidth: SCORE_AI_DEFAULTS.beamWidth,
+          maxActions: SCORE_AI_DEFAULTS.maxActions,
           onProgress: setProgress
         });
 
@@ -733,6 +786,22 @@ export default function TestLab({
 
             </ModeButton>
 
+            <ModeButton
+              active={mode === TEST_MODES.SCORE}
+              disabled={running}
+              onClick={() => changeMode(TEST_MODES.SCORE)}
+            >
+              八宫 100 Step · Score AI
+            </ModeButton>
+
+            <ModeButton
+              active={mode === TEST_MODES.FIXED_SCORE}
+              disabled={running}
+              onClick={() => changeMode(TEST_MODES.FIXED_SCORE)}
+            >
+              固定开局 · Score AI 多次尝试
+            </ModeButton>
+
 
           </div>
 
@@ -785,7 +854,9 @@ export default function TestLab({
               <br />
 
               Depth {
-                isEightPalaceMode
+                isScoreMode
+                  ? SCORE_AI_DEFAULTS.depth
+                  : isEightPalaceMode
                   ? EIGHT_PALACE_SOLVER_DEFAULTS.depth
                   : SMART_DEPTH
               }
@@ -793,7 +864,9 @@ export default function TestLab({
               {" · "}
 
               Beam {
-                isEightPalaceMode
+                isScoreMode
+                  ? SCORE_AI_DEFAULTS.beamWidth
+                  : isEightPalaceMode
                   ? EIGHT_PALACE_SOLVER_DEFAULTS.beamWidth
                   : SMART_BEAM_WIDTH
               }
@@ -802,7 +875,9 @@ export default function TestLab({
 
               最大 {
 
-                isEightPalaceMode
+                isScoreMode
+                  ? SCORE_AI_DEFAULTS.maxActions
+                  : isEightPalaceMode
 
                   ? EIGHT_PALACE_SOLVER_DEFAULTS.maxActions
 
@@ -963,6 +1038,8 @@ export default function TestLab({
                 isEightPalaceMode
               }
 
+              scoreMode={isScoreMode}
+
               smart={
                 isSmartMode
               }
@@ -998,7 +1075,15 @@ export default function TestLab({
 
           result && (
 
-          isFixedEightPalaceMode
+          isFixedScoreMode
+
+            ? <FixedScoreResults result={result} />
+
+            : mode === TEST_MODES.SCORE
+
+            ? <ScoreResults result={result} />
+
+            : isFixedEightPalaceMode
 
             ? <FixedEightPalaceResults result={result} />
 
@@ -1103,7 +1188,9 @@ function ProgressPanel({
 
   moneyMode,
 
-  eightPalaceMode
+  eightPalaceMode,
+
+  scoreMode
 
 }){
 
@@ -1180,6 +1267,23 @@ function ProgressPanel({
 
       {
 
+        scoreMode &&
+        progress.currentGame &&
+
+        <div>
+          当前积分 <strong>{progress.currentScore}</strong>
+          {" · "}
+          收藏 <strong>{progress.currentCollection}</strong>
+          {" · "}
+          Step <strong>{progress.currentSteps} / 100</strong>
+          {" · "}
+          {progress.currentDeadlocked ? "提前死局" : "进行中/正常结束"}
+        </div>
+
+      }
+
+      {
+
         eightPalaceMode &&
         progress.currentGame &&
 
@@ -1198,6 +1302,7 @@ function ProgressPanel({
 
         smart &&
         !eightPalaceMode &&
+        !scoreMode &&
         progress.currentGame &&
 
         <>
@@ -1323,6 +1428,111 @@ function ProgressPanel({
 
   );
 
+}
+
+function ScoreSummaryGrid({result}){
+  return (
+    <div className="test-lab-result-grid">
+      <ResultItem label="测试局数" value={result.games ?? result.attempts} />
+      <ResultItem label="平均最终积分" value={result.averageFinalScore.toFixed(2)} highlight />
+      <ResultItem label="最高积分" value={result.highestScore} highlight />
+      <ResultItem label="最低积分" value={result.lowestScore} />
+      <ResultItem label="平均收藏数量" value={result.averageCollectionCount.toFixed(2)} />
+      <ResultItem label="最大收藏数量" value={result.maxCollectionCount} />
+      <ResultItem label="平均实际 Step" value={result.averageSteps.toFixed(2)} />
+      <ResultItem label="完成 100 Step" value={`${result.completed100StepCount} / ${result.games ?? result.attempts} (${(result.completed100StepRate * 100).toFixed(1)}%)`} />
+      <ResultItem label="提前死局" value={`${result.deadlockCount} / ${result.games ?? result.attempts} (${(result.deadlockRate * 100).toFixed(1)}%)`} />
+    </div>
+  );
+}
+
+function ScoreRecord({title, game}){
+  if(!game) return null;
+  return (
+    <div className="test-lab-record">
+      <div className="test-lab-record-title">{title}</div>
+      <div className="test-lab-record-collection">开局：{formatScoreBoard(game.initialBoard)}</div>
+      <div>
+        积分 <strong>{game.finalScore}</strong>
+        {" · "}
+        收藏 <strong>{game.collectionCount}</strong>
+        {" · "}
+        Step <strong>{game.steps} / 100</strong>
+      </div>
+      <div className="test-lab-record-collection">最终盘面：{formatScoreBoard(game.finalBoard) || "空"}</div>
+      <details className="test-lab-action-details">
+        <summary>展开完整操作路线（{game.actionPath.length} 项）</summary>
+        <ol>
+          {game.actionPath.map(action => (
+            <li key={action.number}>
+              <strong>{formatScoreAction(action)}</strong>
+              {" · "}
+              Step {action.stepBefore} → {action.stepAfter}
+              {" · "}
+              积分 {action.scoreBefore} → {action.scoreAfter}
+              {action.scoreGain > 0 && <>（+{action.scoreGain}）</>}
+            </li>
+          ))}
+        </ol>
+      </details>
+    </div>
+  );
+}
+
+function ScoreResults({result}){
+  const random = result.randomComparison;
+  return (
+    <section className="test-lab-results">
+      <div className="test-lab-result-title">八宫 100 Step · Score AI</div>
+      <ScoreSummaryGrid result={result} />
+
+      {random && (
+        <div className="test-lab-section">
+          <div className="test-lab-section-title">Random AI vs Score AI</div>
+          <div className="test-lab-small-grid">
+            <ResultItem label="Score AI 平均积分" value={result.averageFinalScore.toFixed(2)} highlight />
+            <ResultItem label="Random 平均积分" value={random.averageFinalScore.toFixed(2)} />
+            <ResultItem label="Score AI 平均收藏" value={result.averageCollectionCount.toFixed(2)} />
+            <ResultItem label="Random 平均收藏" value={random.averageCollectionCount.toFixed(2)} />
+            <ResultItem label="Score AI 死局率" value={`${(result.deadlockRate * 100).toFixed(1)}%`} />
+            <ResultItem label="Random 死局率" value={`${(random.deadlockRate * 100).toFixed(1)}%`} />
+          </div>
+        </div>
+      )}
+
+      <ScoreRecord title="最高分纪录" game={result.highScore} />
+    </section>
+  );
+}
+
+function FixedScoreResults({result}){
+  return (
+    <section className="test-lab-results">
+      <div className="test-lab-result-title">固定开局 · Score AI 多次尝试</div>
+      <div className="test-lab-record">
+        <div className="test-lab-record-title">固定开局</div>
+        {result.fixedOpening.map(card => card.value).join(" / ")}
+      </div>
+      <ScoreSummaryGrid result={result} />
+      <div className="test-lab-small-grid">
+        <ResultItem label="不同操作路线数量" value={result.distinctRouteCount} />
+        <ResultItem label="不同最终积分数量" value={result.distinctFinalScoreCount} />
+      </div>
+      <ScoreRecord title="最高分纪录" game={result.highScore} />
+    </section>
+  );
+}
+
+function formatScoreBoard(board){
+  return board.filter(Boolean).map(piece =>
+    `格${(piece.index ?? piece.boardIndex) + 1} ${formatFoodType(piece.foodType)}${piece.value}`
+  ).join(" / ");
+}
+
+function formatScoreAction(action){
+  const label = {combine: "合成", combine_ordered: "合成", reduce: "约分", apply_one: "特殊 1"}[action.type] ?? action.type;
+  const inputs = action.inputs.map(piece => `格${piece.index + 1} ${formatFoodType(piece.foodType)}${piece.value}`).join(" + ");
+  return `${label}：${inputs}`;
 }
 
 
@@ -3507,6 +3717,14 @@ function getModeTitle(
 
     return "固定单局 · AI 多次尝试";
 
+  }
+
+  if(mode === TEST_MODES.SCORE){
+    return "八宫 100 Step · Score AI";
+  }
+
+  if(mode === TEST_MODES.FIXED_SCORE){
+    return "固定开局 · Score AI 多次尝试";
   }
 
 
