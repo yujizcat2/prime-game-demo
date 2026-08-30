@@ -132,7 +132,8 @@ export function canCombineCells(
   }
 
   const hasDrink=a.foodType===FOOD_TYPES.DRINK||b.foodType===FOOD_TYPES.DRINK;
-  if(!hasDrink&&isBoardFull(state.board))return false;
+  const isBurst=hasDrink&&a.value+b.value>202;
+  if(!isBurst&&isBoardFull(state.board))return false;
 
   if(hasUsedCombinationPair(state,a.value,b.value))return false;
 
@@ -271,7 +272,7 @@ export function createReduceOutcome(state,indexA,indexB){
 // 组合
 // ============================================================
 
-// Preview 与正式执行共用：new = 新卡；absorb = 饮品原位更新；burst = 两张消失。
+// Preview 与正式执行共用：new = 第三格新卡；burst = 只消除原饮品。
 export function createCombineOutcome(state,indexA,indexB){
   const main=getPieceAt(state,indexA),pairing=getPieceAt(state,indexB);
   if(!main||!pairing)return null;
@@ -280,7 +281,8 @@ export function createCombineOutcome(state,indexA,indexB){
   const value=combineValue(main.value,pairing.value);
   const foodType=combineFoodType(main,pairing);
   if(!foodType)return null;
-  if(drinkIndex!==null&&value>202)return {kind:"burst",value,foodType,drinkIndex,consumedIndexes:[indexA,indexB],parents:[main.value,pairing.value],parentFoods:[main,pairing]};
+  const ingredientIndex=drinkIndex===null?null:drinkIndex===indexA?indexB:indexA;
+  if(drinkIndex!==null&&value>202)return {kind:"burst",value,foodType,drinkIndex,ingredientIndex,consumedIndexes:[drinkIndex],parents:[main.value,pairing.value],parentFoods:[main,pairing]};
   const piece={
     id:state.nextId,
     value,
@@ -293,9 +295,9 @@ export function createCombineOutcome(state,indexA,indexB){
     origin:createCombineOrigin(value,main,pairing)
   };
   return {
-    kind:drinkIndex===null?"new":"absorb",
-    value,foodType,piece,drinkIndex,targetIndex:drinkIndex,
-    ingredientIndex:drinkIndex===null?null:drinkIndex===indexA?indexB:indexA
+    kind:"new",
+    drinkMix:drinkIndex!==null,
+    value,foodType,piece,drinkIndex,ingredientIndex,targetIndex:null
   };
 }
 
@@ -378,11 +380,7 @@ export function combineCells(
 
   ];
   if(outcome.kind==="burst"){
-    nextBoard[indexA]=null;
-    nextBoard[indexB]=null;
-  }else if(outcome.kind==="absorb"){
-    nextBoard[outcome.drinkIndex]=outcome.piece;
-    nextBoard[outcome.drinkIndex===indexA?indexB:indexA]=null;
+    nextBoard[outcome.drinkIndex]=null;
   }else{
     const targetIndex=getNextEmptyIndex(state.board);
     if(targetIndex===-1)return state;

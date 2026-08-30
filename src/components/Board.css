@@ -114,13 +114,12 @@
   }
 }
 
-.board-cell--absorb-preview-drink .board-piece {
-  opacity:.82;
-  transform:scale(.97);
-  box-shadow:0 0 0 2px color-mix(in srgb,var(--cuisine-primary) 24%,transparent),0 8px 24px rgba(15,23,42,.08);
+.board-cell--combine-preview-burst-drink .board-piece {
+  opacity:.68;
+  transform:scale(.94);
 }
-.board-cell--absorb-preview-drink .board-piece::after {
-  content:"加入后";
+.board-cell--combine-preview-burst-drink .board-piece::after {
+  content:"即将爆掉";
   position:absolute;
   z-index:14;
   top:8px;
@@ -131,12 +130,8 @@
   font-size:9px;
   font-weight:900;
 }
-.board-cell--absorb-preview-ingredient .board-piece {
-  opacity:.48;
-  transform:scale(.93);
-}
-.board-cell--absorb-preview-ingredient .board-piece::after {
-  content:"将加入饮品";
+.board-cell--combine-preview-burst-ingredient .board-piece::after {
+  content:"加入后会爆杯";
   position:absolute;
   z-index:14;
   left:50%;
@@ -149,15 +144,13 @@
   font-weight:900;
   white-space:nowrap;
 }
-.board-piece.board-piece--absorb-ingredient-exit {
+.board-piece.board-piece--burst-drink-exit {
   pointer-events:none;
-  animation:boardPieceAbsorbIngredient .22s ease-in forwards;
+  animation:boardPieceBurstDrink .24s ease-in forwards;
 }
-.board-piece.board-piece--absorb-drink-wait { animation:boardPieceAbsorbWait .18s ease-out both; }
-.board-piece-wrapper--absorb-receive { animation:boardPieceAbsorbReceive .32s cubic-bezier(.2,.8,.3,1) both; }
-@keyframes boardPieceAbsorbIngredient { to { opacity:0; transform:translate(var(--combine-shift-x,0),var(--combine-shift-y,0)) scale(.7); } }
-@keyframes boardPieceAbsorbWait { 50% { transform:scale(.96); } }
-@keyframes boardPieceAbsorbReceive { 0% { transform:scale(.96); } 58% { transform:scale(1.08); } 100% { transform:scale(1); } }
+.board-piece.board-piece--burst-ingredient-stay { animation:boardPieceBurstIngredient .2s ease-out both; }
+@keyframes boardPieceBurstDrink { 35% { transform:scale(1.05); } to { opacity:0; transform:scale(.7); } }
+@keyframes boardPieceBurstIngredient { 50% { transform:scale(.98); } }
 
 .board-piece-wrapper.board-piece-wrapper--created {
   animation: boardPieceCreated .42s cubic-bezier(.16,.84,.25,1) both;
@@ -4177,9 +4170,8 @@
   .board-piece-type-bar::after,
   .board-piece-mutation-preview,
   .board-piece-dessert-trigger,
-  .board-piece--absorb-ingredient-exit,
-  .board-piece--absorb-drink-wait,
-  .board-piece-wrapper--absorb-receive {
+  .board-piece--burst-drink-exit,
+  .board-piece--burst-ingredient-stay {
 
     animation:
       none;

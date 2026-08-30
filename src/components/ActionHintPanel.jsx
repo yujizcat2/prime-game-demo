@@ -121,13 +121,7 @@ function PairHint({status,keyOutcome,preview}){
     if(result.burst)return (
       <div className="cooking-hint cooking-hint--pair cooking-hint--combine-detail">
         <div className="cooking-hint__dish cooking-hint__dish--pair-detail"><strong>这杯饮品装不下了</strong><span>饮品　<b>{getItemName(drink)} {drink.value}</b></span><span>加入　<b>{getItemName(normal)} {normal.value} · {getTypeShortName(normal.foodType)}</b></span></div>
-        <div className="cooking-hint__next"><small>饮品会爆掉</small><span>执行后两张都会从料理台消失。</span></div>
-      </div>
-    );
-    if(result.kind==="absorb")return (
-      <div className="cooking-hint cooking-hint--pair cooking-hint--combine-detail">
-        <div className="cooking-hint__dish cooking-hint__dish--pair-detail"><strong>加入饮品</strong><span>饮品　<b>{getItemName(drink)} {drink.value}</b></span><span>加入　<b>{getItemName(normal)} {normal.value} · {getTypeShortName(normal.foodType)}</b></span></div>
-        <div className="cooking-hint__next"><small>将得到</small><span><b>{result.value} · {resultName} · 饮品</b></span><span>这道料理会加入饮品中，饮品留在原来的位置。</span></div>
+        <div className="cooking-hint__next"><small>饮品会爆掉</small><span>执行后饮品会消失，加入的料理会留在原位。</span></div>
       </div>
     );
     const becameDrink=result.foodType==="drink";

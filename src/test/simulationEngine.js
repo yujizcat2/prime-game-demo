@@ -679,7 +679,8 @@ function canCombineIndexes(
 
   if(hasUsedCombinationPair(state,a.value,b.value))return false;
   const hasDrink=a.foodType===FOOD_TYPES.DRINK||b.foodType===FOOD_TYPES.DRINK;
-  if(!hasDrink&&isBoardFull(state.board))return false;
+  const isBurst=hasDrink&&a.value+b.value>202;
+  if(!isBurst&&isBoardFull(state.board))return false;
 
 
 
@@ -964,7 +965,7 @@ function applyCombine(
 
   const drinkIndex=a.foodType===FOOD_TYPES.DRINK?indexA:b.foodType===FOOD_TYPES.DRINK?indexB:null;
   if(drinkIndex!==null&&value>202){
-    state.board[indexA]=null;state.board[indexB]=null;state.steps++;
+    state.board[drinkIndex]=null;state.steps++;
     state.recentActionSignatures=appendRecentActionSignature(state.recentActionSignatures,actionSignature);
     state.usedCombinationPairs=[...(state.usedCombinationPairs??[]),createCombinationPairKey(a.value,b.value)];
     return true;
@@ -1040,14 +1041,9 @@ function applyCombine(
       null
 
   };
-  if(drinkIndex!==null){
-    state.board[drinkIndex]=resultPiece;
-    state.board[drinkIndex===indexA?indexB:indexA]=null;
-  }else{
-    const targetIndex=getNextEmptyIndex(state.board);
-    if(targetIndex===-1)return false;
-    state.board[targetIndex]=resultPiece;
-  }
+  const targetIndex=getNextEmptyIndex(state.board);
+  if(targetIndex===-1)return false;
+  state.board[targetIndex]=resultPiece;
 
 
 

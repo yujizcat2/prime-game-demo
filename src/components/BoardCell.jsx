@@ -31,7 +31,7 @@ export default function BoardCell({
 
   selected = false,
   selectionRole = null,
-  absorbPreviewRole = null,
+  combinePreviewRole = null,
 
   combineCandidate = false,
 
@@ -727,7 +727,7 @@ export default function BoardCell({
             : ""
         }
 
-        ${absorbPreviewRole?`board-cell--absorb-preview board-cell--absorb-preview-${absorbPreviewRole}`:""}
+        ${combinePreviewRole?`board-cell--combine-preview board-cell--combine-preview-${combinePreviewRole}`:""}
 
         ${
           animationState?.phase === "enter" ||
@@ -761,11 +761,10 @@ export default function BoardCell({
               animationState?.type === "combine" &&
               animationState.phase === "enter" &&
               animationState.targetIndex === index &&
-              animationState.combineKind !== "absorb"
+              animationState.combineKind !== "burst"
               ? "board-piece-wrapper--created"
               : ""
           }
-          ${animationState?.type==="combine"&&animationState.phase==="enter"&&animationState.combineKind==="absorb"&&animationState.drinkIndex===index?"board-piece-wrapper--absorb-receive":""}
         `}
 
       >
@@ -917,10 +916,10 @@ export default function BoardCell({
               animationState?.type === "combine" &&
               animationState.phase === "exit" &&
               animationState.indexes.includes(index)
-                ? animationState.combineKind==="absorb"
-                  ? animationState.ingredientIndex===index
-                    ? "board-piece--absorb-ingredient-exit"
-                    : "board-piece--absorb-drink-wait"
+                ? animationState.combineKind==="burst"
+                  ? animationState.drinkIndex===index
+                    ? "board-piece--burst-drink-exit"
+                    : "board-piece--burst-ingredient-stay"
                   : "board-piece--combine-source"
                 : ""
             }
