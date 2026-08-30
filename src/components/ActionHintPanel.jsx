@@ -91,6 +91,9 @@ function PairHint({status,keyOutcome,preview}){
   else if(combine.reason === "没有空位，放不下新的数字"){
     description = "料理台已经放满，先处理一些料理。";
   }
+  else if(combine.reason === "这组料理本局已经搭配过"){
+    description = "这组料理本局已经搭配过";
+  }
   else if(
     combine.reason === "它不能再和组成自己的数字合成" ||
     combine.reason === "这两个数字已经合成过一次"
@@ -158,8 +161,8 @@ function PairHint({status,keyOutcome,preview}){
   );
 }
 
-export default function ActionHintPanel({numbers, selected, keyOutcome=null,preview=null,candidateCounts=null}){
-  const status = getActionStatus(numbers, selected);
+export default function ActionHintPanel({numbers, selected, keyOutcome=null,preview=null,candidateCounts=null,combineHistoryKeys}){
+  const status = getActionStatus(numbers, selected, combineHistoryKeys);
 
   if(status.type === "pair") return <PairHint status={status} keyOutcome={keyOutcome} preview={preview} />;
 

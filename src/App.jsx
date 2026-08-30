@@ -18,6 +18,7 @@ import StepPanel from "./components/StepPanel";
 import Discovery from "./components/Discovery";
 import BoardStatus from "./components/BoardStatus";
 import GameOver from "./components/GameOver";
+import CombineHistoryPanel from "./components/CombineHistoryPanel";
 
 import useGame from "./hooks/useGame";
 
@@ -60,6 +61,7 @@ function App(){
   ] = useState([]);
 
   const [keyNotice,setKeyNotice] = useState(null);
+  const [showCombineHistory,setShowCombineHistory] = useState(false);
 
   const animationTimersRef = useRef([]);
   const animationTokenRef = useRef(0);
@@ -597,6 +599,7 @@ function App(){
       game.numbers,
       game.primeDensity,
       game.steps
+      ,game.combineHistoryKeys
     );
 
 
@@ -684,6 +687,14 @@ function App(){
 
           <div className="game-info-item">
 
+            <button
+              type="button"
+              className="combine-history-trigger"
+              onClick={() => setShowCombineHistory(true)}
+            >
+              历史合成 {game.combineHistory.length}
+            </button>
+
             <ActionHintPanel
               numbers={
                 game.numbers
@@ -697,6 +708,7 @@ function App(){
                 combine:Object.values(game.actionCandidates).filter(item=>item.combine).length,
                 reduce:Object.values(game.actionCandidates).filter(item=>item.reduce).length
               }}
+              combineHistoryKeys={game.combineHistoryKeys}
             />
 
           </div>
@@ -898,6 +910,14 @@ function App(){
 
       </div>
 
+
+      {
+        showCombineHistory &&
+        <CombineHistoryPanel
+          history={game.combineHistory}
+          onClose={() => setShowCombineHistory(false)}
+        />
+      }
 
       {
         game.gameOver &&

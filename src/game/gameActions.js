@@ -38,8 +38,7 @@ import {
   createCombinationPairKey,
   createCombineActionSignature,
   createReduceActionSignature,
-  getActionFatigue,
-  hasUsedCombinationPair
+  getActionFatigue
 } from "./actionFatigue";
 
 import {
@@ -48,6 +47,12 @@ import {
 } from "./eightPalaceKeys";
 import { applyEightPalaceCollection } from "./collectionRules";
 import { getCreatedScoreValue } from "./scoreValue";
+
+import {
+  addCombinePair,
+  createCombineHistoryRecord,
+  hasCombinePair
+} from "./combineHistory";
 
 function isEightPalaceMode(state){
   return state?.gameMode === GAME_MODES.EIGHT_PALACE
@@ -120,6 +125,10 @@ export function canCombineCells(
 
   }
 
+  if(hasCombinePair(state.combineHistoryKeys, a, b)){
+    return false;
+  }
+
 
 
   if(
@@ -135,10 +144,6 @@ export function canCombineCells(
   const hasDrink=a.foodType===FOOD_TYPES.DRINK||b.foodType===FOOD_TYPES.DRINK;
   const wrapsToNormal=hasDrink&&a.value+b.value>202;
   if(!wrapsToNormal&&isBoardFull(state.board))return false;
-
-  if(hasUsedCombinationPair(state,a.value,b.value))return false;
-
-
 
   return canCombine(
 
@@ -429,6 +434,11 @@ export function combineCells(
   nextState = {
     ...nextState,
     usedCombinationPairs:[...(state.usedCombinationPairs??[]),createCombinationPairKey(a.value,b.value)],
+    combineHistoryKeys: addCombinePair(state.combineHistoryKeys, a, b),
+    combineHistory: [
+      ...(state.combineHistory ?? []),
+      createCombineHistoryRecord(a, b, outcome.piece, nextState.steps)
+    ],
     recentActionSignatures: appendRecentActionSignature(
       state.recentActionSignatures,
       createCombineActionSignature(a.value, b.value, result)

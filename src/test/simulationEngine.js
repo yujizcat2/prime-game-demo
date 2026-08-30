@@ -23,9 +23,13 @@ import {
   createCombinationPairKey,
   createCombineActionSignature,
   createReduceActionSignature,
-  getActionFatigue,
-  hasUsedCombinationPair
+  getActionFatigue
 } from "../game/actionFatigue";
+
+import {
+  addCombinePair,
+  hasCombinePair
+} from "../game/combineHistory";
 
 
 
@@ -416,6 +420,9 @@ export function createSimulationState(
     usedKeyTriggerValues:
       [],
 
+    combineHistoryKeys:
+      {},
+
     latestCollectionReward:
       0,
 
@@ -677,10 +684,12 @@ function canCombineIndexes(
 
   }
 
-  if(hasUsedCombinationPair(state,a.value,b.value))return false;
   const hasDrink=a.foodType===FOOD_TYPES.DRINK||b.foodType===FOOD_TYPES.DRINK;
   const wrapsToNormal=hasDrink&&a.value+b.value>202;
   if(!wrapsToNormal&&isBoardFull(state.board))return false;
+  if(hasCombinePair(state.combineHistoryKeys, a, b)){
+    return false;
+  }
 
 
 
@@ -899,6 +908,10 @@ function applyCombine(
   indexB
 ){
 
+  if(!canCombineIndexes(state,indexA,indexB)){
+    return false;
+  }
+
 
   const a =
 
@@ -979,6 +992,7 @@ function applyCombine(
       previousValue:null
     };
     state.steps++;
+    state.combineHistoryKeys=addCombinePair(state.combineHistoryKeys,a,b);
     state.recentActionSignatures=appendRecentActionSignature(state.recentActionSignatures,createCombineActionSignature(a.value,b.value,wrappedValue));
     state.usedCombinationPairs=[...(state.usedCombinationPairs??[]),createCombinationPairKey(a.value,b.value)];
     return true;
@@ -1061,6 +1075,8 @@ function applyCombine(
 
 
   state.steps++;
+
+  state.combineHistoryKeys = addCombinePair(state.combineHistoryKeys, a, b);
 
   state.recentActionSignatures = appendRecentActionSignature(
     state.recentActionSignatures,
@@ -2003,6 +2019,9 @@ export function cloneSimulationState(
 
     usedKeyTriggerValues:
       [...(state.usedKeyTriggerValues ?? [])],
+
+    combineHistoryKeys:
+      {...(state.combineHistoryKeys ?? {})},
 
     latestCollectionReward:
       state.latestCollectionReward ?? 0,

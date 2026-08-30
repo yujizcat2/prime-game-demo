@@ -9,6 +9,8 @@ import {
   isPrime
 } from "./prime";
 
+import { hasCombinePair } from "./combineHistory";
+
 
 
 // ============================================================
@@ -309,7 +311,8 @@ export function getActivityText(
 export function getActivityStatus(
   numbers = [],
   primeDensity = 0,
-  steps = 0
+  steps = 0,
+  combineHistoryKeys = {}
 ) {
 
 
@@ -629,7 +632,8 @@ export function getActivityStatus(
           first,
           second,
           numbers
-        )
+        ) &&
+        !hasCombinePair(combineHistoryKeys, first, second)
       ){
 
         combineLegal++;

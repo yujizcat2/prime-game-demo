@@ -323,6 +323,12 @@ export function createGameState(
     usedKeyTriggerValues:
       [],
 
+    combineHistoryKeys:
+      {},
+
+    combineHistory:
+      [],
+
 
 
 

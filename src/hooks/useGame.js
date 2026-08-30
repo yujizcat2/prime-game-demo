@@ -270,6 +270,8 @@ export default function useGame(){
     0;
 
   const stepLimit = gameState?.stepLimit ?? 0;
+  const combineHistoryKeys = gameState?.combineHistoryKeys ?? {};
+  const combineHistory = gameState?.combineHistory ?? [];
 
 
   const gameOver =
@@ -1347,6 +1349,9 @@ export default function useGame(){
     steps,
 
     stepLimit,
+    combineHistoryKeys,
+
+    combineHistory,
 
 
     // 迷宫回转

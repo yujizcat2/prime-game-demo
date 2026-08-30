@@ -13,6 +13,8 @@ import {
   GAME_CONFIG
 } from "./config";
 
+import { hasCombinePair } from "./combineHistory";
+
 
 
 // ============================================================
@@ -134,7 +136,8 @@ function hasParentRelation(
 function getCombineStatus(
   first,
   second,
-  numbers
+  numbers,
+  combineHistoryKeys
 ){
 
 
@@ -184,6 +187,15 @@ function getCombineStatus(
 
     };
 
+  }
+
+  // 历史锁是独立的本局规则，优先给出明确提示。
+  if(hasCombinePair(combineHistoryKeys, first, second)){
+    return {
+      allowed: false,
+      result: null,
+      reason: "这组料理本局已经搭配过"
+    };
   }
 
 
@@ -490,7 +502,8 @@ function getReduceStatus(
 
 export function getActionStatus(
   numbers,
-  selected
+  selected,
+  combineHistoryKeys = {}
 ){
 
 
@@ -697,7 +710,8 @@ export function getActionStatus(
     getCombineStatus(
       first,
       second,
-      numbers
+      numbers,
+      combineHistoryKeys
     );
 
 
