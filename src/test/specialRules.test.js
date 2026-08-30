@@ -1,11 +1,11 @@
 import assert from "node:assert/strict";
-import { applyAction, createCombinedPiece, createGameState, getLegalActions, resolveGameOver } from "../game/gameEngine";
+import { applyAction, createCombineOutcome, createCombinedPiece, createGameState, createReduceOutcome, getLegalActions, resolveGameOver } from "../game/gameEngine";
 import { FOOD_TYPES as T, createSpecialOne } from "../game/rules";
 import { createMazeStateKey } from "../game/mazeHistory";
 import { createSimulationState, getSimulationLegalActions, applySimulationAction, cloneSimulationState } from "./simulationEngine";
 import { createCombinationPairKey } from "../game/actionFatigue";
 import { getSpecialOneDisplayName } from "../data/specialOneRegistry";
-import { createEightPalaceBoardKey } from "./eightPalaceSolver";
+import { getDrinkName } from "../data/ingredients/drinkData";
 import { getNextSelectionIndexes } from "../game/selection";
 
 const stateWith=(pieces)=>{const seed=createGameState(pieces.map((piece,index)=>({...piece,boardIndex:index})));return {...seed,gameOver:false,board:[...seed.board]};};
@@ -22,10 +22,10 @@ for(const field of ["value","foodType","purity","crossed101"])assert.deepEqual(c
 assert.deepEqual(committedOrdered.parents,mainFirst.parents);assert.deepEqual(committedOrdered.parentFoods,mainFirst.parentFoods);assert.deepEqual(committedOrdered.origin,mainFirst.origin);
 let selection=getNextSelectionIndexes([],0);selection=getNextSelectionIndexes(selection,1);selection=getNextSelectionIndexes(selection,2);assert.deepEqual(selection,[0,2]);assert.deepEqual(getNextSelectionIndexes(selection,0),[]);
 assert.equal(combine({value:64,foodType:T.LAND},{value:37,foodType:T.FRUIT}).board[2].foodType,T.LAND);
-const crossed=combine({value:64,foodType:T.LAND},{value:38,foodType:T.FRUIT}); assert.equal(crossed.board[2].value,2); assert.equal(crossed.board[2].foodType,T.DRINK);
-for(const total of [90,130]){const state=combine({value:60,foodType:T.DRINK},{value:total-60,foodType:T.LAND}),result=state.board[2];assert.equal(result.value,total>101?total-100:total);assert.equal(result.foodType,total>101?T.DRINK:T.LAND);assert.equal(state.board.filter(Boolean).length,3);}
-assert.equal(combine({value:60,foodType:T.DRINK},{value:55,foodType:T.DRINK}).board[2].foodType,T.DRINK);
-const poured=combine({value:3,foodType:T.DRINK},{value:2,foodType:T.LAND});assert.equal(poured.board.filter(Boolean).length,3);assert.equal(poured.board[2].value,5);assert.equal(poured.board[2].foodType,T.LAND);
+const crossed=combine({value:64,foodType:T.LAND},{value:38,foodType:T.FRUIT}); assert.equal(crossed.board[2].value,102); assert.equal(crossed.board[2].foodType,T.DRINK);
+assert.equal(combine({value:101,foodType:T.LAND},{value:101,foodType:T.FRUIT}).board[2].value,202);
+const drinkPair=stateWith([{value:120,foodType:T.DRINK},{value:180,foodType:T.DRINK}]);assert.equal(getLegalActions(drinkPair).some(action=>action.type.startsWith("combine")||action.type==="reduce"),false);
+assert.notEqual(getDrinkName(120),"120");assert.notEqual(getDrinkName(202),"202");
 
 assert.equal(getSpecialOneDisplayName({foodType:T.LAND,specialOne:createSpecialOne(T.LAND,T.FRUIT)}),"肉汁");
 assert.equal(getSpecialOneDisplayName({foodType:T.FRUIT,specialOne:createSpecialOne(T.LAND,T.FRUIT)}),"果汁");
@@ -44,7 +44,7 @@ const drinkActions=getLegalActions(stateWith([{value:10,foodType:T.DRINK},{value
 const keyStateA=stateWith([{value:1,foodType:T.LAND}]),keyStateB=stateWith([{value:1,foodType:T.LAND}]);keyStateA.board[0].specialOne=createSpecialOne(T.LAND,T.LAND);keyStateB.board[0].specialOne=createSpecialOne(T.LAND,T.FRUIT);assert.notEqual(createMazeStateKey(keyStateA),createMazeStateKey(keyStateB));
 
 const sim=createSimulationState([10,20,30]);sim.board[0].foodType=T.LAND;sim.board[1].foodType=T.FRUIT;assert.equal(getSimulationLegalActions(sim).filter(a=>a.type==="combine_ordered"&&a.indexes.includes(0)&&a.indexes.includes(1)).length,2);const simAction=getSimulationLegalActions(sim).find(a=>a.type==="combine_ordered"&&a.indexes[0]===1&&a.indexes[1]===0);assert.equal(applySimulationAction(sim,simAction),true);assert.equal(sim.board.find(p=>p?.value===30&&p.parents)?.foodType,T.FRUIT);
-const simDrink=createSimulationState([3,2,7]);simDrink.board[0].foodType=T.DRINK;simDrink.board[1].foodType=T.LAND;assert.equal(applySimulationAction(simDrink,{type:"combine",indexes:[0,1]}),true);assert.equal(simDrink.board.filter(Boolean).length,4);assert.equal(simDrink.board[3].value,5);assert.equal(simDrink.board[3].foodType,T.LAND);
+const simDrink=createSimulationState([120,2,7]);simDrink.board[0].foodType=T.DRINK;simDrink.board[1].foodType=T.LAND;assert.equal(applySimulationAction(simDrink,{type:"combine",indexes:[0,1]}),true);assert.equal(simDrink.board.filter(Boolean).length,2);assert.equal(simDrink.board[0].value,122);assert.equal(simDrink.board[0].foodType,T.DRINK);
 
 const pairState=stateWith([{value:89,foodType:T.AQUATIC},{value:6,foodType:T.FRUIT}]);
 assert.equal(getLegalActions(pairState).some(action=>action.type.startsWith("combine")&&action.indexes.includes(0)&&action.indexes.includes(1)),true);
@@ -87,29 +87,26 @@ const earlierGrain=positionedEight({value:41,foodType:T.GRAIN_BEAN},1,{value:20,
 assert.equal(applyAction(earlierGrain,{type:"combine_ordered",indexes:[1,7]}).board[0].foodType,T.GRAIN_BEAN);
 assert.equal(applyAction(earlierGrain,{type:"combine_ordered",indexes:[7,1]}).board[0].foodType,T.FRUIT);
 assert.equal(getLegalActions(earlierGrain).filter(action=>action.type.startsWith("combine")&&action.indexes.includes(1)&&action.indexes.includes(7)).length,2);
-const earlierDrink=positionedEight({value:20,foodType:T.DRINK},1,{value:30,foodType:T.LAND},7);assert.equal(applyAction(earlierDrink,{type:"combine",indexes:[7,1]}).board[0].foodType,T.LAND);
-const laterDrink=positionedEight({value:20,foodType:T.LAND},1,{value:30,foodType:T.DRINK},7);assert.equal(applyAction(laterDrink,{type:"combine",indexes:[7,1]}).board[0].foodType,T.LAND);
-const crossedPosition=positionedEight({value:80,foodType:T.FRUIT},1,{value:30,foodType:T.LAND},7);const crossedPositionResult=applyAction(crossedPosition,{type:"combine",indexes:[7,1]}).board[0];assert.equal(crossedPositionResult.value,10);assert.equal(crossedPositionResult.foodType,T.DRINK);
-const crossedEarlierLand=positionedEight({value:66,foodType:T.LAND},0,{value:88,foodType:T.SPICE},6);assert.equal(applyAction(crossedEarlierLand,{type:"combine",indexes:[0,6]}).board.find(piece=>piece?.value===54)?.foodType,T.DRINK);
-const crossedWithDrink=positionedEight({value:60,foodType:T.DRINK},7,{value:50,foodType:T.GRAIN_BEAN},8);assert.equal(applyAction(crossedWithDrink,{type:"combine",indexes:[7,8]}).board[0].foodType,T.DRINK);
+const crossedPosition=positionedEight({value:80,foodType:T.FRUIT},1,{value:30,foodType:T.LAND},7);const crossedPositionResult=applyAction(crossedPosition,{type:"combine",indexes:[7,1]}).board[0];assert.equal(crossedPositionResult.value,110);assert.equal(crossedPositionResult.foodType,T.DRINK);
 const belowCrossing=positionedEight({value:28,foodType:T.VEGETABLE},0,{value:61,foodType:T.GRAIN_BEAN},8);assert.equal(applyAction(belowCrossing,{type:"combine",indexes:[8,0]}).board[1].foodType,T.GRAIN_BEAN);
 const classicOrder={...stateWith([{value:41,foodType:T.GRAIN_BEAN},{value:20,foodType:T.FRUIT}]),gameMode:"classic"};assert.equal(applyAction(classicOrder,{type:"combine_ordered",indexes:[1,0]}).board[2].foodType,T.FRUIT);
 
 const simPosition=createSimulationState([2,3,5],"eightPalace");simPosition.board=Array(9).fill(null);simPosition.board[1]={value:41,foodType:T.GRAIN_BEAN};simPosition.board[7]={value:20,foodType:T.FRUIT};assert.equal(applySimulationAction(simPosition,{type:"combine_ordered",indexes:[7,1]}),true);assert.equal(simPosition.board[0].foodType,T.FRUIT);assert.equal(getSimulationLegalActions(createSimulationState([41,20,7],"eightPalace")).filter(action=>action.type.startsWith("combine")&&action.indexes.includes(0)&&action.indexes.includes(1)).length,2);assert.equal(cloneSimulationState(simPosition).gameMode,"eightPalace");
 
-const originDrinkState=positionedEight({value:68,foodType:T.LAND},0,{value:57,foodType:T.FRUIT},6);const bornDrink=applyAction(originDrinkState,{type:"combine",indexes:[0,6]}).board.find(piece=>piece?.value===25);assert.equal(bornDrink.foodType,T.DRINK);assert.equal(bornDrink.drinkOriginValue,25);
-const drinkState=(index,value,origin,otherIndex,otherValue,otherType=T.LAND)=>{const state=createGameState([{value,foodType:T.DRINK,drinkOriginValue:origin,boardIndex:index,gameMode:"eightPalace"},{value:otherValue,foodType:otherType,boardIndex:otherIndex,gameMode:"eightPalace"}]);return {...state,gameOver:false,board:[...state.board]};};
-const reducedDrink=applyAction(drinkState(3,25,25,8,10),{type:"reduce",indexes:[3,8]});assert.equal(reducedDrink.board[3].value,5);assert.equal(reducedDrink.board[3].drinkOriginValue,25);
-const grainRestored=applyAction(drinkState(3,5,25,8,10),{type:"reduce",indexes:[3,8]});assert.equal(grainRestored.board[3].value,25);assert.equal(grainRestored.board[3].foodType,T.GRAIN_BEAN);assert.equal(grainRestored.board[3].drinkOriginValue,undefined);assert.equal(Object.values(grainRestored.eightPalaceKeys).filter(Boolean).length,0);assert.deepEqual(grainRestored.usedKeyTriggerValues,[]);
-const seasoningRestored=applyAction(drinkState(7,5,25,0,10),{type:"reduce",indexes:[7,0]});assert.equal(seasoningRestored.board[7].value,25);assert.equal(seasoningRestored.board[7].foodType,T.SEASONING);
-const centerDrink=applyAction(drinkState(4,5,25,0,10),{type:"reduce",indexes:[4,0]});assert.equal(centerDrink.board[4],null);assert.equal(Object.values(centerDrink.eightPalaceKeys).filter(Boolean).length,0);
-const restoredCanKey={...grainRestored,gameOver:false,board:[...grainRestored.board]};restoredCanKey.board[8]={id:701,value:100,foodType:T.GRAIN_BEAN};const restoredKey=applyAction(restoredCanKey,{type:"reduce",indexes:[3,8]});assert.ok(restoredKey.eightPalaceKeys[T.GRAIN_BEAN]);assert.equal(restoredKey.eightPalaceKeys[T.GRAIN_BEAN].triggerValue,25);
-const doubleOne=applyAction(drinkState(3,5,25,0,5,T.LAND),{type:"reduce",indexes:[3,0]});assert.equal(doubleOne.board[3].value,25);assert.equal(doubleOne.board[3].foodType,T.GRAIN_BEAN);assert.equal(doubleOne.board[0],null);
-const keyDrink25=drinkState(3,5,25,8,7),keyDrink45={...keyDrink25,board:keyDrink25.board.map(piece=>piece?.foodType===T.DRINK?{...piece,drinkOriginValue:45}:piece)};assert.notEqual(createEightPalaceBoardKey(keyDrink25),createEightPalaceBoardKey(keyDrink45));assert.notEqual(createMazeStateKey(keyDrink25),createMazeStateKey(keyDrink45));
-const simRestoredDrink=createSimulationState([5,10,7],"eightPalace");simRestoredDrink.board=Array(9).fill(null);simRestoredDrink.board[3]={value:5,foodType:T.DRINK,drinkOriginValue:25};simRestoredDrink.board[8]={value:10,foodType:T.LAND};assert.equal(applySimulationAction(simRestoredDrink,{type:"reduce",indexes:[3,8]}),true);assert.equal(simRestoredDrink.board[3].value,25);assert.equal(simRestoredDrink.board[3].foodType,T.GRAIN_BEAN);assert.equal(simRestoredDrink.board[3].drinkOriginValue,undefined);
+const drinkState=(drinkValue,normalValue,normalType=T.LAND,drinkIndex=1,normalIndex=7)=>positionedEight({value:drinkValue,foodType:T.DRINK},drinkIndex,{value:normalValue,foodType:normalType},normalIndex);
+const absorbed=applyAction(drinkState(120,17),{type:"combine",indexes:[7,1]});assert.equal(absorbed.board[1].value,137);assert.equal(absorbed.board[1].foodType,T.DRINK);assert.equal(absorbed.board[7],null);
+const absorbedReverse=applyAction(drinkState(120,17),{type:"combine",indexes:[1,7]});assert.equal(absorbedReverse.board[1].value,137);assert.equal(absorbedReverse.board[7],null);
+assert.equal(applyAction(drinkState(180,22),{type:"combine",indexes:[1,7]}).board[1].value,202);
+const burstState=drinkState(180,23),burstPreview=createCombineOutcome(burstState,1,7),burst=applyAction(burstState,{type:"combine",indexes:[1,7]});assert.equal(burstPreview.kind,"burst");assert.equal(burst.board[1],null);assert.equal(burst.board[7],null);
+const drinkReduceState=drinkState(110,20,T.LAND),reducePreview=createReduceOutcome(drinkReduceState,1,7),drinkReduced=applyAction(drinkReduceState,{type:"reduce",indexes:[1,7]});assert.deepEqual(reducePreview.results.map(item=>[item.value,item.foodType]),[[11,T.LAND],[2,T.LAND]]);assert.equal(drinkReduced.board[1].value,11);assert.equal(drinkReduced.board[1].foodType,T.LAND);assert.equal(drinkReduced.board[7].value,2);assert.equal(drinkReduced.board[7].foodType,T.LAND);
+const vegetableReduced=applyAction(drinkState(110,20,T.VEGETABLE),{type:"reduce",indexes:[7,1]});assert.equal(vegetableReduced.board[1].foodType,T.VEGETABLE);assert.equal(vegetableReduced.board[7].foodType,T.VEGETABLE);
+const dualChoice=drinkState(198,4);assert.ok(getLegalActions(dualChoice).some(action=>action.type.startsWith("combine")));assert.ok(getLegalActions(dualChoice).some(action=>action.type==="reduce"));
+const fullDrinkBoard=drinkState(120,17);for(let index=0;index<9;index++)if(!fullDrinkBoard.board[index])fullDrinkBoard.board[index]={id:800+index,value:3+index,foodType:T.FRUIT};assert.equal(resolveGameOver(fullDrinkBoard).gameOver,false);assert.ok(getLegalActions(fullDrinkBoard).some(action=>action.type.startsWith("combine")&&action.indexes.includes(1)&&action.indexes.includes(7)));
+const simAbsorb=createSimulationState([120,17,7],"eightPalace");simAbsorb.board[0].foodType=T.DRINK;simAbsorb.board[1].foodType=T.LAND;assert.equal(applySimulationAction(simAbsorb,{type:"combine",indexes:[1,0]}),true);assert.equal(simAbsorb.board[0].value,137);assert.equal(simAbsorb.board[1],null);
+const simDrinkPair=createSimulationState([120,180,7],"eightPalace");simDrinkPair.board[0].foodType=T.DRINK;simDrinkPair.board[1].foodType=T.DRINK;assert.equal(getSimulationLegalActions(simDrinkPair).some(action=>action.indexes?.includes(0)&&action.indexes?.includes(1)),false);
 
 const fullSpecialState=(specialOne,normalTarget=false)=>{const state=stateWith([{value:1,foodType:T.LAND}]);state.board=Array(9).fill(null);state.board[0]={...state.board[0],value:1,foodType:T.LAND,specialOne};const primes=normalTarget?[23,2,3,5,7,11,13,17]:[2,3,5,7,11,13,17,19];for(let i=1;i<9;i++)state.board[i]={id:100+i,value:primes[i-1],foodType:normalTarget&&i===1?T.LAND:T.DRINK,purity:"pure",parents:null,parentFoods:null};state.gameOver=true;state.gameOverReason="no_legal_actions";return state;};
 const fullKey=resolveGameOver(fullSpecialState(createSpecialOne(T.LAND,T.LAND)));assert.equal(fullKey.gameOver,true);assert.equal(getLegalActions({...fullKey,gameOver:false}).some(action=>action.type==="claim_key"),false);
-const fullFunction=resolveGameOver(fullSpecialState(createSpecialOne(T.LAND,T.FRUIT),true));assert.equal(fullFunction.gameOver,true);assert.equal(getLegalActions({...fullFunction,gameOver:false}).some(action=>action.type==="apply_one"),false);
+const fullFunction=resolveGameOver(fullSpecialState(createSpecialOne(T.LAND,T.FRUIT),true));assert.equal(fullFunction.gameOver,false);assert.equal(getLegalActions({...fullFunction,gameOver:false}).some(action=>action.type==="apply_one"),false);
 const inertFunction=resolveGameOver(fullSpecialState(createSpecialOne(T.LAND,T.FRUIT),false));assert.equal(inertFunction.gameOver,true);assert.equal(getLegalActions({...inertFunction,gameOver:false}).length,0);
 console.log("special rules tests passed");

@@ -30,8 +30,9 @@ import {
   getPieceAt,
 
   canCombineCells,
-  createCombinedPiece,
+  createCombineOutcome,
   canReduceCells,
+  createReduceOutcome,
 
   applyAction,
   resolveGameOver
@@ -653,9 +654,10 @@ export default function useGame(){
       );
 
 
-    const combinedPiece=combineAllowed
-      ? createCombinedPiece(gameState,first.index,second.index)
+    const combineOutcome=combineAllowed
+      ? createCombineOutcome(gameState,first.index,second.index)
       : null;
+    const reduceOutcome=reduceAllowed?createReduceOutcome(gameState,first.index,second.index):null;
 
 
     return {
@@ -667,7 +669,7 @@ export default function useGame(){
 
           ?
 
-            combinedPiece
+            {...(combineOutcome?.piece??{}),...combineOutcome,burst:combineOutcome?.kind==="burst"}
 
           :
 
@@ -700,8 +702,7 @@ export default function useGame(){
 
                 {
 
-                  value:
-                    first.piece.value / divisor,
+                  value:reduceOutcome.results[0].value,
 
                   autoCollect:
                     first.piece.value / divisor === 1,
@@ -711,19 +712,15 @@ export default function useGame(){
                       ? first.piece.value
                       : null,
 
-                  foodType:
-                    first.piece.foodType,
+                  foodType:reduceOutcome.results[0].foodType,
 
-                  purity:
-                    first.piece.purity
-                    ?? null
+                  purity:reduceOutcome.results[0].purity
 
                 },
 
                 {
 
-                  value:
-                    second.piece.value / divisor,
+                  value:reduceOutcome.results[1].value,
 
                   autoCollect:
                     second.piece.value / divisor === 1,
@@ -733,12 +730,9 @@ export default function useGame(){
                       ? second.piece.value
                       : null,
 
-                  foodType:
-                    second.piece.foodType,
+                  foodType:reduceOutcome.results[1].foodType,
 
-                  purity:
-                    second.piece.purity
-                    ?? null
+                  purity:reduceOutcome.results[1].purity
 
                 }
 

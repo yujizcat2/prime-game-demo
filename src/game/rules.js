@@ -11,8 +11,8 @@ export const FOOD_TYPE_META = Object.freeze({
 export const FOOD_PURITY=Object.freeze({PURE:"pure",MIXED:"mixed"});
 export const SPECIAL_ONE_KINDS=Object.freeze({KEY:"key",FUNCTION:"function"});
 export function canReduce(a,b){return gcd(a.value,b.value)>1;}
-export function isCrossing101(a,b){return a+b>101;}
-export function combineValue(a,b){let value=a+b;while(value>101)value-=100;return value;}
+export function isCrossing101(a,b){return a+b>=102;}
+export function combineValue(a,b){return a+b;}
 export function isNormalFoodType(type){return BASE_FOOD_TYPES.includes(type);}
 export function flipFoodType(){return null;}
 export function getDessertMutationFoodType(){return null;}
@@ -21,22 +21,10 @@ export function getDessertMutationFoodType(){return null;}
 export function combineFoodType(front,back){
   if(!front||!back||!front.foodType||!back.foodType)return null;
   const a=front.foodType==="meat"?FOOD_TYPES.LAND:front.foodType,b=back.foodType==="meat"?FOOD_TYPES.LAND:back.foodType;
-  if(a===FOOD_TYPES.DRINK&&b===FOOD_TYPES.DRINK)return FOOD_TYPES.DRINK;
-  if(a===FOOD_TYPES.DRINK||b===FOOD_TYPES.DRINK)return isCrossing101(front.value,back.value)?FOOD_TYPES.DRINK:(a===FOOD_TYPES.DRINK?b:a);
+  if(a===FOOD_TYPES.DRINK&&b===FOOD_TYPES.DRINK)return null;
+  if(a===FOOD_TYPES.DRINK||b===FOOD_TYPES.DRINK)return FOOD_TYPES.DRINK;
   if(!isNormalFoodType(a)||!isNormalFoodType(b))return null;
   return isCrossing101(front.value,back.value)?FOOD_TYPES.DRINK:a;
-}
-export function combineFoodTypeByBoardPosition(first,indexA,second,indexB){
-  if(!first||!second)return null;
-  if(first.value+second.value>100)return FOOD_TYPES.DRINK;
-  const earlier=indexA<=indexB?first:second;
-  const type=earlier?.foodType==="meat"?FOOD_TYPES.LAND:earlier?.foodType;
-  return isNormalFoodType(type)||type===FOOD_TYPES.DRINK?type:null;
-}
-export function getCombinedDrinkOriginValue(first,indexA,second,indexB,resultValue){
-  if(first.value+second.value>100)return resultValue;
-  const earlier=indexA<=indexB?first:second;
-  return earlier?.foodType===FOOD_TYPES.DRINK?earlier.drinkOriginValue??null:null;
 }
 export function combineFoodPurity(front,back,resultFoodType=combineFoodType(front,back)){const result=resultFoodType;if(!result||result===FOOD_TYPES.DRINK)return null;return front.foodType===back.foodType&&result===front.foodType?FOOD_PURITY.PURE:FOOD_PURITY.MIXED;}
 export function createSpecialOne(sourceTypeA,sourceTypeB){
@@ -52,4 +40,4 @@ export function isSameFoodIdentity(a,b){return Boolean(a&&b&&a.value===b.value&&
 export function hasParentFood(child,candidate){if(!child||!candidate)return false;if(Array.isArray(child.parentFoods))return child.parentFoods.some(parent=>isSameFoodIdentity(parent,candidate));return Array.isArray(child.parents)&&child.parents.includes(candidate.value);}
 export function hasSameParents(numbers,a,b){return Array.isArray(numbers)&&numbers.some(item=>{if(Array.isArray(item.parentFoods)&&item.parentFoods.length>=2){const [p1,p2]=item.parentFoods;return isSameFoodIdentity(p1,a)&&isSameFoodIdentity(p2,b)||isSameFoodIdentity(p1,b)&&isSameFoodIdentity(p2,a);}if(!Array.isArray(item.parents)||item.parents.length<2)return false;const [p1,p2]=item.parents;return p1===a.value&&p2===b.value||p1===b.value&&p2===a.value;});}
 export function canCombineRelation(a,b,numbers=[]){return Boolean(a&&b&&!hasParentFood(a,b)&&!hasParentFood(b,a)&&!hasSameParents(numbers,a,b));}
-export function canCombine(a,b,numbers=[]){const aType=a?.foodType==="meat"?FOOD_TYPES.LAND:a?.foodType,bType=b?.foodType==="meat"?FOOD_TYPES.LAND:b?.foodType;return Boolean(numbers.length<9&&canCombineRelation(a,b,numbers)&&(isNormalFoodType(aType)||aType===FOOD_TYPES.DRINK)&&(isNormalFoodType(bType)||bType===FOOD_TYPES.DRINK));}
+export function canCombine(a,b,numbers=[]){const aType=a?.foodType==="meat"?FOOD_TYPES.LAND:a?.foodType,bType=b?.foodType==="meat"?FOOD_TYPES.LAND:b?.foodType;const hasDrink=aType===FOOD_TYPES.DRINK||bType===FOOD_TYPES.DRINK;return Boolean(!(aType===FOOD_TYPES.DRINK&&bType===FOOD_TYPES.DRINK)&&(!hasDrink?numbers.length<9:true)&&canCombineRelation(a,b,numbers)&&(isNormalFoodType(aType)||aType===FOOD_TYPES.DRINK)&&(isNormalFoodType(bType)||bType===FOOD_TYPES.DRINK));}

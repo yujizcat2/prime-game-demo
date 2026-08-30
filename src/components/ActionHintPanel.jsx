@@ -103,19 +103,34 @@ function PairHint({status,keyOutcome,preview}){
 
   if(canCombine&&preview?.combine){
     const result=preview.combine;
+    const drink=first.foodType==="drink"?first:second.foodType==="drink"?second:null;
+    const normal=drink===first?second:drink===second?first:null;
     const resultName=getFoodName(result.value,result.foodType);
     const resultType=getTypeShortName(result.foodType);
+    if(result.burst)return (
+      <div className="cooking-hint cooking-hint--pair cooking-hint--combine-detail">
+        <div className="cooking-hint__dish cooking-hint__dish--pair-detail"><strong>这杯饮品装不下了</strong><span>饮品　<b>{getItemName(drink)} {drink.value}</b></span><span>加入　<b>{getItemName(normal)} {normal.value} · {getTypeShortName(normal.foodType)}</b></span></div>
+        <div className="cooking-hint__next"><small>饮品会爆掉</small><span>执行后两张都会从料理台消失。</span></div>
+      </div>
+    );
+    if(result.kind==="absorb")return (
+      <div className="cooking-hint cooking-hint--pair cooking-hint--combine-detail">
+        <div className="cooking-hint__dish cooking-hint__dish--pair-detail"><strong>加入饮品</strong><span>饮品　<b>{getItemName(drink)} {drink.value}</b></span><span>加入　<b>{getItemName(normal)} {normal.value} · {getTypeShortName(normal.foodType)}</b></span></div>
+        <div className="cooking-hint__next"><small>将得到</small><span><b>{result.value} · {resultName} · 饮品</b></span><span>这道料理会加入饮品中，饮品留在原来的位置。</span></div>
+      </div>
+    );
+    const becameDrink=result.foodType==="drink";
     return (
       <div className="cooking-hint cooking-hint--pair cooking-hint--combine-detail">
         <div className="cooking-hint__dish cooking-hint__dish--pair-detail">
-          <strong>准备一起烹制</strong>
+          <strong>{becameDrink?"准备调成一杯新的饮品":"准备一起烹制"}</strong>
           <span>主料理　<b>{firstName} {first.value} · {getTypeShortName(first.foodType)}</b></span>
           <span>搭配　　<b>{secondName} {second.value} · {getTypeShortName(second.foodType)}</b></span>
         </div>
         <div className="cooking-hint__next">
           <small>将得到</small>
           <span><b>{result.value} · {resultName} · {resultType}</b></span>
-          <span>因为 {firstName} 是这次的主料理，新料理会继续保持{resultType}系。想做成另一系？取消后先选择另一道料理。</span>
+          <span>{becameDrink?"两道料理调在一起，成为一杯新的饮品。":`因为 ${firstName} 是这次的主料理，新料理会继续保持${resultType}系。想做成另一系？取消后先选择另一道料理。`}</span>
         </div>
       </div>
     );

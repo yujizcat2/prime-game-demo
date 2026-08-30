@@ -15,7 +15,6 @@ import {
   canCombine,
   getDessertMutationFoodType
 } from "./rules";
-import { getEightPalacePositionFoodType } from "./eightPalaceBoardTypes";
 
 import {
   createCombineOrigin,
@@ -93,19 +92,6 @@ export function canCombineCells(
 
 
 
-  if(
-    isBoardFull(
-      state.board
-    )
-  ){
-
-
-    return false;
-
-  }
-
-
-
   const a =
 
     getPieceAt(
@@ -144,6 +130,9 @@ export function canCombineCells(
     return false;
 
   }
+
+  const hasDrink=a.foodType===FOOD_TYPES.DRINK||b.foodType===FOOD_TYPES.DRINK;
+  if(!hasDrink&&isBoardFull(state.board))return false;
 
   if(hasUsedCombinationPair(state,a.value,b.value))return false;
 
@@ -241,6 +230,8 @@ export function canReduceCells(
 
   }
 
+  if(a.foodType===FOOD_TYPES.DRINK&&b.foodType===FOOD_TYPES.DRINK)return false;
+
 
 
   return canReduce(
@@ -248,6 +239,23 @@ export function canReduceCells(
     b
   );
 
+}
+
+export function createReduceOutcome(state,indexA,indexB){
+  const first=getPieceAt(state,indexA),second=getPieceAt(state,indexB);
+  if(!first||!second||first.foodType===FOOD_TYPES.DRINK&&second.foodType===FOOD_TYPES.DRINK)return null;
+  const divisor=gcd(first.value,second.value);
+  if(divisor<=1)return null;
+  let firstFoodType=first.foodType,secondFoodType=second.foodType;
+  const template=first.foodType===FOOD_TYPES.DRINK?second:second.foodType===FOOD_TYPES.DRINK?first:null;
+  if(template)firstFoodType=secondFoodType=template.foodType;
+  const firstResult=first.value/divisor,secondResult=second.value/divisor;
+  if(first.foodType===FOOD_TYPES.DESSERT&&firstResult===1)secondFoodType=getDessertMutationFoodType(second.foodType)??secondFoodType;
+  if(second.foodType===FOOD_TYPES.DESSERT&&secondResult===1)firstFoodType=getDessertMutationFoodType(first.foodType)??firstFoodType;
+  return {divisor,results:[
+    {value:firstResult,foodType:firstFoodType,purity:template?.purity??first.purity??null},
+    {value:secondResult,foodType:secondFoodType,purity:template?.purity??second.purity??null}
+  ]};
 }
 
 
@@ -258,20 +266,20 @@ export function canReduceCells(
 // 组合
 // ============================================================
 
-// indexA = 主料理，indexB = 搭配料理。预览与正式执行共用此构造器。
-export function createCombinedPiece(state,indexA,indexB){
+// Preview 与正式执行共用：new = 新卡；absorb = 饮品原位更新；burst = 两张消失。
+export function createCombineOutcome(state,indexA,indexB){
   const main=getPieceAt(state,indexA),pairing=getPieceAt(state,indexB);
   if(!main||!pairing)return null;
+  if(main.foodType===FOOD_TYPES.DRINK&&pairing.foodType===FOOD_TYPES.DRINK)return null;
+  const drinkIndex=main.foodType===FOOD_TYPES.DRINK?indexA:pairing.foodType===FOOD_TYPES.DRINK?indexB:null;
   const value=combineValue(main.value,pairing.value);
   const foodType=combineFoodType(main,pairing);
   if(!foodType)return null;
-  return {
+  if(drinkIndex!==null&&value>202)return {kind:"burst",value,foodType,drinkIndex,consumedIndexes:[indexA,indexB],parents:[main.value,pairing.value],parentFoods:[main,pairing]};
+  const piece={
     id:state.nextId,
     value,
     foodType,
-    drinkOriginValue:isEightPalaceMode(state)&&foodType===FOOD_TYPES.DRINK
-      ? (main.value+pairing.value>101?value:main.foodType===FOOD_TYPES.DRINK?main.drinkOriginValue??null:null)
-      : undefined,
     purity:combineFoodPurity(main,pairing,foodType),
     parents:[main.value,pairing.value],
     sourceKey:[main.value,pairing.value].sort((left,right)=>left-right).join("|"),
@@ -279,6 +287,12 @@ export function createCombinedPiece(state,indexA,indexB){
     crossed101:main.value+pairing.value>101,
     origin:createCombineOrigin(value,main,pairing)
   };
+  return {kind:drinkIndex===null?"new":"absorb",value,foodType,piece,drinkIndex,targetIndex:drinkIndex};
+}
+
+// Compatibility for existing consumers that need the resulting card only.
+export function createCombinedPiece(state,indexA,indexB){
+  return createCombineOutcome(state,indexA,indexB)?.piece??null;
 }
 
 export function combineCells(
@@ -315,25 +329,6 @@ export function combineCells(
 
 
 
-  const targetIndex =
-
-    getNextEmptyIndex(
-      state.board
-    );
-
-
-
-  if(
-    targetIndex === -1
-  ){
-
-
-    return state;
-
-  }
-
-
-
   const a =
 
     getPieceAt(
@@ -360,9 +355,9 @@ export function combineCells(
 
 
 
-  const newPiece=createCombinedPiece(state,indexA,indexB);
-  if(!newPiece)return state;
-  const result=newPiece.value;
+  const outcome=createCombineOutcome(state,indexA,indexB);
+  if(!outcome)return state;
+  const result=outcome.value;
 
 
 
@@ -373,7 +368,17 @@ export function combineCells(
     ...state.board
 
   ];
-  nextBoard[targetIndex]=newPiece;
+  if(outcome.kind==="burst"){
+    nextBoard[indexA]=null;
+    nextBoard[indexB]=null;
+  }else if(outcome.kind==="absorb"){
+    nextBoard[outcome.drinkIndex]=outcome.piece;
+    nextBoard[outcome.drinkIndex===indexA?indexB:indexA]=null;
+  }else{
+    const targetIndex=getNextEmptyIndex(state.board);
+    if(targetIndex===-1)return state;
+    nextBoard[targetIndex]=outcome.piece;
+  }
 
 
 
@@ -384,7 +389,7 @@ export function combineCells(
     board:
       nextBoard,
 
-    nextId: state.nextId + 1
+    nextId: state.nextId + (outcome.kind==="burst"?0:1)
 
   };
 
@@ -546,29 +551,11 @@ export function reduceCells(
 
 
 
-  const divisor =
-
-    gcd(
-
-      first.value,
-
-      second.value
-
-    );
-
-
-
-  const firstResult =
-
-    first.value /
-    divisor;
-
-
-
-  const secondResult =
-
-    second.value /
-    divisor;
+  const reductionOutcome=createReduceOutcome(state,indexA,indexB);
+  if(!reductionOutcome)return state;
+  const [firstOutcome,secondOutcome]=reductionOutcome.results;
+  const firstResult=firstOutcome.value;
+  const secondResult=secondOutcome.value;
 
   const actionSignature = createReduceActionSignature(
     first.value,
@@ -631,12 +618,8 @@ export function reduceCells(
   // 普通约分保持原类型。
   // ==========================================================
 
-  let firstFoodType =
-    first.foodType;
-
-
-  let secondFoodType =
-    second.foodType;
+  let firstFoodType=firstOutcome.foodType;
+  let secondFoodType=secondOutcome.foodType;
 
 
 
@@ -762,8 +745,7 @@ export function reduceCells(
     // 甜食变种不改变 purity。
     // ========================================================
 
-    purity:
-      first.purity,
+    purity:firstOutcome.purity,
 
     sourceKey:
       firstResult === 1 ? (first.sourceKey ?? null) : null,
@@ -791,8 +773,7 @@ export function reduceCells(
     foodType:
       secondFoodType,
 
-    purity:
-      second.purity,
+    purity:secondOutcome.purity,
 
     sourceKey:
       secondResult === 1 ? (second.sourceKey ?? null) : null,
@@ -812,22 +793,16 @@ export function reduceCells(
 
   const eightPalace = isEightPalaceMode(state);
   if(!eightPalace){
-    const specialOne = createSpecialOne(first.foodType, second.foodType);
+    const specialOne = createSpecialOne(firstFoodType, secondFoodType);
     if(firstResult === 1)firstReducedPiece.specialOne=specialOne;
     if(secondResult === 1)secondReducedPiece.specialOne=specialOne;
   }
 
-  if(eightPalace&&firstResult===1&&first.foodType===FOOD_TYPES.DRINK){
-    const restoredType=getEightPalacePositionFoodType(indexA);
-    nextBoard[indexA]=restoredType&&first.drinkOriginValue!=null?{...firstReducedPiece,value:first.drinkOriginValue,foodType:restoredType,drinkOriginValue:undefined}:null;
-  }else nextBoard[indexA] = eightPalace && firstResult === 1 ? null : firstReducedPiece;
+  nextBoard[indexA] = eightPalace && firstResult === 1 ? null : firstReducedPiece;
 
 
 
-  if(eightPalace&&secondResult===1&&second.foodType===FOOD_TYPES.DRINK){
-    const restoredType=getEightPalacePositionFoodType(indexB);
-    nextBoard[indexB]=restoredType&&second.drinkOriginValue!=null?{...secondReducedPiece,value:second.drinkOriginValue,foodType:restoredType,drinkOriginValue:undefined}:null;
-  }else nextBoard[indexB] = eightPalace && secondResult === 1 ? null : secondReducedPiece;
+  nextBoard[indexB] = eightPalace && secondResult === 1 ? null : secondReducedPiece;
 
 
 
@@ -994,10 +969,7 @@ export function getLegalCombineActions(
 
   if(
     !state ||
-    state.gameOver ||
-    isBoardFull(
-      state.board
-    )
+    state.gameOver
   ){
 
 

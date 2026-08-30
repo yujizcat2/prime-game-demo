@@ -19,7 +19,9 @@ import {
 import {
   canCombineCells,
   canReduceCells,
+  createReduceOutcome,
   combineCells,
+  createCombineOutcome,
   createCombinedPiece,
   reduceCells,
   removeOne,
@@ -103,8 +105,10 @@ export {
   canCombineCells,
 
   canReduceCells,
+  createReduceOutcome,
 
   combineCells,
+  createCombineOutcome,
   createCombinedPiece,
 
   reduceCells,

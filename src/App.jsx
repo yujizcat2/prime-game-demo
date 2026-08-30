@@ -128,14 +128,12 @@ function App(){
     ];
 
 
-    const targetIndex = game.board.findIndex(
-      piece => !piece
-    );
+    const targetIndex = game.preview.combine.targetIndex
+      ?? game.preview.combine.drinkIndex
+      ?? game.board.findIndex(piece => !piece);
 
 
-    if(
-      targetIndex === -1
-    ){
+    if(targetIndex === -1){
       return;
     }
 

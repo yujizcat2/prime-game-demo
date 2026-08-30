@@ -736,7 +736,7 @@ export default function Board({
                         board-preview-number
                       "
                     >
-                      {combinePreview.value}
+                      {combinePreview.burst?"!":combinePreview.value}
                     </div>
 
                     <div className="board-preview-meta">
@@ -757,7 +757,7 @@ export default function Board({
                           board-preview-name
                         "
                       >
-                        {combinePreviewName}
+                        {combinePreview.burst?"饮品会爆掉":combinePreviewName}
                       </span>
 
                     </div>
@@ -769,11 +769,11 @@ export default function Board({
                         board-preview-action
                       "
                     >
-                      + 组合
+                      {combinePreview.burst?"两张消失":combinePreview.kind==="absorb"?"+ 加入饮品":"+ 组合"}
                     </div>
 
                     <div className="board-preview-parents">
-                      由 {combinePreviewParents.map(parent=>`${parent.name} ${parent.value}`).join(" 与 ")} 烹制
+                      {combinePreview.kind==="absorb"?"由原饮品与料理调成":combinePreview.burst?"这杯已经装不下了":"由料理烹制"}：{combinePreviewParents.map(parent=>`${parent.name} ${parent.value}`).join(" + ")}
                     </div>
 
 

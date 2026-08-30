@@ -13,7 +13,6 @@ import {
   canCombine,
   getDessertMutationFoodType
 } from "../game/rules";
-import { getEightPalacePositionFoodType } from "../game/eightPalaceBoardTypes";
 
 import {
   createMazeStateKey
@@ -642,10 +641,6 @@ function canCombineIndexes(
   if(
     indexA ===
     indexB
-    ||
-    isBoardFull(
-      state.board
-    )
   ){
 
 
@@ -683,6 +678,8 @@ function canCombineIndexes(
   }
 
   if(hasUsedCombinationPair(state,a.value,b.value))return false;
+  const hasDrink=a.foodType===FOOD_TYPES.DRINK||b.foodType===FOOD_TYPES.DRINK;
+  if(!hasDrink&&isBoardFull(state.board))return false;
 
 
 
@@ -725,8 +722,6 @@ function canReduceIndexes(
 
   }
 
-
-
   const a =
 
     state.board[
@@ -753,6 +748,8 @@ function canReduceIndexes(
     return false;
 
   }
+
+  if(a.foodType===FOOD_TYPES.DRINK&&b.foodType===FOOD_TYPES.DRINK)return false;
 
 
 
@@ -782,16 +779,6 @@ export function getSimulationLegalActions(
 
   const board =
     state.board;
-
-
-  const full =
-
-    isBoardFull(
-      board
-    );
-
-
-
 
 
   // ==========================================================
@@ -853,8 +840,6 @@ export function getSimulationLegalActions(
 
 
       if(
-        !full
-        &&
         canCombineIndexes(
           state,
           i,
@@ -912,26 +897,6 @@ function applyCombine(
   indexA,
   indexB
 ){
-
-
-  const targetIndex =
-
-    getNextEmptyIndex(
-      state.board
-    );
-
-
-
-  if(
-    targetIndex ===
-    -1
-  ){
-
-
-    return false;
-
-  }
-
 
 
   const a =
@@ -997,6 +962,14 @@ function applyCombine(
 
   }
 
+  const drinkIndex=a.foodType===FOOD_TYPES.DRINK?indexA:b.foodType===FOOD_TYPES.DRINK?indexB:null;
+  if(drinkIndex!==null&&value>202){
+    state.board[indexA]=null;state.board[indexB]=null;state.steps++;
+    state.recentActionSignatures=appendRecentActionSignature(state.recentActionSignatures,actionSignature);
+    state.usedCombinationPairs=[...(state.usedCombinationPairs??[]),createCombinationPairKey(a.value,b.value)];
+    return true;
+  }
+
 
 
 
@@ -1006,11 +979,6 @@ function applyCombine(
     value,
 
     foodType,
-
-    drinkOriginValue:
-      ["eightPalace","simpleEightPalace"].includes(state.gameMode)&&foodType===FOOD_TYPES.DRINK
-        ? (a.value+b.value>101?value:a.foodType===FOOD_TYPES.DRINK?a.drinkOriginValue??null:null)
-        : undefined,
 
     crossed101:
       front.value + back.value > 101,
@@ -1072,7 +1040,14 @@ function applyCombine(
       null
 
   };
-  state.board[targetIndex]=resultPiece;
+  if(drinkIndex!==null){
+    state.board[drinkIndex]=resultPiece;
+    state.board[drinkIndex===indexA?indexB:indexA]=null;
+  }else{
+    const targetIndex=getNextEmptyIndex(state.board);
+    if(targetIndex===-1)return false;
+    state.board[targetIndex]=resultPiece;
+  }
 
 
 
@@ -1261,6 +1236,10 @@ function applyReduce(
 
     second.foodType;
 
+  const reductionTemplate=first.foodType===FOOD_TYPES.DRINK?second:second.foodType===FOOD_TYPES.DRINK?first:null;
+  if(reductionTemplate)firstFoodType=secondFoodType=reductionTemplate.foodType;
+  const reductionPurity=reductionTemplate?.purity??null;
+
 
 
 
@@ -1384,6 +1363,7 @@ function applyReduce(
 
   first.foodType =
     firstFoodType;
+  if(reductionTemplate)first.purity=reductionPurity;
 
 
   first.parents =
@@ -1414,6 +1394,7 @@ function applyReduce(
 
   second.foodType =
     secondFoodType;
+  if(reductionTemplate)second.purity=reductionPurity;
 
 
   second.parents =
@@ -1441,12 +1422,10 @@ function applyReduce(
   }
 
   if(firstResult===1){
-    const restoredType=firstFoodType===FOOD_TYPES.DRINK?getEightPalacePositionFoodType(indexA):null;
-    if(["eightPalace","simpleEightPalace"].includes(state.gameMode)&&restoredType&&first.drinkOriginValue!=null){first.value=first.drinkOriginValue;first.foodType=restoredType;delete first.drinkOriginValue;}else state.board[indexA]=null;
+    state.board[indexA]=null;
   }
   if(secondResult===1){
-    const restoredType=secondFoodType===FOOD_TYPES.DRINK?getEightPalacePositionFoodType(indexB):null;
-    if(["eightPalace","simpleEightPalace"].includes(state.gameMode)&&restoredType&&second.drinkOriginValue!=null){second.value=second.drinkOriginValue;second.foodType=restoredType;delete second.drinkOriginValue;}else state.board[indexB]=null;
+    state.board[indexB]=null;
   }
 
   for(const event of collectionEvents){
