@@ -20,6 +20,7 @@ import {
   canCombineCells,
   canReduceCells,
   combineCells,
+  createCombinedPiece,
   reduceCells,
   removeOne,
   applyFunctionOne,
@@ -104,6 +105,7 @@ export {
   canReduceCells,
 
   combineCells,
+  createCombinedPiece,
 
   reduceCells,
 

@@ -7,10 +7,6 @@ import {
 } from "../utils/math";
 
 import {
-  combineValue,
-  combineFoodType,
-  combineFoodTypeByBoardPosition,
-  combineFoodPurity,
   BASE_FOOD_TYPES,
   SPECIAL_ONE_KINDS,
   canApplyFunctionOne
@@ -25,15 +21,16 @@ import {
 import {
   getBoardPrices
 } from "../game/price";
+import { getNextSelectionIndexes } from "../game/selection";
 
 import {
   createGameState,
 
   getBoardPieces,
   getPieceAt,
-  getOrderedPair,
 
   canCombineCells,
+  createCombinedPiece,
   canReduceCells,
 
   applyAction,
@@ -573,62 +570,7 @@ export default function useGame(){
     }
 
 
-    // 已选 → 取消
-    if(
-      selectedIndexes.includes(
-        index
-      )
-    ){
-
-
-      setSelectedIndexes(
-
-        selectedIndexes.filter(
-
-          selectedIndex =>
-            selectedIndex !== index
-
-        )
-
-      );
-
-
-      return;
-
-    }
-
-
-    // 少于两个
-    if(
-      selectedIndexes.length <
-      2
-    ){
-
-
-      setSelectedIndexes(
-
-        [
-          ...selectedIndexes,
-          index
-        ]
-
-      );
-
-
-      return;
-
-    }
-
-
-    // 第三个
-    setSelectedIndexes(
-
-      [
-        selectedIndexes[1],
-        index
-      ]
-
-    );
+    setSelectedIndexes(getNextSelectionIndexes(selectedIndexes,index));
 
   }
 
@@ -711,27 +653,9 @@ export default function useGame(){
       );
 
 
-    const orderedPair =
-
-      getOrderedPair(
-
-        gameState,
-
-        first.index,
-
-        second.index
-
-      );
-
-
-    if(
-      !orderedPair
-    ){
-
-
-      return null;
-
-    }
+    const combinedPiece=combineAllowed
+      ? createCombinedPiece(gameState,first.index,second.index)
+      : null;
 
 
     return {
@@ -743,27 +667,7 @@ export default function useGame(){
 
           ?
 
-            {
-
-              value:
-
-                combineValue(
-
-                  orderedPair.front.value,
-
-                  orderedPair.back.value
-
-                ),
-
-
-              foodType:["eightPalace","simpleEightPalace"].includes(gameState?.gameMode)
-                ? combineFoodTypeByBoardPosition(first.piece,first.index,second.piece,second.index)
-                : combineFoodType(orderedPair.front,orderedPair.back),
-
-
-              purity:(()=>{const resultType=["eightPalace","simpleEightPalace"].includes(gameState?.gameMode)?combineFoodTypeByBoardPosition(first.piece,first.index,second.piece,second.index):combineFoodType(orderedPair.front,orderedPair.back);return combineFoodPurity(orderedPair.front,orderedPair.back,resultType);})()
-
-            }
+            combinedPiece
 
           :
 

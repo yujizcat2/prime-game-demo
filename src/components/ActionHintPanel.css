@@ -246,6 +246,12 @@
   font-size: 12px;
 }
 
+.cooking-hint__dish--pair-detail { display:flex; flex-direction:column; justify-content:center; gap:3px; }
+.cooking-hint__dish--pair-detail > strong { color:#334155; font-size:13px; }
+.cooking-hint__dish--pair-detail > span { overflow:hidden; font-size:11px; text-overflow:ellipsis; white-space:nowrap; }
+.cooking-hint--combine-detail .cooking-hint__next { gap:2px; }
+.cooking-hint--combine-detail .cooking-hint__next span { font-size:10px; line-height:1.2; }
+
 @keyframes cookingHintIn {
   from { opacity: .55; transform: translateY(3px); }
   to { opacity: 1; transform: translateY(0); }

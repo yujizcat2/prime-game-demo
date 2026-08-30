@@ -6,8 +6,6 @@ import {
   FOOD_TYPES,
   combineValue,
   combineFoodType,
-  combineFoodTypeByBoardPosition,
-  getCombinedDrinkOriginValue,
   combineFoodPurity,
   FOOD_PURITY,
   SPECIAL_ONE_KINDS,
@@ -260,6 +258,29 @@ export function canReduceCells(
 // 组合
 // ============================================================
 
+// indexA = 主料理，indexB = 搭配料理。预览与正式执行共用此构造器。
+export function createCombinedPiece(state,indexA,indexB){
+  const main=getPieceAt(state,indexA),pairing=getPieceAt(state,indexB);
+  if(!main||!pairing)return null;
+  const value=combineValue(main.value,pairing.value);
+  const foodType=combineFoodType(main,pairing);
+  if(!foodType)return null;
+  return {
+    id:state.nextId,
+    value,
+    foodType,
+    drinkOriginValue:isEightPalaceMode(state)&&foodType===FOOD_TYPES.DRINK
+      ? (main.value+pairing.value>101?value:main.foodType===FOOD_TYPES.DRINK?main.drinkOriginValue??null:null)
+      : undefined,
+    purity:combineFoodPurity(main,pairing,foodType),
+    parents:[main.value,pairing.value],
+    sourceKey:[main.value,pairing.value].sort((left,right)=>left-right).join("|"),
+    parentFoods:[main,pairing].map(piece=>({value:piece.value,foodType:piece.foodType,purity:piece.purity??null})),
+    crossed101:main.value+pairing.value>101,
+    origin:createCombineOrigin(value,main,pairing)
+  };
+}
+
 export function combineCells(
   state,
   indexA,
@@ -330,15 +351,7 @@ export function combineCells(
 
 
 
-  const orderedPair = {front:a,back:b};
-
-
-
-  if(
-    !a ||
-    !b ||
-    !orderedPair
-  ){
+  if(!a || !b){
 
 
     return state;
@@ -347,146 +360,9 @@ export function combineCells(
 
 
 
-  const {
-    front,
-    back
-  } =
-    orderedPair;
-
-
-
-
-
-  const result =
-
-    combineValue(
-
-      front.value,
-
-      back.value
-
-    );
-
-
-
-
-
-  const foodType=isEightPalaceMode(state)
-    ? combineFoodTypeByBoardPosition(a,indexA,b,indexB)
-    : combineFoodType(front,back);
-
-
-
-  if(
-    !foodType
-  ){
-
-
-    return state;
-
-  }
-
-
-
-
-
-  const purity =
-
-    combineFoodPurity(
-
-      front,
-      back,
-      foodType
-
-    );
-
-
-
-
-
-  const newPiece = {
-
-
-    id:
-      state.nextId,
-
-
-    value:
-      result,
-
-
-    foodType,
-
-    drinkOriginValue:
-      isEightPalaceMode(state)&&foodType===FOOD_TYPES.DRINK
-        ? getCombinedDrinkOriginValue(a,indexA,b,indexB,result)
-        : undefined,
-
-
-    purity,
-
-
-    parents: [
-
-      a.value,
-
-      b.value
-
-    ],
-
-    sourceKey:
-      [a.value, b.value].sort((left, right) => left - right).join("|"),
-
-
-    parentFoods: [
-
-      {
-
-        value:
-          front.value,
-
-        foodType:
-          front.foodType,
-
-        purity:
-          front.purity
-          ?? null
-
-      },
-
-      {
-
-        value:
-          back.value,
-
-        foodType:
-          back.foodType,
-
-        purity:
-          back.purity
-          ?? null
-
-      }
-
-    ],
-
-    crossed101:
-      front.value + back.value > 101,
-
-
-    origin:
-
-      createCombineOrigin(
-
-        result,
-
-        front,
-
-        back
-
-      )
-
-  };
+  const newPiece=createCombinedPiece(state,indexA,indexB);
+  if(!newPiece)return state;
+  const result=newPiece.value;
 
 
 
@@ -1182,7 +1058,7 @@ export function getLegalCombineActions(
 
 
         const a=state.board[i],b=state.board[j];
-        if(!isEightPalaceMode(state)&&a.foodType!==FOOD_TYPES.DRINK&&b.foodType!==FOOD_TYPES.DRINK&&a.foodType!==b.foodType&&a.value+b.value<=101){
+        if(combineFoodType(a,b)!==combineFoodType(b,a)){
           actions.push({type:"combine_ordered",indexes:[i,j]},{type:"combine_ordered",indexes:[j,i]});
         }else actions.push({type:"combine",indexes:[i,j]});
 

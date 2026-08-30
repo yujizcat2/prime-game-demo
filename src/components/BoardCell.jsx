@@ -30,6 +30,7 @@ export default function BoardCell({
   price = 0,
 
   selected = false,
+  selectionRole = null,
 
   combineCandidate = false,
 
@@ -967,11 +968,10 @@ export default function BoardCell({
             selected &&
             !removing &&
 
-            <div
-              className="
-                board-piece-selected-ring
-              "
-            />
+            <>
+              <div className="board-piece-selected-ring" />
+              {selectionRole&&<span className={`board-piece-selection-role board-piece-selection-role--${selectionRole}`}>{selectionRole==="main"?"主料理":"搭配"}</span>}
+            </>
 
           }
 

@@ -691,6 +691,11 @@ function App(){
                 selectedIdsForLegacyUI
               }
               keyOutcome={game.preview?.reduce?.keyOutcome??null}
+              preview={game.preview}
+              candidateCounts={{
+                combine:Object.values(game.actionCandidates).filter(item=>item.combine).length,
+                reduce:Object.values(game.actionCandidates).filter(item=>item.reduce).length
+              }}
             />
 
           </div>

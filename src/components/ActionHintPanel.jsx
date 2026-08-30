@@ -26,7 +26,7 @@ function EmptyHint(){
   );
 }
 
-function SingleHint({item}){
+function SingleHint({item,candidateCounts}){
   const name = getItemName(item);
   const details = getCookingDetails(item);
   const typeName = item?.value === 1
@@ -44,29 +44,19 @@ function SingleHint({item}){
           </span>
           <small>{details?.kind}</small>
         </div>
-        <p>{details?.description}</p>
-        <div className="cooking-hint__sources" aria-label="料理来源">
-          <span className="cooking-hint__source-label">料理来源</span>
-          {details?.sources.map((source, index) => (
-            <span key={`${source.name}-${index}`} className="cooking-hint__source-group">
-              {index > 0 && <i>＋</i>}
-              <span className={`cooking-hint__chip cooking-hint__chip--${source.foodType ?? "default"}`}>
-                {source.name}
-              </span>
-            </span>
-          ))}
-        </div>
+        <p>以「{name} {item?.value}」作为主料理</p>
+        <div className="cooking-hint__sources"><span className="cooking-hint__source-label">接下来选择另一道可以搭配的料理</span></div>
       </div>
 
       <div className="cooking-hint__next">
         <small>下一步</small>
-        <span>选择亮起的料理继续搭配或处理。 <b>›</b></span>
+        <span>新料理会保留 <b>{typeName}系</b> 风格。可搭配 {candidateCounts?.combine??0} 张，可处理 {candidateCounts?.reduce??0} 张。</span>
       </div>
     </div>
   );
 }
 
-function PairHint({status,keyOutcome}){
+function PairHint({status,keyOutcome,preview}){
   const {first, second, combine, reduce} = status;
   const firstName = getItemName(first);
   const secondName = getItemName(second);
@@ -111,6 +101,25 @@ function PairHint({status,keyOutcome}){
     description = "原汁暂时不能参与普通料理。";
   }
 
+  if(canCombine&&preview?.combine){
+    const result=preview.combine;
+    const resultName=getFoodName(result.value,result.foodType);
+    const resultType=getTypeShortName(result.foodType);
+    return (
+      <div className="cooking-hint cooking-hint--pair cooking-hint--combine-detail">
+        <div className="cooking-hint__dish cooking-hint__dish--pair-detail">
+          <strong>准备一起烹制</strong>
+          <span>主料理　<b>{firstName} {first.value} · {getTypeShortName(first.foodType)}</b></span>
+          <span>搭配　　<b>{secondName} {second.value} · {getTypeShortName(second.foodType)}</b></span>
+        </div>
+        <div className="cooking-hint__next">
+          <small>将得到</small>
+          <span><b>{result.value} · {resultName} · {resultType}</b></span>
+          <span>因为 {firstName} 是这次的主料理，新料理会继续保持{resultType}系。想做成另一系？取消后先选择另一道料理。</span>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="cooking-hint cooking-hint--pair">
       <div className="cooking-hint__dish cooking-hint__dish--pair">
@@ -129,14 +138,14 @@ function PairHint({status,keyOutcome}){
   );
 }
 
-export default function ActionHintPanel({numbers, selected, keyOutcome=null}){
+export default function ActionHintPanel({numbers, selected, keyOutcome=null,preview=null,candidateCounts=null}){
   const status = getActionStatus(numbers, selected);
 
-  if(status.type === "pair") return <PairHint status={status} keyOutcome={keyOutcome} />;
+  if(status.type === "pair") return <PairHint status={status} keyOutcome={keyOutcome} preview={preview} />;
 
   if(status.type === "single" || status.type === "one"){
     const item = status.item ?? numbers.find(number => number.id === selected[0]);
-    return <SingleHint item={item} />;
+    return <SingleHint item={item} candidateCounts={candidateCounts} />;
   }
 
   return <EmptyHint />;

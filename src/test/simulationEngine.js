@@ -7,8 +7,6 @@ import {
   FOOD_PURITY,
   combineValue,
   combineFoodType,
-  combineFoodTypeByBoardPosition,
-  getCombinedDrinkOriginValue,
   combineFoodPurity,
   BASE_FOOD_TYPES,
   canReduce,
@@ -863,7 +861,7 @@ export function getSimulationLegalActions(
           j
         )
       ){
-        if(!["eightPalace","simpleEightPalace"].includes(state.gameMode)&&a.foodType!==FOOD_TYPES.DRINK&&b.foodType!==FOOD_TYPES.DRINK&&a.foodType!==b.foodType&&a.value+b.value<=101)actions.push({type:"combine_ordered",indexes:[i,j]},{type:"combine_ordered",indexes:[j,i]});
+        if(combineFoodType(a,b)!==combineFoodType(b,a))actions.push({type:"combine_ordered",indexes:[i,j]},{type:"combine_ordered",indexes:[j,i]});
         else actions.push({type:"combine",indexes:[i,j]});
 
       }
@@ -986,9 +984,7 @@ function applyCombine(
 
 
 
-  const foodType=["eightPalace","simpleEightPalace"].includes(state.gameMode)
-    ? combineFoodTypeByBoardPosition(a,indexA,b,indexB)
-    : combineFoodType(front,back);
+  const foodType=combineFoodType(front,back);
 
 
 
@@ -1013,7 +1009,7 @@ function applyCombine(
 
     drinkOriginValue:
       ["eightPalace","simpleEightPalace"].includes(state.gameMode)&&foodType===FOOD_TYPES.DRINK
-        ? getCombinedDrinkOriginValue(a,indexA,b,indexB,value)
+        ? (a.value+b.value>101?value:a.foodType===FOOD_TYPES.DRINK?a.drinkOriginValue??null:null)
         : undefined,
 
     crossed101:

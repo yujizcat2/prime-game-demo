@@ -13,7 +13,8 @@ import {
 } from "../game/rules";
 
 import {
-  getFoodName
+  getFoodName,
+  getFoodTypeShortName
 } from "../data/food/foodRegistry";
 
 import BoardCell from "./BoardCell";
@@ -465,6 +466,12 @@ export default function Board({
 
       : null;
 
+  const combinePreviewParents=(combinePreview?.parentFoods??[]).map(parent=>({
+    ...parent,
+    name:getFoodName(parent.value,parent.foodType)
+  }));
+  const combinePreviewKey=combinePreviewParents.map(parent=>`${parent.foodType}:${parent.value}`).join("+");
+
 
 
 
@@ -657,6 +664,8 @@ export default function Board({
 
                   <button
 
+                    key={combinePreviewKey}
+
                     type="button"
 
                     onClick={() =>
@@ -730,6 +739,11 @@ export default function Board({
                       {combinePreview.value}
                     </div>
 
+                    <div className="board-preview-meta">
+                      {getFoodTypeShortName(combinePreview.foodType)}
+                      {combinePreview.purity?` · ${combinePreview.purity==="pure"?"纯系":"混合"}`:""}
+                    </div>
+
 
 
                     <div
@@ -756,6 +770,10 @@ export default function Board({
                       "
                     >
                       + 组合
+                    </div>
+
+                    <div className="board-preview-parents">
+                      由 {combinePreviewParents.map(parent=>`${parent.name} ${parent.value}`).join(" 与 ")} 烹制
                     </div>
 
 
@@ -1045,6 +1063,8 @@ export default function Board({
                 selected={
                   isSelected
                 }
+
+                selectionRole={selected[0]===index?"main":selected[1]===index?"pairing":null}
 
                 combineCandidate={
                   candidate.combine === true
