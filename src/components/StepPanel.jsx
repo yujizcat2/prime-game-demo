@@ -5,7 +5,11 @@ export default function StepPanel({
 
   steps = 0,
 
-  score = 0
+  score = 0,
+
+  stepLimit = 100,
+
+  gameMode = null
 
 }) {
 
@@ -14,8 +18,8 @@ export default function StepPanel({
   // 12小时制
   // =========================
 
-  const displayHour =
-    steps % 12;
+  const isEightPalace = gameMode === "eightPalace" || gameMode === "simpleEightPalace";
+  const displayStep = isEightPalace ? steps : steps % 12;
 
 
 
@@ -29,7 +33,7 @@ export default function StepPanel({
 
 
       {/* =========================
-          金钱
+          {isEightPalace ? "积分" : "金钱"}
           ========================= */}
 
       <div
@@ -57,7 +61,7 @@ export default function StepPanel({
           "
         >
 
-          <span
+          {!isEightPalace && <span
             className="
               step-panel-currency
             "
@@ -65,7 +69,7 @@ export default function StepPanel({
 
             ¥
 
-          </span>
+          </span>}
 
 
           {score}
@@ -90,7 +94,7 @@ export default function StepPanel({
 
 
       {/* =========================
-          时间
+          {isEightPalace ? "步数" : "时间"}
           ========================= */}
 
       <div
@@ -117,7 +121,7 @@ export default function StepPanel({
           "
         >
 
-          {displayHour}
+          {displayStep}
 
 
           <span
@@ -126,7 +130,7 @@ export default function StepPanel({
             "
           >
 
-            / 12
+            / {isEightPalace ? stepLimit : 12}
 
           </span>
 

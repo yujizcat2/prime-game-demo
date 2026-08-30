@@ -49,6 +49,7 @@ import {
   applyEightPalaceKeyFromReduction,
   GAME_MODES
 } from "./eightPalaceKeys";
+import { applyEightPalaceCollection } from "./collectionRules";
 
 function isEightPalaceMode(state){
   return state?.gameMode === GAME_MODES.EIGHT_PALACE
@@ -968,6 +969,8 @@ export function reduceCells(
   };
 
   if(eightPalace){
+    if(firstResult === 1) nextState = applyEightPalaceCollection(nextState, firstReducedPiece);
+    if(secondResult === 1) nextState = applyEightPalaceCollection(nextState, secondReducedPiece);
     nextState = applyEightPalaceKeyFromReduction(nextState,first,second,firstResult,secondResult);
   }
 

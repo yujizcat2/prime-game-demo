@@ -10,7 +10,9 @@ export default function Discovery({
 
   collection = [],
 
-  collectionPaths = {}
+  collectionPaths = {},
+
+  concreteCount = null
 
 }) {
 
@@ -94,7 +96,7 @@ export default function Discovery({
           discovery-value
         "
       >
-        {discoveredCount}
+        {concreteCount ?? discoveredCount}
       </strong>
 
     </div>

@@ -13,7 +13,7 @@ import Board from "./components/Board";
 import ActionButtons from "./components/ActionButtons";
 import ActionHintPanel from "./components/ActionHintPanel";
 import CollectionPanel from "./components/CollectionPanel";
-import EightPalaceKeyPanel from "./components/EightPalaceKeyPanel";
+import EightPalaceCollectionPanel from "./components/EightPalaceCollectionPanel";
 import StepPanel from "./components/StepPanel";
 import Discovery from "./components/Discovery";
 import BoardStatus from "./components/BoardStatus";
@@ -653,8 +653,12 @@ function App(){
               game.steps
             }
             score={
-              game.money
+              ["eightPalace", "simpleEightPalace"].includes(game.gameMode)
+                ? game.score
+                : game.money
             }
+            stepLimit={game.stepLimit}
+            gameMode={game.gameMode}
           />
 
 
@@ -664,6 +668,11 @@ function App(){
             }
             collectionPaths={
               game.collectionPaths
+            }
+            concreteCount={
+              ["eightPalace", "simpleEightPalace"].includes(game.gameMode)
+                ? game.collectionCards.length
+                : null
             }
           />
 
@@ -842,18 +851,9 @@ function App(){
 
             ? (
 
-                <EightPalaceKeyPanel
-                  keys={
-                    game.eightPalaceKeys
-                  }
-                  usedKeyTriggerValues={game.usedKeyTriggerValues}
-                  targetFoodTypes={
-                    game.targetFoodTypes
-                  }
-                  simple={
-                    game.gameMode ===
-                    "simpleEightPalace"
-                  }
+                <EightPalaceCollectionPanel
+                  cards={game.collectionCards}
+                  score={game.score}
                 />
 
               )
@@ -894,11 +894,14 @@ function App(){
           steps={
             game.steps
           }
+          stepLimit={game.stepLimit}
           score={
             game.score
           }
           collection={
-            game.collection
+            ["eightPalace", "simpleEightPalace"].includes(game.gameMode)
+              ? game.collectionCards
+              : game.collection
           }
           reason={
             game.gameOverReason

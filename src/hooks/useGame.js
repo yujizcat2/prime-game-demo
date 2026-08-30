@@ -183,6 +183,8 @@ export default function useGame(){
 
     [];
 
+  const collectionCards = gameState?.collectionCards ?? [];
+
 
   const collectionPaths =
 
@@ -267,6 +269,8 @@ export default function useGame(){
     ??
 
     0;
+
+  const stepLimit = gameState?.stepLimit ?? 0;
 
 
   const gameOver =
@@ -1414,6 +1418,8 @@ export default function useGame(){
 
     collectionTimeline,
 
+    collectionCards,
+
     collectionPaths,
 
     collectionOrigins,
@@ -1433,6 +1439,8 @@ export default function useGame(){
     score,
 
     steps,
+
+    stepLimit,
 
 
     // 迷宫回转

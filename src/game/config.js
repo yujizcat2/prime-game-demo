@@ -8,6 +8,8 @@ export const GAME_CONFIG = {
 
 };
 
+export const EIGHT_PALACE_STEP_LIMIT = 100;
+
 
 // 随机 2-99
 export function randomNumber() {

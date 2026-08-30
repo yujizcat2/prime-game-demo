@@ -1834,6 +1834,47 @@ export function applyCollection(
 
 }
 
+function createConcreteParentSnapshots(record){
+  const directParents = Array.isArray(record?.origin?.parents)
+    ? record.origin.parents
+    : record?.parentFoods;
+
+  if(!Array.isArray(directParents)) return [];
+
+  return directParents.map(parent => ({
+    value: parent.value,
+    name: getFoodName(parent.value, parent.foodType),
+    foodType: parent.foodType ?? null
+  }));
+}
+
+// The 100 Step Eight Palace mode collects the concrete card that existed
+// immediately before reduction. Names and direct parents are captured now,
+// rather than reconstructed from a future registry.
+export function applyEightPalaceCollection(state, piece){
+  const record = getCollectionRecord(piece);
+  if(!record) return state;
+
+  const value = record.value;
+  const snapshot = {
+    id: (state.collectionEventId ?? 0) + 1,
+    value,
+    name: getFoodName(value, record.foodType),
+    foodType: record.foodType ?? null,
+    parents: createConcreteParentSnapshots(record),
+    step: (state.steps ?? 0) + 1
+  };
+
+  return {
+    ...state,
+    collectionCards: [...(state.collectionCards ?? []), snapshot],
+    collectionTimeline: [...(state.collectionTimeline ?? []), snapshot],
+    collectionEventId: snapshot.id,
+    latestCollection: snapshot,
+    score: (state.score ?? 0) + value
+  };
+}
+
 
 // ============================================================
 // 同一次操作产生的收藏统一结算

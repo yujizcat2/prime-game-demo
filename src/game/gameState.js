@@ -1,5 +1,6 @@
 import {
-  GAME_CONFIG
+  GAME_CONFIG,
+  EIGHT_PALACE_STEP_LIMIT
 } from "./config";
 
 import {
@@ -232,6 +233,11 @@ export function createGameState(
     collectionTimeline:
       [],
 
+    // Eight Palace stores concrete card identity snapshots here. This is
+    // deliberately separate from the classic number/slot collection model.
+    collectionCards:
+      [],
+
 
 
 
@@ -322,6 +328,11 @@ export function createGameState(
 
     steps:
       0,
+
+    stepLimit:
+      usesPlacedInitialValues
+        ? EIGHT_PALACE_STEP_LIMIT
+        : GAME_CONFIG.START_STEP_LIMIT,
 
 
 

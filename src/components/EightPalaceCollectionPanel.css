@@ -1,0 +1,32 @@
+.eight-collection-panel {
+  width: min(720px, 100%);
+  margin: 0 auto;
+  padding: 22px;
+  border: 1px solid rgba(42, 65, 50, 0.09);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.eight-collection-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.eight-collection-heading h2 { margin: 3px 0 0; font-size: 18px; }
+.eight-collection-heading > strong { color: #3f6a4c; }
+.eight-collection-kicker { color: #98a49c; font-size: 9px; font-weight: 800; letter-spacing: .14em; }
+.eight-collection-empty { margin: 0; color: #98a49c; font-size: 13px; }
+.eight-collection-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.eight-collection-card { display: flex; flex-direction: column; gap: 3px; padding: 12px; border-radius: 14px; background: #f1f5f2; }
+.eight-collection-card strong { color: #31523b; }
+.eight-collection-card span { color: #66766b; font-size: 12px; }
+.eight-collection-card small { color: #89938c; line-height: 1.4; }
+
+@media (max-width: 520px) {
+  .eight-collection-panel { padding: 16px; }
+  .eight-collection-heading { align-items: flex-start; flex-direction: column; gap: 6px; }
+  .eight-collection-list { grid-template-columns: 1fr; }
+}

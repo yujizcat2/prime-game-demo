@@ -142,6 +142,31 @@ export function createEightPalaceInitialValues(){
   }
 
 
+  // Start from an exact, valid total and randomize it with sum-preserving
+  // pair transfers. Every intermediate opening remains eight distinct values
+  // in the inclusive 2-101 range and totals exactly 300.
+  const values = [2, 7, 13, 24, 38, 51, 73, 92];
+
+  for(let attempt = 0; attempt < 100; attempt++){
+    const left = Math.floor(Math.random() * values.length);
+    let right = Math.floor(Math.random() * values.length);
+    if(left === right) right = (right + 1) % values.length;
+
+    const maxDown = values[left] - 2;
+    const maxUp = 101 - values[right];
+    const maxTransfer = Math.min(maxDown, maxUp, 12);
+    if(maxTransfer < 1) continue;
+
+    const amount = Math.floor(Math.random() * maxTransfer) + 1;
+    const nextLeft = values[left] - amount;
+    const nextRight = values[right] + amount;
+    const unchanged = values.filter((_, index) => index !== left && index !== right);
+    if(nextLeft === nextRight || unchanged.includes(nextLeft) || unchanged.includes(nextRight)) continue;
+
+    values[left] = nextLeft;
+    values[right] = nextRight;
+  }
+
   return boardIndexes.map(
     (
       boardIndex,
@@ -149,7 +174,7 @@ export function createEightPalaceInitialValues(){
     ) => ({
 
       value:
-        Math.floor(Math.random() * 100) + 2,
+        values[index],
 
       foodType:
         foodTypes[index],

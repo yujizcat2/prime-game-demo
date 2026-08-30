@@ -1,8 +1,3 @@
-import {
-  getEightPalaceKeyCount
-} from "../game/eightPalaceKeys";
-
-
 export default function GameOver({
 
   steps,
@@ -17,28 +12,11 @@ export default function GameOver({
 
   gameMode,
 
-  eightPalaceKeys = {},
-
-  targetFoodTypes = [],
-
-  boardCount = 0,
-
   onRestart
 
 }) {
 
-  const isSimple = gameMode === "simpleEightPalace";
-  const isEightPalace = gameMode === "eightPalace" || isSimple;
-  const keyCount = getEightPalaceKeyCount(eightPalaceKeys,isSimple?targetFoodTypes:undefined);
-  const eightPalaceSuccess = reason === "eight_palace_cleared" || reason === "simple_eight_palace_cleared";
-
-  const eightPalaceReason = reason === "eight_palace_keys_missing"
-    ? "钥匙未集齐"
-    : reason === "eight_palace_board_not_cleared"
-      ? "钥匙已集齐，但盘面未清至 2 张以内"
-      : reason === "no_legal_actions"
-        ? "已无合法操作"
-        : "八系钥匙已集齐";
+  const isEightPalace = gameMode === "eightPalace" || gameMode === "simpleEightPalace";
 
 
   return (
@@ -130,9 +108,7 @@ export default function GameOver({
         >
 
           {isEightPalace
-            ? eightPalaceSuccess
-              ? isSimple ? "入门通关" : "八宫通关"
-              : "挑战失败"
+            ? "本局结束"
             : "探索结束"}
 
         </h2>
@@ -151,7 +127,7 @@ export default function GameOver({
         >
 
           {isEightPalace
-            ? eightPalaceReason
+            ? reason === "no_legal_actions" ? "已无合法操作" : `已完成 ${stepLimit} Step`
             : reason === "board_depleted"
             ? "剩余料理不足以继续维持盘面。"
             : "本次数字路径已经完成"}
@@ -219,14 +195,18 @@ export default function GameOver({
 
 
         {isEightPalace && (
-          <div className="mt-7 grid grid-cols-2 gap-3">
+          <div className="mt-7 grid grid-cols-3 gap-3">
             <div className="rounded-2xl bg-gray-50 py-4">
-              <div className="text-xs text-gray-400">{isSimple?"收藏":"钥匙"}</div>
-              <div className="mt-1 text-xl font-black text-gray-700">{keyCount} / {isSimple?2:8}</div>
+              <div className="text-xs text-gray-400">积分</div>
+              <div className="mt-1 text-xl font-black text-gray-700">{score}</div>
             </div>
             <div className="rounded-2xl bg-gray-50 py-4">
-              <div className="text-xs text-gray-400">剩余</div>
-              <div className="mt-1 text-xl font-black text-gray-700">{boardCount} 张</div>
+              <div className="text-xs text-gray-400">Step</div>
+              <div className="mt-1 text-xl font-black text-gray-700">{steps} / {stepLimit}</div>
+            </div>
+            <div className="rounded-2xl bg-gray-50 py-4">
+              <div className="text-xs text-gray-400">收藏</div>
+              <div className="mt-1 text-xl font-black text-gray-700">{collection.length}</div>
             </div>
           </div>
         )}

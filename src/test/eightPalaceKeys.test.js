@@ -110,7 +110,7 @@ const clearedWithoutKeys = resolveGameOver({
 });
 assert.equal(getBoardCount(clearedWithoutKeys.board) <= 2, true);
 assert.equal(clearedWithoutKeys.gameOver, true);
-assert.equal(clearedWithoutKeys.gameOverReason, "eight_palace_keys_missing");
+assert.equal(clearedWithoutKeys.gameOverReason, "no_legal_actions");
 
 const keysWithoutClear = resolveGameOver({
   ...base,
@@ -128,8 +128,7 @@ const trueClear = resolveGameOver({
   gameOver: false,
   gameOverReason: null
 });
-assert.equal(trueClear.gameOver, true);
-assert.equal(trueClear.gameOverReason, "eight_palace_cleared");
+assert.equal(trueClear.gameOver, false, "keys and a small board no longer end Eight Palace");
 
 assert.deepEqual(createEmptyEightPalaceKeys(), Object.fromEntries(
   BASE_FOOD_TYPES.map(foodType => [foodType, null])

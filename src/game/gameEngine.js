@@ -36,10 +36,7 @@ import {
   resolveMazeHistoryAfterAction
 } from "./mazeEngine";
 
-import {
-  GAME_MODES,
-  getEightPalaceKeyCount
-} from "./eightPalaceKeys";
+import { GAME_MODES } from "./eightPalaceKeys";
 
 
 
@@ -371,25 +368,12 @@ export function resolveGameOver(
   const boardCount = getBoardCount(state.board);
   const isEightPalace = state.gameMode === GAME_MODES.EIGHT_PALACE;
   const isSimpleEightPalace = state.gameMode === GAME_MODES.SIMPLE_EIGHT_PALACE;
-  const targetFoodTypes = state.targetFoodTypes ?? [];
-  const keyCount = getEightPalaceKeyCount(state.eightPalaceKeys,isSimpleEightPalace?targetFoodTypes:undefined);
   const activeState = state.gameOver
     ? {...state, gameOver: false, gameOverReason: null}
     : state;
 
-  if(isSimpleEightPalace&&targetFoodTypes.length===2&&keyCount===2){
-    return {...state,gameOver:true,gameOverReason:"simple_eight_palace_cleared"};
-  }
-
-
-  if(isEightPalace && keyCount === 8 && boardCount <= 2){
-
-    return {
-      ...state,
-      gameOver: true,
-      gameOverReason: "eight_palace_cleared"
-    };
-
+  if((isEightPalace || isSimpleEightPalace) && state.steps >= state.stepLimit){
+    return {...state, gameOver: true, gameOverReason: "step_limit"};
   }
 
 
@@ -408,18 +392,10 @@ export function resolveGameOver(
     getLegalActions(activeState).length === 0
   ){
 
-    const gameOverReason = isEightPalace||isSimpleEightPalace
-      ? keyCount === 8
-        ? "eight_palace_board_not_cleared"
-        : boardCount <= 2
-          ? "eight_palace_keys_missing"
-          : "no_legal_actions"
-      : "no_legal_actions";
-
     return {
       ...state,
       gameOver: true,
-      gameOverReason
+      gameOverReason: "no_legal_actions"
     };
 
   }
