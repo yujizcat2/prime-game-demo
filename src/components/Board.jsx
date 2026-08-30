@@ -45,7 +45,11 @@ export default function Board({
 
   collection = [],
 
+  collectionCards = [],
+
   prices = [],
+
+  scoreMode = false,
 
   removingIndex = null,
 
@@ -681,6 +685,8 @@ export default function Board({
                       board-preview
 
                       ${combinePreviewTypeClass}
+
+                      ${scoreMode ? "board-preview--score-mode" : ""}
                     `}
 
                     aria-label={
@@ -743,6 +749,12 @@ export default function Board({
                     >
                       {combinePreview.value}
                     </div>
+
+                    {scoreMode && combinePreview.piece?.scoreValue != null && (
+                      <div className="board-piece-locked-score board-preview-locked-score">
+                        +{combinePreview.piece.scoreValue}
+                      </div>
+                    )}
 
                     <div className="board-preview-meta">
                       {getFoodTypeShortName(combinePreview.foodType)}
@@ -958,9 +970,23 @@ export default function Board({
             let scorePreview =
               null;
 
+            if(
+              scoreMode &&
+              reducePreview?.autoCollect === true &&
+              reducePreview?.clear !== true
+            ){
+              const collectionKey = `${piece?.foodType ?? "default"}:${piece?.value ?? ""}`;
+              const alreadyCollected = collectionCards.some(card =>
+                (card.collectionKey ?? `${card.foodType ?? "default"}:${card.value ?? ""}`) === collectionKey
+              );
+              scorePreview = alreadyCollected ? 0 : piece?.scoreValue ?? 0;
+            }
+
 
 
             if(
+
+              !scoreMode &&
 
               piece?.value === 1
 
@@ -1074,6 +1100,8 @@ export default function Board({
                 price={
                   prices[index] ?? 0
                 }
+
+                scoreMode={scoreMode}
 
                 selected={
                   isSelected

@@ -4,11 +4,18 @@ import {
   evaluateScoreState,
   runFixedScoreAttempts,
   runScoreGame,
+  runScoreGames,
   scoreAITestUtils
 } from "../ai/eightPalaceScoreAI";
 import { applyAction, createGameState, getLegalActions } from "../game/gameEngine";
 import { createEightPalaceInitialValues } from "../game/initialValues";
 import { BASE_FOOD_TYPES } from "../game/rules";
+import { getScoreEfficiency } from "../game/scoreEfficiency";
+
+assert.equal(getScoreEfficiency(2834, 100), 28.34);
+assert.equal(getScoreEfficiency(2400, 60), 40);
+assert.equal(getScoreEfficiency(2400, 0), 0);
+assert.equal(getScoreEfficiency(0, 0).toFixed(2), "0.00");
 
 const opening = createEightPalaceInitialValues();
 const result = await runScoreGame({depth: 2, beamWidth: 12, maxActions: 20, initialOpening: opening});
@@ -18,7 +25,20 @@ if(result.steps === 100){
   assert.equal(result.gameOverReason, "step_limit");
 }
 assert.notEqual(result.gameOverReason, "eight_palace_keys_missing");
-assert.equal(result.finalScore, result.collections.reduce((sum, card) => sum + card.value, 0));
+assert.equal(result.finalScore, result.collections.reduce((sum, card) => sum + card.scoreGain, 0));
+assert.equal(result.score, result.finalScore);
+assert.equal(result.scoreEfficiency, getScoreEfficiency(result.score, result.steps));
+assert.ok(result.actionPath.every(action =>
+  action.scoreEfficiencyAfter === getScoreEfficiency(action.scoreAfter, action.stepAfter)
+));
+assert.equal(getScoreEfficiency(0, 1).toFixed(2), "0.00");
+assert.equal(getScoreEfficiency(64, 2).toFixed(2), "32.00");
+assert.equal(getScoreEfficiency(160, 3).toFixed(2), "53.33");
+assert.ok(getScoreEfficiency(160, 4) < getScoreEfficiency(160, 3));
+
+const tenGames = await runScoreGames({games: 10, depth: 1, beamWidth: 2, maxActions: 1, compareRandom: false});
+assert.equal(tenGames.results.length, 10);
+assert.ok(tenGames.results.every(game => Array.isArray(game.actionPath)));
 
 let replay = createGameState(opening.map(card => ({...card, gameMode: "simpleEightPalace"})));
 for(const entry of result.actionPath){
@@ -61,6 +81,10 @@ const fixed = await runFixedScoreAttempts({attempts: 2, depth: 1, beamWidth: 8, 
 assert.equal(fixed.attempts, 2);
 assert.ok(fixed.distinctRouteCount >= 1);
 assert.ok(fixed.distinctFinalScoreCount >= 1);
+assert.equal(
+  fixed.averageScoreEfficiency,
+  fixed.results.reduce((sum, game) => sum + game.scoreEfficiency, 0) / fixed.results.length
+);
 
 console.log("eight palace Score AI tests passed", {
   score: result.finalScore,

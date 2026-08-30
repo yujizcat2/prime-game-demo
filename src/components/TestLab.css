@@ -217,6 +217,51 @@
   margin-top: 8px;
 }
 
+.test-lab-all-score-records {
+  margin-top: 28px;
+}
+
+.test-lab-all-score-records-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.test-lab-record-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.test-lab-record-actions button {
+  padding: 5px 9px;
+  border: 1px solid rgba(0, 0, 0, .08);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, .78);
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.test-lab-score-game-record {
+  margin-top: 10px;
+  padding: 12px 16px;
+  font-size: 13px;
+}
+
+.test-lab-score-game-record summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.test-lab-score-game-detail ol {
+  margin: 12px 0 0;
+  padding-left: 22px;
+}
+
+.test-lab-score-game-detail li + li {
+  margin-top: 8px;
+}
+
 
 @media (
   max-width: 700px

@@ -239,12 +239,13 @@ export default function useGame(){
 
 
   const boardPrices =
-
-    getBoardPrices(
-      board,
-      trend,
-      collectionPaths
-    );
+    ["eightPalace", "simpleEightPalace"].includes(gameState?.gameMode)
+      ? []
+      : getBoardPrices(
+          board,
+          trend,
+          collectionPaths
+        );
 
 
   // ==========================================================

@@ -234,6 +234,14 @@
 
   }
 
+  .step-panel-stat--efficiency {
+    gap: 3px;
+  }
+
+  .step-panel-stat--efficiency .step-panel-value {
+    font-size: 14px;
+  }
+
 
   .step-panel-label {
 

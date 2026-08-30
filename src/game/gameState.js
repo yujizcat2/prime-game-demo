@@ -22,6 +22,8 @@ import {
   GAME_MODES
 } from "./eightPalaceKeys";
 
+import { getBaseScore } from "./scoreValue";
+
 
 
 
@@ -149,6 +151,9 @@ export function createGameState(
 
 
         value,
+
+        scoreValue:
+          getBaseScore(value),
 
 
         foodType:

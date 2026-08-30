@@ -7,6 +7,7 @@ import {
   resolveGameOver
 } from "../game/gameEngine";
 import { gcd } from "../utils/math";
+import { getScoreEfficiency } from "../game/scoreEfficiency";
 
 export const SCORE_AI_DEFAULTS = Object.freeze({
   depth: 4,
@@ -223,6 +224,7 @@ function describeAction(state, action, nextState, number){
     stepAfter: nextState.steps,
     scoreBefore: state.score,
     scoreAfter: nextState.score,
+    scoreEfficiencyAfter: getScoreEfficiency(nextState.score, nextState.steps),
     scoreGain: nextState.score - state.score,
     collectionCountAfter: nextState.collectionCards.length,
     boardCountAfter: getBoardCount(nextState.board)
@@ -272,7 +274,9 @@ export async function runScoreGame({
     strategy,
     initialOpening: opening.map(card => ({...card})),
     initialBoard,
+    score: state.score,
     finalScore: state.score,
+    scoreEfficiency: getScoreEfficiency(state.score, state.steps),
     collectionCount: state.collectionCards.length,
     collections: state.collectionCards.map(card => structuredClone(card)),
     steps: state.steps,
@@ -302,6 +306,7 @@ export function summarizeScoreResults(results){
   return {
     games: results.length,
     averageFinalScore: average(results, result => result.finalScore),
+    averageScoreEfficiency: average(results, result => result.scoreEfficiency),
     highestScore: results.length ? Math.max(...results.map(result => result.finalScore)) : 0,
     lowestScore: results.length ? Math.min(...results.map(result => result.finalScore)) : 0,
     averageCollectionCount: average(results, result => result.collectionCount),

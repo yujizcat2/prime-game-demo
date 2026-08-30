@@ -19,6 +19,7 @@ import {
   getFatiguedRepeatPenalty
 } from "./actionFatigue";
 import { getFoodName } from "../data/food/foodRegistry";
+import { getBaseScore } from "./scoreValue";
 
 
 export function settleMoneyChanges(startingMoney, intendedChanges) {
@@ -1860,6 +1861,7 @@ export function applyEightPalaceCollection(state, piece){
   if(!record) return state;
 
   const value = record.value;
+  const scoreGain = record.scoreValue ?? getBaseScore(record.value);
   const collectionKey = getEightPalaceCollectionKey(record);
   const alreadyCollected = (state.collectionCards ?? []).some(card =>
     (card.collectionKey ?? getEightPalaceCollectionKey(card)) === collectionKey
@@ -1874,7 +1876,7 @@ export function applyEightPalaceCollection(state, piece){
     foodType: record.foodType ?? null,
     parents: createConcreteParentSnapshots(record),
     originType: record.origin?.type ?? null,
-    scoreGain: value,
+    scoreGain,
     step: (state.steps ?? 0) + 1
   };
 
@@ -1884,7 +1886,7 @@ export function applyEightPalaceCollection(state, piece){
     collectionTimeline: [...(state.collectionTimeline ?? []), snapshot],
     collectionEventId: snapshot.id,
     latestCollection: snapshot,
-    score: (state.score ?? 0) + value
+    score: (state.score ?? 0) + snapshot.scoreGain
   };
 }
 

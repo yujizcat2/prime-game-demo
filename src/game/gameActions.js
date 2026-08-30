@@ -47,6 +47,7 @@ import {
   GAME_MODES
 } from "./eightPalaceKeys";
 import { applyEightPalaceCollection } from "./collectionRules";
+import { getCreatedScoreValue } from "./scoreValue";
 
 function isEightPalaceMode(state){
   return state?.gameMode === GAME_MODES.EIGHT_PALACE
@@ -288,6 +289,7 @@ export function createCombineOutcome(state,indexA,indexB){
     const piece={
       ...getPieceAt(state,drinkIndex),
       value:wrappedValue,
+      scoreValue:getCreatedScoreValue(wrappedValue,main,pairing),
       foodType:normal.foodType,
       purity:normal.purity??FOOD_PURITY.PURE,
       parents:[main.value,pairing.value],
@@ -301,6 +303,7 @@ export function createCombineOutcome(state,indexA,indexB){
   const piece={
     id:state.nextId,
     value,
+    scoreValue:getCreatedScoreValue(value,main,pairing),
     foodType,
     purity:combineFoodPurity(main,pairing,foodType),
     parents:[main.value,pairing.value],

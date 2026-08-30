@@ -127,6 +127,9 @@ export function createOriginSnapshot(
     value:
       number.value,
 
+    scoreValue:
+      number.scoreValue ?? null,
+
 
     foodType:
       number.foodType ?? null,

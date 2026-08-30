@@ -1435,6 +1435,7 @@ function ScoreSummaryGrid({result}){
     <div className="test-lab-result-grid">
       <ResultItem label="测试局数" value={result.games ?? result.attempts} />
       <ResultItem label="平均最终积分" value={result.averageFinalScore.toFixed(2)} highlight />
+      <ResultItem label="平均得分效率" value={result.averageScoreEfficiency.toFixed(2)} highlight />
       <ResultItem label="最高积分" value={result.highestScore} highlight />
       <ResultItem label="最低积分" value={result.lowestScore} />
       <ResultItem label="平均收藏数量" value={result.averageCollectionCount.toFixed(2)} />
@@ -1455,6 +1456,8 @@ function ScoreRecord({title, game}){
       <div>
         积分 <strong>{game.finalScore}</strong>
         {" · "}
+        得分效率 <strong>{game.scoreEfficiency.toFixed(2)}</strong>
+        {" · "}
         收藏 <strong>{game.collectionCount}</strong>
         {" · "}
         Step <strong>{game.steps} / 100</strong>
@@ -1471,10 +1474,85 @@ function ScoreRecord({title, game}){
               {" · "}
               积分 {action.scoreBefore} → {action.scoreAfter}
               {action.scoreGain > 0 && <>（+{action.scoreGain}）</>}
+              {" · "}
+              效率 {action.scoreEfficiencyAfter.toFixed(2)}
             </li>
           ))}
         </ol>
       </details>
+    </div>
+  );
+}
+
+function AllScoreRecords({title = "全部测试记录", games = []}){
+  const [expandedGames, setExpandedGames] = useState(() => new Set());
+  const allowExpandAll = games.length <= 100;
+
+  function getGameKey(game, index){
+    return game.gameIndex ?? game.attemptIndex ?? index + 1;
+  }
+
+  function setGameExpanded(gameKey, expanded){
+    setExpandedGames(current => {
+      const next = new Set(current);
+      if(expanded) next.add(gameKey);
+      else next.delete(gameKey);
+      return next;
+    });
+  }
+
+  function expandAll(){
+    if(!allowExpandAll) return;
+    setExpandedGames(new Set(games.map(getGameKey)));
+  }
+
+  return (
+    <div className="test-lab-all-score-records">
+      <div className="test-lab-all-score-records-header">
+        <div className="test-lab-section-title">{title}</div>
+        <div className="test-lab-record-actions">
+          {allowExpandAll && <button type="button" onClick={expandAll}>全部展开</button>}
+          <button type="button" onClick={() => setExpandedGames(new Set())}>全部收起</button>
+        </div>
+      </div>
+
+      {games.map((game, index) => {
+        const gameKey = getGameKey(game, index);
+        const expanded = expandedGames.has(gameKey);
+        const status = game.completed100Steps ? "完成" : game.deadlocked ? "死局" : null;
+        return (
+          <details
+            className="test-lab-record test-lab-score-game-record"
+            key={gameKey}
+            open={expanded}
+            onToggle={event => setGameExpanded(gameKey, event.currentTarget.open)}
+          >
+            <summary>
+              #{index + 1} · {game.finalScore}分 · 效率{game.scoreEfficiency.toFixed(2)} · 收藏{game.collectionCount} · Step {game.steps}
+              {status ? ` · ${status}` : ""}
+            </summary>
+
+            {expanded && <div className="test-lab-score-game-detail">
+              <div className="test-lab-record-collection">开局：{formatScoreBoard(game.initialBoard)}</div>
+              <div className="test-lab-record-collection">最终盘面：{formatScoreBoard(game.finalBoard) || "空"}</div>
+              <ol>
+                {game.actionPath.map(action => (
+                  <li key={action.number}>
+                    <strong>{formatScoreAction(action)}</strong>
+                    {" · "}
+                    Step {action.stepBefore} → {action.stepAfter}
+                    {" · "}
+                    积分 {action.scoreBefore} → {action.scoreAfter}
+                    {action.scoreGain > 0 && <>（+{action.scoreGain}）</>}
+                    {" · "}
+                    效率 {action.scoreEfficiencyAfter.toFixed(2)}
+                  </li>
+                ))}
+              </ol>
+            </div>}
+          </details>
+        );
+      })}
     </div>
   );
 }
@@ -1492,6 +1570,8 @@ function ScoreResults({result}){
           <div className="test-lab-small-grid">
             <ResultItem label="Score AI 平均积分" value={result.averageFinalScore.toFixed(2)} highlight />
             <ResultItem label="Random 平均积分" value={random.averageFinalScore.toFixed(2)} />
+            <ResultItem label="Score AI 平均得分效率" value={result.averageScoreEfficiency.toFixed(2)} highlight />
+            <ResultItem label="Random 平均得分效率" value={random.averageScoreEfficiency.toFixed(2)} />
             <ResultItem label="Score AI 平均收藏" value={result.averageCollectionCount.toFixed(2)} />
             <ResultItem label="Random 平均收藏" value={random.averageCollectionCount.toFixed(2)} />
             <ResultItem label="Score AI 死局率" value={`${(result.deadlockRate * 100).toFixed(1)}%`} />
@@ -1501,6 +1581,10 @@ function ScoreResults({result}){
       )}
 
       <ScoreRecord title="最高分纪录" game={result.highScore} />
+      <AllScoreRecords games={result.results} />
+      {random?.results?.length > 0 && (
+        <AllScoreRecords title="Random AI 全部测试记录" games={random.results} />
+      )}
     </section>
   );
 }
@@ -1519,6 +1603,7 @@ function FixedScoreResults({result}){
         <ResultItem label="不同最终积分数量" value={result.distinctFinalScoreCount} />
       </div>
       <ScoreRecord title="最高分纪录" game={result.highScore} />
+      <AllScoreRecords games={result.results} />
     </section>
   );
 }

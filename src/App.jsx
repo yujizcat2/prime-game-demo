@@ -35,6 +35,7 @@ import {
 } from "./game/collectionRules";
 
 import { FOOD_TYPE_LABELS } from "./data/specialOneRegistry";
+import { getBaseScore } from "./game/scoreValue";
 
 
 function App(){
@@ -225,20 +226,17 @@ function App(){
       : indexes.filter((_,position)=>game.preview.reduce.results?.[position]?.autoCollect);
 
 
+    const isEightPalace =
+      ["eightPalace", "simpleEightPalace"].includes(game.gameMode);
+
     const collectedSlots = new Set(
-
-      Object.entries(
-        game.collectionPaths
-      ).flatMap(
-        ([value, slots]) =>
-          Object.keys(
-            slots ?? {}
-          ).map(
-            foodType =>
-              `${value}:${foodType}`
+      isEightPalace
+        ? game.collectionCards.map(
+            card => card.collectionKey ?? `${card.foodType ?? "default"}:${card.value ?? ""}`
           )
-      )
-
+        : Object.entries(game.collectionPaths).flatMap(
+            ([value, slots]) => Object.keys(slots ?? {}).map(foodType => `${value}:${foodType}`)
+          )
     );
 
 
@@ -312,7 +310,9 @@ function App(){
         ){
 
           const slotKey =
-            `${value}:${foodType}`;
+            isEightPalace
+              ? `${foodType ?? "default"}:${value ?? ""}`
+              : `${value}:${foodType}`;
 
 
           const sameSourceRepeat =
@@ -325,20 +325,15 @@ function App(){
             !collectedSlots.has(slotKey);
 
 
-          const currentPrice =
-            getCurrentPrice(
-              value,
-              game.board,
-              game.trend
-            );
-
-
           reward =
-            isFirstSlot
-              ? currentPrice
-              : -getRepeatPenalty(
-                  currentPrice
-                );
+            isEightPalace
+              ? isFirstSlot
+                ? game.board[index]?.scoreValue ?? getBaseScore(value)
+                : 0
+              : (() => {
+                  const currentPrice = getCurrentPrice(value, game.board, game.trend);
+                  return isFirstSlot ? currentPrice : -getRepeatPenalty(currentPrice);
+                })();
 
 
           if(
@@ -367,19 +362,18 @@ function App(){
     );
 
 
-    const moneySettlement =
-      settleMoneyChanges(
-        game.money,
-        removedCells
-          .filter(
-            cell =>
-              cell.reward != null
-          )
-          .map(
-            cell =>
-              cell.reward
-          )
-      );
+    const moneySettlement = isEightPalace
+      ? {
+          actualChanges: removedCells
+            .filter(cell => cell.reward != null)
+            .map(cell => cell.reward)
+        }
+      : settleMoneyChanges(
+          game.money,
+          removedCells
+            .filter(cell => cell.reward != null)
+            .map(cell => cell.reward)
+        );
 
 
     let moneyChangeIndex =
@@ -820,8 +814,14 @@ function App(){
                 collection={
                   game.collection
                 }
+                collectionCards={
+                  game.collectionCards
+                }
                 prices={
                   game.boardPrices
+                }
+                scoreMode={
+                  ["eightPalace", "simpleEightPalace"].includes(game.gameMode)
                 }
                 removingIndex={
                   removingIndex

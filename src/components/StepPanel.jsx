@@ -1,4 +1,5 @@
 import "./StepPanel.css";
+import { getScoreEfficiency } from "../game/scoreEfficiency";
 
 
 export default function StepPanel({
@@ -20,6 +21,7 @@ export default function StepPanel({
 
   const isEightPalace = gameMode === "eightPalace" || gameMode === "simpleEightPalace";
   const displayStep = isEightPalace ? steps : steps % 12;
+  const scoreEfficiency = getScoreEfficiency(score, steps);
 
 
 
@@ -49,7 +51,7 @@ export default function StepPanel({
           "
         >
 
-          金钱
+          {isEightPalace ? "积分" : "金钱"}
 
         </span>
 
@@ -78,6 +80,16 @@ export default function StepPanel({
 
 
       </div>
+
+
+      {isEightPalace && <>
+        <div className="step-panel-divider" />
+
+        <div className="step-panel-stat step-panel-stat--efficiency">
+          <span className="step-panel-label">得分效率</span>
+          <strong className="step-panel-value">{scoreEfficiency.toFixed(2)}</strong>
+        </div>
+      </>}
 
 
 
@@ -110,7 +122,7 @@ export default function StepPanel({
           "
         >
 
-          时间
+          {isEightPalace ? "步数" : "时间"}
 
         </span>
 

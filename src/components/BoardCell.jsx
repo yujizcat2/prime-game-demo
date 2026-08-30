@@ -29,6 +29,8 @@ export default function BoardCell({
 
   price = 0,
 
+  scoreMode = false,
+
   selected = false,
   selectionRole = null,
   combinePreviewRole = null,
@@ -67,15 +69,14 @@ export default function BoardCell({
     const previousPrice = previousPriceRef.current;
     previousPriceRef.current = price;
 
-    if(previousPrice === price){
+    if(scoreMode || previousPrice === price){
       return undefined;
     }
 
     setPriceDelta(price - previousPrice);
     const timer = window.setTimeout(() => setPriceDelta(null), 750);
     return () => window.clearTimeout(timer);
-  }, [price]);
-
+  }, [price, scoreMode]);
 
   // ==========================================================
   // 空格
@@ -126,11 +127,15 @@ export default function BoardCell({
         {
           clearFeedback?.reward != null &&
           <div className="board-cell-money-reward">
-            {clearFeedback.reward > 0
-              ? `+¥${clearFeedback.reward}`
-              : clearFeedback.reward < 0
-                ? `-¥${Math.abs(clearFeedback.reward)}`
-                : "¥0"}
+            {scoreMode
+              ? clearFeedback.reward > 0
+                ? `+${clearFeedback.reward}分`
+                : "+0分"
+              : clearFeedback.reward > 0
+                ? `+¥${clearFeedback.reward}`
+                : clearFeedback.reward < 0
+                  ? `-¥${Math.abs(clearFeedback.reward)}`
+                  : "¥0"}
           </div>
         }
 
@@ -218,6 +223,11 @@ export default function BoardCell({
     true;
 
   const equalClearPreview=reducePreview?.clear===true;
+  const collectScorePreview =
+    scoreMode &&
+    autoCollectPreview &&
+    !equalClearPreview &&
+    scorePreview !== null;
 
 
 
@@ -789,7 +799,7 @@ export default function BoardCell({
 
         {
 
-          isOne &&
+          (isOne || collectScorePreview) &&
           scorePreview !==
           null &&
 
@@ -811,6 +821,12 @@ export default function BoardCell({
 
                   ? "board-piece-score--new"
 
+                  : ""
+              }
+
+              ${
+                collectScorePreview
+                  ? `board-piece-score--collect-preview${scorePreview === 0 ? " board-piece-score--collect-repeat" : ""}`
                   : ""
               }
             `}
@@ -1182,9 +1198,13 @@ export default function BoardCell({
 
           {
             !isOne &&
-            <div className="board-piece-price">
-              {price < 0 ? `-¥${Math.abs(price)}` : `¥${price}`}
-              {price > 0 && priceDelta !== null && (
+            <div className={`board-piece-price${scoreMode ? " board-piece-locked-score" : ""}`}>
+              {scoreMode
+                ? `+${piece.scoreValue}`
+                : price < 0
+                  ? `-¥${Math.abs(price)}`
+                  : `¥${price}`}
+              {!scoreMode && price > 0 && priceDelta !== null && (
                 <span className={priceDelta > 0 ? "board-piece-price-delta--up" : "board-piece-price-delta--down"}>
                   {priceDelta > 0 ? "↑" : "↓"}{Math.abs(priceDelta)}
                 </span>
