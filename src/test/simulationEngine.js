@@ -1223,6 +1223,15 @@ function applyReduce(
   const actionSignature = createReduceActionSignature(oldA, oldB, firstResult, secondResult);
   const actionFatigue = getActionFatigue(state.recentActionSignatures, actionSignature);
 
+  if(oldA===oldB){
+    state.board[indexA]=null;
+    state.board[indexB]=null;
+    state.lastCollectionEvents=[];
+    state.steps++;
+    state.recentActionSignatures=appendRecentActionSignature(state.recentActionSignatures,actionSignature);
+    return true;
+  }
+
   // ==========================================================
   // 默认类型保持
   // ==========================================================

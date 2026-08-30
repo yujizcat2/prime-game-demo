@@ -50,7 +50,7 @@ const bothOne = reduce(
 );
 assert.equal(bothOne.board[0],null);
 assert.equal(bothOne.board[1],null);
-assert.equal(bothOne.eightPalaceKeys[FOOD_TYPES.FRUIT].value,1);
+assert.equal(bothOne.eightPalaceKeys[FOOD_TYPES.FRUIT],null);
 
 const simpleBase=createGameState([
   {...opening({value:6,foodType:FOOD_TYPES.DAIRY_EGG},{value:3,foodType:FOOD_TYPES.DAIRY_EGG})[0],gameMode:GAME_MODES.SIMPLE_EIGHT_PALACE,targetFoodTypes:[FOOD_TYPES.DAIRY_EGG,FOOD_TYPES.FRUIT]},

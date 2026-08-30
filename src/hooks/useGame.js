@@ -685,9 +685,12 @@ export default function useGame(){
             {
 
               divisor,
+              kind:reduceOutcome.kind,
+              equalClear:reduceOutcome.kind==="equalClear",
 
               keyOutcome:(()=>{
                 if(!["eightPalace","simpleEightPalace"].includes(gameState?.gameMode))return null;
+                if(reduceOutcome.kind==="equalClear")return null;
                 const firstResult=first.piece.value/divisor,secondResult=second.piece.value/divisor;
                 const triggerPiece=firstResult===1?first.piece:secondResult===1?second.piece:null;
                 if(!triggerPiece)return null;
@@ -704,8 +707,8 @@ export default function useGame(){
 
                   value:reduceOutcome.results[0].value,
 
-                  autoCollect:
-                    first.piece.value / divisor === 1,
+                  autoCollect:reduceOutcome.results[0].autoCollect??reduceOutcome.results[0].value===1,
+                  clear:reduceOutcome.results[0].clear===true,
 
                   collectValue:
                     first.piece.value / divisor === 1
@@ -722,8 +725,8 @@ export default function useGame(){
 
                   value:reduceOutcome.results[1].value,
 
-                  autoCollect:
-                    second.piece.value / divisor === 1,
+                  autoCollect:reduceOutcome.results[1].autoCollect??reduceOutcome.results[1].value===1,
+                  clear:reduceOutcome.results[1].clear===true,
 
                   collectValue:
                     second.piece.value / divisor === 1

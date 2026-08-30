@@ -57,6 +57,8 @@ function countReduciblePairs(state) {
       const b =
         state.numbers[j].value;
 
+      if(a===b)continue;
+
 
       if(
         canReduce(
@@ -117,6 +119,8 @@ function countNewDiscoveryOpportunities(
 
       const b =
         state.numbers[j].value;
+
+      if(a===b)continue;
 
 
       const divisor =

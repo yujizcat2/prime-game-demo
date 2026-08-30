@@ -210,10 +210,9 @@ function App(){
     ];
 
 
-    const removedIndexes = indexes.filter(
-      (_, position) =>
-        game.preview.reduce.results?.[position]?.autoCollect
-    );
+    const removedIndexes = game.preview.reduce.equalClear
+      ? indexes
+      : indexes.filter((_,position)=>game.preview.reduce.results?.[position]?.autoCollect);
 
 
     const collectedSlots = new Set(

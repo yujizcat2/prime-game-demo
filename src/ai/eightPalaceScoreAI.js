@@ -116,6 +116,7 @@ function getImmediateScorePotential(state){
     const left = state.board[leftIndex];
     const right = state.board[rightIndex];
     if(!left || !right) continue;
+    if(left.value===right.value)continue;
     const divisor = gcd(left.value, right.value);
     let reward = 0;
     if(left.value / divisor === 1) reward += left.value;

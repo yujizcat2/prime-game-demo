@@ -201,6 +201,8 @@ export default function BoardCell({
     reducePreview?.autoCollect ===
     true;
 
+  const equalClearPreview=reducePreview?.clear===true;
+
 
 
   // ==========================================================
@@ -1256,7 +1258,7 @@ export default function BoardCell({
                 "
               >
 
-                {reduceFoodName}
+                {equalClearPreview?"一起清掉":reduceFoodName}
 
               </span>
 
@@ -1267,7 +1269,7 @@ export default function BoardCell({
                 "
               >
 
-                {reduceResultValue}
+                {equalClearPreview?"清除":reduceResultValue}
 
               </span>
 

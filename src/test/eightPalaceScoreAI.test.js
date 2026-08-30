@@ -39,6 +39,12 @@ assert.equal(atStep100.steps, 100);
 assert.equal(atStep100.gameOverReason, "step_limit");
 assert.equal(chooseScoreAction(atStep100), null, "Score AI stops at Step 100");
 
+const equalClearState=createGameState([
+  {value:43,foodType:BASE_FOOD_TYPES[0],boardIndex:0,gameMode:"simpleEightPalace"},
+  {value:43,foodType:BASE_FOOD_TYPES[1],boardIndex:1,gameMode:"simpleEightPalace"}
+]);
+assert.deepEqual(scoreAITestUtils.getImmediateScorePotential(equalClearState),{total:0,best:0},"equal-value clear has no predicted collection reward");
+
 const base = createGameState(opening.map(card => ({...card, gameMode: "simpleEightPalace"})));
 const manyCardsHighScore = {...base, score: 200};
 const sparseLowScore = {...base, board: [base.board[0], base.board[1], null, null, null, null, null, null, null], score: 10};

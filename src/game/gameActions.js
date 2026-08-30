@@ -246,13 +246,18 @@ export function createReduceOutcome(state,indexA,indexB){
   if(!first||!second||first.foodType===FOOD_TYPES.DRINK&&second.foodType===FOOD_TYPES.DRINK)return null;
   const divisor=gcd(first.value,second.value);
   if(divisor<=1)return null;
+  if(first.value===second.value)return {
+    kind:"equalClear",
+    divisor,
+    results:[first,second].map(piece=>({value:1,foodType:piece.foodType,purity:piece.purity??null,clear:true,autoCollect:false}))
+  };
   let firstFoodType=first.foodType,secondFoodType=second.foodType;
   const template=first.foodType===FOOD_TYPES.DRINK?second:second.foodType===FOOD_TYPES.DRINK?first:null;
   if(template)firstFoodType=secondFoodType=template.foodType;
   const firstResult=first.value/divisor,secondResult=second.value/divisor;
   if(first.foodType===FOOD_TYPES.DESSERT&&firstResult===1)secondFoodType=getDessertMutationFoodType(second.foodType)??secondFoodType;
   if(second.foodType===FOOD_TYPES.DESSERT&&secondResult===1)firstFoodType=getDessertMutationFoodType(first.foodType)??firstFoodType;
-  return {divisor,results:[
+  return {kind:"reduce",divisor,results:[
     {value:firstResult,foodType:firstFoodType,purity:template?.purity??first.purity??null},
     {value:secondResult,foodType:secondFoodType,purity:template?.purity??second.purity??null}
   ]};
@@ -568,6 +573,17 @@ export function reduceCells(
     state.recentActionSignatures,
     actionSignature
   );
+
+  if(reductionOutcome.kind==="equalClear"){
+    const board=[...state.board];
+    board[indexA]=null;board[indexB]=null;
+    return consumeStep({
+      ...state,
+      board,
+      actionFatigue,
+      recentActionSignatures:appendRecentActionSignature(state.recentActionSignatures,actionSignature)
+    });
+  }
 
 
 
