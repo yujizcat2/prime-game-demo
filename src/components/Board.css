@@ -1183,16 +1183,16 @@
     hidden;
 
   font-size:
-    13px;
+    11px;
 
   line-height:
-    1;
+    1.2;
 
   font-weight:
     800;
 
   white-space:
-    nowrap;
+    normal;
 
   opacity:
     .62;
@@ -3647,9 +3647,6 @@
 
   .board-piece-origin-plus { display: none; }
 
-  .board-piece-origin > span:not(.board-piece-origin-plus) { white-space: nowrap; }
-
-
   .board-preview-status {
 
     top:
@@ -5763,6 +5760,11 @@
   background-size: 28px 28px, 31px 31px, auto;
 }
 
+.board-piece--one {
+  --cuisine-primary: #8a4b22;
+  --cuisine-secondary: #d19a68;
+}
+
 :is(.board-piece, .board-preview) :is(.board-piece-type-bar, .board-preview-type-bar) {
   background: var(--cuisine-secondary);
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--cuisine-primary) 8%, transparent);
@@ -5803,27 +5805,38 @@
 .board-piece--drink .board-piece-cuisine-mark { border-radius: 50%; box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--cuisine-secondary) 9%, transparent); }
 
 .board-piece--selected {
-  color: var(--cuisine-primary) !important;
-  border-color: var(--cuisine-primary) !important;
-  background-color: color-mix(in srgb, var(--cuisine-surface) 88%, var(--cuisine-secondary) 12%) !important;
-  background-image: var(--cuisine-pattern) !important;
+  color: #fff !important;
+  border-color: color-mix(in srgb, var(--cuisine-secondary) 34%, white) !important;
+  background-color: var(--cuisine-primary) !important;
+  background-image: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--cuisine-primary) 88%, var(--cuisine-secondary)) 0%,
+    color-mix(in srgb, var(--cuisine-primary) 82%, #111827) 100%
+  ) !important;
   box-shadow:
-    inset 0 0 0 2px color-mix(in srgb, var(--cuisine-secondary) 34%, transparent),
-    0 0 0 3px color-mix(in srgb, var(--cuisine-primary) 22%, transparent),
-    0 9px 20px var(--cuisine-glow) !important;
+    inset 0 0 0 1px rgba(255,255,255,.18),
+    0 0 0 3px color-mix(in srgb, var(--cuisine-primary) 18%, transparent),
+    0 8px 16px color-mix(in srgb, var(--cuisine-primary) 24%, transparent) !important;
   filter: saturate(1.06);
 }
 
-.board-piece--selected::before { border-color: color-mix(in srgb, var(--cuisine-primary) 16%, transparent); }
+.board-piece--selected::before { border-color: rgba(255,255,255,.16); }
 .board-piece--selected .board-piece-selected-ring { border-color: color-mix(in srgb, var(--cuisine-secondary) 32%, white); }
 .board-piece--selected :is(.board-piece-number, .board-piece-name) {
-  color: var(--cuisine-primary) !important;
+  color: #fff !important;
   text-shadow: none;
 }
 .board-piece--selected :is(.board-piece-price, .board-piece-price span, .board-piece-origin, .board-piece-pure, .board-piece-cuisine-type) {
-  color: color-mix(in srgb, var(--cuisine-primary) 82%, #334155) !important;
+  color: rgba(255,255,255,.84) !important;
 }
-.board-piece--selected .board-piece-cuisine-mark { opacity: 1; box-shadow: 0 0 0 2px color-mix(in srgb, var(--cuisine-primary) 12%, transparent); }
+.board-piece--selected .board-piece-prime { background: #fff; opacity: .68; }
+.board-piece--selected .board-piece-cuisine-mark {
+  color: #fff;
+  border-color: rgba(255,255,255,.48);
+  background: rgba(255,255,255,.12);
+  opacity: 1;
+  box-shadow: none;
+}
 
 .board-piece--combine-candidate,
 .board-piece--reduce-candidate,
@@ -5863,5 +5876,4 @@
   }
 
   .board-piece-origin-plus { display: none; }
-  .board-piece-origin > span:not(.board-piece-origin-plus) { white-space: nowrap; }
 }

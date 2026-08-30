@@ -526,7 +526,7 @@ export default function BoardCell({
 
 
 
-            return `${parent.value} ${getFoodName(parent.value,parent.foodType)}`;
+            return getFoodName(parent.value,parent.foodType);
 
           }
 
@@ -604,70 +604,17 @@ export default function BoardCell({
 
 
 
+  const originText =
 
+    reducePreviousFoodName
 
-  // ==========================================================
-  // 旧版水来源
-  // ==========================================================
+      ? `一种由${reducePreviousFoodName}处理而来的${foodName}`
 
-  const onePreviousRecord =
+      : parentFoodNames?.[0] && parentFoodNames?.[1]
 
-    isOne &&
-    piece.origin?.type ===
-    "reduce"
+        ? `一种由${parentFoodNames[0]}与${parentFoodNames[1]}制成的${foodName}`
 
-      ?
-
-        piece.origin.parent
-
-      :
-
-        null;
-
-
-
-  const onePreviousValue =
-
-    onePreviousRecord?.value
-
-    ??
-
-    null;
-
-
-
-  const onePreviousFoodType =
-
-    onePreviousRecord?.foodType
-
-    ??
-
-    foodType
-
-    ??
-
-    null;
-
-
-
-  const onePreviousFoodName =
-
-    onePreviousValue !==
-    null
-
-      ?
-
-        getFoodName(
-
-          onePreviousValue,
-
-          onePreviousFoodType
-
-        )
-
-      :
-
-        null;
+        : `一种原生的${foodName}`;
 
 
 
@@ -1419,135 +1366,9 @@ export default function BoardCell({
 
 
 
-          {
-
-            !isOne &&
-            !parentFoodNames &&
-            !reducePreviousRecord &&
-
-            <div
-              className="
-                board-piece-origin
-              "
-            >
-
-              <span>
-                原生
-              </span>
-
-            </div>
-
-          }
-
-
-
-
-
-          {
-
-            !isOne &&
-            parentFoodNames &&
-            parentFoodNames[0] &&
-            parentFoodNames[1] &&
-
-            <div
-              className="
-                board-piece-origin
-              "
-            >
-
-
-              <span>
-                {parentFoodNames[0]}
-              </span>
-
-
-              <span
-                className="
-                  board-piece-origin-plus
-                "
-              >
-                +
-              </span>
-
-
-              <span>
-                {parentFoodNames[1]}
-              </span>
-
-
-            </div>
-
-          }
-
-
-
-
-
-          {
-
-            !isOne &&
-            reducePreviousRecord &&
-            reducePreviousFoodName &&
-
-            <div
-              className="
-                board-piece-origin
-              "
-            >
-
-              <span>
-                {reducePreviousFoodName}
-              </span>
-
-            </div>
-
-          }
-
-
-
-
-
-          {
-
-            isOne &&
-            onePreviousValue !==
-            null &&
-
-            <div
-              className="
-                board-piece-origin
-              "
-            >
-
-
-              <span>
-
-                {
-                  onePreviousFoodName
-                  ?? "来源"
-                }
-
-              </span>
-
-
-              <span
-                className="
-                  board-piece-origin-plus
-                "
-              >
-                ·
-              </span>
-
-
-              <strong>
-                {onePreviousValue}
-              </strong>
-
-
-            </div>
-
-          }
+          <div className="board-piece-origin">
+            <span>{originText}</span>
+          </div>
 
 
           {
