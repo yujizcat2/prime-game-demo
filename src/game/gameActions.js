@@ -259,8 +259,8 @@ export function createReduceOutcome(state,indexA,indexB){
   if(first.foodType===FOOD_TYPES.DESSERT&&firstResult===1)secondFoodType=getDessertMutationFoodType(second.foodType)??secondFoodType;
   if(second.foodType===FOOD_TYPES.DESSERT&&secondResult===1)firstFoodType=getDessertMutationFoodType(first.foodType)??firstFoodType;
   return {kind:"reduce",divisor,results:[
-    {value:firstResult,foodType:firstFoodType,purity:template?.purity??first.purity??null},
-    {value:secondResult,foodType:secondFoodType,purity:template?.purity??second.purity??null}
+    {...first,value:firstResult,foodType:firstFoodType,purity:template?.purity??first.purity??null},
+    {...second,value:secondResult,foodType:secondFoodType,purity:template?.purity??second.purity??null}
   ]};
 }
 

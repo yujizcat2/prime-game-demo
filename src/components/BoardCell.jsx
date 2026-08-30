@@ -157,17 +157,32 @@ export default function BoardCell({
     piece.foodType
     ?? null;
 
+  const showsReducedPiece =
+    reducePreview !== null &&
+    reducePreview?.autoCollect !== true &&
+    reducePreview?.clear !== true;
+
+  const displayedFoodType =
+    showsReducedPiece
+      ? reducePreview?.foodType ?? foodType
+      : foodType;
+
+  const displayedPurity =
+    showsReducedPiece
+      ? reducePreview?.purity ?? null
+      : piece.purity;
+
 
   const isMeat =
-    foodType === "meat";
+    displayedFoodType === "meat";
 
 
   const isVegetable =
-    foodType === "vegetable";
+    displayedFoodType === "vegetable";
 
 
   const isSeasoning =
-    foodType === "seasoning";
+    displayedFoodType === "seasoning";
 
 
   const isDessert =
@@ -420,7 +435,7 @@ export default function BoardCell({
 
   const isPure =
 
-    piece.purity === "pure"
+    displayedPurity === "pure"
 
     &&
 
@@ -462,7 +477,8 @@ export default function BoardCell({
 
       :
 
-        foodType;
+        reducePreview?.foodType
+        ?? foodType;
 
 
 
@@ -634,7 +650,7 @@ export default function BoardCell({
 
       ? "board-piece--one"
 
-      : `board-piece--${foodType ?? "default"}`;
+      : `board-piece--${displayedFoodType ?? "default"}`;
 
 
 
@@ -1028,7 +1044,7 @@ export default function BoardCell({
           />
 
           {
-            !isOne && foodType &&
+            !isOne && displayedFoodType &&
             <span
               className="board-piece-cuisine-mark"
               aria-hidden="true"
@@ -1200,7 +1216,7 @@ export default function BoardCell({
           <div
             className={`
               board-piece-main
-              ${foodType === "drink" && piece.drinkOriginValue != null
+              ${displayedFoodType === "drink" && piece.drinkOriginValue != null
                 ? "board-piece-main--with-drink-origin"
                 : ""}
             `}
@@ -1227,7 +1243,7 @@ export default function BoardCell({
 
             </span>
 
-            {foodType === "drink" && piece.drinkOriginValue != null && (
+            {displayedFoodType === "drink" && piece.drinkOriginValue != null && (
               <span className="board-piece-drink-origin">
                 <span className="board-piece-drink-origin-label">原液</span>
                 <strong className="board-piece-drink-origin-value">
@@ -1383,10 +1399,10 @@ export default function BoardCell({
 
           {
             !isOne &&
-            foodType &&
+            displayedFoodType &&
 
             <div className="board-piece-cuisine-type">
-              {getFoodTypeShortName(foodType)}
+              {getFoodTypeShortName(displayedFoodType)}
             </div>
           }
 

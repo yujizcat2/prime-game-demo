@@ -705,6 +705,8 @@ export default function useGame(){
 
                 {
 
+                  ...reduceOutcome.results[0],
+
                   value:reduceOutcome.results[0].value,
 
                   autoCollect:reduceOutcome.results[0].autoCollect??reduceOutcome.results[0].value===1,
@@ -722,6 +724,8 @@ export default function useGame(){
                 },
 
                 {
+
+                  ...reduceOutcome.results[1],
 
                   value:reduceOutcome.results[1].value,
 
