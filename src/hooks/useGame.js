@@ -1073,7 +1073,7 @@ export default function useGame(){
     ){
 
 
-      return;
+      return false;
 
     }
 
@@ -1089,7 +1089,7 @@ export default function useGame(){
     ){
 
 
-      return;
+      return false;
 
     }
 
@@ -1124,7 +1124,7 @@ export default function useGame(){
     ){
 
 
-      return;
+      return false;
 
     }
 
@@ -1137,6 +1137,8 @@ export default function useGame(){
     setSelectedIndexes(
       []
     );
+
+    return true;
 
   }
 

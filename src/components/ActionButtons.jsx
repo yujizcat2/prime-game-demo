@@ -9,6 +9,8 @@ export default function ActionButtons({
 
   onCombine,
 
+  onBlockedCombine,
+
   onReduce,
 
   gameOver,
@@ -46,6 +48,13 @@ export default function ActionButtons({
 
     !!preview?.reduce;
 
+  const canTryBlockedCombine =
+    !gameOver &&
+    !busy &&
+    selected.length === 2 &&
+    !canCombine &&
+    typeof onBlockedCombine === "function";
+
 
 
   return (
@@ -68,11 +77,13 @@ export default function ActionButtons({
         onClick={
           canCombine
             ? onCombine
-            : undefined
+            : canTryBlockedCombine
+              ? onBlockedCombine
+              : undefined
         }
 
         disabled={
-          !canCombine
+          !canCombine && !canTryBlockedCombine
         }
 
         className={`

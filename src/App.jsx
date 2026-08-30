@@ -19,6 +19,7 @@ import Discovery from "./components/Discovery";
 import BoardStatus from "./components/BoardStatus";
 import GameOver from "./components/GameOver";
 import CombineHistoryPanel from "./components/CombineHistoryPanel";
+import ActionToast from "./components/ActionToast";
 
 import useGame from "./hooks/useGame";
 
@@ -37,6 +38,7 @@ import {
 
 import { FOOD_TYPE_LABELS } from "./data/specialOneRegistry";
 import { getBaseScore } from "./game/scoreValue";
+import { getActionStatus } from "./game/actionStatus";
 
 
 function App(){
@@ -62,9 +64,21 @@ function App(){
 
   const [keyNotice,setKeyNotice] = useState(null);
   const [showCombineHistory,setShowCombineHistory] = useState(false);
+  const [actionToast,setActionToast] = useState(null);
 
   const animationTimersRef = useRef([]);
   const animationTokenRef = useRef(0);
+  const actionToastTimerRef = useRef(null);
+
+  function showActionToast(title,message){
+    if(actionToastTimerRef.current)window.clearTimeout(actionToastTimerRef.current);
+    const id=Date.now();
+    setActionToast({id,title,message});
+    actionToastTimerRef.current=window.setTimeout(()=>{
+      setActionToast(null);
+      actionToastTimerRef.current=null;
+    },1100);
+  }
 
 
   function clearAnimationTimers(){
@@ -96,7 +110,10 @@ function App(){
 
 
   useEffect(
-    () => () => clearAnimationTimers(),
+    () => () => {
+      clearAnimationTimers();
+      if(actionToastTimerRef.current)window.clearTimeout(actionToastTimerRef.current);
+    },
     []
   );
 
@@ -145,6 +162,12 @@ function App(){
       ++animationTokenRef.current;
 
     const combineKind=game.preview.combine.kind;
+    const combineToast={
+      title: combineKind==="wrap"
+        ? `${game.board[indexes[0]].value + game.board[indexes[1]].value} → ${game.preview.combine.value}`
+        : `${game.board[indexes[0]].value} + ${game.board[indexes[1]].value} → ${game.preview.combine.value}`,
+      message: combineKind==="wrap" ? "特殊搭配" : "搭配成功"
+    };
     const drinkIndex=game.preview.combine.drinkIndex??null;
     const ingredientIndex=game.preview.combine.ingredientIndex??null;
 
@@ -171,7 +194,8 @@ function App(){
     scheduleAnimation(
       () => {
 
-        game.combineNumbers(indexes);
+        const succeeded=game.combineNumbers(indexes);
+        if(succeeded)showActionToast(combineToast.title,combineToast.message);
 
 
         setBoardAnimation(
@@ -199,6 +223,20 @@ function App(){
 
   }
 
+  function handleBlockedCombine(){
+    const status=getActionStatus(
+      game.numbers,
+      game.selectedNumbers.map(item=>item.id),
+      game.combineHistoryKeys
+    );
+    if(status.type!=="pair"||status.combine.allowed)return;
+    if(status.combine.reason==="这组料理本局已经搭配过"){
+      showActionToast("已经搭配过","换一种组合试试");
+      return;
+    }
+    showActionToast("暂时无法搭配",status.combine.reason);
+  }
+
 
   // ==========================================================
   // 约分
@@ -221,6 +259,18 @@ function App(){
     const indexes = [
       ...game.selectedIndexes
     ];
+
+    const reduceToast=game.preview.reduce.equalClear
+      ? {
+          title:`${game.board[indexes[0]].value} + ${game.board[indexes[1]].value} → 清除`,
+          message:"处理完成"
+        }
+      : {
+          title:game.preview.reduce.results
+            .map((result,position)=>`${game.board[indexes[position]].value} → ${result.value}`)
+            .join(" · "),
+          message:"处理完成"
+        };
 
 
     const removedIndexes = game.preview.reduce.equalClear
@@ -425,7 +475,8 @@ function App(){
     scheduleAnimation(
       () => {
 
-        game.reduceNumbers();
+        const succeeded=game.reduceNumbers();
+        if(succeeded)showActionToast(reduceToast.title,reduceToast.message);
 
         if(game.preview.reduce.keyOutcome?.status==="used")setKeyNotice(`${game.preview.reduce.keyOutcome.triggerValue} 已经触发过钥匙，本次没有获得新钥匙`);
 
@@ -782,6 +833,9 @@ function App(){
                   onCombine={
                     handleCombine
                   }
+                  onBlockedCombine={
+                    handleBlockedCombine
+                  }
                   onReduce={
                     handleReduce
                   }
@@ -801,6 +855,8 @@ function App(){
 
 
             <div className="game-board-main">
+
+              <ActionToast toast={actionToast} />
 
               <Board
                 board={
