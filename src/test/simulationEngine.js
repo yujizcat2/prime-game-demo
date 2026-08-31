@@ -405,6 +405,9 @@ export function createSimulationState(
     money:
       0,
 
+    heaterUseCount:
+      0,
+
     previousCollection:
       null,
 
@@ -2004,6 +2007,9 @@ export function cloneSimulationState(
 
     money:
       state.money ?? 0,
+
+    heaterUseCount:
+      state.heaterUseCount ?? 0,
 
     previousCollection:
       state.previousCollection ?? null,

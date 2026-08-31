@@ -36,6 +36,7 @@ export default function Board({
 
   selectedIndexes = [],
   functionOneIndex = null,
+  heaterSelectMode = false,
 
   onSelectCell,
 
@@ -1034,6 +1035,11 @@ export default function Board({
 
             function handlePieceClick(){
 
+              if(heaterSelectMode){
+                onSelectCell?.(index);
+                return;
+              }
+
 
               if(
                 !piece
@@ -1123,6 +1129,14 @@ export default function Board({
 
                 applyOneCandidate={
                   candidate.applyOne === true
+                }
+
+                heaterTargetState={
+                  heaterSelectMode
+                    ? piece?.value >= 2 && piece?.value <= 100
+                      ? "available"
+                      : "unavailable"
+                    : null
                 }
 
                 reducePreview={

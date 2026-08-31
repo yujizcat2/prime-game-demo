@@ -312,6 +312,9 @@ export function createGameState(
     money:
       0,
 
+    heaterUseCount:
+      0,
+
     previousCollection:
       null,
 

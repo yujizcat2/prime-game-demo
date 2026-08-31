@@ -473,6 +473,13 @@ export function cloneOrigin(
 
   }
 
+  if(origin.type === "heater"){
+    return {
+      type: "heater",
+      from: origin.from ? cloneRecord(origin.from) : null
+    };
+  }
+
 
 
   return null;
@@ -798,6 +805,17 @@ export function getMainLineage(
 
       continue;
 
+    }
+
+    if(origin.type === "heater"){
+      lineage.push({
+        value: current.value,
+        foodType: current.foodType ?? null,
+        purity: current.purity ?? null,
+        fromType: "heater"
+      });
+      current = origin.from;
+      continue;
     }
 
 

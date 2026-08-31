@@ -22,6 +22,7 @@ import {
   getBoardPrices
 } from "../game/price";
 import { getNextSelectionIndexes } from "../game/selection";
+import { applyHeater, getHeaterCost, canUseHeater } from "../game/heater";
 
 import {
   createGameState,
@@ -229,6 +230,10 @@ export default function useGame(){
     ??
 
     0;
+
+  const heaterUseCount = gameState?.heaterUseCount ?? 0;
+  const heaterCost = getHeaterCost(gameState);
+  const heaterAvailable = canUseHeater(gameState);
 
 
   const trend =
@@ -578,6 +583,20 @@ export default function useGame(){
 
     setSelectedIndexes(getNextSelectionIndexes(selectedIndexes,index));
 
+  }
+
+  function clearSelection(){
+    setSelectedIndexes([]);
+    setFunctionOneIndex(null);
+  }
+
+  function useHeaterOnCell(index){
+    if(!gameState) return null;
+    const nextState = applyHeater(gameState, index);
+    if(nextState === gameState) return null;
+    setGameState(resolveGameOver(nextState));
+    clearSelection();
+    return nextState.latestHeaterUse;
   }
 
 
@@ -1344,6 +1363,12 @@ export default function useGame(){
 
     money,
 
+    heaterUseCount,
+
+    heaterCost,
+
+    heaterAvailable,
+
     trend,
 
     boardPrices,
@@ -1380,6 +1405,10 @@ export default function useGame(){
     startGame,
 
     selectCell,
+
+    clearSelection,
+
+    useHeaterOnCell,
 
     combineNumbers,
 

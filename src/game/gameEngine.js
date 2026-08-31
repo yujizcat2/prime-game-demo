@@ -40,6 +40,7 @@ import {
 } from "./mazeEngine";
 
 import { GAME_MODES } from "./eightPalaceKeys";
+import { canUseHeater } from "./heater";
 
 
 
@@ -383,7 +384,12 @@ export function resolveGameOver(
   }
 
 
-  if(!isEightPalace && !isSimpleEightPalace && boardCount <= 2){
+  if(
+    !isEightPalace
+    && !isSimpleEightPalace
+    && boardCount <= 2
+    && !canUseHeater(activeState)
+  ){
 
     return {
       ...state,
@@ -396,6 +402,7 @@ export function resolveGameOver(
 
   if(
     getLegalActions(activeState).length === 0
+    && !canUseHeater(activeState)
   ){
 
     return {

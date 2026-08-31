@@ -6001,3 +6001,14 @@
 
   .board-piece-origin-plus { display: none; }
 }
+/* Heater target selection intentionally overrides normal candidate emphasis. */
+.board-cell--heater-available .board-piece {
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, .75), 0 8px 22px rgba(249, 115, 22, .25);
+  cursor: pointer;
+}
+
+.board-cell--heater-unavailable .board-piece {
+  opacity: .32;
+  filter: grayscale(.65);
+  cursor: not-allowed;
+}

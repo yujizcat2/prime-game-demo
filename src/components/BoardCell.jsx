@@ -41,6 +41,7 @@ export default function BoardCell({
 
   removeCandidate = false,
   applyOneCandidate = false,
+  heaterTargetState = null,
 
   reducePreview = null,
 
@@ -635,8 +636,9 @@ export default function BoardCell({
 
 
   const originText =
-
-    reducePreviousFoodName
+    piece.origin?.type === "heater" && piece.origin.from
+      ? `加热器 ← ${piece.origin.from.value}`
+      : reducePreviousFoodName
 
       ? `一种由${reducePreviousFoodName}处理而来的${foodName}`
 
@@ -722,6 +724,9 @@ export default function BoardCell({
       className={`
         board-cell
         board-cell--occupied
+
+        ${heaterTargetState === "available" ? "board-cell--heater-available" : ""}
+        ${heaterTargetState === "unavailable" ? "board-cell--heater-unavailable" : ""}
 
         ${
           selected

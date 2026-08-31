@@ -58,6 +58,7 @@ function App(){
   const [keyNotice,setKeyNotice] = useState(null);
   const [showCombineHistory,setShowCombineHistory] = useState(false);
   const [actionToast,setActionToast] = useState(null);
+  const [heaterSelectMode,setHeaterSelectMode] = useState(false);
 
   const animationTimersRef = useRef([]);
   const animationTokenRef = useRef(0);
@@ -72,6 +73,27 @@ function App(){
       setActionToast(null);
       actionToastTimerRef.current=null;
     },1100);
+  }
+
+  function toggleHeaterMode(){
+    if(heaterSelectMode){
+      setHeaterSelectMode(false);
+      return;
+    }
+    if(!game.heaterAvailable){
+      const shortage = Math.max(0, game.heaterCost - game.money);
+      showActionToast("金钱不足", shortage ? `还需要 ¥${shortage}` : "没有可加热的料理");
+      return;
+    }
+    game.clearSelection();
+    setHeaterSelectMode(true);
+  }
+
+  function handleHeaterTarget(index){
+    const result = game.useHeaterOnCell(index);
+    if(!result) return;
+    setHeaterSelectMode(false);
+    showActionToast(`${result.fromValue} → ${result.toValue}`, `加热完成 · -¥${result.cost}`);
   }
 
 
@@ -369,11 +391,6 @@ function App(){
             isEightPalace
               ? `${foodType ?? "default"}:${value ?? ""}`
               : `${value}:${foodType}`;
-
-
-          const sameSourceRepeat =
-            sameSourceTwins &&
-            index === autoCollectIndexes[1];
 
 
           const isFirstSlot = !collectedSlots.has(slotKey);
@@ -764,6 +781,18 @@ function App(){
               料理台
             </div>
 
+            <div className="game-heater-tools">
+              <button
+                type="button"
+                className={`game-heater-button${heaterSelectMode ? " game-heater-button--active" : ""}`}
+                disabled={!heaterSelectMode && !game.heaterAvailable}
+                onClick={toggleHeaterMode}
+              >
+                {heaterSelectMode ? "取消加热" : `🔥 加热器 · +1 · ¥${game.heaterCost}`}
+              </button>
+              {heaterSelectMode && <span className="game-heater-prompt">选择一道料理进行加热</span>}
+            </div>
+
 
             <div className="game-section-count">
 
@@ -806,7 +835,7 @@ function App(){
                     handleReduce
                   }
                   gameOver={
-                    game.gameOver
+                    game.gameOver || heaterSelectMode
                   }
                   removingId={
                     removingIndex ??
@@ -836,10 +865,13 @@ function App(){
                 functionOneIndex={
                   game.functionOneIndex
                 }
+                heaterSelectMode={heaterSelectMode}
                 onSelectCell={
                   boardAnimation
                     ? undefined
-                    : game.selectCell
+                    : heaterSelectMode
+                      ? handleHeaterTarget
+                      : game.selectCell
                 }
                 onRemoveOne={
                   handleSpecialOne
