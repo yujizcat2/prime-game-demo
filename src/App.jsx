@@ -70,6 +70,7 @@ function App(){
   const animationTimersRef = useRef([]);
   const animationTokenRef = useRef(0);
   const actionToastTimerRef = useRef(null);
+  const notifiedEfficiencyStepRef = useRef(0);
 
   function showActionToast(title,message){
     if(actionToastTimerRef.current)window.clearTimeout(actionToastTimerRef.current);
@@ -125,6 +126,16 @@ function App(){
   },[game.latestEightPalaceKey]);
 
   useEffect(()=>{if(!keyNotice)return undefined;const timer=window.setTimeout(()=>setKeyNotice(null),2200);return()=>window.clearTimeout(timer);},[keyNotice]);
+
+  useEffect(() => {
+    const snapshot = game.collectionEfficiencyTimeline.at(-1);
+    if(!snapshot || snapshot.step <= notifiedEfficiencyStepRef.current) return;
+    notifiedEfficiencyStepRef.current = snapshot.step;
+    showActionToast(
+      `Step ${snapshot.step} · 收藏效率 ${snapshot.collectionEfficiency.toFixed(2)}`,
+      `最近10步 +${snapshot.recent10Collections}`
+    );
+  }, [game.collectionEfficiencyTimeline]);
 
 
   // ==========================================================
@@ -715,6 +726,8 @@ function App(){
             }
             stepLimit={game.stepLimit}
             gameMode={game.gameMode}
+            collectionCount={game.collectionCards.length}
+            collectionEfficiencyTimeline={game.collectionEfficiencyTimeline}
           />
 
 

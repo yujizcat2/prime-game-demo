@@ -1484,6 +1484,27 @@ function ScoreSummaryGrid({result}){
   );
 }
 
+function CollectionEfficiencyTimeline({timeline = []}){
+  return <div className="test-lab-record-collection">
+    <strong>收藏效率时间线</strong>
+    {timeline.length === 0
+      ? <div>未到 Step 10</div>
+      : timeline.map(snapshot => <div key={snapshot.step}>
+        Step {snapshot.step} · 收藏 {snapshot.cumulativeCollections} · 效率 {snapshot.collectionEfficiency.toFixed(2)} · 近10步 +{snapshot.recent10Collections}
+      </div>)}
+  </div>;
+}
+
+function AverageCollectionEfficiency({timeline = []}){
+  if(timeline.length === 0) return null;
+  return <div className="test-lab-record">
+    <div className="test-lab-record-title">平均收藏效率</div>
+    {timeline.map(snapshot => <div key={snapshot.step}>
+      Step {snapshot.step} · 平均效率 {snapshot.averageCollectionEfficiency.toFixed(2)} · 样本 {snapshot.sampleCount}/{snapshot.gameCount}
+    </div>)}
+  </div>;
+}
+
 function RandomSummaryGrid({result}){
   return (
     <div className="test-lab-result-grid">
@@ -1522,6 +1543,7 @@ function ScoreRecord({title, game, difficulty}){
         收藏构成：质数 {game.primeCollectionCount} · 合数 {game.compositeCollectionCount}
       </div>
       <div className="test-lab-record-collection">最终盘面：{formatScoreBoard(game.finalBoard) || "空"}</div>
+      <CollectionEfficiencyTimeline timeline={game.collectionEfficiencyTimeline} />
       <details className="test-lab-action-details">
         <summary>展开完整操作路线（{game.actionPath.length} 项）</summary>
         <ol>
@@ -1598,6 +1620,7 @@ function AllScoreRecords({title = "全部测试记录", games = []}){
               <div className="test-lab-record-collection">
                 收藏构成：质数 {game.primeCollectionCount} · 合数 {game.compositeCollectionCount}
               </div>
+              <CollectionEfficiencyTimeline timeline={game.collectionEfficiencyTimeline} />
               <ol>
                 {game.actionPath.map(action => (
                   <li key={action.number}>
@@ -1632,11 +1655,13 @@ function ScoreResults({result, difficulty}){
       </div>
       <div className="test-lab-section-title">Score AI</div>
       <ScoreSummaryGrid result={result} />
+      <AverageCollectionEfficiency timeline={result.averageCollectionEfficiencyTimeline} />
 
       {random && (
         <div className="test-lab-section">
           <div className="test-lab-section-title">Random AI 对照</div>
           <RandomSummaryGrid result={random} />
+          <AverageCollectionEfficiency timeline={random.averageCollectionEfficiencyTimeline} />
         </div>
       )}
 
@@ -1658,6 +1683,7 @@ function FixedScoreResults({result}){
         {result.fixedOpening.map(card => card.value).join(" / ")}
       </div>
       <ScoreSummaryGrid result={result} />
+      <AverageCollectionEfficiency timeline={result.averageCollectionEfficiencyTimeline} />
       <div className="test-lab-small-grid">
         <ResultItem label="不同操作路线数量" value={result.distinctRouteCount} />
         <ResultItem label="不同最终积分数量" value={result.distinctFinalScoreCount} />

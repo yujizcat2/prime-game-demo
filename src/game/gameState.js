@@ -23,6 +23,7 @@ import {
 } from "./eightPalaceKeys";
 
 import { getBaseScore } from "./scoreValue";
+import { recordCollectionEfficiencySnapshot } from "./collectionEfficiency";
 
 
 
@@ -243,6 +244,9 @@ export function createGameState(
     collectionCards:
       [],
 
+    collectionEfficiencyTimeline:
+      [],
+
 
 
 
@@ -426,7 +430,7 @@ export function consumeStep(
 ){
 
 
-  return {
+  return recordCollectionEfficiencySnapshot({
 
     ...state,
 
@@ -438,6 +442,6 @@ export function consumeStep(
 
       GAME_CONFIG.STEP_COST
 
-  };
+  });
 
 }

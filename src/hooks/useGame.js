@@ -183,6 +183,8 @@ export default function useGame(){
 
   const collectionCards = gameState?.collectionCards ?? [];
 
+  const collectionEfficiencyTimeline = gameState?.collectionEfficiencyTimeline ?? [];
+
 
   const collectionPaths =
 
@@ -1329,6 +1331,8 @@ export default function useGame(){
     collectionTimeline,
 
     collectionCards,
+
+    collectionEfficiencyTimeline,
 
     collectionPaths,
 

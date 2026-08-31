@@ -12,6 +12,7 @@ import {
 import { gcd } from "../utils/math";
 import { getScoreEfficiency } from "../game/scoreEfficiency";
 import { isPrime } from "../game/prime";
+import { summarizeCollectionEfficiencyTimelines } from "../game/collectionEfficiency";
 
 export const SCORE_AI_DEFAULTS = Object.freeze({
   depth: 4,
@@ -283,6 +284,7 @@ export async function runScoreGame({
     finalScore: state.score,
     scoreEfficiency: getScoreEfficiency(state.score, state.steps),
     collectionCount: state.collectionCards.length,
+    collectionEfficiencyTimeline: structuredClone(state.collectionEfficiencyTimeline ?? []),
     collections: state.collectionCards.map(card => structuredClone(card)),
     ...collectionNumberCounts,
     steps: state.steps,
@@ -348,6 +350,7 @@ export function summarizeScoreResults(results){
     completed100StepRate: results.length ? completed100StepCount / results.length : 0,
     deadlockCount,
     deadlockRate: results.length ? deadlockCount / results.length : 0,
+    averageCollectionEfficiencyTimeline: summarizeCollectionEfficiencyTimelines(results),
     highScore,
     results
   };
