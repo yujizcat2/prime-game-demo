@@ -1,82 +1,137 @@
-/* ============================================================
-   StepPanel
-   金钱 / 时间 HUD
-   ============================================================ */
-
+/* Main game status HUD */
 .step-panel {
-
-  position:
-    relative;
-
-  width:
-    100%;
-
-  height:
-    48px;
-
-  padding:
-    0 14px;
-
-  display:
-    flex;
-
-  align-items:
-    center;
-
-  justify-content:
-    center;
-
-  border:
-    1px solid
-    rgba(15,23,42,.035);
-
-  border-radius:
-    17px;
-
-  background:
-    rgba(255,255,255,.72);
-
-  box-shadow:
-    0 5px 18px
-    rgba(15,23,42,.035),
-
-    inset 0 1px 0
-    rgba(255,255,255,.72);
-
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 82px;
+  padding: 16px 22px 13px;
+  overflow: visible;
+  border: 1px solid rgba(94, 116, 104, .12);
+  border-radius: 20px;
+  background: linear-gradient(120deg, rgba(214, 229, 220, .76), rgba(255, 255, 255, .68) 48%, rgba(231, 225, 207, .48));
+  box-shadow: 0 8px 24px rgba(40, 58, 49, .055), inset 0 1px 0 rgba(255, 255, 255, .78);
 }
 
-.collection-efficiency-control {
-  flex-shrink: 0;
-  margin-left: 8px;
+.step-panel-stats {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
 }
 
-.collection-efficiency-trigger {
-  padding: 4px 7px;
-  border: 1px solid rgba(148,163,184,.2);
-  border-radius: 8px;
-  background: rgba(248,250,252,.8);
-  color: #8b949e;
+.step-panel-stat {
+  position: relative;
+  display: flex;
+  flex: 1 1 0;
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.step-panel-stat--primary { flex-grow: 1.14; }
+
+.step-panel-label {
+  display: block;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #858f89;
+  font: inherit;
   font-size: 9px;
   font-weight: 800;
+  line-height: 1;
+  letter-spacing: .14em;
   white-space: nowrap;
 }
 
+.step-panel-value {
+  min-width: 0;
+  color: #29362f;
+  font-size: 21px;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  letter-spacing: -.035em;
+  white-space: nowrap;
+}
+
+.step-panel-stat--primary .step-panel-value { font-size: 25px; }
+
+.step-panel-stat--money .step-panel-value,
+.step-panel-stat--money .step-panel-label { color: #8a7046; }
+
+.step-panel-stat--efficiency .step-panel-value,
+.step-panel-stat--efficiency .step-panel-label { color: #557b70; }
+
+.step-panel-stat--step .step-panel-value,
+.step-panel-stat--step .step-panel-label { color: #526f60; }
+
+.step-panel-currency {
+  margin-right: 2px;
+  color: #a17c44;
+  font-size: .66em;
+  font-weight: 900;
+  vertical-align: .08em;
+}
+
+.step-panel-time-max {
+  color: #7e9287;
+  font-size: .68em;
+  font-weight: 800;
+  letter-spacing: -.01em;
+}
+
+.step-panel-divider {
+  flex: 0 0 1px;
+  align-self: center;
+  width: 1px;
+  height: 31px;
+  margin: 0 15px;
+  background: linear-gradient(to bottom, transparent, rgba(82, 111, 96, .17), transparent);
+}
+
+.step-panel-progress {
+  width: 100%;
+  height: 4px;
+  margin-top: 13px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(82, 111, 96, .11);
+}
+
+.step-panel-progress > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #789b88, #9cac7f);
+  box-shadow: 0 0 8px rgba(120, 155, 136, .2);
+  transition: width 280ms ease-out;
+}
+
+.collection-efficiency-trigger { cursor: pointer; }
+
+.collection-efficiency-trigger:hover,
+.collection-efficiency-trigger:focus-visible { color: #365f53; }
+
 .collection-efficiency-popover {
   position: absolute;
-  top: calc(100% + 7px);
-  left: 0;
+  top: calc(100% + 12px);
+  left: 50%;
   z-index: 30;
   width: min(370px, calc(100vw - 32px));
   max-height: min(320px, 52vh);
-  overflow: auto;
   padding: 13px;
-  border: 1px solid rgba(148,163,184,.18);
+  overflow: auto;
+  transform: translateX(-50%);
+  border: 1px solid rgba(148, 163, 184, .18);
   border-radius: 14px;
-  background: rgba(255,255,255,.98);
-  box-shadow: 0 12px 30px rgba(15,23,42,.12);
+  background: rgba(255, 255, 255, .98);
+  box-shadow: 0 12px 30px rgba(15, 23, 42, .12);
   color: #667085;
   font-size: 11px;
   line-height: 1.8;
+  text-align: left;
 }
 
 .collection-efficiency-heading {
@@ -90,302 +145,26 @@
 .collection-efficiency-popover p { margin: 8px 0 0; }
 .collection-efficiency-list { margin-top: 7px; white-space: nowrap; }
 
-
-/* ============================================================
-   单个状态
-   ============================================================ */
-
-.step-panel-stat {
-
-  flex:
-    1;
-
-  min-width:
-    0;
-
-  display:
-    flex;
-
-  align-items:
-    baseline;
-
-  justify-content:
-    center;
-
-  gap:
-    7px;
-
-}
-
-
-/* ============================================================
-   标签
-   ============================================================ */
-
-.step-panel-label {
-
-  flex-shrink:
-    0;
-
-  font-size:
-    8px;
-
-  line-height:
-    1;
-
-  font-weight:
-    800;
-
-  letter-spacing:
-    .10em;
-
-  color:
-    #abb1b8;
-
-}
-
-
-/* ============================================================
-   数值
-   ============================================================ */
-
-.step-panel-value {
-
-  min-width:
-    0;
-
-  font-size:
-    18px;
-
-  line-height:
-    1;
-
-  font-weight:
-    900;
-
-  letter-spacing:
-    -.035em;
-
-  color:
-    #374151;
-
-  white-space:
-    nowrap;
-
-}
-
-
-/* ============================================================
-   金钱
-   ============================================================ */
-
-.step-panel-money {
-
-  color:
-    #334139;
-
-}
-
-
-.step-panel-currency {
-
-  margin-right:
-    2px;
-
-  font-size:
-    11px;
-
-  font-weight:
-    900;
-
-  color:
-    #5f8b70;
-
-}
-
-
-/* ============================================================
-   12小时
-   ============================================================ */
-
-.step-panel-time-max {
-
-  margin-left:
-    3px;
-
-  font-size:
-    9px;
-
-  font-weight:
-    700;
-
-  letter-spacing:
-    0;
-
-  color:
-    #b0b6bd;
-
-}
-
-
-/* ============================================================
-   中间分隔
-   ============================================================ */
-
-.step-panel-divider {
-
-  flex-shrink:
-    0;
-
-  width:
-    1px;
-
-  height:
-    20px;
-
-  margin:
-    0 10px;
-
-  background:
-    rgba(148,163,184,.15);
-
-}
-
-
-/* ============================================================
-   手机
-   ============================================================ */
-
-@media (
-  max-width:
-    480px
-) {
-
-  .collection-efficiency-popover {
-    max-height: 180px;
-  }
-
+@media (max-width: 480px) {
   .step-panel {
-
-    height:
-      44px;
-
-    padding:
-      0 10px;
-
-    border-radius:
-      15px;
-
+    min-height: 74px;
+    padding: 14px 12px 11px;
+    border-radius: 17px;
   }
 
-
-  .step-panel-stat {
-
-    gap:
-      5px;
-
-  }
-
-  .step-panel-stat--efficiency {
-    gap: 3px;
-  }
-
-  .step-panel-stat--efficiency .step-panel-value {
-    font-size: 14px;
-  }
-
-
-  .step-panel-label {
-
-    font-size:
-      7px;
-
-  }
-
-
-  .step-panel-value {
-
-    font-size:
-      16px;
-
-  }
-
-
-  .step-panel-currency {
-
-    font-size:
-      10px;
-
-  }
-
-
-  .step-panel-time-max {
-
-    font-size:
-      8px;
-
-  }
-
-
-  .step-panel-divider {
-
-    height:
-      17px;
-
-    margin:
-      0 7px;
-
-  }
-
+  .step-panel-stat { gap: 5px; }
+  .step-panel-value { font-size: clamp(15px, 4.6vw, 19px); }
+  .step-panel-stat--primary .step-panel-value { font-size: clamp(18px, 5.3vw, 22px); }
+  .step-panel-label { font-size: 7.5px; letter-spacing: .1em; }
+  .step-panel-divider { height: 27px; margin: 0 clamp(5px, 2vw, 10px); }
+  .step-panel-progress { height: 3px; margin-top: 11px; }
+  .collection-efficiency-popover { max-height: 180px; }
 }
 
-
-/* ============================================================
-   极窄屏幕
-   ============================================================ */
-
-@media (
-  max-width:
-    380px
-) {
-
-  .step-panel {
-
-    padding:
-      0 8px;
-
-  }
-
-
-  .step-panel-stat {
-
-    gap:
-      4px;
-
-  }
-
-
-  .step-panel-label {
-
-    font-size:
-      6.5px;
-
-  }
-
-
-  .step-panel-value {
-
-    font-size:
-      15px;
-
-  }
-
-
-  .step-panel-divider {
-
-    margin:
-      0 5px;
-
-  }
-
+@media (max-width: 360px) {
+  .step-panel { padding-right: 9px; padding-left: 9px; }
+  .step-panel-value { font-size: 14px; }
+  .step-panel-stat--primary .step-panel-value { font-size: 17px; }
+  .step-panel-label { font-size: 7px; }
+  .step-panel-divider { margin: 0 4px; }
 }
