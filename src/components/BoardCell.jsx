@@ -31,6 +31,8 @@ export default function BoardCell({
 
   scoreMode = false,
 
+  availableScore = null,
+
   selected = false,
   selectionRole = null,
   combinePreviewRole = null,
@@ -1084,7 +1086,7 @@ export default function BoardCell({
             !isOne &&
             <div className={`board-piece-price${scoreMode ? " board-piece-locked-score" : ""}`}>
               {scoreMode
-                ? `+${piece.scoreValue}`
+                ? `+${availableScore}`
                 : price < 0
                   ? `-¥${Math.abs(price)}`
                   : `¥${price}`}

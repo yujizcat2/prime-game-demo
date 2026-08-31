@@ -972,18 +972,22 @@ export default function Board({
             let scorePreview =
               null;
 
+            const availableScore = scoreMode
+              ? getEightPalaceCollectionScoreGain(
+                  {collectionCards},
+                  {
+                    value: 1,
+                    origin: {type: "reduce", parent: piece}
+                  }
+                )
+              : null;
+
             if(
               scoreMode &&
               reducePreview?.autoCollect === true &&
               reducePreview?.clear !== true
             ){
-              scorePreview = getEightPalaceCollectionScoreGain(
-                {collectionCards},
-                {
-                  value: 1,
-                  origin: {type: "reduce", parent: piece}
-                }
-              );
+              scorePreview = availableScore;
             }
 
 
@@ -1111,6 +1115,8 @@ export default function Board({
                 }
 
                 scoreMode={scoreMode}
+
+                availableScore={availableScore}
 
                 selected={
                   isSelected
