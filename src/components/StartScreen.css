@@ -1448,6 +1448,49 @@
 
 }
 
+.start-difficulty-list {
+  display: grid;
+  gap: 10px;
+  width: 100%;
+}
+
+.start-difficulty-list .start-button {
+  max-width: none;
+  height: 64px;
+  margin-top: 0;
+  grid-template-columns: minmax(0, 1fr) auto;
+  text-align: left;
+}
+
+.start-difficulty-copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.start-difficulty-list .start-button-label {
+  grid-column: auto;
+}
+
+.start-difficulty-detail {
+  overflow: hidden;
+  color: rgba(255,255,255,.72);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .03em;
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.start-difficulty-list .start-button-arrow {
+  grid-column: auto;
+}
+
+.start-button--medium { background: #425548; }
+.start-button--hard { background: #607468; }
+
 
 
 .start-button-space {

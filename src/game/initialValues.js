@@ -22,6 +22,99 @@ export const INITIAL_VALUE_POOL = [
 
 ];
 
+const EIGHT_PALACE_VALUE_MIN = 2;
+const EIGHT_PALACE_VALUE_MAX = 101;
+
+export const DIFFICULTY_OPENINGS = Object.freeze({
+  easy: Object.freeze({count: 4, typeCount: 4, targetSum: 30}),
+  medium: Object.freeze({count: 4, typeCount: 4, targetSum: 80}),
+  hard: Object.freeze({count: 5, typeCount: 5, targetSum: 150})
+});
+
+const OPENING_BOARD_INDEXES = Object.freeze({
+  4: Object.freeze([0, 2, 6, 8]),
+  5: Object.freeze([0, 2, 4, 6, 8])
+});
+
+function shuffle(items){
+  const result = [...items];
+  for(let index = result.length - 1; index > 0; index--){
+    const swapIndex = Math.floor(Math.random() * (index + 1));
+    [result[index], result[swapIndex]] = [result[swapIndex], result[index]];
+  }
+  return result;
+}
+
+function createDistinctValues(count, targetSum){
+  const memo = new Map();
+
+  function canComplete(remainingCount, minimum, remainingSum){
+    if(remainingCount === 0) return remainingSum === 0;
+
+    const minimumSum = remainingCount * (2 * minimum + remainingCount - 1) / 2;
+    const maximumStart = EIGHT_PALACE_VALUE_MAX - remainingCount + 1;
+    const maximumSum = remainingCount * (maximumStart + EIGHT_PALACE_VALUE_MAX) / 2;
+    if(minimum > maximumStart || remainingSum < minimumSum || remainingSum > maximumSum) return false;
+
+    const key = `${remainingCount}:${minimum}:${remainingSum}`;
+    if(memo.has(key)) return memo.get(key);
+
+    for(let value = minimum; value <= maximumStart; value++){
+      if(canComplete(remainingCount - 1, value + 1, remainingSum - value)){
+        memo.set(key, true);
+        return true;
+      }
+    }
+
+    memo.set(key, false);
+    return false;
+  }
+
+  if(!canComplete(count, EIGHT_PALACE_VALUE_MIN, targetSum)){
+    throw new RangeError(`No legal Eight Palace opening for ${count} cards totaling ${targetSum}`);
+  }
+
+  const values = [];
+  let minimum = EIGHT_PALACE_VALUE_MIN;
+  let remainingSum = targetSum;
+
+  for(let remainingCount = count; remainingCount > 0; remainingCount--){
+    const maximumCandidate = EIGHT_PALACE_VALUE_MAX - remainingCount + 1;
+    const candidates = [];
+    for(let value = minimum; value <= maximumCandidate; value++){
+      if(canComplete(remainingCount - 1, value + 1, remainingSum - value)) candidates.push(value);
+    }
+
+    const value = candidates[Math.floor(Math.random() * candidates.length)];
+    values.push(value);
+    minimum = value + 1;
+    remainingSum -= value;
+  }
+
+  return shuffle(values);
+}
+
+export function createDifficultyOpening({count, typeCount, targetSum}){
+  if(count !== typeCount || !OPENING_BOARD_INDEXES[count]){
+    throw new RangeError("Difficulty openings require 4 or 5 cards with one distinct food type per card");
+  }
+
+  const values = createDistinctValues(count, targetSum);
+  const foodTypes = shuffle(BASE_FOOD_TYPES).slice(0, typeCount);
+
+  return OPENING_BOARD_INDEXES[count].map((boardIndex, index) => ({
+    value: values[index],
+    foodType: foodTypes[index],
+    boardIndex
+  }));
+}
+
+export function createDifficultyInitialValues(difficulty){
+  const config = DIFFICULTY_OPENINGS[difficulty];
+  if(!config) throw new RangeError(`Unknown difficulty: ${difficulty}`);
+  return createDifficultyOpening(config);
+}
+
 
 
 // ============================================================
