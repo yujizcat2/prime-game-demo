@@ -1,3 +1,5 @@
+import { getScoreEfficiency } from "./scoreEfficiency";
+
 export function getEffectiveCollectionCount(state){
   if(
     state?.gameMode === "eightPalace"
@@ -14,10 +16,6 @@ export function getEffectiveCollectionCount(state){
   return count;
 }
 
-export function getCollectionEfficiency(collectionCount, steps){
-  return steps > 0 ? collectionCount / steps * 10 : 0;
-}
-
 export function recordCollectionEfficiencySnapshot(state){
   const step = state?.steps ?? 0;
   if(step === 0 || step % 10 !== 0) return state;
@@ -27,13 +25,15 @@ export function recordCollectionEfficiencySnapshot(state){
 
   const cumulativeCollections = getEffectiveCollectionCount(state);
   const previousCollections = timeline.at(-1)?.cumulativeCollections ?? 0;
+  const cumulativeScore = state.score ?? 0;
 
   return {
     ...state,
     collectionEfficiencyTimeline: [...timeline, {
       step,
+      cumulativeScore,
       cumulativeCollections,
-      collectionEfficiency: Number(getCollectionEfficiency(cumulativeCollections, step).toFixed(2)),
+      collectionEfficiency: Number(getScoreEfficiency(cumulativeScore, step).toFixed(2)),
       recent10Collections: cumulativeCollections - previousCollections
     }]
   };

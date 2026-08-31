@@ -1,7 +1,6 @@
 import "./StepPanel.css";
 import { useState } from "react";
 import { getScoreEfficiency } from "../game/scoreEfficiency";
-import { getCollectionEfficiency } from "../game/collectionEfficiency";
 
 
 export default function StepPanel({
@@ -16,8 +15,6 @@ export default function StepPanel({
 
   gameMode = null,
 
-  collectionCount = 0,
-
   collectionEfficiencyTimeline = []
 
 }) {
@@ -30,7 +27,6 @@ export default function StepPanel({
   const isEightPalace = gameMode === "eightPalace" || gameMode === "simpleEightPalace";
   const displayStep = isEightPalace ? steps : steps % 12;
   const scoreEfficiency = getScoreEfficiency(score, steps);
-  const collectionEfficiency = getCollectionEfficiency(collectionCount, steps);
   const [showEfficiency, setShowEfficiency] = useState(false);
 
 
@@ -182,14 +178,14 @@ export default function StepPanel({
         </button>
         {showEfficiency && <div className="collection-efficiency-popover">
           <div className="collection-efficiency-heading">
-            <strong>收藏效率记录</strong>
-            <span>当前效率 {collectionEfficiency.toFixed(2)}</span>
+            <strong>效率记录</strong>
+            <span>当前效率 {scoreEfficiency.toFixed(2)}</span>
           </div>
           {collectionEfficiencyTimeline.length === 0
             ? <p>完成 10 Step 后生成第一条效率记录</p>
             : <div className="collection-efficiency-list">
               {collectionEfficiencyTimeline.map(snapshot => <div key={snapshot.step}>
-                Step {snapshot.step}　收藏 {snapshot.cumulativeCollections}　效率 {snapshot.collectionEfficiency.toFixed(2)}　近10步 +{snapshot.recent10Collections}
+                Step {snapshot.step}　积分 {snapshot.cumulativeScore}　收藏 {snapshot.cumulativeCollections}　效率 {snapshot.collectionEfficiency.toFixed(2)}　近10步 +{snapshot.recent10Collections}
               </div>)}
             </div>}
         </div>}

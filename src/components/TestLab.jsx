@@ -1487,11 +1487,11 @@ function ScoreSummaryGrid({result}){
 
 function CollectionEfficiencyTimeline({timeline = []}){
   return <div className="test-lab-record-collection">
-    <strong>收藏效率时间线</strong>
+    <strong>效率时间线</strong>
     {timeline.length === 0
       ? <div>未到 Step 10</div>
       : timeline.map(snapshot => <div key={snapshot.step}>
-        Step {snapshot.step} · 收藏 {snapshot.cumulativeCollections} · 效率 {snapshot.collectionEfficiency.toFixed(2)} · 近10步 +{snapshot.recent10Collections}
+        Step {snapshot.step} · 积分 {snapshot.cumulativeScore} · 收藏 {snapshot.cumulativeCollections} · 效率 {snapshot.collectionEfficiency.toFixed(2)} · 近10步 +{snapshot.recent10Collections}
       </div>)}
   </div>;
 }
@@ -1499,7 +1499,7 @@ function CollectionEfficiencyTimeline({timeline = []}){
 function AverageCollectionEfficiency({timeline = []}){
   if(timeline.length === 0) return null;
   return <div className="test-lab-record">
-    <div className="test-lab-record-title">平均收藏效率</div>
+    <div className="test-lab-record-title">平均效率</div>
     {timeline.map(snapshot => <div key={snapshot.step}>
       Step {snapshot.step} · 平均效率 {snapshot.averageCollectionEfficiency.toFixed(2)} · 样本 {snapshot.sampleCount}/{snapshot.gameCount}
     </div>)}
