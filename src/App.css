@@ -200,7 +200,7 @@
 
 
 /* ============================================================
-   Tips + 活性
+   当前局面信息带
    ============================================================ */
 
 .game-info-row {
@@ -209,7 +209,7 @@
     grid;
 
   grid-template-columns:
-    minmax(0,1fr) 112px;
+    minmax(0,1fr) minmax(260px, .72fr);
 
   gap:
     9px;
@@ -218,36 +218,65 @@
     8px;
 
   align-items:
-    stretch;
+    center;
+
+  box-sizing:
+    border-box;
+
+  width:
+    100%;
+
+  min-height:
+    84px;
+
+  padding:
+    10px 11px 10px 16px;
+
+  border:
+    1px solid rgba(91,119,104,.09);
+
+  border-radius:
+    18px;
+
+  background:
+    linear-gradient(120deg, rgba(218,230,222,.42), rgba(255,255,255,.48) 52%, rgba(235,230,214,.28));
+
+  box-shadow:
+    0 5px 16px rgba(40,58,49,.032), inset 0 1px 0 rgba(255,255,255,.62);
 
 }
 
+.game-situation-hint,
+.game-situation-meta { min-width: 0; }
 
-.game-info-item {
-
-  min-width:
-    0;
-
-  height:
-    70px;
-
-  position: relative;
-
+.game-situation-meta {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 7px;
 }
 
 .combine-history-trigger {
-  position:absolute;
-  z-index:2;
-  top:7px;
-  right:8px;
-  border:0;
-  background:transparent;
-  color:#9a7b50;
-  font-size:10px;
-  font-weight:800;
-  cursor:pointer;
-  white-space:nowrap;
+  display: inline-flex;
+  min-height: 34px;
+  align-items: center;
+  gap: 5px;
+  padding: 0 9px;
+  border: 1px solid rgba(138,112,70,.17);
+  border-radius: 10px;
+  background: rgba(255,255,255,.46);
+  color: #806d4f;
+  font-family: inherit;
+  font-size: 9px;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .15s ease, border-color .15s ease, transform .15s ease;
 }
+
+.combine-history-trigger:hover { border-color: rgba(138,112,70,.28); background: rgba(255,255,255,.72); }
+.combine-history-trigger:active { transform: scale(.97); }
+.combine-history-trigger span { display: inline-grid; min-width: 16px; height: 16px; place-items: center; border-radius: 999px; background: rgba(138,112,70,.09); font-size: 8px; }
 
 .combine-history-overlay{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.2);display:flex;align-items:center;justify-content:center;padding:20px}
 .combine-history-panel{width:min(420px,100%);max-height:80vh;overflow-y:auto;border:1px solid #f0ebe3;border-radius:24px;background:#fff;padding:20px;box-shadow:0 20px 50px rgba(54,42,25,.18)}
@@ -256,7 +285,7 @@
 .combine-history-panel>header button{flex:0 0 32px;width:32px;height:32px;border:0;border-radius:50%;background:#f7f5f2;color:#999;font-size:18px;cursor:pointer}
 .combine-history-list{display:grid;gap:10px;margin:0;padding:0;list-style:none}.combine-history-list li{padding:12px;border-radius:14px;background:#faf8f5;color:#63574c;font-size:12px;line-height:1.7}.combine-history-list small{display:block;color:#a58c68;font-weight:800}.combine-history-list strong{display:block;color:#725d3d}.combine-history-empty{padding:28px 0;text-align:center;color:#aaa;font-size:13px}
 
-@media(max-width:480px){.combine-history-trigger{right:5px;font-size:9px}.combine-history-overlay{padding:12px}.combine-history-panel{padding:17px;border-radius:20px}}
+@media(max-width:480px){.combine-history-overlay{padding:12px}.combine-history-panel{padding:17px;border-radius:20px}}
 
 
 
@@ -1095,28 +1124,45 @@
 
 
   /* =========================
-     Tips + 活性压缩
+     当前局面信息带
      ========================= */
 
   .game-info-row {
 
     grid-template-columns:
-      minmax(0,1fr) 104px;
+      minmax(0,1fr);
 
     margin-top:
       7px;
 
     gap:
-      8px;
+      7px;
+
+    min-height:
+      0;
+
+    padding:
+      9px 9px 8px;
+
+    border-radius:
+      16px;
 
   }
 
+  .game-situation-meta {
+    grid-template-columns:
+      minmax(0, 1fr) auto;
+  }
 
-  .game-info-item {
+  .combine-history-trigger {
+    min-height:
+      39px;
 
-    height:
-      65px;
+    padding:
+      0 8px;
 
+    font-size:
+      8px;
   }
 
 
@@ -1408,15 +1454,7 @@
   .game-info-row {
 
     grid-template-columns:
-      minmax(0,1fr) 126px;
-
-  }
-
-
-  .game-info-item {
-
-    height:
-      72px;
+      minmax(0,1fr) minmax(280px, .72fr);
 
   }
 
@@ -1481,12 +1519,6 @@
   }
 
 
-  .game-info-item {
-
-    height:
-      62px;
-
-  }
 
 
   .game-board-section {

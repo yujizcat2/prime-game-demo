@@ -703,16 +703,7 @@ function App(){
 
         <section className="game-info-row">
 
-          <div className="game-info-item">
-
-            <button
-              type="button"
-              className="combine-history-trigger"
-              onClick={() => setShowCombineHistory(true)}
-            >
-              历史合成 {game.combineHistory.length}
-            </button>
-
+          <div className="game-situation-hint">
             <ActionHintPanel
               numbers={
                 game.numbers
@@ -728,12 +719,9 @@ function App(){
               }}
               combineHistoryKeys={game.combineHistoryKeys}
             />
-
           </div>
 
-
-          <div className="game-info-item">
-
+          <div className="game-situation-meta">
             <BoardStatus
               activity={
                 activityStatus.activity
@@ -752,6 +740,14 @@ function App(){
               }
             />
 
+            <button
+              type="button"
+              className="combine-history-trigger"
+              onClick={() => setShowCombineHistory(true)}
+            >
+              历史合成
+              <span>{game.combineHistory.length}</span>
+            </button>
           </div>
 
         </section>

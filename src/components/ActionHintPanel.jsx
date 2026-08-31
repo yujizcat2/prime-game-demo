@@ -19,9 +19,8 @@ function getTypeShortName(foodType){
 function EmptyHint(){
   return (
     <div className="cooking-hint cooking-hint--empty">
-      <div className="cooking-hint__eyebrow">料理 TIPS</div>
       <strong>选择一道料理</strong>
-      <span>查看它的风味与来源，再选择亮起的料理继续操作。</span>
+      <span>查看当前可用的料理路线。</span>
     </div>
   );
 }
@@ -49,7 +48,6 @@ function SingleHint({item,candidateCounts}){
       </div>
 
       <div className="cooking-hint__next">
-        <small>下一步</small>
         <span>新料理会保留 <b>{typeName}系</b> 风格。可搭配 {candidateCounts?.combine??0} 张，可处理 {candidateCounts?.reduce??0} 张。</span>
       </div>
     </div>
@@ -69,7 +67,7 @@ function PairHint({status,keyOutcome,preview}){
   if(canCombine && canReduce){
     title = "多种料理方式";
     description = "可以一起烹制，也可以进行处理。";
-    instruction = "选择下方预览，完成下一步料理。";
+    instruction = "选择下方预览，确认料理方式。";
   }
   else if(canCombine){
     title = "料理搭配";
@@ -154,7 +152,6 @@ function PairHint({status,keyOutcome,preview}){
       </div>
 
       <div className="cooking-hint__next">
-        <small>下一步</small>
         <span>{instruction}</span>
       </div>
     </div>
