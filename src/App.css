@@ -249,25 +249,30 @@
 .game-situation-hint,
 .game-situation-meta { min-width: 0; }
 
+.game-situation-hint {
+  max-height: 68px;
+  overflow: hidden;
+}
+
 .game-situation-meta {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto auto;
   align-items: center;
   gap: 7px;
 }
 
 .combine-history-trigger {
   display: inline-flex;
-  min-height: 34px;
+  min-height: 42px;
   align-items: center;
   gap: 5px;
-  padding: 0 9px;
+  padding: 0 10px;
   border: 1px solid rgba(138,112,70,.17);
   border-radius: 10px;
   background: rgba(255,255,255,.46);
   color: #806d4f;
   font-family: inherit;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 800;
   cursor: pointer;
   white-space: nowrap;
@@ -2217,7 +2222,7 @@
   display: grid;
   width: min(100%, 560px);
   min-height: 30px;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr);
   align-items: center;
   gap: 7px;
   margin: 0 auto 6px;
@@ -2242,4 +2247,48 @@
   .game-board-section { margin-top: 7px; }
   .game-board-toolbar { min-height: 27px; gap: 5px; margin-bottom: 5px; }
   .game-board-actions { margin-top: 6px; }
+}
+
+/* Stable situation HUD: content changes never move the board */
+.game-info-row {
+  height: 92px;
+  min-height: 92px;
+  max-height: 92px;
+  grid-template-columns: minmax(0, 1fr) minmax(305px, .85fr);
+}
+
+.game-situation-hint {
+  max-height: 68px;
+  overflow: hidden;
+}
+
+.game-situation-meta {
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+}
+
+@media (max-width: 480px) {
+  .game-info-row {
+    height: 130px;
+    min-height: 130px;
+    max-height: 130px;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: 66px 40px;
+    align-content: center;
+  }
+
+  .game-situation-hint {
+    max-height: 66px;
+  }
+
+  .game-situation-meta {
+    height: 40px;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+  }
+
+  .combine-history-trigger {
+    min-height: 40px;
+    padding: 0 8px;
+    font-size: 9px;
+  }
 }

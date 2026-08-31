@@ -740,6 +740,13 @@ function App(){
               }
             />
 
+            <ItemBar
+              heaterCost={game.heaterCost}
+              heaterAvailable={game.heaterAvailable}
+              heaterActive={heaterSelectMode}
+              onHeaterClick={toggleHeaterMode}
+            />
+
             <button
               type="button"
               className="combine-history-trigger"
@@ -759,13 +766,6 @@ function App(){
             <div className="game-board-type-strip">
               <BoardTypeTotals board={game.board} />
             </div>
-
-            <ItemBar
-              heaterCost={game.heaterCost}
-              heaterAvailable={game.heaterAvailable}
-              heaterActive={heaterSelectMode}
-              onHeaterClick={toggleHeaterMode}
-            />
           </div>
 
 
