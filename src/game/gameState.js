@@ -315,6 +315,9 @@ export function createGameState(
     heaterUseCount:
       0,
 
+    heaterPricingMode:
+      "dynamicV1",
+
     previousCollection:
       null,
 

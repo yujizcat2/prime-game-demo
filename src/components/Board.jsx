@@ -37,6 +37,7 @@ export default function Board({
   selectedIndexes = [],
   functionOneIndex = null,
   heaterSelectMode = false,
+  heaterTargets = [],
 
   onSelectCell,
 
@@ -1133,11 +1134,13 @@ export default function Board({
 
                 heaterTargetState={
                   heaterSelectMode
-                    ? piece?.value >= 2 && piece?.value <= 100
-                      ? "available"
+                    ? heaterTargets[index]
+                      ? heaterTargets[index].affordable ? "available" : "unavailable"
                       : "unavailable"
                     : null
                 }
+
+                heaterPrice={heaterSelectMode ? heaterTargets[index]?.price ?? null : null}
 
                 reducePreview={
                   reducePreview

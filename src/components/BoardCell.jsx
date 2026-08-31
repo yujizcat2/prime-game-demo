@@ -42,6 +42,7 @@ export default function BoardCell({
   removeCandidate = false,
   applyOneCandidate = false,
   heaterTargetState = null,
+  heaterPrice = null,
 
   reducePreview = null,
 
@@ -799,6 +800,10 @@ export default function BoardCell({
         `}
 
       >
+
+        {heaterPrice !== null && (
+          <div className="board-piece-heater-price">🔥 ¥{heaterPrice}</div>
+        )}
 
 
 

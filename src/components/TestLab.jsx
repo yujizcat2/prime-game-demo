@@ -494,7 +494,8 @@ export default function TestLab({
           maxActions: SCORE_AI_DEFAULTS.maxActions,
           onProgress: setProgress,
           compareRandom: false,
-          compareHeater: true
+          compareHeater: true,
+          compareDynamicHeater: true
         });
 
       }
@@ -1558,7 +1559,11 @@ function ScoreRecord({title, game, difficulty}){
         <strong>Heater 时间线</strong>
         {game.heaterTimeline.map((event, index) => <div key={`${event.step}-${index}`}>
           Heater #{index + 1} · Step {event.step} · {event.fromValue} → {event.toValue}
+          {event.foodType ? ` · ${FOOD_TYPE_LABELS[event.foodType] ?? event.foodType}` : ""}
           {` · Cost ¥${event.cost} · Money ¥${event.moneyBefore} → ¥${event.moneyAfter}`}
+          {event.pricingMode === "dynamicV1"
+            ? ` · Base ¥${event.basePrice} + Fatigue ¥${event.fatigue} + Opportunity ¥${event.opportunityPremium} (score ${event.opportunity?.opportunityScore ?? 0})`
+            : ""}
           {event.nextAction ? ` · Next: ${formatScoreAction(event.nextAction)}` : ""}
         </div>)}
       </div>}
@@ -1683,6 +1688,7 @@ function AllScoreRecords({title = "全部测试记录", games = []}){
 function ScoreResults({result, difficulty}){
   const random = result.randomComparison;
   const heater = result.heaterComparison;
+  const dynamicHeater = result.dynamicHeaterComparison;
   return (
     <section className="test-lab-results">
       <div className="test-lab-result-title">单局多次测试</div>
@@ -1697,12 +1703,29 @@ function ScoreResults({result, difficulty}){
 
       {heater && (
         <div className="test-lab-section">
-          <div className="test-lab-section-title">Score + Heater AI</div>
+          <div className="test-lab-section-title">Heater Fixed AI</div>
           <ScoreSummaryGrid result={heater} />
           <div className="test-lab-record">
             平均积分差（Heater - Score）：<strong>{result.heaterAverageScoreDifference.toFixed(2)}</strong>
           </div>
           <AverageCollectionEfficiency timeline={heater.averageCollectionEfficiencyTimeline} />
+        </div>
+      )}
+
+      {dynamicHeater && (
+        <div className="test-lab-section">
+          <div className="test-lab-section-title">Heater Dynamic AI</div>
+          <ScoreSummaryGrid result={dynamicHeater} />
+          <div className="test-lab-record">
+            平均积分差（Dynamic - Score）：<strong>{result.dynamicHeaterAverageScoreDifference.toFixed(2)}</strong>
+            {" · "}（Dynamic - Fixed）：<strong>{result.dynamicVsFixedAverageScoreDifference.toFixed(2)}</strong>
+            <br />
+            价格范围：<strong>¥{dynamicHeater.minimumHeaterCost}–¥{dynamicHeater.maximumHeaterCost}</strong>
+            {" · "}平均 ¥{dynamicHeater.averageHeaterCost.toFixed(2)}
+            <br />价格分布：{Object.entries(dynamicHeater.heaterPriceDistribution).map(([key, value]) => `¥${key}: ${value}`).join(" · ")}
+            <br />机会分分布：{Object.entries(dynamicHeater.heaterOpportunityDistribution).map(([key, value]) => `${key}: ${value}`).join(" · ")}
+          </div>
+          <AverageCollectionEfficiency timeline={dynamicHeater.averageCollectionEfficiencyTimeline} />
         </div>
       )}
 
@@ -1716,9 +1739,13 @@ function ScoreResults({result, difficulty}){
 
       <ScoreRecord title="Score AI 最高分纪录" game={result.highScore} difficulty={difficulty} />
       {heater?.highScore && <ScoreRecord title="Score + Heater AI 最高分纪录" game={heater.highScore} difficulty={difficulty} />}
+      {dynamicHeater?.highScore && <ScoreRecord title="Heater Dynamic AI 最高分纪录" game={dynamicHeater.highScore} difficulty={difficulty} />}
       <AllScoreRecords title="Score AI 全部测试记录" games={result.results} />
       {heater?.results?.length > 0 && (
         <AllScoreRecords title="Score + Heater AI 全部测试记录" games={heater.results} />
+      )}
+      {dynamicHeater?.results?.length > 0 && (
+        <AllScoreRecords title="Heater Dynamic AI 全部测试记录" games={dynamicHeater.results} />
       )}
       {random?.results?.length > 0 && (
         <AllScoreRecords title="Random AI 全部测试记录" games={random.results} />

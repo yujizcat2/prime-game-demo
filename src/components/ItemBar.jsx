@@ -1,8 +1,8 @@
 import "./ItemBar.css";
 
 export default function ItemBar({
-  money = 0,
   heaterCost = 10,
+  heaterPricingMode = "dynamicV1",
   heaterAvailable = false,
   heaterActive = false,
   onHeaterClick
@@ -12,7 +12,7 @@ export default function ItemBar({
     icon: "🔥",
     name: "加热器",
     effect: "+1",
-    cost: heaterCost,
+    costLabel: heaterPricingMode === "dynamicV1" ? "¥10+" : `¥${heaterCost}`,
     active: heaterActive,
     disabled: !heaterActive && !heaterAvailable,
     onClick: onHeaterClick
@@ -33,12 +33,12 @@ export default function ItemBar({
             <span className="item-bar-icon" aria-hidden="true">{item.icon}</span>
             <span className="item-bar-name">{item.active ? "取消加热" : item.name}</span>
             <span className="item-bar-effect">{item.active ? "选择中" : item.effect}</span>
-            <span className="item-bar-cost">¥{item.cost}</span>
+            <span className="item-bar-cost">{item.costLabel}</span>
           </button>
         ))}
       </div>
       {heaterActive && <div className="item-bar-prompt">选择一道料理进行加热</div>}
-      {!heaterActive && money < heaterCost && <div className="item-bar-hint">金钱不足</div>}
+      {!heaterActive && !heaterAvailable && <div className="item-bar-hint">金钱不足或没有可加热料理</div>}
     </section>
   );
 }

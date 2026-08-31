@@ -6012,3 +6012,18 @@
   filter: grayscale(.65);
   cursor: not-allowed;
 }
+
+.board-piece-heater-price {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  z-index: 6;
+  padding: 2px 5px;
+  border-radius: 999px;
+  background: rgba(36, 20, 8, .82);
+  color: #ffd58a;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1.2;
+  pointer-events: none;
+}

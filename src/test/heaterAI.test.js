@@ -17,7 +17,7 @@ const createState = (values, money = 0) => {
     boardIndex: index,
     gameMode: "simpleEightPalace"
   })));
-  return {...state, money};
+  return {...state, money, heaterPricingMode: "fixed"};
 };
 
 const funded = createState([5, 6], 40);
@@ -75,13 +75,20 @@ const comparison = await runScoreGames({
   beamWidth: 2,
   maxActions: 1,
   compareRandom: false,
-  compareHeater: true
+  compareHeater: true,
+  compareDynamicHeater: true
 });
 assert.equal(comparison.heaterComparison.results.length, 2);
+assert.equal(comparison.dynamicHeaterComparison.results.length, 2);
 assert.deepEqual(
   comparison.results.map(result => result.initialOpening),
   comparison.heaterComparison.results.map(result => result.initialOpening),
   "A/B uses matched openings"
+);
+assert.deepEqual(
+  comparison.results.map(result => result.initialOpening),
+  comparison.dynamicHeaterComparison.results.map(result => result.initialOpening),
+  "dynamic A/B uses matched openings"
 );
 assert.ok(comparison.results.every(result => result.heaterUseCount === 0));
 
