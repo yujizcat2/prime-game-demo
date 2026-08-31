@@ -1,15 +1,15 @@
 .board-type-totals {
-  width: min(100%, 447px);
-  margin: 0 auto 8px;
+  width: 100%;
+  margin: 0;
   display: grid;
   grid-template-columns: repeat(9, minmax(0, 1fr));
-  gap: 3px;
+  gap: 2px;
 }
 
 .board-type-total {
   min-width: 0;
-  padding: 4px 2px;
-  border-radius: 7px;
+  padding: 3px 1px;
+  border-radius: 6px;
   background: color-mix(in srgb, currentColor 8%, transparent);
   color: #475569;
   text-align: center;
@@ -23,14 +23,14 @@
 }
 
 .board-type-total__label {
-  font-size: 10px;
+  font-size: 8px;
   font-weight: 650;
   opacity: .78;
 }
 
 .board-type-total__value {
-  margin-top: 2px;
-  font-size: 13px;
+  margin-top: 1px;
+  font-size: 11px;
   font-weight: 850;
 }
 
@@ -51,21 +51,20 @@
 
 @media (max-width: 560px) {
   .board-type-totals {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 3px 4px;
-    margin-bottom: 6px;
+    grid-template-columns: repeat(9, minmax(0, 1fr));
+    gap: 1px;
   }
 
   .board-type-total {
-    padding: 3px 2px;
+    padding: 3px 0;
   }
 
   .board-type-total__label {
-    font-size: 9px;
+    font-size: 7px;
   }
 
   .board-type-total__value {
     margin-top: 1px;
-    font-size: 12px;
+    font-size: 9px;
   }
 }

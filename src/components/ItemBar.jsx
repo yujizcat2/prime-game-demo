@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import "./ItemBar.css";
 
 export default function ItemBar({
@@ -6,38 +7,72 @@ export default function ItemBar({
   heaterActive = false,
   onHeaterClick
 }){
+  const [open, setOpen] = useState(false);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    function closeMenu(event){
+      if(event.key === "Escape")setOpen(false);
+      if(event.type === "pointerdown" && menuRef.current && !menuRef.current.contains(event.target))setOpen(false);
+    }
+
+    document.addEventListener("pointerdown", closeMenu);
+    document.addEventListener("keydown", closeMenu);
+    return () => {
+      document.removeEventListener("pointerdown", closeMenu);
+      document.removeEventListener("keydown", closeMenu);
+    };
+  }, []);
+
+  function handleHeaterClick(){
+    onHeaterClick?.();
+    setOpen(false);
+  }
+
   const items = [{
     id: "heater",
-    icon: "🔥",
     name: "加热器",
     effect: "+1",
     costLabel: `¥${heaterCost}`,
     active: heaterActive,
     disabled: !heaterActive && !heaterAvailable,
-    onClick: onHeaterClick
+    onClick: handleHeaterClick
   }];
 
   return (
-    <section className="item-bar" aria-label="道具栏">
-      <div className="item-bar-title">道具</div>
-      <div className="item-bar-grid">
-        {items.map(item => (
-          <button
-            key={item.id}
-            type="button"
-            className={`item-bar-card${item.active ? " item-bar-card--active" : ""}`}
-            disabled={item.disabled}
-            onClick={item.onClick}
-          >
-            <span className="item-bar-icon" aria-hidden="true">{item.icon}</span>
-            <span className="item-bar-name">{item.active ? "取消加热" : item.name}</span>
-            <span className="item-bar-effect">{item.active ? "选择中" : item.effect}</span>
-            <span className="item-bar-cost">{item.costLabel}</span>
-          </button>
-        ))}
-      </div>
-      {heaterActive && <div className="item-bar-prompt">选择一道料理进行加热</div>}
-      {!heaterActive && !heaterAvailable && <div className="item-bar-hint">金钱不足或没有可加热料理</div>}
-    </section>
+    <div className="item-bar" ref={menuRef} aria-label="道具栏">
+      <button
+        type="button"
+        className={`item-bar-trigger${heaterActive ? " item-bar-trigger--active" : ""}`}
+        aria-expanded={open}
+        aria-haspopup="menu"
+        onClick={() => setOpen(current => !current)}
+      >
+        道具
+        {heaterActive && <span>选择中</span>}
+      </button>
+
+      {open && <div className="item-bar-menu" role="menu" aria-label="可使用道具">
+        {items.map(item => <button
+          key={item.id}
+          type="button"
+          role="menuitem"
+          className={`item-bar-card${item.active ? " item-bar-card--active" : ""}`}
+          disabled={item.disabled}
+          onClick={item.onClick}
+        >
+          <span className="item-bar-name">{item.active ? "取消加热" : item.name}</span>
+          <span className="item-bar-effect">{item.active ? "选择中" : item.effect}</span>
+          <span className="item-bar-cost">{item.costLabel}</span>
+        </button>)}
+        <div className={`item-bar-status${heaterAvailable || heaterActive ? " item-bar-status--ready" : ""}`}>
+          {heaterActive
+            ? "选择一道料理进行加热"
+            : heaterAvailable
+              ? "可使用"
+              : "金钱不足或没有可加热料理"}
+        </div>
+      </div>}
+    </div>
   );
 }

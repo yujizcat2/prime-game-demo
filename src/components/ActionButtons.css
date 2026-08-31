@@ -1,722 +1,102 @@
-/* ============================================================
-   ActionButtons
-   料理迷宫 · 游戏操作键
-
-   目标：
-   - 更像游戏按钮
-   - 有短促立体感
-   - 激活态明显
-   - 禁用态弱化
-   - 桌面纵向
-   - 手机横向
-   ============================================================ */
-
-
-/* ============================================================
-   Toolbar
-   ============================================================ */
-
 .action-toolbar {
-
-  width:
-    100%;
-
-  display:
-    flex;
-
-  flex-direction:
-    column;
-
-  align-items:
-    stretch;
-
-  justify-content:
-    center;
-
-  gap:
-    7px;
-
+  display: grid;
+  width: 100%;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
 }
-
-
-
-
-/* ============================================================
-   基础按钮
-   ============================================================ */
 
 .action-toolbar-button {
-
-  position:
-    relative;
-
-  width:
-    100%;
-
-  height:
-    58px;
-
-  padding:
-    0;
-
-  display:
-    flex;
-
-  flex-direction:
-    column;
-
-  align-items:
-    center;
-
-  justify-content:
-    center;
-
-  gap:
-    5px;
-
-  overflow:
-    hidden;
-
-  border:
-    1px solid
-    rgba(
-      15,
-      23,
-      42,
-      .10
-    );
-
-  border-radius:
-    16px;
-
-  background:
-    linear-gradient(
-      180deg,
-      #ffffff 0%,
-      #f4f6f9 100%
-    );
-
-  color:
-    #475569;
-
-  cursor:
-    pointer;
-
-  user-select:
-    none;
-
-  -webkit-tap-highlight-color:
-    transparent;
-
-  box-shadow:
-    0 4px 0
-    rgba(
-      15,
-      23,
-      42,
-      .10
-    ),
-
-    0 8px 15px
-    rgba(
-      15,
-      23,
-      42,
-      .065
-    );
-
-  transform:
-    translateY(0);
-
-  transition:
-    transform .13s ease,
-    box-shadow .13s ease,
-    filter .13s ease,
-    opacity .13s ease,
-    border-color .13s ease,
-    background .13s ease,
-    color .13s ease;
-
+  position: relative;
+  display: flex;
+  min-width: 0;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  overflow: hidden;
+  border: 1px solid rgba(89, 100, 94, .13);
+  border-radius: 14px;
+  background: linear-gradient(145deg, rgba(255, 255, 255, .9), rgba(236, 240, 237, .82));
+  color: #647069;
+  font-family: inherit;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .72), 0 4px 12px rgba(40, 58, 49, .045);
+  transition: transform .13s ease, border-color .13s ease, filter .13s ease, opacity .13s ease, box-shadow .13s ease;
 }
-
-
-
-/* ============================================================
-   顶部高光
-   ============================================================ */
 
 .action-toolbar-button::before {
-
-  content:
-    "";
-
-  position:
-    absolute;
-
-  top:
-    3px;
-
-  left:
-    9px;
-
-  right:
-    9px;
-
-  height:
-    1px;
-
-  border-radius:
-    999px;
-
-  background:
-    linear-gradient(
-      90deg,
-      transparent,
-      rgba(255,255,255,.96),
-      transparent
-    );
-
-  pointer-events:
-    none;
-
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border: 1px solid rgba(255, 255, 255, .42);
+  border-radius: 11px;
+  pointer-events: none;
 }
-
-
-
-/* ============================================================
-   内部轻微底纹
-   ============================================================ */
-
-.action-toolbar-button::after {
-
-  content:
-    "";
-
-  position:
-    absolute;
-
-  inset:
-    4px;
-
-  border:
-    1px solid
-    rgba(
-      255,
-      255,
-      255,
-      .44
-    );
-
-  border-radius:
-    12px;
-
-  pointer-events:
-    none;
-
-}
-
-
-
-/* ============================================================
-   图标
-   ============================================================ */
 
 .action-toolbar-icon {
-
-  position:
-    relative;
-
-  z-index:
-    2;
-
-  font-size:
-    22px;
-
-  line-height:
-    1;
-
-  font-weight:
-    950;
-
-  letter-spacing:
-    -.04em;
-
+  position: relative;
+  z-index: 1;
+  font-size: 18px;
+  font-weight: 900;
+  line-height: 1;
 }
-
-
-
-/* ============================================================
-   文字
-   ============================================================ */
 
 .action-toolbar-label {
-
-  position:
-    relative;
-
-  z-index:
-    2;
-
-  font-size:
-    11px;
-
-  line-height:
-    1;
-
-  font-weight:
-    900;
-
-  letter-spacing:
-    .05em;
-
+  position: relative;
+  z-index: 1;
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: .08em;
 }
-
-
-
-/* ============================================================
-   组合 Active
-   ============================================================ */
 
 .action-toolbar-button--combine-active {
-
-  color:
-    #87472f;
-
-  border-color:
-    rgba(
-      216,
-      138,
-      97,
-      .30
-    );
-
-  background:
-    linear-gradient(
-      180deg,
-      #fffaf5 0%,
-      #f8e5d7 100%
-    );
-
-  box-shadow:
-    0 4px 0
-    #d8b29a,
-
-    0 9px 17px
-    rgba(
-      139,
-      74,
-      48,
-      .15
-    );
-
+  border-color: rgba(176, 113, 72, .24);
+  background: linear-gradient(135deg, rgba(252, 239, 226, .96), rgba(244, 222, 201, .83));
+  color: #83563b;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .76), 0 5px 14px rgba(139, 91, 57, .09);
 }
-
-
-
-/* ============================================================
-   组合Active左侧强调线
-   ============================================================ */
-
-.action-toolbar-button--combine-active {
-
-  background-image:
-
-    linear-gradient(
-      90deg,
-      rgba(216,138,97,.18),
-      transparent 22%
-    ),
-
-    linear-gradient(
-      180deg,
-      #fffaf5 0%,
-      #f8e5d7 100%
-    );
-
-}
-
-
-
-/* ============================================================
-   处理 Active
-   ============================================================ */
 
 .action-toolbar-button--reduce-active {
-
-  color:
-    #2459c9;
-
-  border-color:
-    rgba(
-      59,
-      130,
-      246,
-      .28
-    );
-
-  background-image:
-
-    linear-gradient(
-      90deg,
-      rgba(59,130,246,.14),
-      transparent 22%
-    ),
-
-    linear-gradient(
-      180deg,
-      #f8fbff 0%,
-      #dceaff 100%
-    );
-
-  box-shadow:
-    0 4px 0
-    #b7ccef,
-
-    0 9px 17px
-    rgba(
-      37,
-      88,
-      200,
-      .14
-    );
-
+  border-color: rgba(77, 119, 105, .24);
+  background: linear-gradient(135deg, rgba(231, 242, 236, .96), rgba(210, 228, 218, .84));
+  color: #446c5c;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .76), 0 5px 14px rgba(64, 105, 90, .09);
 }
-
-
-
-/* ============================================================
-   Hover
-   ============================================================ */
-
-@media (
-  hover:
-    hover
-) {
-
-
-  .action-toolbar-button:not(:disabled):hover {
-
-    transform:
-      translateY(-2px);
-
-    filter:
-      brightness(1.025);
-
-  }
-
-
-}
-
-
-
-/* ============================================================
-   按下
-
-   像按下一颗实体游戏键。
-   ============================================================ */
-
-.action-toolbar-button:not(:disabled):active {
-
-  transform:
-    translateY(3px)
-    scale(.985);
-
-  box-shadow:
-    0 1px 0
-    rgba(
-      15,
-      23,
-      42,
-      .10
-    ),
-
-    0 3px 6px
-    rgba(
-      15,
-      23,
-      42,
-      .055
-    );
-
-}
-
-
-
-/* ============================================================
-   Disabled
-   ============================================================ */
 
 .action-toolbar-button--disabled,
 .action-toolbar-button:disabled {
-
-  cursor:
-    default;
-
-  opacity:
-    .24;
-
-  filter:
-    grayscale(.38);
-
-  background:
-    linear-gradient(
-      180deg,
-      rgba(255,255,255,.76) 0%,
-      rgba(241,245,249,.64) 100%
-    );
-
-  box-shadow:
-    0 2px 0
-    rgba(
-      15,
-      23,
-      42,
-      .04
-    );
-
+  border-color: rgba(89, 100, 94, .07);
+  background: linear-gradient(145deg, rgba(255, 255, 255, .62), rgba(236, 240, 237, .52));
+  color: #a8b0ab;
+  opacity: .5;
+  cursor: default;
+  box-shadow: none;
+  filter: saturate(.45);
 }
 
-
-
-/* ============================================================
-   Disabled内部
-   ============================================================ */
-
-.action-toolbar-button:disabled::after {
-
-  opacity:
-    .32;
-
+@media (hover: hover) {
+  .action-toolbar-button:not(:disabled):hover {
+    transform: translateY(-1px);
+    border-color: rgba(89, 100, 94, .3);
+    filter: brightness(1.02);
+  }
 }
 
+.action-toolbar-button:not(:disabled):active { transform: scale(.98); }
+.action-toolbar-button:focus { outline: none; }
+.action-toolbar-button:focus-visible { outline: 2px solid rgba(77, 119, 105, .28); outline-offset: 2px; }
 
-
-/* ============================================================
-   Focus
-   ============================================================ */
-
-.action-toolbar-button:focus {
-
-  outline:
-    none;
-
+@media (max-width: 480px) {
+  .action-toolbar { gap: 7px; }
+  .action-toolbar-button { min-height: 44px; border-radius: 13px; }
+  .action-toolbar-button::before { border-radius: 10px; }
+  .action-toolbar-icon { font-size: 16px; }
+  .action-toolbar-label { font-size: 12px; }
 }
 
-
-
-.action-toolbar-button:focus-visible {
-
-  outline:
-    2px solid
-    rgba(
-      59,
-      130,
-      246,
-      .26
-    );
-
-  outline-offset:
-    3px;
-
-}
-
-
-
-/* ============================================================
-   中屏
-   ============================================================ */
-
-@media (
-  min-width:
-    561px
-) and (
-  max-width:
-    720px
-) {
-
-
-  .action-toolbar {
-
-    gap:
-      6px;
-
-  }
-
-
-
-  .action-toolbar-button {
-
-    height:
-      52px;
-
-    border-radius:
-      14px;
-
-  }
-
-
-
-  .action-toolbar-button::after {
-
-    border-radius:
-      10px;
-
-  }
-
-
-
-  .action-toolbar-icon {
-
-    font-size:
-      19px;
-
-  }
-
-
-
-  .action-toolbar-label {
-
-    font-size:
-      10px;
-
-  }
-
-
-}
-
-
-
-/* ============================================================
-   手机
-   ============================================================ */
-
-@media (
-  max-width:
-    560px
-) {
-
-
-  .action-toolbar {
-
-    width:
-      auto;
-
-    flex-direction:
-      row;
-
-    align-items:
-      center;
-
-    justify-content:
-      center;
-
-    gap:
-      6px;
-
-  }
-
-
-
-  .action-toolbar-button {
-
-    width:
-      96px;
-
-    height:
-      43px;
-
-    padding:
-      0 12px;
-
-    flex-direction:
-      row;
-
-    gap:
-      6px;
-
-    border-radius:
-      13px;
-
-    box-shadow:
-      0 3px 0
-      rgba(
-        15,
-        23,
-        42,
-        .09
-      ),
-
-      0 5px 10px
-      rgba(
-        15,
-        23,
-        42,
-        .05
-      );
-
-  }
-
-
-
-  .action-toolbar-button::after {
-
-    inset:
-      3px;
-
-    border-radius:
-      10px;
-
-  }
-
-
-
-  .action-toolbar-icon {
-
-    font-size:
-      17px;
-
-  }
-
-
-
-  .action-toolbar-label {
-
-    font-size:
-      10px;
-
-  }
-
-
-
-  .action-toolbar-button:not(:disabled):active {
-
-    transform:
-      translateY(2px)
-      scale(.985);
-
-  }
-
-
-}
-
-
-
-/* ============================================================
-   Reduced motion
-   ============================================================ */
-
-@media (
-  prefers-reduced-motion:
-    reduce
-) {
-
-
-  .action-toolbar-button {
-
-    transition-duration:
-      .01ms !important;
-
-  }
-
-
+@media (prefers-reduced-motion: reduce) {
+  .action-toolbar-button { transition-duration: .01ms !important; }
 }

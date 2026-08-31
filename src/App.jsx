@@ -756,71 +756,23 @@ function App(){
         <section className="game-board-section">
 
           <div className="game-board-toolbar">
-
-            <div className="game-section-title">
-              料理台
+            <div className="game-board-type-strip">
+              <BoardTypeTotals board={game.board} />
             </div>
 
-            <div className="game-section-count">
-
-              {game.numbers.length}
-
-              {" / "}
-
-              9
-
-            </div>
-
+            <ItemBar
+              heaterCost={game.heaterCost}
+              heaterAvailable={game.heaterAvailable}
+              heaterActive={heaterSelectMode}
+              onHeaterClick={toggleHeaterMode}
+            />
           </div>
 
 
           <div className="game-board-layout">
-
-            <aside className="game-board-control-panel">
-
-              <div className="game-board-control-inner">
-
-                <div className="game-board-control-kicker">
-                  ACTION
-                </div>
-
-
-                <ActionButtons
-                  selected={
-                    selectedIdsForLegacyUI
-                  }
-                  preview={
-                    game.preview
-                  }
-                  onCombine={
-                    handleCombine
-                  }
-                  onBlockedCombine={
-                    handleBlockedCombine
-                  }
-                  onReduce={
-                    handleReduce
-                  }
-                  gameOver={
-                    game.gameOver || heaterSelectMode
-                  }
-                  removingId={
-                    removingIndex ??
-                    boardAnimation?.token ??
-                    null
-                  }
-                />
-
-              </div>
-
-            </aside>
-
-
             <div className="game-board-main">
 
               <ActionToast toast={actionToast} />
-
-              <BoardTypeTotals board={game.board} />
 
               <Board
                 board={
@@ -878,12 +830,17 @@ function App(){
                 }
               />
 
-              <ItemBar
-                heaterCost={game.heaterCost}
-                heaterAvailable={game.heaterAvailable}
-                heaterActive={heaterSelectMode}
-                onHeaterClick={toggleHeaterMode}
-              />
+              <div className="game-board-actions">
+                <ActionButtons
+                  selected={selectedIdsForLegacyUI}
+                  preview={game.preview}
+                  onCombine={handleCombine}
+                  onBlockedCombine={handleBlockedCombine}
+                  onReduce={handleReduce}
+                  gameOver={game.gameOver || heaterSelectMode}
+                  removingId={removingIndex ?? boardAnimation?.token ?? null}
+                />
+              </div>
 
             </div>
 

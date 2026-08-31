@@ -184,7 +184,6 @@ export default function BoardStatus({
           <div className="board-status-metrics">
             <span>搭配 <strong>{activityCombineLegal}</strong></span>
             <span>处理 <strong>{activityReduceLegal}</strong></span>
-            <span>料理台 <strong>{numberCount}</strong> / 9</span>
           </div>
 
 

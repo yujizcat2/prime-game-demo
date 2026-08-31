@@ -1430,6 +1430,57 @@
 
 }
 
+/* ============================================================
+   Board focus layout: compact scan strip, centered board, actions below
+   ============================================================ */
+
+.game-board-section {
+  margin-top: 8px;
+}
+
+.game-board-toolbar {
+  display: grid;
+  width: min(100%, 520px);
+  min-height: 30px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 7px;
+  margin: 0 auto 6px;
+}
+
+.game-board-type-strip {
+  min-width: 0;
+}
+
+.game-board-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+}
+
+.game-board-main {
+  width: 100%;
+  min-width: 0;
+}
+
+.game-board {
+  min-height: 0;
+  padding: 16px 10px 14px;
+  border-radius: 30px;
+}
+
+.game-board-actions {
+  width: min(100%, 447px);
+  margin: 7px auto 0;
+}
+
+@media (max-width: 560px) {
+  .game-board-section { margin-top: 7px; }
+  .game-board-toolbar { min-height: 27px; gap: 5px; margin-bottom: 5px; }
+  .game-board { padding: 12px 4px 10px; border-radius: 24px; }
+  .game-board-actions { margin-top: 6px; }
+}
+
 
 
 
@@ -2157,4 +2208,38 @@
 
   }
 
+}
+
+/* Final board controls override */
+.game-board-section { margin-top: 8px; }
+
+.game-board-toolbar {
+  display: grid;
+  width: min(100%, 560px);
+  min-height: 30px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 7px;
+  margin: 0 auto 6px;
+}
+
+.game-board-type-strip { min-width: 0; }
+
+.game-board-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+}
+
+.game-board-main { width: 100%; min-width: 0; }
+
+.game-board-actions {
+  width: min(100%, 560px);
+  margin: 7px auto 0;
+}
+
+@media (max-width: 560px) {
+  .game-board-section { margin-top: 7px; }
+  .game-board-toolbar { min-height: 27px; gap: 5px; margin-bottom: 5px; }
+  .game-board-actions { margin-top: 6px; }
 }
