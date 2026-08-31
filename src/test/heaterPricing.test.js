@@ -5,6 +5,7 @@ import {
   BASE_HEATER_PRICE,
   getAffordableHeaterTargets,
   getHeaterFatigue,
+  getHeaterAvailability,
   getHeaterPriceBreakdown,
   getHeaterTargetOpportunity,
   getOpportunityPremium,
@@ -129,12 +130,27 @@ const prices = differentTargetPrices.state.board.slice(0, 3).map((piece, index) 
 const cheapIndex = prices.indexOf(Math.min(...prices));
 const expensiveIndex = prices.indexOf(Math.max(...prices));
 const selectiveMoney = {...differentTargetPrices.state, money: prices[cheapIndex]};
+const selectiveAvailability = getHeaterAvailability(selectiveMoney);
 assert.equal(canUseHeaterOnPiece(selectiveMoney, cheapIndex), true);
 assert.equal(canUseHeaterOnPiece(selectiveMoney, expensiveIndex), false);
 assert.equal(canUseHeater(selectiveMoney), true);
+assert.equal(selectiveAvailability.canEnter, true);
+assert.equal(selectiveAvailability.targets[cheapIndex].affordable, true);
+assert.equal(selectiveAvailability.targets[expensiveIndex].affordable, false);
+assert.equal(selectiveAvailability.affordableTargets.length >= 1, true);
+assert.equal(getHeaterAvailability({...selectiveMoney, money: 0}).canEnter, false);
+assert.equal(getHeaterAvailability(makeState([101], {money: 500})).canEnter, false);
 const rejected = applyHeater(selectiveMoney, expensiveIndex);
 assert.equal(rejected, selectiveMoney);
 assert.equal(rejected.money, selectiveMoney.money);
 assert.equal(rejected.heaterUseCount, selectiveMoney.heaterUseCount);
+
+const fixedAvailability = getHeaterAvailability(makeState([17], {
+  money: 20,
+  heaterUseCount: 1,
+  heaterPricingMode: "fixed"
+}), "fixed");
+assert.equal(fixedAvailability.canEnter, true);
+assert.equal(fixedAvailability.targets[0].price, 20);
 
 console.log("heater pricing tests passed");

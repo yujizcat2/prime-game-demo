@@ -22,8 +22,8 @@ import {
   getBoardPrices
 } from "../game/price";
 import { getNextSelectionIndexes } from "../game/selection";
-import { applyHeater, getHeaterCost, canUseHeater } from "../game/heater";
-import { getHeaterPriceBreakdown } from "../game/heaterPricing";
+import { applyHeater, getHeaterCost } from "../game/heater";
+import { getHeaterAvailability } from "../game/heaterPricing";
 
 import {
   createGameState,
@@ -235,11 +235,9 @@ export default function useGame(){
   const heaterUseCount = gameState?.heaterUseCount ?? 0;
   const heaterPricingMode = gameState?.heaterPricingMode ?? "dynamicV1";
   const heaterCost = getHeaterCost(gameState);
-  const heaterAvailable = canUseHeater(gameState);
-  const heaterTargets = board.map((piece, index) => {
-    const breakdown = getHeaterPriceBreakdown(gameState, index, heaterPricingMode);
-    return breakdown ? {...breakdown, affordable: money >= breakdown.price} : null;
-  });
+  const heaterAvailability = getHeaterAvailability(gameState, heaterPricingMode);
+  const heaterAvailable = heaterAvailability.canEnter;
+  const heaterTargets = heaterAvailability.targets;
 
 
   const trend =

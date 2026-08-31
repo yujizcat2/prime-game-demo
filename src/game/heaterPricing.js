@@ -117,3 +117,22 @@ export function getAffordableHeaterTargets(
       : [];
   });
 }
+
+export function getHeaterAvailability(
+  state,
+  pricingMode = state?.heaterPricingMode ?? HEATER_PRICING_MODES.DYNAMIC_V1
+){
+  const targets = (state?.board ?? []).map((piece, index) => {
+    if(!piece || piece.value < 2 || piece.value > 100) return null;
+    const breakdown = getHeaterPriceBreakdown(state, index, pricingMode);
+    return breakdown
+      ? {index, ...breakdown, affordable: (state.money ?? 0) >= breakdown.price}
+      : null;
+  });
+
+  return {
+    targets,
+    affordableTargets: targets.filter(target => target?.affordable),
+    canEnter: targets.some(target => target?.affordable)
+  };
+}

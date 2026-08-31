@@ -1,7 +1,7 @@
 import { createOriginSnapshot } from "./numberOrigin";
 import {
-  getAffordableHeaterTargets,
   getFixedHeaterPrice,
+  getHeaterAvailability,
   getHeaterPriceBreakdown,
   HEATER_PRICING_MODES
 } from "./heaterPricing";
@@ -34,7 +34,7 @@ export function canUseHeaterOnPiece(state, targetIndex, pricingMode = state?.hea
 }
 
 export function canUseHeater(state, pricingMode = state?.heaterPricingMode){
-  return Boolean(state && getAffordableHeaterTargets(state, pricingMode).length);
+  return Boolean(state && getHeaterAvailability(state, pricingMode).canEnter);
 }
 
 export function applyHeater(state, targetIndex, pricingMode = state?.heaterPricingMode){
