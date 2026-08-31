@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import {
   chooseScoreAction,
   evaluateScoreState,
@@ -8,7 +9,10 @@ import {
   scoreAITestUtils
 } from "../ai/eightPalaceScoreAI";
 import { applyAction, createGameState, getLegalActions } from "../game/gameEngine";
-import { createEightPalaceInitialValues } from "../game/initialValues";
+import {
+  DIFFICULTY_OPENINGS,
+  createEightPalaceInitialValues
+} from "../game/initialValues";
 import { BASE_FOOD_TYPES } from "../game/rules";
 import { getScoreEfficiency } from "../game/scoreEfficiency";
 
@@ -36,9 +40,40 @@ assert.equal(getScoreEfficiency(64, 2).toFixed(2), "32.00");
 assert.equal(getScoreEfficiency(160, 3).toFixed(2), "53.33");
 assert.ok(getScoreEfficiency(160, 4) < getScoreEfficiency(160, 3));
 
-const tenGames = await runScoreGames({games: 10, depth: 1, beamWidth: 2, maxActions: 1, compareRandom: false});
+for(const [difficulty, config] of Object.entries(DIFFICULTY_OPENINGS)){
+  const comparison = await runScoreGames({games: 1, difficulty, depth: 1, beamWidth: 2, maxActions: 1});
+  const scoreGame = comparison.results[0];
+  const randomGame = comparison.randomComparison.results[0];
+  assert.equal(scoreGame.initialOpening.length, config.count);
+  assert.equal(new Set(scoreGame.initialOpening.map(card => card.foodType)).size, config.typeCount);
+  assert.equal(scoreGame.initialOpening.reduce((sum, card) => sum + card.value, 0), config.targetSum);
+  assert.deepEqual(scoreGame.initialOpening, randomGame.initialOpening, `${difficulty} uses one shared opening`);
+  assert.equal(scoreGame.gameIndex, randomGame.gameIndex);
+  assert.equal(scoreGame.openingId, randomGame.openingId);
+  assert.equal(comparison.depth, 1);
+  assert.equal(comparison.beamWidth, 2);
+  assert.equal(comparison.maxActions, 1);
+}
+
+const tenGames = await runScoreGames({games: 10, difficulty: "medium", depth: 1, beamWidth: 2, maxActions: 1});
 assert.equal(tenGames.results.length, 10);
+assert.equal(tenGames.randomComparison.results.length, 10);
 assert.ok(tenGames.results.every(game => Array.isArray(game.actionPath)));
+for(let index = 0; index < 10; index++){
+  const scoreGame = tenGames.results[index];
+  const randomGame = tenGames.randomComparison.results[index];
+  assert.equal(scoreGame.gameIndex, index + 1);
+  assert.equal(randomGame.gameIndex, index + 1);
+  assert.deepEqual(scoreGame.initialOpening, randomGame.initialOpening);
+  assert.ok(scoreGame.actionPath.every(action => Object.hasOwn(action, "scoreEfficiencyAfter")));
+  assert.ok(randomGame.actionPath.every(action => Object.hasOwn(action, "scoreEfficiencyAfter")));
+}
+
+const testLabSource = readFileSync("src/components/TestLab.jsx", "utf8");
+assert.match(testLabSource, /Score AI 全部测试记录/);
+assert.match(testLabSource, /Random AI 全部测试记录/);
+assert.match(testLabSource, /expanded && <div/);
+assert.match(testLabSource, /allowExpandAll = games\.length <= 100/);
 
 let replay = createGameState(opening.map(card => ({...card, gameMode: "simpleEightPalace"})));
 for(const entry of result.actionPath){

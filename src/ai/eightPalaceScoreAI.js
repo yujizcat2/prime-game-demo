@@ -1,4 +1,7 @@
-import { createEightPalaceInitialValues } from "../game/initialValues";
+import {
+  createDifficultyInitialValues,
+  createEightPalaceInitialValues
+} from "../game/initialValues";
 import {
   applyAction,
   createGameState,
@@ -323,6 +326,7 @@ export function summarizeScoreResults(results){
 
 export async function runScoreGames({
   games = 1,
+  difficulty = "medium",
   depth = SCORE_AI_DEFAULTS.depth,
   beamWidth = SCORE_AI_DEFAULTS.beamWidth,
   maxActions = SCORE_AI_DEFAULTS.maxActions,
@@ -333,13 +337,17 @@ export async function runScoreGames({
   const randomResults = [];
 
   for(let gameIndex = 1; gameIndex <= games; gameIndex++){
-    const opening = createEightPalaceInitialValues();
+    const opening = createDifficultyInitialValues(difficulty);
     const result = await runScoreGame({depth, beamWidth, maxActions, initialOpening: opening});
     result.gameIndex = gameIndex;
+    result.openingId = gameIndex;
     scoreResults.push(result);
 
     if(compareRandom){
-      randomResults.push(await runScoreGame({maxActions, initialOpening: opening, strategy: "random"}));
+      const randomResult = await runScoreGame({maxActions, initialOpening: opening, strategy: "random"});
+      randomResult.gameIndex = gameIndex;
+      randomResult.openingId = gameIndex;
+      randomResults.push(randomResult);
     }
 
     onProgress?.({
@@ -359,6 +367,7 @@ export async function runScoreGames({
     depth,
     beamWidth,
     maxActions,
+    difficulty,
     randomComparison: compareRandom ? summarizeScoreResults(randomResults) : null
   };
 }
