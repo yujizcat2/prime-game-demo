@@ -1,29 +1,20 @@
 import { createOriginSnapshot } from "./numberOrigin";
 import {
-  getFixedHeaterPrice,
   getHeaterAvailability,
-  getHeaterPriceBreakdown,
-  HEATER_PRICING_MODES
+  getCurrentHeaterPrice,
+  isHeaterTarget
 } from "./heaterPricing";
 
 export const HEATER_COST_STEP = 10;
 
-export function getHeaterCost(state, targetIndex = null, pricingMode = state?.heaterPricingMode){
-  if(Number.isInteger(targetIndex)) return getHeaterPriceBreakdown(state, targetIndex, pricingMode)?.price ?? 0;
-  if((pricingMode ?? state?.heaterPricingMode) === HEATER_PRICING_MODES.FIXED) return getFixedHeaterPrice(state);
-  const prices = (state?.board ?? []).flatMap((piece, index) => {
-    const price = getHeaterPriceBreakdown(state, index, pricingMode)?.price;
-    return price ? [price] : [];
-  });
-  return prices.length ? Math.min(...prices) : HEATER_COST_STEP;
+export function getHeaterCost(state){
+  return getCurrentHeaterPrice(state);
 }
 
-export function isHeaterTarget(piece){
-  return Number.isInteger(piece?.value) && piece.value >= 2 && piece.value <= 100;
-}
+export { isHeaterTarget };
 
-export function canUseHeaterOnPiece(state, targetIndex, pricingMode = state?.heaterPricingMode){
-  const price = getHeaterPriceBreakdown(state, targetIndex, pricingMode)?.price;
+export function canUseHeaterOnPiece(state, targetIndex){
+  const price = getCurrentHeaterPrice(state);
   return Boolean(
     state
     && price
@@ -33,15 +24,14 @@ export function canUseHeaterOnPiece(state, targetIndex, pricingMode = state?.hea
   );
 }
 
-export function canUseHeater(state, pricingMode = state?.heaterPricingMode){
-  return Boolean(state && getHeaterAvailability(state, pricingMode).canEnter);
+export function canUseHeater(state){
+  return getHeaterAvailability(state).canEnter;
 }
 
-export function applyHeater(state, targetIndex, pricingMode = state?.heaterPricingMode){
-  if(!canUseHeaterOnPiece(state, targetIndex, pricingMode)) return state;
+export function applyHeater(state, targetIndex){
+  if(!canUseHeaterOnPiece(state, targetIndex)) return state;
 
-  const priceBreakdown = getHeaterPriceBreakdown(state, targetIndex, pricingMode);
-  const cost = priceBreakdown.price;
+  const cost = getCurrentHeaterPrice(state);
   const previousPiece = state.board[targetIndex];
   const board = [...state.board];
   board[targetIndex] = {
@@ -65,9 +55,7 @@ export function applyHeater(state, targetIndex, pricingMode = state?.heaterPrici
       fromValue: previousPiece.value,
       toValue: previousPiece.value + 1,
       cost,
-      price: cost,
-      pricingMode: priceBreakdown.pricingMode,
-      priceBreakdown
+      price: cost
     }
   };
 }

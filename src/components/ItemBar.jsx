@@ -2,7 +2,6 @@ import "./ItemBar.css";
 
 export default function ItemBar({
   heaterCost = 10,
-  heaterPricingMode = "dynamicV1",
   heaterAvailable = false,
   heaterActive = false,
   onHeaterClick
@@ -12,7 +11,7 @@ export default function ItemBar({
     icon: "🔥",
     name: "加热器",
     effect: "+1",
-    costLabel: heaterPricingMode === "dynamicV1" ? "¥10+" : `¥${heaterCost}`,
+    costLabel: `¥${heaterCost}`,
     active: heaterActive,
     disabled: !heaterActive && !heaterAvailable,
     onClick: onHeaterClick

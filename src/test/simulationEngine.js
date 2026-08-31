@@ -408,9 +408,6 @@ export function createSimulationState(
     heaterUseCount:
       0,
 
-    heaterPricingMode:
-      "dynamicV1",
-
     previousCollection:
       null,
 
@@ -2013,9 +2010,6 @@ export function cloneSimulationState(
 
     heaterUseCount:
       state.heaterUseCount ?? 0,
-
-    heaterPricingMode:
-      state.heaterPricingMode ?? "dynamicV1",
 
     previousCollection:
       state.previousCollection ?? null,

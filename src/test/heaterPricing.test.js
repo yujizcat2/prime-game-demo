@@ -1,156 +1,79 @@
 import assert from "node:assert/strict";
-import { createGameState } from "../game/gameState";
+import { createGameState, resolveGameOver } from "../game/gameEngine";
 import { applyHeater, canUseHeater, canUseHeaterOnPiece } from "../game/heater";
 import {
-  BASE_HEATER_PRICE,
-  getAffordableHeaterTargets,
-  getHeaterFatigue,
+  getCurrentHeaterPrice,
   getHeaterAvailability,
-  getHeaterPriceBreakdown,
-  getHeaterTargetOpportunity,
-  getOpportunityPremium,
-  roundUpToNearest10
+  getHeaterBoardAdjustment,
+  getNormalLegalActionCount
 } from "../game/heaterPricing";
 import { BASE_FOOD_TYPES } from "../game/rules";
-import { createCombinePairKey } from "../game/combineHistory";
 import { getScoreCandidateActions } from "../ai/eightPalaceScoreAI";
 
-const [land, aquatic] = BASE_FOOD_TYPES;
+const foodTypes = BASE_FOOD_TYPES;
 const makeState = (values, extra = {}) => ({
   ...createGameState(values.map((value, index) => ({
     value,
-    foodType: index % 2 ? aquatic : land,
+    foodType: foodTypes[0],
     boardIndex: index,
     gameMode: "eightPalace"
   }))),
   ...extra
 });
 
-assert.equal(BASE_HEATER_PRICE, 10);
-assert.equal(makeState([17]).heaterPricingMode, "dynamicV1");
-assert.deepEqual([0, 1, 2, 3, 4, 5, 6, 7].map(getHeaterFatigue), [0, 10, 20, 30, 50, 70, 110, 140]);
-assert.deepEqual([0, 1, 2, 3, 4, 5, 6, 7].map(getOpportunityPremium), [0, 10, 20, 30, 30, 50, 50, 70]);
-assert.equal(roundUpToNearest10(10), 10);
-assert.equal(roundUpToNearest10(11), 20);
+const low = makeState([2, 3], {heaterUseCount: 1});
+const medium = makeState([2, 3, 5], {heaterUseCount: 1});
+const high = makeState([2, 3, 5, 7], {heaterUseCount: 1});
 
-const rich = makeState([17, 5], {money: 500});
-const opportunity = getHeaterTargetOpportunity(rich, 0);
-const dynamic = getHeaterPriceBreakdown(rich, 0, "dynamicV1");
-assert.equal(dynamic.basePrice, 10);
-assert.equal(dynamic.fatigue, 0);
-assert.equal(dynamic.opportunityPremium, getOpportunityPremium(opportunity.opportunityScore));
-assert.equal(dynamic.price, dynamic.basePrice + dynamic.fatigue + dynamic.opportunityPremium);
+assert.equal(getCurrentHeaterPrice(makeState([2, 3])), 10, "first use is always ¥10");
+assert.ok(getNormalLegalActionCount(low) <= 2);
+assert.ok(getNormalLegalActionCount(medium) >= 3 && getNormalLegalActionCount(medium) <= 5);
+assert.ok(getNormalLegalActionCount(high) >= 6);
+assert.deepEqual([0, 2, 3, 5, 6, 20].map(getHeaterBoardAdjustment), [0, 0, 5, 5, 10, 10]);
+assert.equal(getCurrentHeaterPrice(low), 20);
+assert.equal(getCurrentHeaterPrice(medium), 25);
+assert.equal(getCurrentHeaterPrice(high), 30);
+assert.equal(getCurrentHeaterPrice({...low, heaterUseCount: 2}), 30);
+assert.equal(getCurrentHeaterPrice({...medium, heaterUseCount: 2}), 35);
+assert.equal(getCurrentHeaterPrice({...high, heaterUseCount: 2}), 40);
 
-const tired = getHeaterPriceBreakdown({...rich, heaterUseCount: 4}, 0, "dynamicV1");
-assert.equal(tired.fatigue, 50);
-assert.equal(tired.price - dynamic.price, 50);
+const uniform = {...medium, money: 25};
+assert.equal(getCurrentHeaterPrice(uniform), 25);
+assert.equal(canUseHeaterOnPiece(uniform, 0), true);
+assert.equal(canUseHeaterOnPiece(uniform, 1), true);
+assert.equal(canUseHeaterOnPiece({...uniform, money: 24}, 0), false);
+assert.equal(getHeaterAvailability(uniform).canEnter, true);
+assert.equal(getHeaterAvailability({...uniform, money: 24}).canEnter, false);
+assert.equal(getHeaterAvailability(makeState([101], {money: 100})).canEnter, false);
 
-const fixed = getHeaterPriceBreakdown({...rich, heaterUseCount: 2}, 0, "fixed");
-assert.equal(fixed.price, 30);
-assert.equal(fixed.opportunityPremium, 0);
+const heated = applyHeater(uniform, 1);
+assert.equal(heated.board[1].value, 4);
+assert.equal(heated.money, 0, "¥25 tier is deducted exactly");
+assert.equal(heated.heaterUseCount, 2);
+assert.equal(heated.steps, uniform.steps);
+assert.equal(heated.score, uniform.score);
+assert.equal(heated.board[1].origin.type, "heater");
+assert.equal(getCurrentHeaterPrice(heated), 35, "next price uses new count and board");
 
-const applied = applyHeater(rich, 0, "dynamicV1");
-assert.equal(applied.money, rich.money - dynamic.price);
-assert.equal(applied.heaterUseCount, 1);
-assert.equal(applied.latestHeaterUse.price, dynamic.price);
-assert.deepEqual(applied.latestHeaterUse.priceBreakdown, dynamic);
+const rejected = applyHeater({...uniform, money: 24}, 1);
+assert.equal(rejected.money, 24);
+assert.equal(rejected.heaterUseCount, 1);
+assert.equal(applyHeater(makeState([101], {money: 100}), 0).board[0].value, 101);
 
-const exactMoney = {...rich, money: dynamic.price};
-assert.equal(canUseHeaterOnPiece(exactMoney, 0, "dynamicV1"), true);
-assert.equal(canUseHeaterOnPiece({...exactMoney, money: dynamic.price - 1}, 0, "dynamicV1"), false);
-assert.equal(canUseHeater(exactMoney, "dynamicV1"), true);
-assert.ok(getAffordableHeaterTargets(exactMoney, "dynamicV1").some(target => target.index === 0));
+const rescued = resolveGameOver({...makeState([17]), money: 10});
+assert.equal(rescued.gameOver, false, "uniform price allows heater rescue");
+const unaffordableDeadlock = resolveGameOver({...makeState([17]), money: 9});
+assert.equal(unaffordableDeadlock.gameOver, true);
 
-const invalid = makeState([101], {money: 500});
-assert.equal(getHeaterPriceBreakdown(invalid, 0, "dynamicV1"), null);
-assert.equal(canUseHeater(invalid, "dynamicV1"), false);
+const aiActions = getScoreCandidateActions(uniform, {allowHeater: true});
+const heaterActions = aiActions.filter(action => action.type === "heater");
+assert.equal(heaterActions.length, 3);
+assert.ok(heaterActions.every(action => action.price === undefined));
+assert.equal(
+  getScoreCandidateActions({...uniform, money: 24}, {allowHeater: true}).some(action => action.type === "heater"),
+  false
+);
+assert.equal(getScoreCandidateActions(uniform).some(action => action.type === "heater"), false);
+assert.equal(canUseHeater(uniform), true);
 
-const aiState = {...rich, money: dynamic.price};
-const dynamicActions = getScoreCandidateActions(aiState, {allowHeater: true, heaterPricingMode: "dynamicV1"});
-assert.ok(dynamicActions.some(action => action.type === "heater" && action.pricingMode === "dynamicV1"));
-const poorActions = getScoreCandidateActions({...aiState, money: 0}, {allowHeater: true, heaterPricingMode: "dynamicV1"});
-assert.equal(poorActions.some(action => action.type === "heater"), false);
-
-const scoreBefore = rich.score;
-assert.equal(applied.score, scoreBefore);
-assert.equal(applied.steps, rich.steps);
-
-const samples = [];
-for(let first = 2; first <= 14; first++){
-  for(let second = 2; second <= 14; second++){
-    for(let third = 2; third <= 14; third++){
-      const state = makeState([first, second, third], {money: 500});
-      for(let index = 0; index < 3; index++){
-        samples.push({state, index, opportunity: getHeaterTargetOpportunity(state, index)});
-      }
-    }
-  }
-}
-const noOpportunity = samples.find(sample => sample.opportunity.opportunityScore === 0);
-const reduceOpportunity = samples.find(sample => sample.opportunity.newReduceCount >= 2);
-const combineOnlyOpportunity = samples.map(sample => {
-  const target = sample.state.board[sample.index];
-  const combineHistoryKeys = Object.fromEntries(
-    sample.state.board.filter(Boolean).filter(piece => piece !== target)
-      .map(piece => [createCombinePairKey(target, piece), true])
-  );
-  const state = {...sample.state, combineHistoryKeys};
-  return {...sample, state, opportunity: getHeaterTargetOpportunity(state, sample.index)};
-}).find(sample => sample.opportunity.newReduceCount === 0 && sample.opportunity.newCombineCount > 0);
-let rescueOpportunity = null;
-for(let first = 2; first <= 30 && !rescueOpportunity; first++){
-  for(let second = 2; second <= 30 && !rescueOpportunity; second++){
-    const base = makeState([first, second], {money: 500});
-    const state = {
-      ...base,
-      combineHistoryKeys: {[createCombinePairKey(base.board[0], base.board[1])]: true}
-    };
-    for(let index = 0; index < 2; index++){
-      const candidate = {state, index, opportunity: getHeaterTargetOpportunity(state, index)};
-      if(candidate.opportunity.deadlockRescue) rescueOpportunity = candidate;
-    }
-  }
-}
-assert.ok(noOpportunity, "finds an opportunity-0 target");
-assert.equal(getHeaterPriceBreakdown(noOpportunity.state, noOpportunity.index).opportunityPremium, 0);
-assert.ok(reduceOpportunity, "finds a target creating multiple reduce actions");
-assert.ok(getHeaterPriceBreakdown(reduceOpportunity.state, reduceOpportunity.index).opportunityPremium > 0);
-assert.ok(combineOnlyOpportunity, "finds a target creating combine without reduce");
-assert.ok(getHeaterPriceBreakdown(combineOnlyOpportunity.state, combineOnlyOpportunity.index).opportunityPremium > 0);
-assert.equal(reduceOpportunity.opportunity.newReduceCount * 2 > combineOnlyOpportunity.opportunity.newCombineCount, true);
-assert.ok(rescueOpportunity, "finds a deadlock rescue target");
-assert.equal(rescueOpportunity.opportunity.rescueBonus, 4);
-
-const differentTargetPrices = samples.find(sample => {
-  const prices = sample.state.board.slice(0, 3).map((piece, index) => getHeaterPriceBreakdown(sample.state, index)?.price);
-  return new Set(prices).size > 1;
-});
-assert.ok(differentTargetPrices, "the same board can have target-level prices");
-const prices = differentTargetPrices.state.board.slice(0, 3).map((piece, index) => getHeaterPriceBreakdown(differentTargetPrices.state, index).price);
-const cheapIndex = prices.indexOf(Math.min(...prices));
-const expensiveIndex = prices.indexOf(Math.max(...prices));
-const selectiveMoney = {...differentTargetPrices.state, money: prices[cheapIndex]};
-const selectiveAvailability = getHeaterAvailability(selectiveMoney);
-assert.equal(canUseHeaterOnPiece(selectiveMoney, cheapIndex), true);
-assert.equal(canUseHeaterOnPiece(selectiveMoney, expensiveIndex), false);
-assert.equal(canUseHeater(selectiveMoney), true);
-assert.equal(selectiveAvailability.canEnter, true);
-assert.equal(selectiveAvailability.targets[cheapIndex].affordable, true);
-assert.equal(selectiveAvailability.targets[expensiveIndex].affordable, false);
-assert.equal(selectiveAvailability.affordableTargets.length >= 1, true);
-assert.equal(getHeaterAvailability({...selectiveMoney, money: 0}).canEnter, false);
-assert.equal(getHeaterAvailability(makeState([101], {money: 500})).canEnter, false);
-const rejected = applyHeater(selectiveMoney, expensiveIndex);
-assert.equal(rejected, selectiveMoney);
-assert.equal(rejected.money, selectiveMoney.money);
-assert.equal(rejected.heaterUseCount, selectiveMoney.heaterUseCount);
-
-const fixedAvailability = getHeaterAvailability(makeState([17], {
-  money: 20,
-  heaterUseCount: 1,
-  heaterPricingMode: "fixed"
-}), "fixed");
-assert.equal(fixedAvailability.canEnter, true);
-assert.equal(fixedAvailability.targets[0].price, 20);
-
-console.log("heater pricing tests passed");
+console.log("heater unified pricing tests passed");

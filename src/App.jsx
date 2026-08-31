@@ -853,7 +853,6 @@ function App(){
                   game.functionOneIndex
                 }
                 heaterSelectMode={heaterSelectMode}
-                heaterTargets={game.heaterTargets}
                 onSelectCell={
                   boardAnimation
                     ? undefined
@@ -903,7 +902,6 @@ function App(){
                 heaterCost={game.heaterCost}
                 heaterAvailable={game.heaterAvailable}
                 heaterActive={heaterSelectMode}
-                heaterPricingMode={game.heaterPricingMode}
                 onHeaterClick={toggleHeaterMode}
               />
 

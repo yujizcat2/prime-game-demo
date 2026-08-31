@@ -14,7 +14,7 @@ import { getScoreEfficiency } from "../game/scoreEfficiency";
 import { isPrime } from "../game/prime";
 import { summarizeCollectionEfficiencyTimelines } from "../game/collectionEfficiency";
 import { applyHeater, isHeaterTarget } from "../game/heater";
-import { getHeaterPriceBreakdown, HEATER_PRICING_MODES } from "../game/heaterPricing";
+import { getCurrentHeaterPrice } from "../game/heaterPricing";
 
 export const SCORE_AI_DEFAULTS = Object.freeze({
   depth: 4,
@@ -159,25 +159,23 @@ export function evaluateScoreState(state){
 
 export function getScoreCandidateActions(state, {
   allowHeater = false,
-  heaterUsedThisStep = false,
-  heaterPricingMode = state?.heaterPricingMode ?? HEATER_PRICING_MODES.FIXED
+  heaterUsedThisStep = false
 } = {}){
   const actions = state?.gameOver ? [] : getLegalActions(state);
   if(!allowHeater || heaterUsedThisStep) return actions;
+  const heaterPrice = getCurrentHeaterPrice(state);
+  if((state.money ?? 0) < heaterPrice) return actions;
   return [
     ...actions,
     ...state.board.flatMap((piece, index) =>
-      isHeaterTarget(piece)
-        && (state.money ?? 0) >= (getHeaterPriceBreakdown(state, index, heaterPricingMode)?.price ?? Infinity)
-        ? [{type: "heater", index, pricingMode: heaterPricingMode}]
-        : []
+      isHeaterTarget(piece) ? [{type: "heater", index}] : []
     )
   ];
 }
 
 function applyScoreAction(state, action){
   return action.type === "heater"
-    ? resolveGameOver(applyHeater(state, action.index, action.pricingMode))
+    ? resolveGameOver(applyHeater(state, action.index))
     : applyAction(state, action);
 }
 
@@ -195,8 +193,7 @@ export function chooseScoreAction(state, {
   beamWidth = SCORE_AI_DEFAULTS.beamWidth,
   explore = false,
   allowHeater = false,
-  heaterUsedThisStep = false,
-  heaterPricingMode = state?.heaterPricingMode ?? HEATER_PRICING_MODES.FIXED
+  heaterUsedThisStep = false
 } = {}){
   if(!state || state.gameOver || state.steps >= state.stepLimit) return null;
 
@@ -210,15 +207,14 @@ export function chooseScoreAction(state, {
     for(const node of frontier){
       const availableActions = getScoreCandidateActions(node.state, {
         allowHeater,
-        heaterUsedThisStep: node.heaterUsedThisStep,
-        heaterPricingMode
+        heaterUsedThisStep: node.heaterUsedThisStep
       });
       const actions = explore ? shuffled(availableActions) : availableActions;
       for(const action of actions){
         const appliedState = applyScoreAction(node.state, action);
         if(appliedState === node.state) continue;
         const heaterCost = action.type === "heater"
-          ? getHeaterPriceBreakdown(node.state, action.index, action.pricingMode)?.price ?? 0
+          ? getCurrentHeaterPrice(node.state)
           : 0;
         const heaterSpending = node.heaterSpending + heaterCost;
         const evaluation = evaluateScoreState(appliedState)
@@ -292,11 +288,6 @@ function describeAction(state, action, nextState, number){
       foodType: state.board[action.index]?.foodType ?? null,
       cost: nextState.latestHeaterUse.cost,
       price: nextState.latestHeaterUse.price,
-      pricingMode: nextState.latestHeaterUse.pricingMode,
-      basePrice: nextState.latestHeaterUse.priceBreakdown.basePrice,
-      fatigue: nextState.latestHeaterUse.priceBreakdown.fatigue,
-      opportunityPremium: nextState.latestHeaterUse.priceBreakdown.opportunityPremium,
-      opportunity: nextState.latestHeaterUse.priceBreakdown.opportunity,
       moneyBefore: state.money ?? 0,
       moneyAfter: nextState.money ?? 0
     } : null,
@@ -313,17 +304,16 @@ export async function runScoreGame({
   initialOpening = null,
   explore = false,
   strategy = "score",
-  allowHeater = false,
-  heaterPricingMode = HEATER_PRICING_MODES.FIXED
+  allowHeater = false
 } = {}){
   const opening = createScoreOpening(initialOpening ?? createEightPalaceInitialValues());
-  let state = resolveGameOver({...createGameState(opening), heaterPricingMode});
+  let state = resolveGameOver(createGameState(opening));
   const initialBoard = snapshotBoard(state.board);
   const actionPath = [];
   let heaterUsedThisStep = false;
 
   while(!state.gameOver && state.steps < state.stepLimit && state.steps < maxActions){
-    const legalActions = getScoreCandidateActions(state, {allowHeater, heaterUsedThisStep, heaterPricingMode});
+    const legalActions = getScoreCandidateActions(state, {allowHeater, heaterUsedThisStep});
     if(legalActions.length === 0){
       state = {...state, gameOver: true, gameOverReason: "no_legal_actions"};
       break;
@@ -331,7 +321,7 @@ export async function runScoreGame({
 
     const action = strategy === "random"
       ? legalActions[Math.floor(Math.random() * legalActions.length)]
-      : chooseScoreAction(state, {depth, beamWidth, explore, allowHeater, heaterUsedThisStep, heaterPricingMode});
+      : chooseScoreAction(state, {depth, beamWidth, explore, allowHeater, heaterUsedThisStep});
     if(!action) break;
 
     // Keep the exact legal set used for selection so tests and records can
@@ -365,7 +355,6 @@ export async function runScoreGame({
 
   return {
     strategy,
-    heaterPricingMode: allowHeater ? heaterPricingMode : null,
     initialOpening: opening.map(card => ({...card})),
     initialBoard,
     score: state.score,
@@ -427,13 +416,13 @@ export function summarizeScoreResults(results){
   const totalHeaterSpending = results.reduce((sum, result) => sum + (result.heaterSpending ?? 0), 0);
   const heaterEvents = results.flatMap(result => result.heaterTimeline ?? []);
   const heaterPrices = heaterEvents.map(event => event.price ?? event.cost);
-  const priceDistribution = {"10": 0, "20": 0, "30": 0, "40": 0, "50": 0, "60+": 0};
-  const opportunityDistribution = {"0": 0, "1": 0, "2": 0, "3-4": 0, "5+": 0};
+  const priceDistribution = {
+    "10": 0, "20": 0, "25": 0, "30": 0, "35": 0,
+    "40": 0, "45": 0, "50": 0, "55": 0, "60+": 0
+  };
   for(const event of heaterEvents){
     const price = event.price ?? event.cost;
     priceDistribution[price >= 60 ? "60+" : String(price)]++;
-    const score = event.opportunity?.opportunityScore ?? 0;
-    opportunityDistribution[score >= 5 ? "5+" : score >= 3 ? "3-4" : String(score)]++;
   }
 
   return {
@@ -446,7 +435,6 @@ export function summarizeScoreResults(results){
     minimumHeaterCost: heaterPrices.length ? Math.min(...heaterPrices) : 0,
     maximumHeaterCost: heaterPrices.length ? Math.max(...heaterPrices) : 0,
     heaterPriceDistribution: priceDistribution,
-    heaterOpportunityDistribution: opportunityDistribution,
     totalHeaterUseCount,
     totalHeaterSpending,
     averageScoreEfficiency: average(results, result => result.scoreEfficiency),
@@ -481,13 +469,11 @@ export async function runScoreGames({
   maxActions = SCORE_AI_DEFAULTS.maxActions,
   onProgress = null,
   compareRandom = true,
-  compareHeater = false,
-  compareDynamicHeater = false
+  compareHeater = false
 } = {}){
   const scoreResults = [];
   const randomResults = [];
   const heaterResults = [];
-  const dynamicHeaterResults = [];
 
   for(let gameIndex = 1; gameIndex <= games; gameIndex++){
     const opening = createDifficultyInitialValues(difficulty);
@@ -502,26 +488,11 @@ export async function runScoreGames({
         beamWidth,
         maxActions,
         initialOpening: opening,
-        allowHeater: true,
-        heaterPricingMode: HEATER_PRICING_MODES.FIXED
+        allowHeater: true
       });
       heaterResult.gameIndex = gameIndex;
       heaterResult.openingId = gameIndex;
       heaterResults.push(heaterResult);
-    }
-
-    if(compareDynamicHeater){
-      const dynamicHeaterResult = await runScoreGame({
-        depth,
-        beamWidth,
-        maxActions,
-        initialOpening: opening,
-        allowHeater: true,
-        heaterPricingMode: HEATER_PRICING_MODES.DYNAMIC_V1
-      });
-      dynamicHeaterResult.gameIndex = gameIndex;
-      dynamicHeaterResult.openingId = gameIndex;
-      dynamicHeaterResults.push(dynamicHeaterResult);
     }
 
     if(compareRandom){
@@ -546,7 +517,6 @@ export async function runScoreGames({
 
   const scoreSummary = summarizeScoreResults(scoreResults);
   const heaterComparison = compareHeater ? summarizeScoreResults(heaterResults) : null;
-  const dynamicHeaterComparison = compareDynamicHeater ? summarizeScoreResults(dynamicHeaterResults) : null;
 
   return {
     ...scoreSummary,
@@ -555,13 +525,6 @@ export async function runScoreGames({
     maxActions,
     difficulty,
     heaterComparison,
-    dynamicHeaterComparison,
-    dynamicHeaterAverageScoreDifference: dynamicHeaterComparison
-      ? dynamicHeaterComparison.averageFinalScore - scoreSummary.averageFinalScore
-      : 0,
-    dynamicVsFixedAverageScoreDifference: dynamicHeaterComparison && heaterComparison
-      ? dynamicHeaterComparison.averageFinalScore - heaterComparison.averageFinalScore
-      : 0,
     heaterAverageScoreDifference: heaterComparison
       ? heaterComparison.averageFinalScore - scoreSummary.averageFinalScore
       : 0,

@@ -233,11 +233,9 @@ export default function useGame(){
     0;
 
   const heaterUseCount = gameState?.heaterUseCount ?? 0;
-  const heaterPricingMode = gameState?.heaterPricingMode ?? "dynamicV1";
   const heaterCost = getHeaterCost(gameState);
-  const heaterAvailability = getHeaterAvailability(gameState, heaterPricingMode);
+  const heaterAvailability = getHeaterAvailability(gameState);
   const heaterAvailable = heaterAvailability.canEnter;
-  const heaterTargets = heaterAvailability.targets;
 
 
   const trend =
@@ -1369,13 +1367,9 @@ export default function useGame(){
 
     heaterUseCount,
 
-    heaterPricingMode,
-
     heaterCost,
 
     heaterAvailable,
-
-    heaterTargets,
 
     trend,
 
