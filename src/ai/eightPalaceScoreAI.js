@@ -11,6 +11,7 @@ import {
 } from "../game/gameEngine";
 import { gcd } from "../utils/math";
 import { getScoreEfficiency } from "../game/scoreEfficiency";
+import { isPrime } from "../game/prime";
 
 export const SCORE_AI_DEFAULTS = Object.freeze({
   depth: 4,
@@ -272,6 +273,7 @@ export async function runScoreGame({
 
   const completed100Steps = state.steps === state.stepLimit;
   const deadlocked = state.gameOverReason === "no_legal_actions" && !completed100Steps;
+  const collectionNumberCounts = getCollectionNumberCounts(state.collectionCards);
 
   return {
     strategy,
@@ -282,6 +284,7 @@ export async function runScoreGame({
     scoreEfficiency: getScoreEfficiency(state.score, state.steps),
     collectionCount: state.collectionCards.length,
     collections: state.collectionCards.map(card => structuredClone(card)),
+    ...collectionNumberCounts,
     steps: state.steps,
     actions: actionPath.length,
     completed100Steps,
@@ -290,6 +293,23 @@ export async function runScoreGame({
     finalBoard: snapshotBoard(state.board),
     finalBoardCount: getBoardCount(state.board),
     actionPath
+  };
+}
+
+export function getCollectionNumberCounts(collections){
+  let primeCollectionCount = 0;
+  let compositeCollectionCount = 0;
+
+  for(const collection of collections ?? []){
+    const value = collection?.value;
+    if(Number.isInteger(value) && isPrime(value)) primeCollectionCount++;
+    else if(Number.isInteger(value) && value > 1) compositeCollectionCount++;
+  }
+
+  return {
+    primeCollectionCount,
+    compositeCollectionCount,
+    otherCollectionCount: (collections?.length ?? 0) - primeCollectionCount - compositeCollectionCount
   };
 }
 
@@ -305,6 +325,9 @@ export function summarizeScoreResults(results){
   const highScore = results.length
     ? results.reduce((best, result) => result.finalScore > best.finalScore ? result : best)
     : null;
+  const totalPrimeCollectionCount = results.reduce((sum, result) => sum + result.primeCollectionCount, 0);
+  const totalCompositeCollectionCount = results.reduce((sum, result) => sum + result.compositeCollectionCount, 0);
+  const classifiedCollectionCount = totalPrimeCollectionCount + totalCompositeCollectionCount;
 
   return {
     games: results.length,
@@ -313,6 +336,12 @@ export function summarizeScoreResults(results){
     highestScore: results.length ? Math.max(...results.map(result => result.finalScore)) : 0,
     lowestScore: results.length ? Math.min(...results.map(result => result.finalScore)) : 0,
     averageCollectionCount: average(results, result => result.collectionCount),
+    averagePrimeCollectionCount: average(results, result => result.primeCollectionCount),
+    averageCompositeCollectionCount: average(results, result => result.compositeCollectionCount),
+    totalPrimeCollectionCount,
+    totalCompositeCollectionCount,
+    primeCollectionShare: classifiedCollectionCount ? totalPrimeCollectionCount / classifiedCollectionCount : 0,
+    compositeCollectionShare: classifiedCollectionCount ? totalCompositeCollectionCount / classifiedCollectionCount : 0,
     maxCollectionCount: results.length ? Math.max(...results.map(result => result.collectionCount)) : 0,
     averageSteps: average(results, result => result.steps),
     completed100StepCount,

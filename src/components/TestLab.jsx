@@ -1472,6 +1472,10 @@ function ScoreSummaryGrid({result}){
       <ResultItem label="最高积分" value={result.highestScore} highlight />
       <ResultItem label="最低积分" value={result.lowestScore} />
       <ResultItem label="平均收藏数量" value={result.averageCollectionCount.toFixed(2)} />
+      <ResultItem label="质数收藏" value={result.averagePrimeCollectionCount.toFixed(2)} />
+      <ResultItem label="合数收藏" value={result.averageCompositeCollectionCount.toFixed(2)} />
+      <ResultItem label="质数占比" value={`${(result.primeCollectionShare * 100).toFixed(1)}%`} />
+      <ResultItem label="合数占比" value={`${(result.compositeCollectionShare * 100).toFixed(1)}%`} />
       <ResultItem label="最大收藏数量" value={result.maxCollectionCount} />
       <ResultItem label="平均实际 Step" value={result.averageSteps.toFixed(2)} />
       <ResultItem label="完成 100 Step" value={`${result.completed100StepCount} / ${result.games ?? result.attempts} (${(result.completed100StepRate * 100).toFixed(1)}%)`} />
@@ -1486,6 +1490,10 @@ function RandomSummaryGrid({result}){
       <ResultItem label="平均最终积分" value={result.averageFinalScore.toFixed(2)} />
       <ResultItem label="平均得分效率" value={result.averageScoreEfficiency.toFixed(2)} />
       <ResultItem label="平均收藏数量" value={result.averageCollectionCount.toFixed(2)} />
+      <ResultItem label="质数收藏" value={result.averagePrimeCollectionCount.toFixed(2)} />
+      <ResultItem label="合数收藏" value={result.averageCompositeCollectionCount.toFixed(2)} />
+      <ResultItem label="质数占比" value={`${(result.primeCollectionShare * 100).toFixed(1)}%`} />
+      <ResultItem label="合数占比" value={`${(result.compositeCollectionShare * 100).toFixed(1)}%`} />
       <ResultItem label="平均实际 Step" value={result.averageSteps.toFixed(2)} />
       <ResultItem label="完成 100 Step" value={`${result.completed100StepCount} / ${result.games} (${(result.completed100StepRate * 100).toFixed(1)}%)`} />
       <ResultItem label="提前死局" value={`${result.deadlockCount} / ${result.games} (${(result.deadlockRate * 100).toFixed(1)}%)`} />
@@ -1509,6 +1517,9 @@ function ScoreRecord({title, game, difficulty}){
         收藏 <strong>{game.collectionCount}</strong>
         {" · "}
         Step <strong>{game.steps} / 100</strong>
+      </div>
+      <div className="test-lab-record-collection">
+        收藏构成：质数 {game.primeCollectionCount} · 合数 {game.compositeCollectionCount}
       </div>
       <div className="test-lab-record-collection">最终盘面：{formatScoreBoard(game.finalBoard) || "空"}</div>
       <details className="test-lab-action-details">
@@ -1584,6 +1595,9 @@ function AllScoreRecords({title = "全部测试记录", games = []}){
               <div>开局 #{gameKey}</div>
               <div className="test-lab-record-collection">开局：{formatScoreBoard(game.initialBoard)}</div>
               <div className="test-lab-record-collection">最终盘面：{formatScoreBoard(game.finalBoard) || "空"}</div>
+              <div className="test-lab-record-collection">
+                收藏构成：质数 {game.primeCollectionCount} · 合数 {game.compositeCollectionCount}
+              </div>
               <ol>
                 {game.actionPath.map(action => (
                   <li key={action.number}>

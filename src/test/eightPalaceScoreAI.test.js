@@ -3,10 +3,12 @@ import { readFileSync } from "node:fs";
 import {
   chooseScoreAction,
   evaluateScoreState,
+  getCollectionNumberCounts,
   runFixedScoreAttempts,
   runScoreGame,
   runScoreGames,
-  scoreAITestUtils
+  scoreAITestUtils,
+  summarizeScoreResults
 } from "../ai/eightPalaceScoreAI";
 import { applyAction, createGameState, getLegalActions } from "../game/gameEngine";
 import {
@@ -15,11 +17,19 @@ import {
 } from "../game/initialValues";
 import { BASE_FOOD_TYPES } from "../game/rules";
 import { getScoreEfficiency } from "../game/scoreEfficiency";
+import { isPrime } from "../game/prime";
 
 assert.equal(getScoreEfficiency(2834, 100), 28.34);
 assert.equal(getScoreEfficiency(2400, 60), 40);
 assert.equal(getScoreEfficiency(2400, 0), 0);
 assert.equal(getScoreEfficiency(0, 0).toFixed(2), "0.00");
+assert.deepEqual([2, 3, 5, 7].map(isPrime), [true, true, true, true]);
+assert.deepEqual([4, 6, 8, 9].map(isPrime), [false, false, false, false]);
+assert.equal(isPrime(1), false);
+assert.deepEqual(
+  getCollectionNumberCounts([{value: 1}, {value: 2}, {value: 3}, {value: 4}, {value: 9}]),
+  {primeCollectionCount: 2, compositeCollectionCount: 2, otherCollectionCount: 1}
+);
 
 const opening = createEightPalaceInitialValues();
 const result = await runScoreGame({depth: 2, beamWidth: 12, maxActions: 20, initialOpening: opening});
@@ -32,6 +42,25 @@ assert.notEqual(result.gameOverReason, "eight_palace_keys_missing");
 assert.equal(result.finalScore, result.collections.reduce((sum, card) => sum + card.scoreGain, 0));
 assert.equal(result.score, result.finalScore);
 assert.equal(result.scoreEfficiency, getScoreEfficiency(result.score, result.steps));
+assert.equal(typeof result.primeCollectionCount, "number");
+assert.equal(typeof result.compositeCollectionCount, "number");
+assert.equal(
+  result.primeCollectionCount + result.compositeCollectionCount + result.otherCollectionCount,
+  result.collections.length
+);
+const behaviorBeforeObservation = JSON.stringify({
+  actionPath: result.actionPath,
+  score: result.score,
+  steps: result.steps,
+  collectionCount: result.collectionCount
+});
+getCollectionNumberCounts(result.collections);
+assert.equal(JSON.stringify({
+  actionPath: result.actionPath,
+  score: result.score,
+  steps: result.steps,
+  collectionCount: result.collectionCount
+}), behaviorBeforeObservation, "collection observation does not alter AI results");
 assert.ok(result.actionPath.every(action =>
   action.scoreEfficiencyAfter === getScoreEfficiency(action.scoreAfter, action.stepAfter)
 ));
@@ -68,6 +97,22 @@ for(let index = 0; index < 10; index++){
   assert.ok(scoreGame.actionPath.every(action => Object.hasOwn(action, "scoreEfficiencyAfter")));
   assert.ok(randomGame.actionPath.every(action => Object.hasOwn(action, "scoreEfficiencyAfter")));
 }
+for(const summary of [tenGames, tenGames.randomComparison]){
+  const results = summary.results;
+  const totalPrime = results.reduce((sum, game) => sum + game.primeCollectionCount, 0);
+  const totalComposite = results.reduce((sum, game) => sum + game.compositeCollectionCount, 0);
+  assert.equal(summary.averagePrimeCollectionCount, totalPrime / results.length);
+  assert.equal(summary.averageCompositeCollectionCount, totalComposite / results.length);
+  assert.equal(summary.primeCollectionShare, totalPrime + totalComposite ? totalPrime / (totalPrime + totalComposite) : 0);
+  assert.equal(summary.compositeCollectionShare, totalPrime + totalComposite ? totalComposite / (totalPrime + totalComposite) : 0);
+}
+
+const weightedSummary = summarizeScoreResults([
+  {finalScore: 0, scoreEfficiency: 0, collectionCount: 1, primeCollectionCount: 1, compositeCollectionCount: 0, steps: 1, completed100Steps: false, deadlocked: false},
+  {finalScore: 0, scoreEfficiency: 0, collectionCount: 9, primeCollectionCount: 0, compositeCollectionCount: 9, steps: 1, completed100Steps: false, deadlocked: false}
+]);
+assert.equal(weightedSummary.primeCollectionShare, 0.1, "batch share weights every classified collection equally");
+assert.notEqual(weightedSummary.primeCollectionShare, 0.5, "batch share is not an average of per-game shares");
 
 const testLabSource = readFileSync("src/components/TestLab.jsx", "utf8");
 assert.match(testLabSource, /Score AI 全部测试记录/);
