@@ -21,6 +21,7 @@ import GameOver from "./components/GameOver";
 import CombineHistoryPanel from "./components/CombineHistoryPanel";
 import ActionToast from "./components/ActionToast";
 import BoardTypeTotals from "./components/BoardTypeTotals";
+import ItemBar from "./components/ItemBar";
 
 import useGame from "./hooks/useGame";
 
@@ -780,19 +781,6 @@ function App(){
               料理台
             </div>
 
-            <div className="game-heater-tools">
-              <button
-                type="button"
-                className={`game-heater-button${heaterSelectMode ? " game-heater-button--active" : ""}`}
-                disabled={!heaterSelectMode && !game.heaterAvailable}
-                onClick={toggleHeaterMode}
-              >
-                {heaterSelectMode ? "取消加热" : `🔥 加热器 · +1 · ¥${game.heaterCost}`}
-              </button>
-              {heaterSelectMode && <span className="game-heater-prompt">选择一道料理进行加热</span>}
-            </div>
-
-
             <div className="game-section-count">
 
               {game.numbers.length}
@@ -908,6 +896,14 @@ function App(){
                 clearedCells={
                   clearedCells
                 }
+              />
+
+              <ItemBar
+                money={game.money}
+                heaterCost={game.heaterCost}
+                heaterAvailable={game.heaterAvailable}
+                heaterActive={heaterSelectMode}
+                onHeaterClick={toggleHeaterMode}
               />
 
             </div>

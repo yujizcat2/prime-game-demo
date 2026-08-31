@@ -13,12 +13,15 @@ import { gcd } from "../utils/math";
 import { getScoreEfficiency } from "../game/scoreEfficiency";
 import { isPrime } from "../game/prime";
 import { summarizeCollectionEfficiencyTimelines } from "../game/collectionEfficiency";
+import { applyHeater, canUseHeater, getHeaterCost, isHeaterTarget } from "../game/heater";
 
 export const SCORE_AI_DEFAULTS = Object.freeze({
   depth: 4,
   beamWidth: 50,
   maxActions: 100
 });
+
+export const HEATER_AI_COST_PENALTY_WEIGHT = 100_000;
 
 function createScoreOpening(opening = createEightPalaceInitialValues()){
   return opening.map(card => ({
@@ -37,6 +40,7 @@ function snapshotBoard(board){
 }
 
 function getActionKey(action){
+  if(action.type === "heater") return `${action.type}:${action.index}`;
   if(action.type === "apply_one") return `${action.type}:${action.oneIndex}:${action.targetIndex}`;
   if(action.index !== undefined) return `${action.type}:${action.index}`;
   return `${action.type}:${(action.indexes ?? []).join("-")}`;
@@ -93,13 +97,13 @@ function compactOrigin(origin, depth = 0){
 // Beam nodes only need rule-relevant board data and current score. The live
 // route is never compacted; this prevents thousands of speculative nodes from
 // retaining recursive UI provenance and collection display history.
-function compactSearchState(state){
+function compactSearchState(state, preserveCollections = false){
   return {
     ...state,
     board: state.board.map(piece => piece ? {...piece, origin: compactOrigin(piece.origin)} : null),
-    collectionCards: [],
-    collectionTimeline: [],
-    latestCollection: null
+    collectionCards: preserveCollections ? state.collectionCards : [],
+    collectionTimeline: preserveCollections ? state.collectionTimeline : [],
+    latestCollection: preserveCollections ? state.latestCollection : null
   };
 }
 
@@ -152,6 +156,26 @@ export function evaluateScoreState(state){
     - (terminalDeadlock ? 100_000_000 : 0);
 }
 
+export function getScoreCandidateActions(state, {
+  allowHeater = false,
+  heaterUsedThisStep = false
+} = {}){
+  const actions = state?.gameOver ? [] : getLegalActions(state);
+  if(!allowHeater || heaterUsedThisStep || !canUseHeater(state)) return actions;
+  return [
+    ...actions,
+    ...state.board.flatMap((piece, index) =>
+      isHeaterTarget(piece) ? [{type: "heater", index}] : []
+    )
+  ];
+}
+
+function applyScoreAction(state, action){
+  return action.type === "heater"
+    ? resolveGameOver(applyHeater(state, action.index))
+    : applyAction(state, action);
+}
+
 function shuffled(items){
   const copy = [...items];
   for(let index = copy.length - 1; index > 0; index--){
@@ -164,11 +188,13 @@ function shuffled(items){
 export function chooseScoreAction(state, {
   depth = SCORE_AI_DEFAULTS.depth,
   beamWidth = SCORE_AI_DEFAULTS.beamWidth,
-  explore = false
+  explore = false,
+  allowHeater = false,
+  heaterUsedThisStep = false
 } = {}){
   if(!state || state.gameOver || state.steps >= state.stepLimit) return null;
 
-  let frontier = [{state, firstAction: null, evaluation: evaluateScoreState(state)}];
+  let frontier = [{state, firstAction: null, evaluation: evaluateScoreState(state), heaterUsedThisStep, heaterSpending: 0}];
   let best = null;
   const seen = new Map([[getStateKey(state), evaluateScoreState(state)]]);
 
@@ -176,13 +202,23 @@ export function chooseScoreAction(state, {
     const candidates = [];
 
     for(const node of frontier){
-      const actions = explore ? shuffled(getLegalActions(node.state)) : getLegalActions(node.state);
+      const availableActions = getScoreCandidateActions(node.state, {
+        allowHeater,
+        heaterUsedThisStep: node.heaterUsedThisStep
+      });
+      const actions = explore ? shuffled(availableActions) : availableActions;
       for(const action of actions){
-        const appliedState = applyAction(node.state, action);
+        const appliedState = applyScoreAction(node.state, action);
         if(appliedState === node.state) continue;
-        const evaluation = evaluateScoreState(appliedState);
-        const nextState = compactSearchState(appliedState);
-        const key = getStateKey(nextState);
+        const heaterCost = action.type === "heater" ? getHeaterCost(node.state) : 0;
+        const heaterSpending = node.heaterSpending + heaterCost;
+        const evaluation = evaluateScoreState(appliedState)
+          - heaterSpending * HEATER_AI_COST_PENALTY_WEIGHT;
+        const nextState = compactSearchState(appliedState, allowHeater);
+        const nextHeaterUsedThisStep = action.type === "heater";
+        const key = allowHeater
+          ? `${getStateKey(nextState)}:${nextState.money}:${nextState.heaterUseCount}:${nextHeaterUsedThisStep}`
+          : getStateKey(nextState);
         if((seen.get(key) ?? -Infinity) >= evaluation) continue;
         seen.set(key, evaluation);
         candidates.push({
@@ -190,6 +226,8 @@ export function chooseScoreAction(state, {
           firstAction: node.firstAction ?? action,
           evaluation,
           immediateGain: nextState.score - state.score,
+          heaterUsedThisStep: nextHeaterUsedThisStep,
+          heaterSpending,
           tieBreaker: explore ? Math.random() : 0
         });
       }
@@ -238,6 +276,14 @@ function describeAction(state, action, nextState, number){
     moneyBefore: state.money ?? 0,
     moneyAfter: nextState.money ?? 0,
     moneyGain: (nextState.money ?? 0) - (state.money ?? 0),
+    heaterUse: action.type === "heater" ? {
+      step: state.steps,
+      fromValue: state.board[action.index]?.value ?? null,
+      toValue: nextState.board[action.index]?.value ?? null,
+      cost: getHeaterCost(state),
+      moneyBefore: state.money ?? 0,
+      moneyAfter: nextState.money ?? 0
+    } : null,
     collectionEvents,
     collectionCountAfter: nextState.collectionCards.length,
     boardCountAfter: getBoardCount(nextState.board)
@@ -250,23 +296,25 @@ export async function runScoreGame({
   maxActions = SCORE_AI_DEFAULTS.maxActions,
   initialOpening = null,
   explore = false,
-  strategy = "score"
+  strategy = "score",
+  allowHeater = false
 } = {}){
   const opening = createScoreOpening(initialOpening ?? createEightPalaceInitialValues());
   let state = resolveGameOver(createGameState(opening));
   const initialBoard = snapshotBoard(state.board);
   const actionPath = [];
+  let heaterUsedThisStep = false;
 
-  while(!state.gameOver && state.steps < state.stepLimit && actionPath.length < Math.min(maxActions, state.stepLimit)){
-    const legalActions = getLegalActions(state);
+  while(!state.gameOver && state.steps < state.stepLimit && state.steps < maxActions){
+    const legalActions = getScoreCandidateActions(state, {allowHeater, heaterUsedThisStep});
     if(legalActions.length === 0){
-      state = resolveGameOver(state);
+      state = {...state, gameOver: true, gameOverReason: "no_legal_actions"};
       break;
     }
 
     const action = strategy === "random"
       ? legalActions[Math.floor(Math.random() * legalActions.length)]
-      : chooseScoreAction(state, {depth, beamWidth, explore});
+      : chooseScoreAction(state, {depth, beamWidth, explore, allowHeater, heaterUsedThisStep});
     if(!action) break;
 
     // Keep the exact legal set used for selection so tests and records can
@@ -274,15 +322,29 @@ export async function runScoreGame({
     const legalActionKeys = new Set(legalActions.map(getActionKey));
     if(!legalActionKeys.has(getActionKey(action))) throw new Error("Score AI selected an illegal action");
 
-    const nextState = applyAction(state, action);
+    const nextState = applyScoreAction(state, action);
     if(nextState === state) throw new Error("Score AI action was rejected by the formal game engine");
     actionPath.push(describeAction(state, action, nextState, actionPath.length + 1));
+    heaterUsedThisStep = action.type === "heater";
     state = compactLiveState(nextState);
   }
 
   const completed100Steps = state.steps === state.stepLimit;
   const deadlocked = state.gameOverReason === "no_legal_actions" && !completed100Steps;
   const collectionNumberCounts = getCollectionNumberCounts(state.collectionCards);
+  const heaterTimeline = actionPath.flatMap((action, index) => {
+    if(!action.heaterUse) return [];
+    const nextAction = actionPath.slice(index + 1).find(candidate => candidate.type !== "heater") ?? null;
+    return [{
+      ...action.heaterUse,
+      nextAction: nextAction ? {
+        type: nextAction.type,
+        indexes: nextAction.indexes,
+        inputs: nextAction.inputs
+      } : null
+    }];
+  });
+  const heaterSpending = heaterTimeline.reduce((sum, event) => sum + event.cost, 0);
 
   return {
     strategy,
@@ -291,6 +353,10 @@ export async function runScoreGame({
     score: state.score,
     finalScore: state.score,
     finalMoney: state.money ?? 0,
+    heaterUseCount: heaterTimeline.length,
+    heaterSpending,
+    averageHeaterCost: heaterTimeline.length ? heaterSpending / heaterTimeline.length : 0,
+    heaterTimeline,
     scoreEfficiency: getScoreEfficiency(state.score, state.steps),
     collectionCount: state.collectionCards.length,
     collectionEfficiencyTimeline: structuredClone(state.collectionEfficiencyTimeline ?? []),
@@ -339,11 +405,18 @@ export function summarizeScoreResults(results){
   const totalPrimeCollectionCount = results.reduce((sum, result) => sum + result.primeCollectionCount, 0);
   const totalCompositeCollectionCount = results.reduce((sum, result) => sum + result.compositeCollectionCount, 0);
   const classifiedCollectionCount = totalPrimeCollectionCount + totalCompositeCollectionCount;
+  const totalHeaterUseCount = results.reduce((sum, result) => sum + (result.heaterUseCount ?? 0), 0);
+  const totalHeaterSpending = results.reduce((sum, result) => sum + (result.heaterSpending ?? 0), 0);
 
   return {
     games: results.length,
     averageFinalScore: average(results, result => result.finalScore),
     averageFinalMoney: average(results, result => result.finalMoney ?? 0),
+    averageHeaterUseCount: average(results, result => result.heaterUseCount ?? 0),
+    averageHeaterSpending: average(results, result => result.heaterSpending ?? 0),
+    averageHeaterCost: totalHeaterUseCount ? totalHeaterSpending / totalHeaterUseCount : 0,
+    totalHeaterUseCount,
+    totalHeaterSpending,
     averageScoreEfficiency: average(results, result => result.scoreEfficiency),
     highestScore: results.length ? Math.max(...results.map(result => result.finalScore)) : 0,
     lowestScore: results.length ? Math.min(...results.map(result => result.finalScore)) : 0,
@@ -375,10 +448,12 @@ export async function runScoreGames({
   beamWidth = SCORE_AI_DEFAULTS.beamWidth,
   maxActions = SCORE_AI_DEFAULTS.maxActions,
   onProgress = null,
-  compareRandom = true
+  compareRandom = true,
+  compareHeater = false
 } = {}){
   const scoreResults = [];
   const randomResults = [];
+  const heaterResults = [];
 
   for(let gameIndex = 1; gameIndex <= games; gameIndex++){
     const opening = createDifficultyInitialValues(difficulty);
@@ -386,6 +461,19 @@ export async function runScoreGames({
     result.gameIndex = gameIndex;
     result.openingId = gameIndex;
     scoreResults.push(result);
+
+    if(compareHeater){
+      const heaterResult = await runScoreGame({
+        depth,
+        beamWidth,
+        maxActions,
+        initialOpening: opening,
+        allowHeater: true
+      });
+      heaterResult.gameIndex = gameIndex;
+      heaterResult.openingId = gameIndex;
+      heaterResults.push(heaterResult);
+    }
 
     if(compareRandom){
       const randomResult = await runScoreGame({maxActions, initialOpening: opening, strategy: "random"});
@@ -407,12 +495,19 @@ export async function runScoreGames({
     await new Promise(resolve => setTimeout(resolve, 0));
   }
 
+  const scoreSummary = summarizeScoreResults(scoreResults);
+  const heaterComparison = compareHeater ? summarizeScoreResults(heaterResults) : null;
+
   return {
-    ...summarizeScoreResults(scoreResults),
+    ...scoreSummary,
     depth,
     beamWidth,
     maxActions,
     difficulty,
+    heaterComparison,
+    heaterAverageScoreDifference: heaterComparison
+      ? heaterComparison.averageFinalScore - scoreSummary.averageFinalScore
+      : 0,
     randomComparison: compareRandom ? summarizeScoreResults(randomResults) : null
   };
 }
@@ -459,4 +554,9 @@ export async function runFixedScoreAttempts({
   };
 }
 
-export const scoreAITestUtils = {getActionKey, getStateKey, getImmediateScorePotential};
+export const scoreAITestUtils = {
+  getActionKey,
+  getStateKey,
+  getImmediateScorePotential,
+  applyScoreAction
+};

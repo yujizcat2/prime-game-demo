@@ -493,7 +493,8 @@ export default function TestLab({
           beamWidth: SCORE_AI_DEFAULTS.beamWidth,
           maxActions: SCORE_AI_DEFAULTS.maxActions,
           onProgress: setProgress,
-          compareRandom: true
+          compareRandom: false,
+          compareHeater: true
         });
 
       }
@@ -1469,10 +1470,14 @@ function ScoreSummaryGrid({result}){
     <div className="test-lab-result-grid">
       <ResultItem label="测试局数" value={result.games ?? result.attempts} />
       <ResultItem label="平均最终积分" value={result.averageFinalScore.toFixed(2)} highlight />
+      <ResultItem label="平均最终金钱" value={`¥${result.averageFinalMoney.toFixed(2)}`} />
       <ResultItem label="平均得分效率" value={result.averageScoreEfficiency.toFixed(2)} highlight />
       <ResultItem label="最高积分" value={result.highestScore} highlight />
       <ResultItem label="最低积分" value={result.lowestScore} />
       <ResultItem label="平均收藏数量" value={result.averageCollectionCount.toFixed(2)} />
+      <ResultItem label="平均加热次数" value={result.averageHeaterUseCount.toFixed(2)} />
+      <ResultItem label="平均加热支出" value={`¥${result.averageHeaterSpending.toFixed(2)}`} />
+      <ResultItem label="平均单次成本" value={`¥${result.averageHeaterCost.toFixed(2)}`} />
       <ResultItem label="质数收藏" value={result.averagePrimeCollectionCount.toFixed(2)} />
       <ResultItem label="合数收藏" value={result.averageCompositeCollectionCount.toFixed(2)} />
       <ResultItem label="质数占比" value={`${(result.primeCollectionShare * 100).toFixed(1)}%`} />
@@ -1549,6 +1554,14 @@ function ScoreRecord({title, game, difficulty}){
         收藏构成：质数 {game.primeCollectionCount} · 合数 {game.compositeCollectionCount}
       </div>
       <div className="test-lab-record-collection">最终盘面：{formatScoreBoard(game.finalBoard) || "空"}</div>
+      {game.heaterTimeline?.length > 0 && <div className="test-lab-record-collection">
+        <strong>Heater 时间线</strong>
+        {game.heaterTimeline.map((event, index) => <div key={`${event.step}-${index}`}>
+          Heater #{index + 1} · Step {event.step} · {event.fromValue} → {event.toValue}
+          {` · Cost ¥${event.cost} · Money ¥${event.moneyBefore} → ¥${event.moneyAfter}`}
+          {event.nextAction ? ` · Next: ${formatScoreAction(event.nextAction)}` : ""}
+        </div>)}
+      </div>}
       <CollectionEfficiencyTimeline timeline={game.collectionEfficiencyTimeline} />
       <details className="test-lab-action-details">
         <summary>展开完整操作路线（{game.actionPath.length} 项）</summary>
@@ -1669,6 +1682,7 @@ function AllScoreRecords({title = "全部测试记录", games = []}){
 
 function ScoreResults({result, difficulty}){
   const random = result.randomComparison;
+  const heater = result.heaterComparison;
   return (
     <section className="test-lab-results">
       <div className="test-lab-result-title">单局多次测试</div>
@@ -1681,6 +1695,17 @@ function ScoreResults({result, difficulty}){
       <ScoreSummaryGrid result={result} />
       <AverageCollectionEfficiency timeline={result.averageCollectionEfficiencyTimeline} />
 
+      {heater && (
+        <div className="test-lab-section">
+          <div className="test-lab-section-title">Score + Heater AI</div>
+          <ScoreSummaryGrid result={heater} />
+          <div className="test-lab-record">
+            平均积分差（Heater - Score）：<strong>{result.heaterAverageScoreDifference.toFixed(2)}</strong>
+          </div>
+          <AverageCollectionEfficiency timeline={heater.averageCollectionEfficiencyTimeline} />
+        </div>
+      )}
+
       {random && (
         <div className="test-lab-section">
           <div className="test-lab-section-title">Random AI 对照</div>
@@ -1690,7 +1715,11 @@ function ScoreResults({result, difficulty}){
       )}
 
       <ScoreRecord title="Score AI 最高分纪录" game={result.highScore} difficulty={difficulty} />
+      {heater?.highScore && <ScoreRecord title="Score + Heater AI 最高分纪录" game={heater.highScore} difficulty={difficulty} />}
       <AllScoreRecords title="Score AI 全部测试记录" games={result.results} />
+      {heater?.results?.length > 0 && (
+        <AllScoreRecords title="Score + Heater AI 全部测试记录" games={heater.results} />
+      )}
       {random?.results?.length > 0 && (
         <AllScoreRecords title="Random AI 全部测试记录" games={random.results} />
       )}
@@ -1725,7 +1754,7 @@ function formatScoreBoard(board){
 }
 
 function formatScoreAction(action){
-  const label = {combine: "合成", combine_ordered: "合成", reduce: "约分", apply_one: "特殊 1"}[action.type] ?? action.type;
+  const label = {combine: "合成", combine_ordered: "合成", reduce: "约分", apply_one: "特殊 1", heater: "加热器"}[action.type] ?? action.type;
   const inputs = action.inputs.map(piece => `格${piece.index + 1} ${formatFoodType(piece.foodType)}${piece.value}`).join(" + ");
   return `${label}：${inputs}`;
 }
