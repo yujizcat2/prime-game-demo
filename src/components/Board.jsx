@@ -19,6 +19,7 @@ import {
 
 import BoardCell from "./BoardCell";
 import { getCombinePreviewPlacement } from "../game/combinePreview";
+import { getEightPalaceCollectionScoreGain } from "../game/collectionRules";
 
 import "./Board.css";
 
@@ -976,11 +977,13 @@ export default function Board({
               reducePreview?.autoCollect === true &&
               reducePreview?.clear !== true
             ){
-              const collectionKey = `${piece?.foodType ?? "default"}:${piece?.value ?? ""}`;
-              const alreadyCollected = collectionCards.some(card =>
-                (card.collectionKey ?? `${card.foodType ?? "default"}:${card.value ?? ""}`) === collectionKey
+              scorePreview = getEightPalaceCollectionScoreGain(
+                {collectionCards},
+                {
+                  value: 1,
+                  origin: {type: "reduce", parent: piece}
+                }
               );
-              scorePreview = alreadyCollected ? 0 : piece?.scoreValue ?? 0;
             }
 
 

@@ -1567,6 +1567,18 @@ function getEightPalaceCollectionKey(record){
   return `${record?.foodType ?? "default"}:${record?.value ?? ""}`;
 }
 
+export function getEightPalaceCollectionScoreGain(state, piece){
+  const record = getCollectionRecord(piece);
+  if(!record) return 0;
+
+  const collectionKey = getEightPalaceCollectionKey(record);
+  const alreadyCollected = (state.collectionCards ?? []).some(card =>
+    (card.collectionKey ?? getEightPalaceCollectionKey(card)) === collectionKey
+  );
+
+  return alreadyCollected ? 0 : record.scoreValue ?? getBaseScore(record.value);
+}
+
 // The 100 Step Eight Palace mode collects the concrete card that existed
 // immediately before reduction. Names and direct parents are captured now,
 // rather than reconstructed from a future registry.
@@ -1575,7 +1587,7 @@ export function applyEightPalaceCollection(state, piece){
   if(!record) return state;
 
   const value = record.value;
-  const scoreGain = record.scoreValue ?? getBaseScore(record.value);
+  const scoreGain = getEightPalaceCollectionScoreGain(state, piece);
   const collectionKey = getEightPalaceCollectionKey(record);
   const alreadyCollected = (state.collectionCards ?? []).some(card =>
     (card.collectionKey ?? getEightPalaceCollectionKey(card)) === collectionKey
