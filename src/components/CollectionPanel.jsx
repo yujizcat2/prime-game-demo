@@ -573,81 +573,6 @@ export default function CollectionPanel({
 
 
 
-  // ==========================================================
-  // 总收藏槽数量
-  // ==========================================================
-
-  const totalSlotCount =
-
-    collection.reduce(
-
-      (
-        total,
-        value
-      ) =>
-
-        total
-
-        +
-
-        getSlotCount(
-          value
-        ),
-
-      0
-
-    );
-
-
-
-
-
-  // ==========================================================
-  // 三槽完成数量
-  // ==========================================================
-
-  const completedCount =
-
-    collection.reduce(
-
-      (
-        total,
-        value
-      ) => {
-
-
-        return (
-
-          total
-
-          +
-
-          (
-            getSlotCount(
-              value
-            )
-
-            ===
-
-            3
-
-              ? 1
-
-              : 0
-          )
-
-        );
-
-      },
-
-      0
-
-    );
-
-
-
-
-
   return (
 
     <div
@@ -658,120 +583,23 @@ export default function CollectionPanel({
     >
 
 
-      {/* ======================================================
-          标题
-      ====================================================== */}
-
-      <div
-        className="
-          flex
-          items-center
-          justify-between
-          flex-wrap
-          gap-2
-          mb-3
-        "
-      >
-
-
-        <div
-          className="
-            flex
-            items-center
-            flex-wrap
-            gap-2
-          "
-        >
-
-
-          <span
-            className="
-              text-sm
-              font-bold
-              text-gray-600
-            "
-          >
-
-            已获得的料理包
-
+      {showMoneyFeedback && (
+        <div className="mb-3 flex flex-wrap items-center gap-2" aria-live="polite">
+          <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-[10px] font-bold text-emerald-700">
+            {latestCollection?.reward > 0
+              ? `+¥${latestCollection.reward}`
+              : latestCollection?.reward < 0
+                ? `-¥${Math.abs(latestCollection.reward)}`
+                : "¥0"}
+            {latestCollection?.sameSourceRepeat ? " · 同源重复" : ""}
           </span>
-
-
-
-          <span
-            className="
-              px-2
-              py-0.5
-              rounded-full
-              bg-white
-              text-[10px]
-              font-bold
-              text-gray-400
-            "
-          >
-
-            {totalSlotCount}
-
-          </span>
-
-          {
-            showMoneyFeedback &&
-            <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-[10px] font-bold text-emerald-700">
-              {latestCollection?.reward > 0
-                ? `+¥${latestCollection.reward}`
-                : latestCollection?.reward < 0
-                  ? `-¥${Math.abs(latestCollection.reward)}`
-                  : "¥0"}
-              {latestCollection?.sameSourceRepeat ? " · 同源重复" : ""}
-            </span>
-          }
-
-          {
-            showMoneyFeedback && latestCollection?.trendFrom != null &&
+          {latestCollection?.trendFrom != null && (
             <span className="text-[10px] font-bold text-amber-600">
               收藏趋势 ↓ {latestCollection.trendFrom} → {latestCollection.value}
             </span>
-          }
-
-
-
-          <span
-            className="
-              px-2
-              py-0.5
-              rounded-full
-              bg-gray-50
-              text-[9px]
-              font-bold
-              text-gray-400
-            "
-          >
-
-            完成 {completedCount}
-
-          </span>
-
-
+          )}
         </div>
-
-
-
-        <span
-          className="
-            hidden
-            sm:inline
-            text-[10px]
-            tracking-wider
-            text-gray-300
-          "
-        >
-
-          OBTAINED DISH PACKS
-
-        </span>
-
-
-      </div>
+      )}
 
 
 
@@ -895,11 +723,10 @@ export default function CollectionPanel({
                       }
 
 
-                      const name =
-                        getItemFoodName(
-                          path[0],
-                          type.key
-                        );
+                      const name = getItemFoodName(
+                        {value, foodType: type.key},
+                        type.key
+                      );
 
 
                       return name
