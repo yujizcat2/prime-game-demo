@@ -22,6 +22,7 @@ import {
   runFixedScoreAttempts,
   runScoreGames
 } from "../ai/eightPalaceScoreAI";
+import { FOOD_TYPE_LABELS } from "../data/specialOneRegistry";
 
 import "./TestLab.css";
 
@@ -1509,6 +1510,9 @@ function RandomSummaryGrid({result}){
   return (
     <div className="test-lab-result-grid">
       <ResultItem label="平均最终积分" value={result.averageFinalScore.toFixed(2)} />
+      <ResultItem label="平均最终金钱" value={`¥${result.averageFinalMoney.toFixed(2)}`} />
+      <ResultItem label="最高最终金钱" value={`¥${result.highestFinalMoney}`} />
+      <ResultItem label="最低最终金钱" value={`¥${result.lowestFinalMoney}`} />
       <ResultItem label="平均得分效率" value={result.averageScoreEfficiency.toFixed(2)} />
       <ResultItem label="平均收藏数量" value={result.averageCollectionCount.toFixed(2)} />
       <ResultItem label="质数收藏" value={result.averagePrimeCollectionCount.toFixed(2)} />
@@ -1533,6 +1537,8 @@ function ScoreRecord({title, game, difficulty}){
       <div>
         积分 <strong>{game.finalScore}</strong>
         {" · "}
+        金钱 <strong>¥{game.finalMoney}</strong>
+        {" · "}
         得分效率 <strong>{game.scoreEfficiency.toFixed(2)}</strong>
         {" · "}
         收藏 <strong>{game.collectionCount}</strong>
@@ -1555,6 +1561,15 @@ function ScoreRecord({title, game, difficulty}){
               {" · "}
               积分 {action.scoreBefore} → {action.scoreAfter}
               {action.scoreGain > 0 && <>（+{action.scoreGain}）</>}
+              {" · "}
+              金钱 ¥{action.moneyBefore} → ¥{action.moneyAfter}
+              {action.collectionEvents.map(event => (
+                <span key={event.id}>
+                  {" · 收藏 "}{event.value}{FOOD_TYPE_LABELS[event.foodType] ?? event.foodType}
+                  {event.isNewCollection ? " · 新收藏" : " · 重复"}
+                  {` · +¥${event.moneyGain} · 累计 ¥${event.cumulativeMoney}`}
+                </span>
+              ))}
               {" · "}
               效率 {action.scoreEfficiencyAfter.toFixed(2)}
             </li>
@@ -1609,7 +1624,7 @@ function AllScoreRecords({title = "全部测试记录", games = []}){
             onToggle={event => setGameExpanded(gameKey, event.currentTarget.open)}
           >
             <summary>
-              开局 #{gameKey} · {game.finalScore}分 · 效率{game.scoreEfficiency.toFixed(2)} · 收藏{game.collectionCount} · Step {game.steps}
+              开局 #{gameKey} · {game.finalScore}分 · ¥{game.finalMoney} · 收藏{game.collectionCount} · Step {game.steps}
               {status ? ` · ${status}` : ""}
             </summary>
 
@@ -1630,6 +1645,15 @@ function AllScoreRecords({title = "全部测试记录", games = []}){
                     {" · "}
                     积分 {action.scoreBefore} → {action.scoreAfter}
                     {action.scoreGain > 0 && <>（+{action.scoreGain}）</>}
+                    {" · "}
+                    金钱 ¥{action.moneyBefore} → ¥{action.moneyAfter}
+                    {action.collectionEvents.map(event => (
+                      <span key={event.id}>
+                        {" · 收藏 "}{event.value}{FOOD_TYPE_LABELS[event.foodType] ?? event.foodType}
+                        {event.isNewCollection ? " · 新收藏" : " · 重复"}
+                        {` · +¥${event.moneyGain} · 累计 ¥${event.cumulativeMoney}`}
+                      </span>
+                    ))}
                     {" · "}
                     效率 {action.scoreEfficiencyAfter.toFixed(2)}
                   </li>

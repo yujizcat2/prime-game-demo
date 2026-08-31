@@ -6,46 +6,9 @@ import {
   getMainLineage
 } from "./numberOrigin";
 
-import {
-  getBasePrice,
-  getCurrentPrice,
-  getLiquidity,
-  getRepeatPenalty,
-  getTrend
-} from "./price";
-
-import {
-  getFatiguedFirstReward,
-  getFatiguedRepeatPenalty
-} from "./actionFatigue";
 import { getFoodName } from "../data/food/foodRegistry";
 import { getBaseScore } from "./scoreValue";
-
-
-export function settleMoneyChanges(startingMoney, intendedChanges) {
-  let available = startingMoney + intendedChanges.reduce(
-    (sum, change) => sum + Math.max(0, change),
-    0
-  );
-
-  const actualChanges = intendedChanges.map(change => {
-    if(change >= 0){
-      return change;
-    }
-
-    const deduction = Math.min(available, Math.abs(change));
-    available -= deduction;
-    return -deduction;
-  });
-
-  return {
-    actualChanges,
-    money: Math.max(0, startingMoney + actualChanges.reduce((sum, change) => sum + change, 0))
-  };
-}
-
-
-
+import { getCollectionMoneyGain } from "./money";
 
 
 // ============================================================
@@ -870,214 +833,34 @@ function applySimulationCollection(
   state,
   piece
 ){
+  const value = getCollectionValue(piece);
+  const foodType = piece?.foodType ?? null;
+  const key = getSimulationCollectionKey(value, foodType);
 
-
-  const value =
-
-    getCollectionValue(
-      piece
-    );
-
-
-
-  const foodType =
-
-    piece?.foodType
-
-    ??
-
-    null;
-
-
-
-  if(
-    value == null ||
-    !isCollectibleFoodType(
-      foodType
-    )
-  ){
-
-
+  if(value == null || !isCollectibleFoodType(foodType) || !key){
     return state;
-
   }
 
-
-
-  const key =
-
-    getSimulationCollectionKey(
-
-      value,
-
-      foodType
-
-    );
-
-
-
-  if(
-    !key
-  ){
-
-
-    return state;
-
-  }
-
-
-
-  if(
-    state.forceSameSourceRepeat
-    ||
-    state.collection.has(key)
-  ){
-
-    const sameSourceRepeat = state.forceSameSourceRepeat === true;
-
-    const currentPrice = getCurrentPrice(
-      value,
-      state.collectionPricingBoard ?? state.board,
-      state.collectionPricingTrend ?? state.trend ?? 1
-    );
-    const fatigueCount = state.actionFatigue?.fatigueCount ?? 0;
-    const fatigueRate = state.actionFatigue?.fatigueRate ?? 0;
-    const penalty = getFatiguedRepeatPenalty(currentPrice, fatigueRate);
-    const fatigueExtraLoss = penalty - getRepeatPenalty(currentPrice);
-    const actualPenalty = state.deferCollectionMoney
-      ? penalty
-      : Math.min(state.money ?? 0, penalty);
-
-    if(state.deferCollectionMoney){
-      state.deferredMoneyChanges.push(-penalty);
-    }
-    else{
-      state.money = Math.max(0, (state.money ?? 0) - penalty);
-    }
-
-
-    state.latestCollectionReward =
-      -actualPenalty;
-
-    state.lastCollectionEvents?.push({
-      value,
-      foodType,
-      sourceKey: piece?.sourceKey ?? null,
-      sameSource: state.collectionBatchSameSource === true,
-      reward: -actualPenalty,
-      first: false,
-      sameSourceRepeat,
-      price: currentPrice,
-      penalty,
-      actionSignature: state.actionFatigue?.signature ?? null,
-      fatigueCount,
-      fatigueRate,
-      fatigueExtraLoss,
-      trendBefore: state.collectionPricingTrend ?? state.trend ?? 1,
-      trendAfter: state.collectionPricingTrend ?? state.trend ?? 1
-    });
-
-
-    return state;
-
-  }
-
-
-
-  const isFirstNumber =
-    !(state.collectionNumbers ?? new Set()).has(value);
-
-
-  const currentPrice =
-    getCurrentPrice(
-      value,
-      state.collectionPricingBoard ?? state.board,
-      state.collectionPricingTrend ?? state.trend ?? 1
-    );
-
-  const fatigueCount = state.actionFatigue?.fatigueCount ?? 0;
-  const fatigueRate = state.actionFatigue?.fatigueRate ?? 0;
-  const reward = getFatiguedFirstReward(currentPrice, fatigueRate);
-
-
-  const trendBefore =
-    state.collectionPricingTrend ?? state.trend ?? 1;
-
-
-  if(state.deferCollectionMoney){
-    state.deferredMoneyChanges.push(reward);
-  }
-  else{
-    state.money = (state.money ?? 0) + reward;
-  }
-
-
-  state.latestCollectionReward =
-    reward;
-
-
-  if(!(state.collectionNumbers instanceof Set)){
-    state.collectionNumbers = new Set();
-  }
-
-
-  if(isFirstNumber){
-    state.collectionNumbers.add(value);
-
-    if(state.deferCollectionTrend){
-      state.deferredFirstCollections.push(value);
-    }
-    else{
-      state.trend = getTrend(state.previousCollection, value);
-      state.previousCollection = value;
-    }
-  }
-
-
+  const isNewCollection = !state.collection.has(key);
+  const moneyGain = getCollectionMoneyGain(isNewCollection);
+  state.money = (state.money ?? 0) + moneyGain;
+  state.latestCollectionReward = moneyGain;
   state.lastCollectionEvents?.push({
     value,
     foodType,
-    sourceKey: piece?.sourceKey ?? null,
-    sameSource: state.collectionBatchSameSource === true,
-    reward,
-    first: true,
-    base: getBasePrice(value),
-    liquidity: getLiquidity(value, state.collectionPricingBoard ?? state.board),
-    trendBefore,
-    trendAfter: state.trend ?? 1,
-    price: currentPrice,
-    actionSignature: state.actionFatigue?.signature ?? null,
-    fatigueCount,
-    fatigueRate,
-    fatigueExtraLoss: currentPrice - reward
+    isNewCollection,
+    reward: moneyGain,
+    moneyGain,
+    cumulativeMoney: state.money
   });
 
-
-  state.collection.add(
-    key
-  );
-
-
-
-  if(
-    !Array.isArray(
-      state.collectionFoodTypeHistory
-    )
-  ){
-
-
-    state.collectionFoodTypeHistory =
-      [];
-
+  if(isNewCollection){
+    state.collection.add(key);
+    if(!(state.collectionNumbers instanceof Set)) state.collectionNumbers = new Set();
+    state.collectionNumbers.add(value);
+    if(!Array.isArray(state.collectionFoodTypeHistory)) state.collectionFoodTypeHistory = [];
+    state.collectionFoodTypeHistory.push(foodType);
   }
-
-
-
-  state.collectionFoodTypeHistory.push(
-    foodType
-  );
-
-
 
   return state;
 
@@ -1305,26 +1088,8 @@ function applyGameCollection(
   // ==========================================================
 
   if(
-    state.forceSameSourceRepeat
-    ||
     normalizedPaths[foodType]
   ){
-
-    const sameSourceRepeat = state.forceSameSourceRepeat === true;
-
-    const currentPrice = getCurrentPrice(
-      discoveredValue,
-      state.collectionPricingBoard ?? state.board,
-      state.collectionPricingTrend ?? state.trend ?? 1
-    );
-    const fatigueCount = state.actionFatigue?.fatigueCount ?? 0;
-    const fatigueRate = state.actionFatigue?.fatigueRate ?? 0;
-    const penalty = getFatiguedRepeatPenalty(currentPrice, fatigueRate);
-    const actualPenalty = state.deferCollectionMoney
-      ? penalty
-      : Math.min(state.money ?? 0, penalty);
-
-
     return {
 
       ...state,
@@ -1340,13 +1105,11 @@ function applyGameCollection(
       latestCollection: {
         value: discoveredValue,
         foodType,
-        reward: -actualPenalty,
+        reward: getCollectionMoneyGain(false),
+        moneyGain: getCollectionMoneyGain(false),
+        cumulativeMoney: state.money ?? 0,
+        isNewCollection: false,
         isFirstNumber: false,
-        sameSourceRepeat,
-        actionSignature: state.actionFatigue?.signature ?? null,
-        fatigueCount,
-        fatigueRate,
-        fatigueExtraLoss: penalty - getRepeatPenalty(currentPrice),
         trendFrom: null,
         eventId: (state.collectionEventId ?? 0) + 1
       },
@@ -1354,15 +1117,7 @@ function applyGameCollection(
       collectionEventId:
         (state.collectionEventId ?? 0) + 1,
 
-      money:
-        state.deferCollectionMoney
-          ? (state.money ?? 0)
-          : Math.max(0, (state.money ?? 0) - penalty),
-
-      deferredMoneyChanges:
-        state.deferCollectionMoney
-          ? [...(state.deferredMoneyChanges ?? []), -penalty]
-          : (state.deferredMoneyChanges ?? [])
+      money: state.money ?? 0
 
     };
 
@@ -1557,16 +1312,6 @@ function applyGameCollection(
   // 最新新槽
   // ==========================================================
 
-  const currentPrice =
-    getCurrentPrice(
-      discoveredValue,
-      state.collectionPricingBoard ?? state.board,
-      state.collectionPricingTrend ?? state.trend ?? 1
-    );
-
-  const fatigueCount = state.actionFatigue?.fatigueCount ?? 0;
-  const fatigueRate = state.actionFatigue?.fatigueRate ?? 0;
-
   const nextLatestCollection = {
 
     value:
@@ -1574,21 +1319,13 @@ function applyGameCollection(
 
     foodType,
 
-    reward:
-      getFatiguedFirstReward(currentPrice, fatigueRate),
+    reward: getCollectionMoneyGain(true),
 
-    price:
-      currentPrice,
+    moneyGain: getCollectionMoneyGain(true),
 
-    actionSignature:
-      state.actionFatigue?.signature ?? null,
+    cumulativeMoney: (state.money ?? 0) + getCollectionMoneyGain(true),
 
-    fatigueCount,
-
-    fatigueRate,
-
-    fatigueExtraLoss:
-      currentPrice - getFatiguedFirstReward(currentPrice, fatigueRate),
+    isNewCollection: true,
 
     isFirstNumber,
 
@@ -1726,30 +1463,7 @@ function applyGameCollection(
     score:
       nextScore,
 
-    money:
-      state.deferCollectionMoney
-        ? (state.money ?? 0)
-        : (state.money ?? 0) + nextLatestCollection.reward,
-
-    deferredMoneyChanges:
-      state.deferCollectionMoney
-        ? [...(state.deferredMoneyChanges ?? []), nextLatestCollection.reward]
-        : (state.deferredMoneyChanges ?? []),
-
-    previousCollection:
-      isFirstNumber && !state.deferCollectionTrend
-        ? discoveredValue
-        : (state.previousCollection ?? null),
-
-    trend:
-      isFirstNumber && !state.deferCollectionTrend
-        ? getTrend(state.previousCollection, discoveredValue)
-        : (state.trend ?? 1),
-
-    deferredFirstCollections:
-      isFirstNumber && state.deferCollectionTrend
-        ? [...(state.deferredFirstCollections ?? []), discoveredValue]
-        : (state.deferredFirstCollections ?? [])
+    money: (state.money ?? 0) + nextLatestCollection.moneyGain
 
   };
 
@@ -1866,7 +1580,9 @@ export function applyEightPalaceCollection(state, piece){
   const alreadyCollected = (state.collectionCards ?? []).some(card =>
     (card.collectionKey ?? getEightPalaceCollectionKey(card)) === collectionKey
   );
-  if(alreadyCollected) return state;
+  const isNewCollection = !alreadyCollected;
+  const moneyGain = getCollectionMoneyGain(isNewCollection);
+  const cumulativeMoney = (state.money ?? 0) + moneyGain;
 
   const snapshot = {
     id: (state.collectionEventId ?? 0) + 1,
@@ -1876,17 +1592,23 @@ export function applyEightPalaceCollection(state, piece){
     foodType: record.foodType ?? null,
     parents: createConcreteParentSnapshots(record),
     originType: record.origin?.type ?? null,
-    scoreGain,
+    scoreGain: isNewCollection ? scoreGain : 0,
+    isNewCollection,
+    moneyGain,
+    cumulativeMoney,
     step: (state.steps ?? 0) + 1
   };
 
   return {
     ...state,
-    collectionCards: [...(state.collectionCards ?? []), snapshot],
+    collectionCards: isNewCollection
+      ? [...(state.collectionCards ?? []), snapshot]
+      : (state.collectionCards ?? []),
     collectionTimeline: [...(state.collectionTimeline ?? []), snapshot],
     collectionEventId: snapshot.id,
     latestCollection: snapshot,
-    score: (state.score ?? 0) + snapshot.scoreGain
+    score: (state.score ?? 0) + snapshot.scoreGain,
+    money: cumulativeMoney
   };
 }
 
@@ -1897,104 +1619,18 @@ export function applyEightPalaceCollection(state, piece){
 
 export function applyCollections(
   state,
-  pieces,
-  pricingBoard = state?.board
+  pieces
 ){
   if(!state || !Array.isArray(pieces) || pieces.length === 0){
     return state;
   }
 
-  const lockedTrend = state.trend ?? 1;
-  const startingPrevious = state.previousCollection ?? null;
-  const startingMoney = state.money ?? 0;
-
-  let nextState = {
-    ...state,
-    collectionPricingBoard: pricingBoard,
-    collectionPricingTrend: lockedTrend,
-    deferCollectionTrend: true,
-    deferredFirstCollections: [],
-    deferCollectionMoney: true,
-    deferredMoneyChanges: []
-  };
-
-  const sameSourceTwins =
-    pieces.length === 2
-    && getCollectionValue(pieces[0]) === getCollectionValue(pieces[1])
-    && pieces[0]?.sourceKey != null
-    && pieces[0].sourceKey === pieces[1]?.sourceKey;
-
-  nextState.collectionBatchSameSource = sameSourceTwins;
-
-  for(let index = 0; index < pieces.length; index++){
-    const piece = pieces[index];
-    nextState = {
-      ...nextState,
-      forceSameSourceRepeat: sameSourceTwins && index === 1
-    };
-    nextState = applyCollection(nextState, piece);
-  }
-
-  let nextPrevious = startingPrevious;
-  let nextTrend = lockedTrend;
-
-  for(const value of nextState.deferredFirstCollections ?? []){
-    nextTrend = getTrend(nextPrevious, value);
-    nextPrevious = value;
-  }
-
-  const moneySettlement = settleMoneyChanges(
-    startingMoney,
-    nextState.deferredMoneyChanges ?? []
+  return pieces.reduce(
+    (nextState, piece) =>
+      nextState.gameMode === "eightPalace"
+      || nextState.gameMode === "simpleEightPalace"
+        ? applyEightPalaceCollection(nextState, piece)
+        : applyCollection(nextState, piece),
+    state
   );
-
-  if(Array.isArray(nextState.lastCollectionEvents)){
-    nextState.lastCollectionEvents = nextState.lastCollectionEvents.map(
-      (event, index) => {
-        const actualReward = moneySettlement.actualChanges[index] ?? event.reward;
-        const fatigueExtraLoss = event.first
-          ? Math.max(0, (event.price ?? 0) - actualReward)
-          : Math.max(0, Math.abs(actualReward) - getRepeatPenalty(event.price ?? 0));
-
-        return {
-          ...event,
-          reward: actualReward,
-          fatigueExtraLoss,
-          trendAfter: nextTrend
-        };
-      }
-    );
-  }
-
-  if(nextState.latestCollection && moneySettlement.actualChanges.length > 0){
-    nextState.latestCollection = {
-      ...nextState.latestCollection,
-      reward: moneySettlement.actualChanges[moneySettlement.actualChanges.length - 1]
-    };
-  }
-
-  if(moneySettlement.actualChanges.length > 0){
-    nextState.latestCollectionReward =
-      moneySettlement.actualChanges[moneySettlement.actualChanges.length - 1];
-  }
-
-  const {
-    collectionPricingBoard: _pricingBoard,
-    collectionPricingTrend: _pricingTrend,
-    deferCollectionTrend: _deferTrend,
-    deferredFirstCollections: _deferredFirstCollections,
-    deferCollectionMoney: _deferMoney,
-    deferredMoneyChanges: _deferredMoneyChanges,
-    forceSameSourceRepeat: _forceSameSourceRepeat,
-    collectionBatchSameSource: _collectionBatchSameSource,
-    actionFatigue: _actionFatigue,
-    ...settledState
-  } = nextState;
-
-  return {
-    ...settledState,
-    money: moneySettlement.money,
-    previousCollection: nextPrevious,
-    trend: nextTrend
-  };
 }

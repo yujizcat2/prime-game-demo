@@ -40,6 +40,7 @@ if(result.steps === 100){
 }
 assert.notEqual(result.gameOverReason, "eight_palace_keys_missing");
 assert.equal(result.finalScore, result.collections.reduce((sum, card) => sum + card.scoreGain, 0));
+assert.equal(result.finalMoney, result.collectionCount * 10);
 assert.equal(result.score, result.finalScore);
 assert.equal(result.scoreEfficiency, getScoreEfficiency(result.score, result.steps));
 assert.equal(typeof result.primeCollectionCount, "number");
@@ -130,6 +131,7 @@ for(const entry of result.actionPath){
   replay = nextState;
 }
 assert.equal(replay.score, result.finalScore, "AI simulation score matches formal collection score");
+assert.equal(replay.money, result.finalMoney, "AI simulation money matches formal game money");
 
 const atStep99 = {...createGameState(opening.map(card => ({...card, gameMode: "simpleEightPalace"}))), steps: 99};
 const finalAction = chooseScoreAction(atStep99, {depth: 1, beamWidth: 8});

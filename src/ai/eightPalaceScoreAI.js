@@ -216,6 +216,10 @@ function describeAction(state, action, nextState, number){
       ? [action.index]
       : [...(action.indexes ?? [])];
 
+  const collectionEvents = (nextState.collectionTimeline ?? [])
+    .slice((state.collectionTimeline ?? []).length)
+    .map(event => structuredClone(event));
+
   return {
     number,
     type: action.type,
@@ -231,6 +235,10 @@ function describeAction(state, action, nextState, number){
     scoreAfter: nextState.score,
     scoreEfficiencyAfter: getScoreEfficiency(nextState.score, nextState.steps),
     scoreGain: nextState.score - state.score,
+    moneyBefore: state.money ?? 0,
+    moneyAfter: nextState.money ?? 0,
+    moneyGain: (nextState.money ?? 0) - (state.money ?? 0),
+    collectionEvents,
     collectionCountAfter: nextState.collectionCards.length,
     boardCountAfter: getBoardCount(nextState.board)
   };
@@ -282,6 +290,7 @@ export async function runScoreGame({
     initialBoard,
     score: state.score,
     finalScore: state.score,
+    finalMoney: state.money ?? 0,
     scoreEfficiency: getScoreEfficiency(state.score, state.steps),
     collectionCount: state.collectionCards.length,
     collectionEfficiencyTimeline: structuredClone(state.collectionEfficiencyTimeline ?? []),
@@ -334,9 +343,12 @@ export function summarizeScoreResults(results){
   return {
     games: results.length,
     averageFinalScore: average(results, result => result.finalScore),
+    averageFinalMoney: average(results, result => result.finalMoney ?? 0),
     averageScoreEfficiency: average(results, result => result.scoreEfficiency),
     highestScore: results.length ? Math.max(...results.map(result => result.finalScore)) : 0,
     lowestScore: results.length ? Math.min(...results.map(result => result.finalScore)) : 0,
+    highestFinalMoney: results.length ? Math.max(...results.map(result => result.finalMoney ?? 0)) : 0,
+    lowestFinalMoney: results.length ? Math.min(...results.map(result => result.finalMoney ?? 0)) : 0,
     averageCollectionCount: average(results, result => result.collectionCount),
     averagePrimeCollectionCount: average(results, result => result.primeCollectionCount),
     averageCompositeCollectionCount: average(results, result => result.compositeCollectionCount),
@@ -387,6 +399,7 @@ export async function runScoreGames({
       total: games,
       currentGame: result,
       currentScore: result.finalScore,
+      currentMoney: result.finalMoney,
       currentCollection: result.collectionCount,
       currentSteps: result.steps,
       currentDeadlocked: result.deadlocked
@@ -430,7 +443,7 @@ export async function runFixedScoreAttempts({
     result.attemptIndex = attemptIndex;
     result.routeSignature = scoreRouteSignature(result);
     results.push(result);
-    onProgress?.({completed: attemptIndex, total: attempts, currentGame: result, currentScore: result.finalScore, currentCollection: result.collectionCount, currentSteps: result.steps, currentDeadlocked: result.deadlocked});
+    onProgress?.({completed: attemptIndex, total: attempts, currentGame: result, currentScore: result.finalScore, currentMoney: result.finalMoney, currentCollection: result.collectionCount, currentSteps: result.steps, currentDeadlocked: result.deadlocked});
     await new Promise(resolve => setTimeout(resolve, 0));
   }
 

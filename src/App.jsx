@@ -28,17 +28,9 @@ import {
   getActivityStatus
 } from "./game/activityStatus";
 
-import {
-  getCurrentPrice,
-  getRepeatPenalty
-} from "./game/price";
-
-import {
-  settleMoneyChanges
-} from "./game/collectionRules";
+import { getCollectionMoneyGain } from "./game/money";
 
 import { FOOD_TYPE_LABELS } from "./data/specialOneRegistry";
-import { getBaseScore } from "./game/scoreValue";
 import { getActionStatus } from "./game/actionStatus";
 
 
@@ -384,20 +376,10 @@ function App(){
             index === autoCollectIndexes[1];
 
 
-          const isFirstSlot =
-            !sameSourceRepeat &&
-            !collectedSlots.has(slotKey);
+          const isFirstSlot = !collectedSlots.has(slotKey);
 
 
-          reward =
-            isEightPalace
-              ? isFirstSlot
-                ? game.board[index]?.scoreValue ?? getBaseScore(value)
-                : 0
-              : (() => {
-                  const currentPrice = getCurrentPrice(value, game.board, game.trend);
-                  return isFirstSlot ? currentPrice : -getRepeatPenalty(currentPrice);
-                })();
+          reward = getCollectionMoneyGain(isFirstSlot);
 
 
           if(
@@ -426,38 +408,7 @@ function App(){
     );
 
 
-    const moneySettlement = isEightPalace
-      ? {
-          actualChanges: removedCells
-            .filter(cell => cell.reward != null)
-            .map(cell => cell.reward)
-        }
-      : settleMoneyChanges(
-          game.money,
-          removedCells
-            .filter(cell => cell.reward != null)
-            .map(cell => cell.reward)
-        );
-
-
-    let moneyChangeIndex =
-      0;
-
-
-    const settledRemovedCells =
-      removedCells.map(
-        cell =>
-          cell.reward == null
-            ? cell
-            : {
-                ...cell,
-                reward:
-                  moneySettlement
-                    .actualChanges[
-                      moneyChangeIndex++
-                    ]
-              }
-      );
+    const settledRemovedCells = removedCells;
 
 
     const token =
@@ -724,6 +675,7 @@ function App(){
                 ? game.score
                 : game.money
             }
+            money={game.money}
             stepLimit={game.stepLimit}
             gameMode={game.gameMode}
             collectionCount={game.collectionCards.length}

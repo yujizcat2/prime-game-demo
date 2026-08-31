@@ -76,7 +76,11 @@ collectionState = applyEightPalaceCollection(collectionState, collectible(83, T.
 assert.equal(collectionState.latestCollection.scoreGain, getBaseScore(83));
 assert.equal(collectionState.collectionCards[0].scoreGain, getBaseScore(83));
 assert.equal(collectionState.score, getBaseScore(83));
-assert.equal(applyEightPalaceCollection(collectionState, collectible(83, T.LAND, 999)), collectionState);
+const duplicateCollection = applyEightPalaceCollection(collectionState, collectible(83, T.LAND, 999));
+assert.equal(duplicateCollection.score, collectionState.score);
+assert.equal(duplicateCollection.money, collectionState.money);
+assert.equal(duplicateCollection.latestCollection.isNewCollection, false);
+assert.equal(duplicateCollection.latestCollection.moneyGain, 0);
 
 const combined83Score = Math.round(getBaseScore(83) * 1.1);
 collectionState = applyEightPalaceCollection(

@@ -77,8 +77,9 @@ assert.equal(collectionState.collectionCards[0].value, 24);
 assert.equal(typeof collectionState.collectionCards[0].name, "string");
 assert.deepEqual(collectionState.collectionCards[0].parents.map(parent => parent.value), [7, 17]);
 assert.ok(collectionState.collectionCards[0].parents.every(parent => typeof parent.name === "string"));
-assert.equal(collectionState.collectionTimeline.length, 2);
+assert.equal(collectionState.collectionTimeline.length, 4);
 assert.equal(collectionState.score, getBaseScore(24) + getBaseScore(83));
+assert.equal(collectionState.money, 20);
 
 const nativeCollection = applyEightPalaceCollection(createGameState(actionOpening), {
   value: 1,

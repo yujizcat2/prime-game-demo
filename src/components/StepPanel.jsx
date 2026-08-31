@@ -10,6 +10,8 @@ export default function StepPanel({
 
   score = 0,
 
+  money = 0,
+
   stepLimit = 100,
 
   gameMode = null,
@@ -91,6 +93,15 @@ export default function StepPanel({
 
 
       {isEightPalace && <>
+        <div className="step-panel-divider" />
+
+        <div className="step-panel-stat">
+          <span className="step-panel-label">金钱</span>
+          <strong className="step-panel-value step-panel-money">
+            <span className="step-panel-currency">¥</span>{money}
+          </strong>
+        </div>
+
         <div className="step-panel-divider" />
 
         <div className="step-panel-stat step-panel-stat--efficiency">
