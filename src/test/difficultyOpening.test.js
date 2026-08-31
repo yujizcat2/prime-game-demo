@@ -23,6 +23,9 @@ for(const [difficulty, config] of Object.entries(DIFFICULTY_OPENINGS)){
     assert.equal(new Set(values).size, config.count, `${difficulty} distinct values`);
     assert.ok(foodTypes.every(foodType => BASE_FOOD_TYPES.includes(foodType)), `${difficulty} base food types only`);
     assert.ok(!foodTypes.includes(FOOD_TYPES.DRINK), `${difficulty} excludes drink`);
+    if(difficulty === "hard"){
+      assert.deepEqual([...foodTypes].sort(), [...BASE_FOOD_TYPES].sort(), "hard covers every base food type");
+    }
 
     const state = createGameState(opening);
     const cards = state.board.filter(Boolean);
@@ -46,11 +49,12 @@ for(const [difficulty, config] of Object.entries(DIFFICULTY_OPENINGS)){
 }
 
 assert.deepEqual(createDifficultyInitialValues("easy").map(card => card.boardIndex), [0, 2, 6, 8]);
-assert.deepEqual(createDifficultyInitialValues("medium").map(card => card.boardIndex), [0, 2, 6, 8]);
-assert.deepEqual(createDifficultyInitialValues("hard").map(card => card.boardIndex), [0, 2, 4, 6, 8]);
+assert.deepEqual(createDifficultyInitialValues("medium").map(card => card.boardIndex), [0, 2, 4, 6, 8]);
+assert.deepEqual(createDifficultyInitialValues("hard").map(card => card.boardIndex), [0, 1, 2, 3, 5, 6, 7, 8]);
 
 const startScreenSource = readFileSync("src/components/StartScreen.jsx", "utf8");
 assert.doesNotMatch(startScreenSource, /随机探索|新手入门/);
+assert.doesNotMatch(startScreenSource, /4个数字|5个数字|8个数字|料理系|总和/);
 assert.match(startScreenSource, /id: "easy", label: "简单"/);
 assert.match(startScreenSource, /id: "medium", label: "中等"/);
 assert.match(startScreenSource, /id: "hard", label: "困难"/);

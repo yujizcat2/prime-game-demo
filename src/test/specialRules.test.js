@@ -53,7 +53,7 @@ const pairState=stateWith([{value:89,foodType:T.AQUATIC},{value:6,foodType:T.FRU
 assert.equal(getLegalActions(pairState).some(action=>action.type.startsWith("combine")&&action.indexes.includes(0)&&action.indexes.includes(1)),true);
 const pairUsed=applyAction(pairState,{type:"combine_ordered",indexes:[0,1]});
 assert.deepEqual(pairUsed.usedCombinationPairs,["6-89"]);
-pairUsed.board[3]={id:103,value:89,foodType:T.LAND};pairUsed.board[4]={id:104,value:6,foodType:T.DAIRY_EGG};pairUsed.board[5]={id:105,value:7,foodType:T.SPICE};
+pairUsed.board[3]={id:103,value:89,foodType:T.AQUATIC};pairUsed.board[4]={id:104,value:6,foodType:T.FRUIT};pairUsed.board[5]={id:105,value:7,foodType:T.SPICE};
 assert.equal(getLegalActions({...pairUsed,gameOver:false}).some(action=>action.type.startsWith("combine")&&action.indexes.includes(3)&&action.indexes.includes(4)),false);
 assert.equal(applyAction({...pairUsed,gameOver:false},{type:"combine_ordered",indexes:[4,3]}).usedCombinationPairs.length,1);
 assert.equal(getLegalActions({...pairUsed,gameOver:false}).some(action=>action.type.startsWith("combine")&&action.indexes.includes(3)&&action.indexes.includes(5)),true);
@@ -63,7 +63,7 @@ const reduceAfterUsed=stateWith([{value:6,foodType:T.LAND},{value:12,foodType:T.
 assert.equal(getLegalActions(reduceAfterUsed).some(action=>action.type==="reduce"&&action.indexes.includes(0)&&action.indexes.includes(1)),true);
 assert.deepEqual(createGameState([{value:89,foodType:T.LAND,boardIndex:0},{value:6,foodType:T.FRUIT,boardIndex:1}]).usedCombinationPairs,[]);
 
-const simPair=createSimulationState([89,6,7]);assert.equal(applySimulationAction(simPair,{type:"combine",indexes:[0,1]}),true);simPair.board[4]={value:89,foodType:T.LAND};simPair.board[5]={value:6,foodType:T.DAIRY_EGG};
+const simPair=createSimulationState([89,6,7]);assert.equal(applySimulationAction(simPair,{type:"combine",indexes:[0,1]}),true);simPair.board[4]={value:89,foodType:T.LAND};simPair.board[5]={value:6,foodType:T.VEGETABLE};
 assert.equal(getSimulationLegalActions(simPair).some(action=>action.type.startsWith("combine")&&action.indexes.includes(4)&&action.indexes.includes(5)),false);
 assert.deepEqual(cloneSimulationState(simPair).usedCombinationPairs,["6-89"]);
 

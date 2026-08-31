@@ -4,9 +4,9 @@ import {
 } from "../game/initialValues";
 
 const DIFFICULTIES = [
-  {id: "easy", label: "简单", detail: "4个数字 · 4个料理系 · 总和30"},
-  {id: "medium", label: "中等", detail: "4个数字 · 4个料理系 · 总和80"},
-  {id: "hard", label: "困难", detail: "5个数字 · 5个料理系 · 总和150"}
+  {id: "easy", label: "简单", detail: "轻松开局，慢慢熟悉料理搭配"},
+  {id: "medium", label: "中等", detail: "选择更多，开始考验搭配路线"},
+  {id: "hard", label: "困难", detail: "料理丰富，开局就要认真规划"}
 ];
 
 export default function StartScreen({ onStart, onOpenTest }) {

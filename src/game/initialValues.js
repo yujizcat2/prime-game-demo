@@ -27,13 +27,14 @@ const EIGHT_PALACE_VALUE_MAX = 101;
 
 export const DIFFICULTY_OPENINGS = Object.freeze({
   easy: Object.freeze({count: 4, typeCount: 4, targetSum: 30}),
-  medium: Object.freeze({count: 4, typeCount: 4, targetSum: 80}),
-  hard: Object.freeze({count: 5, typeCount: 5, targetSum: 150})
+  medium: Object.freeze({count: 5, typeCount: 5, targetSum: 100}),
+  hard: Object.freeze({count: 8, typeCount: 8, targetSum: 200})
 });
 
 const OPENING_BOARD_INDEXES = Object.freeze({
   4: Object.freeze([0, 2, 6, 8]),
-  5: Object.freeze([0, 2, 4, 6, 8])
+  5: Object.freeze([0, 2, 4, 6, 8]),
+  8: Object.freeze([0, 1, 2, 3, 5, 6, 7, 8])
 });
 
 function shuffle(items){
@@ -96,7 +97,7 @@ function createDistinctValues(count, targetSum){
 
 export function createDifficultyOpening({count, typeCount, targetSum}){
   if(count !== typeCount || !OPENING_BOARD_INDEXES[count]){
-    throw new RangeError("Difficulty openings require 4 or 5 cards with one distinct food type per card");
+    throw new RangeError("Difficulty openings require 4, 5, or 8 cards with one distinct food type per card");
   }
 
   const values = createDistinctValues(count, targetSum);
