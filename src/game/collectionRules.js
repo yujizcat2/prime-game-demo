@@ -1584,13 +1584,16 @@ export function applyEightPalaceCollection(state, piece){
   const moneyGain = getCollectionMoneyGain(isNewCollection);
   const cumulativeMoney = (state.money ?? 0) + moneyGain;
 
+  const parentFoods = createConcreteParentSnapshots(record);
   const snapshot = {
     id: (state.collectionEventId ?? 0) + 1,
     collectionKey,
     value,
     name: getFoodName(value, record.foodType),
     foodType: record.foodType ?? null,
-    parents: createConcreteParentSnapshots(record),
+    parents: parentFoods,
+    parentFoods,
+    origin: record.origin ? structuredClone(record.origin) : null,
     originType: record.origin?.type ?? null,
     scoreGain: isNewCollection ? scoreGain : 0,
     isNewCollection,

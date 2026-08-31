@@ -22,6 +22,8 @@
 .eight-collection-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .eight-collection-card { display: flex; flex-direction: column; gap: 3px; padding: 12px; border-radius: 14px; background: #f1f5f2; }
 .eight-collection-card strong { color: #31523b; }
+.eight-collection-card-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.eight-collection-card-heading em { color: #66766b; font-size: 11px; font-style: normal; font-weight: 800; }
 .eight-collection-card small { color: #89938c; font-size: 12px; line-height: 1.4; }
 .eight-collection-card span { color: #66766b; font-size: 12px; font-weight: 700; }
 

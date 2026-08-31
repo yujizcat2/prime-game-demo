@@ -1,5 +1,9 @@
 import "./EightPalaceCollectionPanel.css";
-import { getCollectionSourceText } from "./collectionDisplay";
+import {
+  getFoodCardDisplayName,
+  getFoodCardTypeLabel,
+  getFoodOriginDescription
+} from "./foodCardDisplay";
 
 export default function EightPalaceCollectionPanel({cards = [], score = 0}){
   return (
@@ -16,13 +20,21 @@ export default function EightPalaceCollectionPanel({cards = [], score = 0}){
         <p className="eight-collection-empty">通过约分获得第一张具体料理卡。</p>
       ) : (
         <div className="eight-collection-list">
-          {[...cards].reverse().map(card => (
-            <article className="eight-collection-card" key={card.id}>
-              <strong>{card.name}</strong>
-              <small>{getCollectionSourceText(card)}</small>
+          {[...cards].reverse().map(card => {
+            const displayCard = {
+              ...card,
+              parentFoods: card.parentFoods ?? card.parents ?? null
+            };
+            const name = getFoodCardDisplayName(displayCard) ?? card.name;
+            return <article className="eight-collection-card" key={card.id}>
+              <div className="eight-collection-card-heading">
+                <strong>{name} {card.value}</strong>
+                <em>{getFoodCardTypeLabel(displayCard)}</em>
+              </div>
+              <small>{getFoodOriginDescription(displayCard, name)}</small>
               <span>+{card.scoreGain ?? card.value}</span>
-            </article>
-          ))}
+            </article>;
+          })}
         </div>
       )}
     </section>

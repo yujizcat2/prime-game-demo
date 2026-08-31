@@ -15,7 +15,6 @@ import ActionHintPanel from "./components/ActionHintPanel";
 import CollectionPanel from "./components/CollectionPanel";
 import EightPalaceCollectionPanel from "./components/EightPalaceCollectionPanel";
 import StepPanel from "./components/StepPanel";
-import Discovery from "./components/Discovery";
 import BoardStatus from "./components/BoardStatus";
 import GameOver from "./components/GameOver";
 import CombineHistoryPanel from "./components/CombineHistoryPanel";
@@ -605,7 +604,6 @@ function App(){
 
   }
 
-
   if(
     !game.started
   ){
@@ -699,20 +697,6 @@ function App(){
             collectionEfficiencyTimeline={game.collectionEfficiencyTimeline}
           />
 
-
-          <Discovery
-            collection={
-              game.collection
-            }
-            collectionPaths={
-              game.collectionPaths
-            }
-            concreteCount={
-              ["eightPalace", "simpleEightPalace"].includes(game.gameMode)
-                ? game.collectionCards.length
-                : null
-            }
-          />
 
         </section>
 

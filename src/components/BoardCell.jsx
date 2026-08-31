@@ -10,10 +10,10 @@ import {
 
 import {
   getFoodTypeShortName,
-  getFoodName,
-  getFoodDisplayName
+  getFoodName
 } from "../data/food/foodRegistry";
-import { getSpecialOneDisplayName, getSpecialOneName } from "../data/specialOneRegistry";
+import { getSpecialOneName } from "../data/specialOneRegistry";
+import { getFoodCardDisplayName, getFoodOriginDescription } from "./foodCardDisplay";
 
 import "./Board.css";
 
@@ -468,7 +468,7 @@ export default function BoardCell({
   // 当前食物名称
   // ==========================================================
 
-  const foodName = isOne&&piece.specialOne?getSpecialOneDisplayName(piece):getFoodDisplayName(piece);
+  const foodName = getFoodCardDisplayName(piece);
 
 
 
@@ -525,128 +525,7 @@ export default function BoardCell({
 
 
 
-  // ==========================================================
-  // 组合来源
-  // ==========================================================
-
-  const parentFoodNames =
-
-    Array.isArray(
-      piece.parentFoods
-    )
-
-    &&
-
-    piece.parentFoods.length >=
-    2
-
-      ?
-
-        piece.parentFoods.map(
-
-          parent => {
-
-
-            if(
-              !parent
-            ){
-
-              return null;
-
-            }
-
-
-
-            return getFoodName(parent.value,parent.foodType);
-
-          }
-
-        )
-
-      :
-
-        null;
-
-
-
-
-
-  // ==========================================================
-  // 约分来源
-  // ==========================================================
-
-  const reducePreviousRecord =
-
-    piece.origin?.type ===
-    "reduce"
-
-      ?
-
-        piece.origin.parent
-
-      :
-
-        null;
-
-
-
-  const reducePreviousValue =
-
-    reducePreviousRecord?.value
-
-    ??
-
-    null;
-
-
-
-  const reducePreviousFoodType =
-
-    reducePreviousRecord?.foodType
-
-    ??
-
-    foodType
-
-    ??
-
-    null;
-
-
-
-  const reducePreviousFoodName =
-
-    reducePreviousValue !==
-    null
-
-      ?
-
-        getFoodName(
-
-          reducePreviousValue,
-
-          reducePreviousFoodType
-
-        )
-
-      :
-
-        null;
-
-
-
-  const originText =
-    piece.origin?.type === "heater" && piece.origin.from
-      ? `加热器 ← ${piece.origin.from.value}`
-      : reducePreviousFoodName
-
-      ? `一种由${reducePreviousFoodName}处理而来的${foodName}`
-
-      : parentFoodNames?.[0] && parentFoodNames?.[1]
-
-        ? `一种由${parentFoodNames[0]}与${parentFoodNames[1]}制成的${foodName}`
-
-        : `一种原生的${foodName}`;
+  const originText = getFoodOriginDescription(piece, foodName);
 
 
 

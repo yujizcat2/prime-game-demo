@@ -7,6 +7,11 @@ import {
   getFoodDisplayName,
   getFoodTypeShortName
 } from "../data/food/foodRegistry";
+import {
+  getFoodCardDisplayName,
+  getFoodCardTypeLabel,
+  getFoodOriginDescription
+} from "./foodCardDisplay";
 
 
 
@@ -700,7 +705,7 @@ export default function CollectionPanel({
 
 
 
-                const foodNames =
+                const foodDisplays =
 
                   COLLECTION_TYPES.flatMap(
 
@@ -723,14 +728,24 @@ export default function CollectionPanel({
                       }
 
 
-                      const name = getItemFoodName(
-                        {value, foodType: type.key},
-                        type.key
-                      );
+                      const originSnapshot = collectionOrigins?.[value]?.[type.key] ?? null;
+                      const parentSnapshot = collectionParents?.[value]?.[type.key] ?? null;
+                      const piece = {
+                        ...(originSnapshot ?? {}),
+                        value,
+                        foodType: type.key,
+                        parentFoods: originSnapshot?.parentFoods ?? parentSnapshot?.parentFoods ?? null
+                      };
+                      const name = getFoodCardDisplayName(piece);
 
 
                       return name
-                        ? [name]
+                        ? [{
+                            foodType: type.key,
+                            name,
+                            typeLabel: getFoodCardTypeLabel(piece),
+                            originText: getFoodOriginDescription(piece, name)
+                          }]
                         : [];
 
                     }
@@ -759,9 +774,10 @@ export default function CollectionPanel({
                     className={`
                       collection-item
                       relative
-                      min-w-[96px]
-                      min-h-[68px]
-                      px-2
+                      min-w-[190px]
+                      min-h-[88px]
+                      px-3
+                      py-2.5
                       rounded-xl
                       border
                       shadow-sm
@@ -789,34 +805,23 @@ export default function CollectionPanel({
                   >
 
 
-                    <span
-                      className="
-                        max-w-[112px]
-                        text-sm
-                        font-black
-                        text-gray-700
-                        leading-tight
-                        break-words
-                        text-center
-                      "
-                    >
-
-                      {
-                        foodNames.join(" · ")
-
-                        || value
-                      }
-
-                    </span>
-
-
-                    <span
-                      className="mt-1 text-[10px] font-bold leading-none text-gray-400"
-                    >
-
-                      {value}
-
-                    </span>
+                    <div className="w-full space-y-2 text-left">
+                      {foodDisplays.map(display => (
+                        <div key={display.foodType} className="min-w-0">
+                          <div className="flex items-baseline justify-between gap-2">
+                            <strong className="min-w-0 break-words text-sm font-black leading-tight text-gray-700">
+                              {display.name} {value}
+                            </strong>
+                            <span className="shrink-0 text-[10px] font-bold text-gray-500">
+                              {display.typeLabel}
+                            </span>
+                          </div>
+                          <p className="mt-1 break-words text-[10px] font-medium leading-snug text-gray-400">
+                            {display.originText}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
 
 
 
