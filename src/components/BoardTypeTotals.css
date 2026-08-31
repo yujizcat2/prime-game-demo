@@ -1,0 +1,71 @@
+.board-type-totals {
+  width: min(100%, 447px);
+  margin: 0 auto 8px;
+  display: grid;
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+  gap: 3px;
+}
+
+.board-type-total {
+  min-width: 0;
+  padding: 4px 2px;
+  border-radius: 7px;
+  background: color-mix(in srgb, currentColor 8%, transparent);
+  color: #475569;
+  text-align: center;
+  line-height: 1.1;
+}
+
+.board-type-total__label,
+.board-type-total__value {
+  display: block;
+  white-space: nowrap;
+}
+
+.board-type-total__label {
+  font-size: 10px;
+  font-weight: 650;
+  opacity: .78;
+}
+
+.board-type-total__value {
+  margin-top: 2px;
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.board-type-total--land { color: #31556d; }
+.board-type-total--aquatic { color: #246472; }
+.board-type-total--vegetable { color: #356647; }
+.board-type-total--grainBean { color: #59683d; }
+.board-type-total--dairyEgg { color: #66547f; }
+.board-type-total--fruit { color: #804d65; }
+.board-type-total--seasoning { color: #845830; }
+.board-type-total--spice { color: #94483a; }
+.board-type-total--drink { color: #443775; }
+
+.board-type-total--empty {
+  color: #a3aab3;
+  background: rgba(148, 163, 184, .055);
+}
+
+@media (max-width: 560px) {
+  .board-type-totals {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 3px 4px;
+    margin-bottom: 6px;
+  }
+
+  .board-type-total {
+    padding: 3px 2px;
+  }
+
+  .board-type-total__label {
+    font-size: 9px;
+  }
+
+  .board-type-total__value {
+    margin-top: 1px;
+    font-size: 12px;
+  }
+}

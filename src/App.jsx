@@ -20,6 +20,7 @@ import BoardStatus from "./components/BoardStatus";
 import GameOver from "./components/GameOver";
 import CombineHistoryPanel from "./components/CombineHistoryPanel";
 import ActionToast from "./components/ActionToast";
+import BoardTypeTotals from "./components/BoardTypeTotals";
 
 import useGame from "./hooks/useGame";
 
@@ -857,6 +858,8 @@ function App(){
             <div className="game-board-main">
 
               <ActionToast toast={actionToast} />
+
+              <BoardTypeTotals board={game.board} />
 
               <Board
                 board={
