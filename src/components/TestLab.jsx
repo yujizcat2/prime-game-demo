@@ -1477,6 +1477,8 @@ function ScoreSummaryGrid({result}){
       <ResultItem label="平均收藏数量" value={result.averageCollectionCount.toFixed(2)} />
       <ResultItem label="平均加热次数" value={result.averageHeaterUseCount.toFixed(2)} />
       <ResultItem label="平均加热支出" value={`¥${result.averageHeaterSpending.toFixed(2)}`} />
+      <ResultItem label="平均超级加热器次数" value={(result.averageSuperHeaterUseCount ?? 0).toFixed(2)} />
+      <ResultItem label="平均超级加热器支出" value={`¥${(result.averageSuperHeaterSpending ?? 0).toFixed(2)}`} />
       <ResultItem label="平均归味次数" value={(result.averageRestoreUseCount ?? 0).toFixed(2)} />
       <ResultItem label="平均归味支出" value={`¥${(result.averageRestoreSpending ?? 0).toFixed(2)}`} />
       <ResultItem label="平均单次成本" value={`¥${result.averageHeaterCost.toFixed(2)}`} />
@@ -1494,6 +1496,7 @@ function ScoreSummaryGrid({result}){
       <ResultItem label="平均剪枝动作" value={Math.round(result.averagePrunedActions ?? 0)} />
       <ResultItem label="Restore 候选（生成/保留）" value={`${Math.round(result.averageRestoreCandidatesGenerated ?? 0)} / ${Math.round(result.averageRestoreCandidatesKept ?? 0)}`} />
       <ResultItem label="Heater 候选（生成/保留）" value={`${Math.round(result.averageHeaterCandidatesGenerated ?? 0)} / ${Math.round(result.averageHeaterCandidatesKept ?? 0)}`} />
+      <ResultItem label="Super Heater 候选（生成/保留）" value={`${Math.round(result.averageSuperHeaterCandidatesGenerated ?? 0)} / ${Math.round(result.averageSuperHeaterCandidatesKept ?? 0)}`} />
       <ResultItem label="平均耗时" value={`${(result.averageElapsedMs ?? 0).toFixed(1)}ms`} />
     </div>
   );
@@ -1557,6 +1560,7 @@ function ScoreRecord({title, game, difficulty}){
         {" · "}
         收藏 <strong>{game.collectionCount}</strong>
         {" · "}归味 <strong>{game.restoreUseCount ?? 0}</strong> 次 / ¥{game.restoreSpending ?? 0}
+        {" · "}超级加热器 <strong>{game.superHeaterUseCount ?? 0}</strong> 次 / ¥{game.superHeaterSpending ?? 0}
         {" · "}
         Step <strong>{game.steps} / 100</strong>
       </div>
@@ -1571,6 +1575,15 @@ function ScoreRecord({title, game, difficulty}){
           {event.foodType ? ` · ${FOOD_TYPE_LABELS[event.foodType] ?? event.foodType}` : ""}
           {` · Cost ¥${event.cost} · Money ¥${event.moneyBefore} → ¥${event.moneyAfter}`}
           {event.nextAction ? ` · Next: ${formatScoreAction(event.nextAction)}` : ""}
+        </div>)}
+      </div>}
+      {game.superHeaterTimeline?.length > 0 && <div className="test-lab-record-collection">
+        <strong>Super Heater 时间线</strong>
+        {game.superHeaterTimeline.map((event, index) => <div key={`${event.step}-${index}`}>
+          Super Heater #{index + 1} · Step {event.step} · Cost ¥{event.cost}
+          {` · Money ¥${event.moneyBefore} → ¥${event.moneyAfter}`}
+          {` · 合法动作 ${event.legalActionsBefore} → ${event.legalActionsAfter}`}
+          {` · Reduce ${event.reduceActionsBefore} → ${event.reduceActionsAfter}`}
         </div>)}
       </div>}
       <CollectionEfficiencyTimeline timeline={game.collectionEfficiencyTimeline} />
@@ -1768,9 +1781,9 @@ function formatScoreBoard(board){
 }
 
 function formatScoreAction(action){
-  const label = {combine: "合成", combine_ordered: "合成", reduce: "约分", apply_one: "特殊 1", heater: "加热器", restore: "归味"}[action.type] ?? action.type;
+  const label = {combine: "合成", combine_ordered: "合成", reduce: "约分", apply_one: "特殊 1", heater: "加热器", super_heater: "超级加热器", restore: "归味"}[action.type] ?? action.type;
   const inputs = action.inputs.map(piece => `格${piece.index + 1} ${formatFoodType(piece.foodType)}${piece.value}`).join(" + ");
-  return `${label}：${inputs}`;
+  return inputs ? `${label}：${inputs}` : label;
 }
 
 

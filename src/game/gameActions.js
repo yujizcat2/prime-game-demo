@@ -48,6 +48,7 @@ import {
 import { applyEightPalaceCollection } from "./collectionRules";
 import { getCreatedScoreValue } from "./scoreValue";
 import { getCurrentHeaterPrice, isHeaterTarget } from "./heaterPricing";
+import { getCurrentSuperHeaterPrice } from "./superHeaterPricing";
 import { getLegalRestoreActions } from "./restore";
 
 import {
@@ -1304,6 +1305,13 @@ export function getLegalActions(
     ...(state.money ?? 0) >= getCurrentHeaterPrice(state)
       ? state.board.flatMap((piece, index) => isHeaterTarget(piece) ? [{type: "heater", indexes: [index]}] : [])
       : [],
+    ...(
+      state.board.some(Boolean)
+      && state.board.filter(Boolean).every(isHeaterTarget)
+      && (state.money ?? 0) >= getCurrentSuperHeaterPrice(state)
+        ? [{type: "super_heater"}]
+        : []
+    ),
     ...getLegalRestoreActions(state)
 
   ];

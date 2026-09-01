@@ -26,6 +26,7 @@ export const STRATEGIC_CANDIDATE_LIMITS = Object.freeze({
   normal: 24,
   restore: 3,
   heater: 2,
+  superHeater: 1,
   total: 24
 });
 
@@ -71,6 +72,7 @@ function getStateKey(state){
     money: state.money ?? 0,
     steps: state.steps,
     heaterUseCount: state.heaterUseCount ?? 0,
+    superHeaterUseCount: state.superHeaterUseCount ?? 0,
     restoreUseCount: state.restoreUseCount ?? 0,
     collectionCards: (state.collectionCards ?? []).map(card => [card.value, card.foodType]).sort(),
     combineHistoryKeys: Object.keys(state.combineHistoryKeys ?? {}).sort(),
@@ -233,6 +235,18 @@ function scoreHeaterCandidate(state, action){
   return score;
 }
 
+function scoreSuperHeaterCandidate(state, action){
+  const nextState = applyScoreAction(state, action);
+  if(nextState === state) return -Infinity;
+  const before = getLegalActions(state);
+  const after = nextState.gameOver ? [] : getLegalActions(nextState);
+  const count = (actions, type) => actions.filter(candidate => candidate.type === type).length;
+  return (after.length - before.length) * 10
+    + (count(after, "reduce") - count(before, "reduce")) * 80
+    + (count(after, "combine") + count(after, "combine_ordered")
+      - count(before, "combine") - count(before, "combine_ordered")) * 20;
+}
+
 function scoreNormalCandidate(state, action, facts){
   const [leftIndex, rightIndex] = action.indexes ?? [];
   const left = state.board[leftIndex];
@@ -268,21 +282,25 @@ export function getStrategicCandidateActions(state, legalActions, {
   const boardTypes = new Set((state.board ?? []).filter(Boolean).map(piece => piece.foodType));
   const restore = [];
   const heater = [];
+  const superHeater = [];
   const normal = [];
   for(const action of legalActions){
     if(action.type === "restore") restore.push({action, rank: scoreRestoreCandidate(state, action, facts, boardTypes)});
     else if(action.type === "heater") heater.push({action, rank: scoreHeaterCandidate(state, action)});
+    else if(action.type === "super_heater") superHeater.push({action, rank: scoreSuperHeaterCandidate(state, action)});
     else normal.push({action, rank: scoreNormalCandidate(state, action, facts)});
   }
-  const paidStreakPenalty = previousActionType === "heater" || previousActionType === "restore" ? 150 : 0;
+  const paidStreakPenalty = ["heater", "super_heater", "restore"].includes(previousActionType) ? 150 : 0;
   for(const candidate of restore) candidate.rank -= paidStreakPenalty;
   for(const candidate of heater) candidate.rank -= paidStreakPenalty;
+  for(const candidate of superHeater) candidate.rank -= paidStreakPenalty;
   const sort = (left, right) => right.rank - left.rank || getActionKey(left.action).localeCompare(getActionKey(right.action));
-  normal.sort(sort); restore.sort(sort); heater.sort(sort);
+  normal.sort(sort); restore.sort(sort); heater.sort(sort); superHeater.sort(sort);
   const keptNormal = normal.slice(0, limits.normal);
   const keptRestore = restore.slice(0, limits.restore);
   const keptHeater = heater.slice(0, limits.heater);
-  const kept = [...keptNormal, ...keptRestore, ...keptHeater]
+  const keptSuperHeater = superHeater.slice(0, limits.superHeater ?? 1);
+  const kept = [...keptNormal, ...keptRestore, ...keptHeater, ...keptSuperHeater]
     .sort(sort)
     .slice(0, limits.total)
     .map(candidate => candidate.action);
@@ -293,6 +311,8 @@ export function getStrategicCandidateActions(state, legalActions, {
     telemetry.restoreCandidatesKept += kept.filter(action => action.type === "restore").length;
     telemetry.heaterCandidatesGenerated += heater.length;
     telemetry.heaterCandidatesKept += kept.filter(action => action.type === "heater").length;
+    telemetry.superHeaterCandidatesGenerated += superHeater.length;
+    telemetry.superHeaterCandidatesKept += kept.filter(action => action.type === "super_heater").length;
   }
   return kept;
 }
@@ -307,6 +327,8 @@ export function createSearchTelemetry(){
     restoreCandidatesKept: 0,
     heaterCandidatesGenerated: 0,
     heaterCandidatesKept: 0,
+    superHeaterCandidatesGenerated: 0,
+    superHeaterCandidatesKept: 0,
     evaluationCacheHits: 0,
     legalActionCacheHits: 0,
     elapsedMs: 0
@@ -445,6 +467,14 @@ function describeAction(state, action, nextState, number){
       moneyBefore: state.money ?? 0,
       moneyAfter: nextState.money ?? 0
     } : null,
+    superHeaterUse: action.type === "super_heater" ? {
+      ...structuredClone(nextState.latestSuperHeaterUse),
+      step: state.steps,
+      legalActionsBefore: getLegalActions(state).length,
+      legalActionsAfter: nextState.gameOver ? 0 : getLegalActions(nextState).length,
+      reduceActionsBefore: getLegalActions(state).filter(candidate => candidate.type === "reduce").length,
+      reduceActionsAfter: nextState.gameOver ? 0 : getLegalActions(nextState).filter(candidate => candidate.type === "reduce").length
+    } : null,
     restoreUse: action.type === "restore" ? structuredClone(nextState.latestRestoreUse) : null,
     collectionEvents,
     collectionCountAfter: nextState.collectionCards.length,
@@ -510,6 +540,8 @@ export async function runScoreGame({
     }];
   });
   const heaterSpending = heaterTimeline.reduce((sum, event) => sum + event.cost, 0);
+  const superHeaterTimeline = actionPath.flatMap(action => action.superHeaterUse ? [action.superHeaterUse] : []);
+  const superHeaterSpending = superHeaterTimeline.reduce((sum, event) => sum + event.cost, 0);
   const restoreTimeline = actionPath.flatMap(action => action.restoreUse ? [action.restoreUse] : []);
   const restoreSpending = restoreTimeline.reduce((sum, event) => sum + event.cost, 0);
   const elapsedMs = performance.now() - gameStartedAt;
@@ -525,6 +557,9 @@ export async function runScoreGame({
     heaterSpending,
     averageHeaterCost: heaterTimeline.length ? heaterSpending / heaterTimeline.length : 0,
     heaterTimeline,
+    superHeaterUseCount: superHeaterTimeline.length,
+    superHeaterSpending,
+    superHeaterTimeline,
     restoreUseCount: restoreTimeline.length,
     restoreSpending,
     restoreTimeline,
@@ -540,6 +575,8 @@ export async function runScoreGame({
     restoreCandidatesKept: searchTelemetry.restoreCandidatesKept,
     heaterCandidatesGenerated: searchTelemetry.heaterCandidatesGenerated,
     heaterCandidatesKept: searchTelemetry.heaterCandidatesKept,
+    superHeaterCandidatesGenerated: searchTelemetry.superHeaterCandidatesGenerated,
+    superHeaterCandidatesKept: searchTelemetry.superHeaterCandidatesKept,
     elapsedMs,
     scoreEfficiency: getScoreEfficiency(state.score, state.steps),
     collectionCount: state.collectionCards.length,
@@ -593,6 +630,8 @@ export function summarizeScoreResults(results){
   const classifiedCollectionCount = totalPrimeCollectionCount + totalCompositeCollectionCount;
   const totalHeaterUseCount = results.reduce((sum, result) => sum + (result.heaterUseCount ?? 0), 0);
   const totalHeaterSpending = results.reduce((sum, result) => sum + (result.heaterSpending ?? 0), 0);
+  const totalSuperHeaterUseCount = results.reduce((sum, result) => sum + (result.superHeaterUseCount ?? 0), 0);
+  const totalSuperHeaterSpending = results.reduce((sum, result) => sum + (result.superHeaterSpending ?? 0), 0);
   const totalRestoreUseCount = results.reduce((sum, result) => sum + (result.restoreUseCount ?? 0), 0);
   const totalRestoreSpending = results.reduce((sum, result) => sum + (result.restoreSpending ?? 0), 0);
   const heaterEvents = results.flatMap(result => result.heaterTimeline ?? []);
@@ -618,6 +657,10 @@ export function summarizeScoreResults(results){
     heaterPriceDistribution: priceDistribution,
     totalHeaterUseCount,
     totalHeaterSpending,
+    averageSuperHeaterUseCount: average(results, result => result.superHeaterUseCount ?? 0),
+    averageSuperHeaterSpending: average(results, result => result.superHeaterSpending ?? 0),
+    totalSuperHeaterUseCount,
+    totalSuperHeaterSpending,
     averageRestoreUseCount: average(results, result => result.restoreUseCount ?? 0),
     averageRestoreSpending: average(results, result => result.restoreSpending ?? 0),
     totalRestoreUseCount,
@@ -630,6 +673,8 @@ export function summarizeScoreResults(results){
     averageRestoreCandidatesKept: average(results, result => result.restoreCandidatesKept ?? 0),
     averageHeaterCandidatesGenerated: average(results, result => result.heaterCandidatesGenerated ?? 0),
     averageHeaterCandidatesKept: average(results, result => result.heaterCandidatesKept ?? 0),
+    averageSuperHeaterCandidatesGenerated: average(results, result => result.superHeaterCandidatesGenerated ?? 0),
+    averageSuperHeaterCandidatesKept: average(results, result => result.superHeaterCandidatesKept ?? 0),
     averageElapsedMs: average(results, result => result.elapsedMs ?? 0),
     averageScoreEfficiency: average(results, result => result.scoreEfficiency),
     highestScore: results.length ? Math.max(...results.map(result => result.finalScore)) : 0,
