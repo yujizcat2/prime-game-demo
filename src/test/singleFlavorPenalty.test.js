@@ -19,37 +19,54 @@ const baseState = pieces => ({
   board: board(...pieces), gameOver: false, gameOverReason: null, money: 1_000
 });
 
-{
-  const marked = markSingleFlavorBoardPieces(baseState([
-    piece(1, 4, grainBean), piece(2, 6, grainBean), piece(3, 8, grainBean)
-  ]));
-  assert.ok(marked.board.filter(Boolean).every(card => card.singleFlavorPenalty === true));
+for(const count of [1, 2, 4]){
+  const state = baseState(Array.from({length: count}, (_, index) =>
+    piece(index + 1, 4 + index * 2, grainBean)
+  ));
+  assert.equal(markSingleFlavorBoardPieces(state), state, `${count} normal pieces do not trigger`);
 }
 
 {
-  const state = baseState([piece(1, 4, grainBean), piece(2, 6, dairyEgg)]);
+  const marked = markSingleFlavorBoardPieces(baseState(
+    Array.from({length: 5}, (_, index) => piece(index + 1, 4 + index * 2, grainBean))
+  ));
+  assert.ok(marked.board.filter(Boolean).every(card => card.singleFlavorPenalty === true));
+  assert.equal(marked.firstSingleFlavorNormalPieceCount, 5);
+}
+
+{
+  const state = baseState([
+    ...Array.from({length: 4}, (_, index) => piece(index + 1, 4 + index * 2, grainBean)),
+    piece(5, 20, FOOD_TYPES.DRINK), piece(6, 30, FOOD_TYPES.DRINK), piece(7, 40, FOOD_TYPES.DRINK)
+  ]);
   assert.equal(markSingleFlavorBoardPieces(state), state);
 }
 
 for(const ignored of [
-  piece(3, 20, FOOD_TYPES.DRINK),
-  piece(3, 1, dairyEgg, {specialOne: {kind: "key", keyType: dairyEgg}})
+  [piece(6, 20, FOOD_TYPES.DRINK), piece(7, 30, FOOD_TYPES.DRINK)],
+  [piece(6, 1, dairyEgg, {specialOne: {kind: "key", keyType: dairyEgg}})]
 ]){
   const marked = markSingleFlavorBoardPieces(baseState([
-    piece(1, 4, grainBean), piece(2, 6, grainBean), ignored
+    ...Array.from({length: 5}, (_, index) => piece(index + 1, 4 + index * 2, grainBean)),
+    ...ignored
   ]));
   assert.ok(marked.board.filter(Boolean).every(card => card.singleFlavorPenalty === true));
 }
 
 {
+  const state = baseState([
+    ...Array.from({length: 4}, (_, index) => piece(index + 1, 4 + index * 2, grainBean)),
+    piece(5, 12, dairyEgg)
+  ]);
+  assert.equal(markSingleFlavorBoardPieces(state), state);
+}
+
+{
   const marked = markSingleFlavorBoardPieces(baseState([
-    piece(1, 4, grainBean), piece(2, 6, grainBean), piece(3, 8, grainBean)
+    piece(1, 4, grainBean), piece(2, 6, grainBean), piece(3, 8, grainBean),
+    piece(4, 10, grainBean), null, piece(5, 12, grainBean)
   ]));
-  const restoreState = {...marked, board: board(
-    marked.board[0], marked.board[1], marked.board[2], null, null,
-    piece(4, 10, grainBean, {singleFlavorPenalty: true})
-  )};
-  const restored = applyAction(restoreState, {type: "restore", indexes: [5]});
+  const restored = applyAction(marked, {type: "restore", indexes: [5]});
   assert.equal(restored.board[5].foodType, dairyEgg);
   assert.equal(restored.board[5].singleFlavorPenalty, true);
   assert.ok(restored.board.filter(Boolean).every(card => card.singleFlavorPenalty === true));
@@ -68,7 +85,9 @@ for(const ignored of [
 {
   const state = baseState([
     piece(1, 4, grainBean, {singleFlavorPenalty: true}),
-    piece(2, 6, grainBean, {singleFlavorPenalty: true})
+    piece(2, 6, grainBean, {singleFlavorPenalty: true}),
+    piece(3, 8, grainBean, {singleFlavorPenalty: true}),
+    piece(4, 11, grainBean, {singleFlavorPenalty: true})
   ]);
   const combined = applyAction(state, {type: "combine", indexes: [0, 1]});
   const created = combined.board.find(card => card?.id === state.nextId);
@@ -122,15 +141,24 @@ const collectible = (value, foodType, singleFlavorPenalty) => ({
 }
 
 {
-  const marked = markSingleFlavorBoardPieces(baseState([
-    piece(1, 4, grainBean), piece(2, 6, grainBean)
-  ]));
-  const mixed = {...marked, board: [
-    {...marked.board[0], foodType: dairyEgg}, marked.board[1],
-    ...marked.board.slice(2)
-  ]};
-  const checked = markSingleFlavorBoardPieces(mixed);
+  const marked = markSingleFlavorBoardPieces(baseState(
+    Array.from({length: 5}, (_, index) => piece(index + 1, 4 + index * 2, grainBean))
+  ));
+  const reducedBoard = [...marked.board];
+  reducedBoard[4] = null;
+  const checked = markSingleFlavorBoardPieces({...marked, board: reducedBoard});
   assert.ok(checked.board.filter(Boolean).every(card => card.singleFlavorPenalty === true));
+}
+
+{
+  const marked = markSingleFlavorBoardPieces(baseState(
+    Array.from({length: 5}, (_, index) => piece(index + 1, 4 + index * 2, grainBean))
+  ));
+  const mixedBoard = [...marked.board];
+  mixedBoard[4] = piece(9, 13, dairyEgg);
+  const checked = markSingleFlavorBoardPieces({...marked, board: mixedBoard});
+  assert.ok(checked.board.slice(0, 4).every(card => card.singleFlavorPenalty === true));
+  assert.equal(checked.board[4].singleFlavorPenalty, undefined);
 }
 
 console.log("single flavor penalty tests passed");

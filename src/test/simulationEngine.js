@@ -2088,6 +2088,9 @@ export function cloneSimulationState(
     singleFlavorTriggerCount:
       state.singleFlavorTriggerCount ?? 0,
 
+    firstSingleFlavorNormalPieceCount:
+      state.firstSingleFlavorNormalPieceCount ?? null,
+
     previousCollection:
       state.previousCollection ?? null,
 

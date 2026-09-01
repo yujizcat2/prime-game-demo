@@ -1622,6 +1622,7 @@ export function applyEightPalaceCollection(state, piece){
     totalScore: rewardSettlement.totalScore,
     bonuses: rewardSettlement.bonuses,
     rewardLevel: rewardSettlement.rewardLevel,
+    collectedPieceSingleFlavorPenalty: record.singleFlavorPenalty === true,
     isNewCollection,
     moneyGain,
     cumulativeMoney,

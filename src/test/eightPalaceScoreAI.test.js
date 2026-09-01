@@ -20,6 +20,7 @@ import {
 import { BASE_FOOD_TYPES } from "../game/rules";
 import { getScoreEfficiency } from "../game/scoreEfficiency";
 import { isPrime } from "../game/prime";
+import { createFoodTypeBoardSnapshot } from "../ai/foodTypeTelemetry";
 
 assert.equal(getScoreEfficiency(2834, 100), 28.34);
 assert.equal(getScoreEfficiency(2400, 60), 40);
@@ -28,6 +29,35 @@ assert.equal(getScoreEfficiency(0, 0).toFixed(2), "0.00");
 assert.deepEqual([2, 3, 5, 7].map(isPrime), [true, true, true, true]);
 assert.deepEqual([4, 6, 8, 9].map(isPrime), [false, false, false, false]);
 assert.equal(isPrime(1), false);
+{
+  const snapshot = createFoodTypeBoardSnapshot([
+    {value: 4, foodType: BASE_FOOD_TYPES[0], singleFlavorPenalty: true},
+    {value: 6, foodType: BASE_FOOD_TYPES[0]},
+    {value: 8, foodType: BASE_FOOD_TYPES[1]},
+    {value: 20, foodType: "drink"},
+    {value: 1, foodType: BASE_FOOD_TYPES[2], singleFlavorPenalty: true}
+  ], 37);
+  assert.equal(snapshot.step, 37);
+  assert.equal(snapshot.normalPieceCount, 3);
+  assert.equal(snapshot.drinkCount, 1);
+  assert.equal(snapshot.specialOneCount, 1);
+  assert.equal(snapshot.distinctNormalFoodTypes, 2);
+  assert.equal(snapshot.dominantFoodTypeCount, 2);
+  assert.equal(snapshot.dominantFoodTypeRatio, 2 / 3);
+  assert.equal(snapshot.penalizedPieceCount, 2);
+  assert.equal(snapshot.penalizedPieceRatio, 2 / 5);
+}
+{
+  const structuralOnly = createFoodTypeBoardSnapshot(
+    Array.from({length: 3}, (_, index) => ({
+      value: index + 2,
+      foodType: BASE_FOOD_TYPES[0]
+    })),
+    4
+  );
+  assert.equal(structuralOnly.allNormalPiecesSameFoodType, true);
+  assert.equal(structuralOnly.singleFlavor, false);
+}
 assert.deepEqual(
   getCollectionNumberCounts([{value: 1}, {value: 2}, {value: 3}, {value: 4}, {value: 9}]),
   {primeCollectionCount: 2, compositeCollectionCount: 2, otherCollectionCount: 1}
@@ -51,6 +81,14 @@ assert.ok(result.collections.every(card =>
 assert.equal(result.finalMoney, result.collectionCount * 10 - result.heaterSpending - result.restoreSpending);
 assert.equal(result.score, result.finalScore);
 assert.equal(result.scoreEfficiency, getScoreEfficiency(result.score, result.steps));
+assert.equal(result.foodTypeBoardTimeline[0].step, 0);
+assert.ok(result.foodTypeBoardTimeline.every((snapshot, index, timeline) =>
+  index === 0 || snapshot.step > timeline[index - 1].step
+));
+for(const event of result.actionPath.flatMap(action => action.collectionEvents)){
+  assert.ok(event.collectionBoardState);
+  assert.equal(typeof event.collectedPieceSingleFlavorPenalty, "boolean");
+}
 assert.equal(typeof result.primeCollectionCount, "number");
 assert.equal(typeof result.compositeCollectionCount, "number");
 assert.equal(
@@ -125,6 +163,12 @@ for(const summary of [tenGames, tenGames.randomComparison]){
     triggered.length ? Math.min(...triggered.map(game => game.singleFlavorFirstTriggeredStep)) : null
   );
   assert.ok(results.every(game => Number.isInteger(game.finalScore) && !Number.isNaN(game.finalScore)));
+  assert.equal(summary.foodTypeCheckpointSummary.length, 10);
+  assert.deepEqual(
+    new Set(Object.keys(summary.firstDominanceThresholdSteps)),
+    new Set(["0.6", "0.7", "0.8", "1"])
+  );
+  assert.ok(Object.values(summary.averageCollectionFoodTypeCounts).every(Number.isFinite));
 }
 
 const weightedSummary = summarizeScoreResults([

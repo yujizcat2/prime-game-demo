@@ -1523,6 +1523,74 @@ function AverageCollectionEfficiency({timeline = []}){
   </div>;
 }
 
+function formatFoodTypeCounts(counts = {}){
+  return Object.entries(counts)
+    .filter(([, count]) => count > 0)
+    .map(([foodType, count]) => `${FOOD_TYPE_LABELS[foodType] ?? (foodType === "drink" ? "饮品" : foodType)}${count}`)
+    .join(" / ") || "无普通料理";
+}
+
+function FoodTypeBoardTimeline({game}){
+  const timeline = game.foodTypeBoardTimeline ?? [];
+  if(timeline.length === 0) return null;
+  const summaries = Array.from({length: 10}, (_, index) => (index + 1) * 10)
+    .map(step => [...timeline].reverse().find(snapshot => snapshot.step <= step))
+    .filter(Boolean);
+  return <details className="test-lab-action-details">
+    <summary>料理系盘面时间线（{timeline.length} Step）</summary>
+    <div className="test-lab-record-collection">
+      <strong>每 10 Step 摘要</strong>
+      {summaries.map((snapshot, index) => <div key={`${snapshot.step}-${index}`}>
+        Step {(index + 1) * 10} · 普通系{snapshot.distinctNormalFoodTypes}
+        {snapshot.dominantFoodType && ` · 最大${FOOD_TYPE_LABELS[snapshot.dominantFoodType] ?? snapshot.dominantFoodType} ${snapshot.dominantFoodTypeCount}/${snapshot.normalPieceCount} ${(snapshot.dominantFoodTypeRatio * 100).toFixed(1)}%`}
+        {` · Penalty ${snapshot.penalizedPieceCount}`}
+      </div>)}
+    </div>
+    <div className="test-lab-record-collection">
+      <strong>完整时间线</strong>
+      {timeline.map(snapshot => <div key={snapshot.step}>
+        Step {snapshot.step} · {formatFoodTypeCounts(snapshot.foodTypeCounts)}
+        {` · 普通系${snapshot.distinctNormalFoodTypes}`}
+        {` · 最大${snapshot.dominantFoodType ? FOOD_TYPE_LABELS[snapshot.dominantFoodType] ?? snapshot.dominantFoodType : "无"} ${(snapshot.dominantFoodTypeRatio * 100).toFixed(1)}%`}
+        {` · Penalty ${snapshot.penalizedPieceCount}/${snapshot.boardPieceCount}`}
+      </div>)}
+    </div>
+    <div className="test-lab-record-collection">
+      <strong>每 10 Step 新收藏料理系累计</strong>
+      {(game.collectionFoodTypeTimeline ?? []).map(snapshot => <div key={snapshot.step}>
+        Step {snapshot.step} · {formatFoodTypeCounts(snapshot.foodTypeCounts)}
+      </div>)}
+    </div>
+  </details>;
+}
+
+function FoodTypeTelemetrySummary({result}){
+  if(!result.foodTypeCheckpointSummary) return null;
+  return <div className="test-lab-record">
+    <div className="test-lab-record-title">料理系结构统计</div>
+    {result.foodTypeCheckpointSummary.map(snapshot => <div key={snapshot.step}>
+      Step {snapshot.step} · 平均普通系 {snapshot.averageDistinctNormalFoodTypes.toFixed(2)}
+      {` · 最大系 ${(snapshot.averageDominantFoodTypeRatio * 100).toFixed(1)}%`}
+      {` · Penalty ${snapshot.averagePenalizedPieceCount.toFixed(2)}`}
+      {` · 风味单一 ${snapshot.singleFlavorCount}/${snapshot.gameCount} (${(snapshot.singleFlavorRate * 100).toFixed(1)}%)`}
+    </div>)}
+    <div className="test-lab-record-collection">
+      料理系平均收藏：{formatFoodTypeCounts(result.averageCollectionFoodTypeCounts)}
+    </div>
+    <div className="test-lab-record-collection">
+      首次占优：{Object.entries(result.firstDominanceThresholdSteps ?? {}).map(([ratio, stats]) =>
+        `≥${Number(ratio) * 100}% Step ${stats.reachedGameCount ? stats.averageStep.toFixed(1) : "—"}`
+      ).join(" · ")}
+    </div>
+    <div className="test-lab-record-collection">
+      收藏平均分：多系 {(result.averageCollectionScoreByBoardState?.multiFlavor ?? 0).toFixed(1)}
+      {` · 单系 ${(result.averageCollectionScoreByBoardState?.singleFlavor ?? 0).toFixed(1)}`}
+      {` · Penalty ${(result.averageCollectionScoreByBoardState?.penalized ?? 0).toFixed(1)}`}
+      {` · 非 Penalty ${(result.averageCollectionScoreByBoardState?.unpenalized ?? 0).toFixed(1)}`}
+    </div>
+  </div>;
+}
+
 function RandomSummaryGrid({result}){
   return (
     <div className="test-lab-result-grid">
@@ -1567,6 +1635,10 @@ function ScoreRecord({title, game, difficulty}){
       <div className="test-lab-record-collection">
         收藏构成：质数 {game.primeCollectionCount} · 合数 {game.compositeCollectionCount}
       </div>
+      <div className="test-lab-record-collection">
+        料理系收藏构成：{formatFoodTypeCounts(game.collectionFoodTypeCounts)}
+        {game.dominantCollectionFoodType && ` · 最多${FOOD_TYPE_LABELS[game.dominantCollectionFoodType] ?? game.dominantCollectionFoodType} ${game.dominantCollectionFoodTypeCount}/${game.collectionCount} (${(game.dominantCollectionFoodTypeRatio * 100).toFixed(1)}%)`}
+      </div>
       <div className="test-lab-record-collection">最终盘面：{formatScoreBoard(game.finalBoard) || "空"}</div>
       {game.heaterTimeline?.length > 0 && <div className="test-lab-record-collection">
         <strong>Heater 时间线</strong>
@@ -1587,6 +1659,7 @@ function ScoreRecord({title, game, difficulty}){
         </div>)}
       </div>}
       <CollectionEfficiencyTimeline timeline={game.collectionEfficiencyTimeline} />
+      <FoodTypeBoardTimeline game={game} />
       <details className="test-lab-action-details">
         <summary>展开完整操作路线（{game.actionPath.length} 项）</summary>
         <ol>
@@ -1718,6 +1791,7 @@ function ScoreResults({result, difficulty}){
       <div className="test-lab-section-title">Score AI</div>
       <ScoreSummaryGrid result={result} />
       <AverageCollectionEfficiency timeline={result.averageCollectionEfficiencyTimeline} />
+      <FoodTypeTelemetrySummary result={result} />
 
       {heater && (
         <div className="test-lab-section">

@@ -13,8 +13,13 @@ import { gcd } from "../utils/math";
 import { getScoreEfficiency } from "../game/scoreEfficiency";
 import { isPrime } from "../game/prime";
 import { summarizeCollectionEfficiencyTimelines } from "../game/collectionEfficiency";
-import { FOOD_TYPES } from "../game/rules";
+import { BASE_FOOD_TYPES, FOOD_TYPES } from "../game/rules";
 import { BOARD_NATIVE_FOOD_TYPES } from "../game/nativeFoodTypes";
+import {
+  createCollectionFoodTypeTimeline,
+  createFoodTypeBoardSnapshot,
+  summarizeFoodTypeTelemetry
+} from "./foodTypeTelemetry";
 
 export const SCORE_AI_DEFAULTS = Object.freeze({
   depth: 3,
@@ -437,9 +442,13 @@ function describeAction(state, action, nextState, number){
       ? [action.index]
       : [...(action.indexes ?? [])];
 
+  const collectionBoardState = createFoodTypeBoardSnapshot(nextState.board, nextState.steps);
   const collectionEvents = (nextState.collectionTimeline ?? [])
     .slice((state.collectionTimeline ?? []).length)
-    .map(event => structuredClone(event));
+    .map(event => ({
+      ...structuredClone(event),
+      collectionBoardState
+    }));
 
   return {
     number,
@@ -479,6 +488,7 @@ function describeAction(state, action, nextState, number){
     } : null,
     restoreUse: action.type === "restore" ? structuredClone(nextState.latestRestoreUse) : null,
     collectionEvents,
+    foodTypeBoardState: collectionBoardState,
     collectionCountAfter: nextState.collectionCards.length,
     boardCountAfter: getBoardCount(nextState.board)
   };
@@ -500,6 +510,7 @@ export async function runScoreGame({
   let state = resolveGameOver(createGameState(opening));
   const initialBoard = snapshotBoard(state.board);
   const actionPath = [];
+  const foodTypeBoardTimeline = [createFoodTypeBoardSnapshot(state.board, state.steps)];
   let heaterUsedThisStep = false;
 
   while(!state.gameOver && state.steps < state.stepLimit && state.steps < maxActions){
@@ -521,7 +532,11 @@ export async function runScoreGame({
 
     const nextState = applyScoreAction(state, action);
     if(nextState === state) throw new Error("Score AI action was rejected by the formal game engine");
-    actionPath.push(describeAction(state, action, nextState, actionPath.length + 1));
+    const describedAction = describeAction(state, action, nextState, actionPath.length + 1);
+    actionPath.push(describedAction);
+    if(nextState.steps > foodTypeBoardTimeline.at(-1).step){
+      foodTypeBoardTimeline.push(describedAction.foodTypeBoardState);
+    }
     heaterUsedThisStep = action.type === "heater";
     state = compactLiveState(nextState);
   }
@@ -529,6 +544,24 @@ export async function runScoreGame({
   const completed100Steps = state.steps === state.stepLimit;
   const deadlocked = state.gameOverReason === "no_legal_actions" && !completed100Steps;
   const collectionNumberCounts = getCollectionNumberCounts(state.collectionCards);
+  const collectionFoodTypeCounts = Object.fromEntries(
+    [...BASE_FOOD_TYPES, FOOD_TYPES.DRINK].map(foodType => [
+      foodType,
+      state.collectionCards.filter(card => card.foodType === foodType).length
+    ])
+  );
+  const collectionFoodTypeTimeline = createCollectionFoodTypeTimeline(
+    state.collectionCards,
+    state.steps
+  );
+  const dominantCollectionEntry = Object.entries(collectionFoodTypeCounts).reduce(
+    (best, entry) => best === null || entry[1] > best[1] ? entry : best,
+    null
+  );
+  const firstStructuralSingleFlavor = foodTypeBoardTimeline.find(
+    snapshot => snapshot.allNormalPiecesSameFoodType
+  ) ?? null;
+  const finalFoodTypeBoardState = foodTypeBoardTimeline.at(-1);
   const heaterTimeline = actionPath.flatMap((action, index) => {
     if(!action.heaterUse) return [];
     const nextAction = actionPath.slice(index + 1).find(candidate => candidate.type !== "heater") ?? null;
@@ -584,6 +617,13 @@ export async function runScoreGame({
     collectionCount: state.collectionCards.length,
     collectionEfficiencyTimeline: structuredClone(state.collectionEfficiencyTimeline ?? []),
     collections: state.collectionCards.map(card => structuredClone(card)),
+    collectionFoodTypeCounts,
+    collectionFoodTypeTimeline,
+    dominantCollectionFoodType: dominantCollectionEntry?.[0] ?? null,
+    dominantCollectionFoodTypeCount: dominantCollectionEntry?.[1] ?? 0,
+    dominantCollectionFoodTypeRatio: state.collectionCards.length
+      ? (dominantCollectionEntry?.[1] ?? 0) / state.collectionCards.length
+      : 0,
     ...collectionNumberCounts,
     steps: state.steps,
     actions: actionPath.length,
@@ -595,7 +635,15 @@ export async function runScoreGame({
     singleFlavorTriggered: state.singleFlavorTriggered === true,
     singleFlavorFirstTriggeredStep: state.singleFlavorFirstTriggeredStep ?? null,
     singleFlavorFirstTriggeredBoardCount: state.singleFlavorFirstTriggeredBoardCount ?? null,
+    firstSingleFlavorNormalPieceCount: state.firstSingleFlavorNormalPieceCount ?? null,
+    structuralSingleFlavorReached: firstStructuralSingleFlavor !== null,
+    firstStructuralSingleFlavorStep: firstStructuralSingleFlavor?.step ?? null,
+    maximumDominantFoodTypeRatio: Math.max(
+      ...foodTypeBoardTimeline.map(snapshot => snapshot.dominantFoodTypeRatio)
+    ),
+    finalFoodTypeBoardState,
     finalSingleFlavorPenaltyCount: state.board.filter(piece => piece?.singleFlavorPenalty === true).length,
+    foodTypeBoardTimeline,
     actionPath
   };
 }
@@ -641,6 +689,7 @@ export function summarizeScoreResults(results){
   const totalRestoreUseCount = results.reduce((sum, result) => sum + (result.restoreUseCount ?? 0), 0);
   const totalRestoreSpending = results.reduce((sum, result) => sum + (result.restoreSpending ?? 0), 0);
   const singleFlavorResults = results.filter(result => result.singleFlavorTriggered);
+  const foodTypeTelemetry = summarizeFoodTypeTelemetry(results);
   const heaterEvents = results.flatMap(result => result.heaterTimeline ?? []);
   const heaterPrices = heaterEvents.map(event => event.price ?? event.cost);
   const priceDistribution = {
@@ -653,6 +702,7 @@ export function summarizeScoreResults(results){
   }
 
   return {
+    ...foodTypeTelemetry,
     games: results.length,
     averageFinalScore: average(results, result => result.finalScore),
     averageFinalMoney: average(results, result => result.finalMoney ?? 0),
