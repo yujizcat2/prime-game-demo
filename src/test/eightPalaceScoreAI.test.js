@@ -40,7 +40,7 @@ if(result.steps === 100){
 }
 assert.notEqual(result.gameOverReason, "eight_palace_keys_missing");
 assert.equal(result.finalScore, result.collections.reduce((sum, card) => sum + card.scoreGain, 0));
-assert.equal(result.finalMoney, result.collectionCount * 10);
+assert.equal(result.finalMoney, result.collectionCount * 10 - result.heaterSpending - result.restoreSpending);
 assert.equal(result.score, result.finalScore);
 assert.equal(result.scoreEfficiency, getScoreEfficiency(result.score, result.steps));
 assert.equal(typeof result.primeCollectionCount, "number");

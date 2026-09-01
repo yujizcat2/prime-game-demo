@@ -30,6 +30,9 @@ import {
   addCombinePair,
   hasCombinePair
 } from "../game/combineHistory";
+import { getNativeFoodType } from "../game/nativeFoodTypes";
+import { getRestoreOutcome } from "../game/restore";
+import { getCurrentRestorePrice } from "../game/restorePricing";
 
 
 
@@ -328,10 +331,6 @@ export function createSimulationState(
 
 
 
-  const types = [FOOD_TYPES.LAND, FOOD_TYPES.VEGETABLE, FOOD_TYPES.SEASONING];
-
-
-
   initialValues.forEach(
 
     (
@@ -347,9 +346,7 @@ export function createSimulationState(
         value,
 
         foodType:
-          types[
-            index
-          ],
+          getNativeFoodType(index),
 
         purity:
           FOOD_PURITY.PURE,
@@ -406,6 +403,9 @@ export function createSimulationState(
       0,
 
     heaterUseCount:
+      0,
+
+    restoreUseCount:
       0,
 
     previousCollection:
@@ -891,6 +891,13 @@ export function getSimulationLegalActions(
 
     }
 
+  }
+
+  const restorePrice = getCurrentRestorePrice(state);
+  if((state.money ?? 0) >= restorePrice){
+    for(let index = 0; index < SIM_BOARD_SIZE; index++){
+      if(getRestoreOutcome(board[index], index)) actions.push({type: "restore", indexes: [index]});
+    }
   }
 
   return actions;
@@ -1836,6 +1843,20 @@ export function applySimulationAction(
 
       break;
 
+    case "restore": {
+      const index = action.indexes?.[0];
+      const price = getCurrentRestorePrice(state);
+      const outcome = getRestoreOutcome(state.board?.[index], index);
+      if(!outcome || (state.money ?? 0) < price) break;
+      state.board[index] = outcome.piece;
+      state.money -= price;
+      state.restoreUseCount = (state.restoreUseCount ?? 0) + 1;
+      state.steps++;
+      state.latestRestoreUse = {...outcome, targetIndex: index, price, cost: price};
+      applied = true;
+      break;
+    }
+
 
 
 
@@ -2010,6 +2031,9 @@ export function cloneSimulationState(
 
     heaterUseCount:
       state.heaterUseCount ?? 0,
+
+    restoreUseCount:
+      state.restoreUseCount ?? 0,
 
     previousCollection:
       state.previousCollection ?? null,

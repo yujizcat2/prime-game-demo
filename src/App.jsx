@@ -59,6 +59,7 @@ function App(){
   const [showCombineHistory,setShowCombineHistory] = useState(false);
   const [actionToast,setActionToast] = useState(null);
   const [heaterSelectMode,setHeaterSelectMode] = useState(false);
+  const [restoreSelectMode,setRestoreSelectMode] = useState(false);
 
   const animationTimersRef = useRef([]);
   const animationTokenRef = useRef(0);
@@ -86,7 +87,20 @@ function App(){
       return;
     }
     game.clearSelection();
+    setRestoreSelectMode(false);
     setHeaterSelectMode(true);
+  }
+
+  function toggleRestoreMode(){
+    if(restoreSelectMode){ setRestoreSelectMode(false); return; }
+    if(!game.restoreAvailable){
+      const shortage = Math.max(0, game.restoreCost - game.money);
+      showActionToast("无法归味", shortage ? `还需要 ¥${shortage}` : "没有可归味的料理");
+      return;
+    }
+    game.clearSelection();
+    setHeaterSelectMode(false);
+    setRestoreSelectMode(true);
   }
 
   function handleHeaterTarget(index){
@@ -94,6 +108,16 @@ function App(){
     if(!result) return;
     setHeaterSelectMode(false);
     showActionToast(`${result.fromValue} → ${result.toValue}`, `加热完成 · -¥${result.cost}`);
+  }
+
+  function handleRestoreTarget(index){
+    const result = game.useRestoreOnCell(index);
+    if(!result) return;
+    setRestoreSelectMode(false);
+    showActionToast(
+      "归味",
+      `${FOOD_TYPE_LABELS[result.foodTypeBefore] ?? "饮品"} ${result.valueBefore} → ${FOOD_TYPE_LABELS[result.foodTypeAfter] ?? "饮品"} ${result.valueAfter} · -¥${result.cost}`
+    );
   }
 
 
@@ -745,6 +769,10 @@ function App(){
               heaterAvailable={game.heaterAvailable}
               heaterActive={heaterSelectMode}
               onHeaterClick={toggleHeaterMode}
+              restoreCost={game.restoreCost}
+              restoreAvailable={game.restoreAvailable}
+              restoreActive={restoreSelectMode}
+              onRestoreClick={toggleRestoreMode}
             />
 
             <button
@@ -785,9 +813,12 @@ function App(){
                   game.functionOneIndex
                 }
                 heaterSelectMode={heaterSelectMode}
+                restoreSelectMode={restoreSelectMode}
                 onSelectCell={
                   boardAnimation
                     ? undefined
+                    : restoreSelectMode
+                      ? handleRestoreTarget
                     : heaterSelectMode
                       ? handleHeaterTarget
                       : game.selectCell
@@ -837,7 +868,7 @@ function App(){
                   onCombine={handleCombine}
                   onBlockedCombine={handleBlockedCombine}
                   onReduce={handleReduce}
-                  gameOver={game.gameOver || heaterSelectMode}
+                  gameOver={game.gameOver || heaterSelectMode || restoreSelectMode}
                   removingId={removingIndex ?? boardAnimation?.token ?? null}
                 />
               </div>

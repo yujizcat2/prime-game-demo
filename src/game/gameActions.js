@@ -47,6 +47,8 @@ import {
 } from "./eightPalaceKeys";
 import { applyEightPalaceCollection } from "./collectionRules";
 import { getCreatedScoreValue } from "./scoreValue";
+import { getCurrentHeaterPrice, isHeaterTarget } from "./heaterPricing";
+import { getLegalRestoreActions } from "./restore";
 
 import {
   addCombinePair,
@@ -1275,7 +1277,7 @@ export function getLegalActions(
 
   if(
     !state ||
-    state.gameOver
+    state.gameOver || state.steps >= state.stepLimit
   ){
 
 
@@ -1298,7 +1300,11 @@ export function getLegalActions(
     ...getLegalRemoveActions(
       state
     ),
-    ...getLegalApplyOneActions(state)
+    ...getLegalApplyOneActions(state),
+    ...(state.money ?? 0) >= getCurrentHeaterPrice(state)
+      ? state.board.flatMap((piece, index) => isHeaterTarget(piece) ? [{type: "heater", indexes: [index]}] : [])
+      : [],
+    ...getLegalRestoreActions(state)
 
   ];
 

@@ -14,6 +14,7 @@ import {
 } from "../data/food/foodRegistry";
 import { getSpecialOneName } from "../data/specialOneRegistry";
 import { getFoodCardDisplayName, getFoodOriginDescription } from "./foodCardDisplay";
+import { getNativeFoodType } from "../game/nativeFoodTypes";
 
 import "./Board.css";
 
@@ -43,6 +44,7 @@ export default function BoardCell({
   removeCandidate = false,
   applyOneCandidate = false,
   heaterTargetState = null,
+  restoreTargetState = null,
 
   reducePreview = null,
 
@@ -63,6 +65,8 @@ export default function BoardCell({
   onClick,
 
 }) {
+  const nativeFoodType = getNativeFoodType(index);
+  const nativeFoodTypeName = getFoodTypeShortName(nativeFoodType);
 
   const previousPriceRef = useRef(price);
   const [priceDelta, setPriceDelta] = useState(null);
@@ -115,6 +119,8 @@ export default function BoardCell({
             board-empty-tile
           "
         >
+
+          <span className="board-native-label">原生 · {nativeFoodTypeName}</span>
 
 
           <div
@@ -607,6 +613,8 @@ export default function BoardCell({
 
         ${heaterTargetState === "available" ? "board-cell--heater-available" : ""}
         ${heaterTargetState === "unavailable" ? "board-cell--heater-unavailable" : ""}
+        ${restoreTargetState === "available" ? "board-cell--restore-available" : ""}
+        ${restoreTargetState === "unavailable" ? "board-cell--restore-unavailable" : ""}
 
         ${
           selected
@@ -653,6 +661,8 @@ export default function BoardCell({
       }
 
     >
+
+      <span className="board-native-label">原生 · {nativeFoodTypeName}</span>
 
 
       <div

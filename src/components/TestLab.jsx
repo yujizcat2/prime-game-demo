@@ -828,7 +828,7 @@ export default function TestLab({
               disabled={running}
               onClick={() => changeMode(TEST_MODES.SCORE)}
             >
-              八宫 100 Step · Score AI
+              八宫 100 Step · 综合 AI
             </ModeButton>
 
             <ModeButton
@@ -836,7 +836,7 @@ export default function TestLab({
               disabled={running}
               onClick={() => changeMode(TEST_MODES.FIXED_SCORE)}
             >
-              固定开局 · Score AI 多次尝试
+              固定开局 · 综合 AI 多次尝试
             </ModeButton>
 
 
@@ -1477,6 +1477,8 @@ function ScoreSummaryGrid({result}){
       <ResultItem label="平均收藏数量" value={result.averageCollectionCount.toFixed(2)} />
       <ResultItem label="平均加热次数" value={result.averageHeaterUseCount.toFixed(2)} />
       <ResultItem label="平均加热支出" value={`¥${result.averageHeaterSpending.toFixed(2)}`} />
+      <ResultItem label="平均归味次数" value={(result.averageRestoreUseCount ?? 0).toFixed(2)} />
+      <ResultItem label="平均归味支出" value={`¥${(result.averageRestoreSpending ?? 0).toFixed(2)}`} />
       <ResultItem label="平均单次成本" value={`¥${result.averageHeaterCost.toFixed(2)}`} />
       <ResultItem label="质数收藏" value={result.averagePrimeCollectionCount.toFixed(2)} />
       <ResultItem label="合数收藏" value={result.averageCompositeCollectionCount.toFixed(2)} />
@@ -1547,6 +1549,7 @@ function ScoreRecord({title, game, difficulty}){
         得分效率 <strong>{game.scoreEfficiency.toFixed(2)}</strong>
         {" · "}
         收藏 <strong>{game.collectionCount}</strong>
+        {" · "}归味 <strong>{game.restoreUseCount ?? 0}</strong> 次 / ¥{game.restoreSpending ?? 0}
         {" · "}
         Step <strong>{game.steps} / 100</strong>
       </div>
@@ -1758,7 +1761,7 @@ function formatScoreBoard(board){
 }
 
 function formatScoreAction(action){
-  const label = {combine: "合成", combine_ordered: "合成", reduce: "约分", apply_one: "特殊 1", heater: "加热器"}[action.type] ?? action.type;
+  const label = {combine: "合成", combine_ordered: "合成", reduce: "约分", apply_one: "特殊 1", heater: "加热器", restore: "归味"}[action.type] ?? action.type;
   const inputs = action.inputs.map(piece => `格${piece.index + 1} ${formatFoodType(piece.foodType)}${piece.value}`).join(" + ");
   return `${label}：${inputs}`;
 }

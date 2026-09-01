@@ -7,6 +7,7 @@ import {
 import { createGameState } from "../game/gameState";
 import { BASE_FOOD_TYPES, FOOD_PURITY, FOOD_TYPES } from "../game/rules";
 import { getBaseScore } from "../game/scoreValue";
+import { BOARD_NATIVE_FOOD_TYPES } from "../game/nativeFoodTypes";
 
 for(const [difficulty, config] of Object.entries(DIFFICULTY_OPENINGS)){
   const seenCombinations = new Set();
@@ -30,9 +31,10 @@ for(const [difficulty, config] of Object.entries(DIFFICULTY_OPENINGS)){
     const state = createGameState(opening);
     const cards = state.board.filter(Boolean);
     assert.equal(cards.length, config.count);
-    for(const card of cards){
+    for(const [boardIndex, card] of state.board.entries()){
+      if(!card) continue;
       assert.equal(card.scoreValue, getBaseScore(card.value));
-      assert.ok(BASE_FOOD_TYPES.includes(card.foodType));
+      assert.equal(card.foodType, BOARD_NATIVE_FOOD_TYPES[boardIndex]);
       assert.equal(card.purity, FOOD_PURITY.PURE);
       assert.equal(card.origin, null);
       assert.ok(Object.hasOwn(card, "id"));

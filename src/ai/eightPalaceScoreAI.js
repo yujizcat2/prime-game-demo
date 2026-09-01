@@ -13,8 +13,6 @@ import { gcd } from "../utils/math";
 import { getScoreEfficiency } from "../game/scoreEfficiency";
 import { isPrime } from "../game/prime";
 import { summarizeCollectionEfficiencyTimelines } from "../game/collectionEfficiency";
-import { applyHeater, isHeaterTarget } from "../game/heater";
-import { getCurrentHeaterPrice } from "../game/heaterPricing";
 
 export const SCORE_AI_DEFAULTS = Object.freeze({
   depth: 4,
@@ -22,7 +20,7 @@ export const SCORE_AI_DEFAULTS = Object.freeze({
   maxActions: 100
 });
 
-export const HEATER_AI_COST_PENALTY_WEIGHT = 100_000;
+export const PAID_ACTION_OPTION_VALUE_WEIGHT = 100;
 
 function createScoreOpening(opening = createEightPalaceInitialValues()){
   return opening.map(card => ({
@@ -41,7 +39,6 @@ function snapshotBoard(board){
 }
 
 function getActionKey(action){
-  if(action.type === "heater") return `${action.type}:${action.index}`;
   if(action.type === "apply_one") return `${action.type}:${action.oneIndex}:${action.targetIndex}`;
   if(action.index !== undefined) return `${action.type}:${action.index}`;
   return `${action.type}:${(action.indexes ?? []).join("-")}`;
@@ -60,7 +57,11 @@ function getStateKey(state){
   return JSON.stringify({
     board,
     score: state.score,
+    money: state.money ?? 0,
     steps: state.steps,
+    heaterUseCount: state.heaterUseCount ?? 0,
+    restoreUseCount: state.restoreUseCount ?? 0,
+    collectionCards: (state.collectionCards ?? []).map(card => [card.value, card.foodType]).sort(),
     usedCombinationPairs: [...(state.usedCombinationPairs ?? [])].sort(),
     usedKeyTriggerValues: [...(state.usedKeyTriggerValues ?? [])].sort((a, b) => a - b)
   });
@@ -98,7 +99,7 @@ function compactOrigin(origin, depth = 0){
 // Beam nodes only need rule-relevant board data and current score. The live
 // route is never compacted; this prevents thousands of speculative nodes from
 // retaining recursive UI provenance and collection display history.
-function compactSearchState(state, preserveCollections = false){
+function compactSearchState(state, preserveCollections = true){
   return {
     ...state,
     board: state.board.map(piece => piece ? {...piece, origin: compactOrigin(piece.origin)} : null),
@@ -146,37 +147,33 @@ export function evaluateScoreState(state){
   const potential = getImmediateScorePotential(state);
   const urgency = remainingSteps <= 8 ? 4 : remainingSteps <= 20 ? 2 : 1;
   const terminalDeadlock = state.gameOver && state.gameOverReason === "no_legal_actions" && state.steps < state.stepLimit;
+  const collected = new Set((state.collectionCards ?? []).map(card => `${card.value}:${card.foodType}`));
+  let boardNovelty = 0;
+  for(const piece of state.board ?? []){
+    if(piece && !collected.has(`${piece.value}:${piece.foodType}`)) boardNovelty++;
+  }
 
   // One point of banked score outweighs every auxiliary term. Board count is
   // intentionally absent: clearing or retaining cards has no value by itself.
   return (state.score ?? 0) * 1_000_000_000
     + potential.best * 1_000_000 * urgency
     + potential.total * 10_000
+    + boardNovelty * 5_000
     + reduceActions * 1_000
     + legalActions.length * 10
+    + Math.min(state.money ?? 0, 200) * PAID_ACTION_OPTION_VALUE_WEIGHT
     - (terminalDeadlock ? 100_000_000 : 0);
 }
 
 export function getScoreCandidateActions(state, {
-  allowHeater = false,
-  heaterUsedThisStep = false
+  allowHeater: _allowHeater = true,
+  heaterUsedThisStep: _heaterUsedThisStep = false
 } = {}){
-  const actions = state?.gameOver ? [] : getLegalActions(state);
-  if(!allowHeater || heaterUsedThisStep) return actions;
-  const heaterPrice = getCurrentHeaterPrice(state);
-  if((state.money ?? 0) < heaterPrice) return actions;
-  return [
-    ...actions,
-    ...state.board.flatMap((piece, index) =>
-      isHeaterTarget(piece) ? [{type: "heater", index}] : []
-    )
-  ];
+  return state?.gameOver ? [] : getLegalActions(state);
 }
 
 function applyScoreAction(state, action){
-  return action.type === "heater"
-    ? resolveGameOver(applyHeater(state, action.index))
-    : applyAction(state, action);
+  return applyAction(state, action);
 }
 
 function shuffled(items){
@@ -192,12 +189,12 @@ export function chooseScoreAction(state, {
   depth = SCORE_AI_DEFAULTS.depth,
   beamWidth = SCORE_AI_DEFAULTS.beamWidth,
   explore = false,
-  allowHeater = false,
+  allowHeater: _allowHeater = true,
   heaterUsedThisStep = false
 } = {}){
   if(!state || state.gameOver || state.steps >= state.stepLimit) return null;
 
-  let frontier = [{state, firstAction: null, evaluation: evaluateScoreState(state), heaterUsedThisStep, heaterSpending: 0}];
+  let frontier = [{state, firstAction: null, evaluation: evaluateScoreState(state), heaterUsedThisStep}];
   let best = null;
   const seen = new Map([[getStateKey(state), evaluateScoreState(state)]]);
 
@@ -206,24 +203,17 @@ export function chooseScoreAction(state, {
 
     for(const node of frontier){
       const availableActions = getScoreCandidateActions(node.state, {
-        allowHeater,
+        allowHeater: true,
         heaterUsedThisStep: node.heaterUsedThisStep
       });
       const actions = explore ? shuffled(availableActions) : availableActions;
       for(const action of actions){
         const appliedState = applyScoreAction(node.state, action);
         if(appliedState === node.state) continue;
-        const heaterCost = action.type === "heater"
-          ? getCurrentHeaterPrice(node.state)
-          : 0;
-        const heaterSpending = node.heaterSpending + heaterCost;
-        const evaluation = evaluateScoreState(appliedState)
-          - heaterSpending * HEATER_AI_COST_PENALTY_WEIGHT;
-        const nextState = compactSearchState(appliedState, allowHeater);
+        const evaluation = evaluateScoreState(appliedState);
+        const nextState = compactSearchState(appliedState);
         const nextHeaterUsedThisStep = action.type === "heater";
-        const key = allowHeater
-          ? `${getStateKey(nextState)}:${nextState.money}:${nextState.heaterUseCount}:${nextHeaterUsedThisStep}`
-          : getStateKey(nextState);
+        const key = getStateKey(nextState);
         if((seen.get(key) ?? -Infinity) >= evaluation) continue;
         seen.set(key, evaluation);
         candidates.push({
@@ -232,7 +222,6 @@ export function chooseScoreAction(state, {
           evaluation,
           immediateGain: nextState.score - state.score,
           heaterUsedThisStep: nextHeaterUsedThisStep,
-          heaterSpending,
           tieBreaker: explore ? Math.random() : 0
         });
       }
@@ -283,14 +272,15 @@ function describeAction(state, action, nextState, number){
     moneyGain: (nextState.money ?? 0) - (state.money ?? 0),
     heaterUse: action.type === "heater" ? {
       step: state.steps,
-      fromValue: state.board[action.index]?.value ?? null,
-      toValue: nextState.board[action.index]?.value ?? null,
-      foodType: state.board[action.index]?.foodType ?? null,
+      fromValue: state.board[indexes[0]]?.value ?? null,
+      toValue: nextState.board[indexes[0]]?.value ?? null,
+      foodType: state.board[indexes[0]]?.foodType ?? null,
       cost: nextState.latestHeaterUse.cost,
       price: nextState.latestHeaterUse.price,
       moneyBefore: state.money ?? 0,
       moneyAfter: nextState.money ?? 0
     } : null,
+    restoreUse: action.type === "restore" ? structuredClone(nextState.latestRestoreUse) : null,
     collectionEvents,
     collectionCountAfter: nextState.collectionCards.length,
     boardCountAfter: getBoardCount(nextState.board)
@@ -304,7 +294,7 @@ export async function runScoreGame({
   initialOpening = null,
   explore = false,
   strategy = "score",
-  allowHeater = false
+  allowHeater: _allowHeater = true
 } = {}){
   const opening = createScoreOpening(initialOpening ?? createEightPalaceInitialValues());
   let state = resolveGameOver(createGameState(opening));
@@ -313,7 +303,7 @@ export async function runScoreGame({
   let heaterUsedThisStep = false;
 
   while(!state.gameOver && state.steps < state.stepLimit && state.steps < maxActions){
-    const legalActions = getScoreCandidateActions(state, {allowHeater, heaterUsedThisStep});
+    const legalActions = getScoreCandidateActions(state);
     if(legalActions.length === 0){
       state = {...state, gameOver: true, gameOverReason: "no_legal_actions"};
       break;
@@ -321,7 +311,7 @@ export async function runScoreGame({
 
     const action = strategy === "random"
       ? legalActions[Math.floor(Math.random() * legalActions.length)]
-      : chooseScoreAction(state, {depth, beamWidth, explore, allowHeater, heaterUsedThisStep});
+      : chooseStrategicAction(state, {depth, beamWidth, explore, heaterUsedThisStep});
     if(!action) break;
 
     // Keep the exact legal set used for selection so tests and records can
@@ -352,6 +342,8 @@ export async function runScoreGame({
     }];
   });
   const heaterSpending = heaterTimeline.reduce((sum, event) => sum + event.cost, 0);
+  const restoreTimeline = actionPath.flatMap(action => action.restoreUse ? [action.restoreUse] : []);
+  const restoreSpending = restoreTimeline.reduce((sum, event) => sum + event.cost, 0);
 
   return {
     strategy,
@@ -364,6 +356,9 @@ export async function runScoreGame({
     heaterSpending,
     averageHeaterCost: heaterTimeline.length ? heaterSpending / heaterTimeline.length : 0,
     heaterTimeline,
+    restoreUseCount: restoreTimeline.length,
+    restoreSpending,
+    restoreTimeline,
     scoreEfficiency: getScoreEfficiency(state.score, state.steps),
     collectionCount: state.collectionCards.length,
     collectionEfficiencyTimeline: structuredClone(state.collectionEfficiencyTimeline ?? []),
@@ -379,6 +374,8 @@ export async function runScoreGame({
     actionPath
   };
 }
+
+export const chooseStrategicAction = chooseScoreAction;
 
 export function getCollectionNumberCounts(collections){
   let primeCollectionCount = 0;
@@ -414,6 +411,8 @@ export function summarizeScoreResults(results){
   const classifiedCollectionCount = totalPrimeCollectionCount + totalCompositeCollectionCount;
   const totalHeaterUseCount = results.reduce((sum, result) => sum + (result.heaterUseCount ?? 0), 0);
   const totalHeaterSpending = results.reduce((sum, result) => sum + (result.heaterSpending ?? 0), 0);
+  const totalRestoreUseCount = results.reduce((sum, result) => sum + (result.restoreUseCount ?? 0), 0);
+  const totalRestoreSpending = results.reduce((sum, result) => sum + (result.restoreSpending ?? 0), 0);
   const heaterEvents = results.flatMap(result => result.heaterTimeline ?? []);
   const heaterPrices = heaterEvents.map(event => event.price ?? event.cost);
   const priceDistribution = {
@@ -437,6 +436,10 @@ export function summarizeScoreResults(results){
     heaterPriceDistribution: priceDistribution,
     totalHeaterUseCount,
     totalHeaterSpending,
+    averageRestoreUseCount: average(results, result => result.restoreUseCount ?? 0),
+    averageRestoreSpending: average(results, result => result.restoreSpending ?? 0),
+    totalRestoreUseCount,
+    totalRestoreSpending,
     averageScoreEfficiency: average(results, result => result.scoreEfficiency),
     highestScore: results.length ? Math.max(...results.map(result => result.finalScore)) : 0,
     lowestScore: results.length ? Math.min(...results.map(result => result.finalScore)) : 0,

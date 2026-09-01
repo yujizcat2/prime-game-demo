@@ -9,7 +9,11 @@ import { FOOD_TYPES as T } from "../game/rules";
 import { createSimulationState, getSimulationLegalActions, applySimulationAction } from "./simulationEngine";
 
 const piece=(value,foodType,extra={})=>({value,foodType,purity:"pure",parents:null,parentFoods:null,...extra});
-const placed=(items)=>createGameState(items.map((item,index)=>({...item,boardIndex:index})));
+const placed=(items)=>{
+  const state=createGameState(items.map((item,index)=>({...item,boardIndex:index})));
+  state.board=state.board.map((card,index)=>card?{...card,...items[index]}:null);
+  return state;
+};
 
 const a=piece(12,T.VEGETABLE,{id:11,purity:"mixed",parents:[6,2]});
 const b=piece(17,T.FRUIT,{id:22,purity:"pure",parents:[1,17]});

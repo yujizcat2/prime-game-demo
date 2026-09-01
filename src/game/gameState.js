@@ -24,6 +24,7 @@ import {
 
 import { getBaseScore } from "./scoreValue";
 import { recordCollectionEfficiencySnapshot } from "./collectionEfficiency";
+import { getNativeFoodType } from "./nativeFoodTypes";
 
 
 
@@ -157,17 +158,9 @@ export function createGameState(
           getBaseScore(value),
 
 
-        foodType:
-
-          (
-            usesPlacedInitialValues
-              ? initialValue.foodType
-              : initialFoodTypes[index]
-          )
-
-          ??
-
-          FOOD_TYPES.LAND,
+        foodType: getNativeFoodType(boardIndex)
+          ?? initialFoodTypes[index]
+          ?? FOOD_TYPES.LAND,
 
 
         purity:
@@ -313,6 +306,9 @@ export function createGameState(
       0,
 
     heaterUseCount:
+      0,
+
+    restoreUseCount:
       0,
 
     previousCollection:

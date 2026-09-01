@@ -21,6 +21,7 @@ import BoardCell from "./BoardCell";
 import { getCombinePreviewPlacement } from "../game/combinePreview";
 import { getEightPalaceCollectionScoreGain } from "../game/collectionRules";
 import { getCollectionScoreGain } from "../game/scoreValue";
+import { BOARD_NATIVE_FOOD_TYPES } from "../game/nativeFoodTypes";
 
 import "./Board.css";
 
@@ -39,6 +40,7 @@ export default function Board({
   selectedIndexes = [],
   functionOneIndex = null,
   heaterSelectMode = false,
+  restoreSelectMode = false,
 
   onSelectCell,
 
@@ -1047,7 +1049,7 @@ export default function Board({
 
             function handlePieceClick(){
 
-              if(heaterSelectMode){
+              if(heaterSelectMode || restoreSelectMode){
                 onSelectCell?.(index);
                 return;
               }
@@ -1148,6 +1150,13 @@ export default function Board({
                 heaterTargetState={
                   heaterSelectMode
                     ? piece?.value >= 2 && piece?.value <= 100
+                      ? "available"
+                      : "unavailable"
+                    : null
+                }
+                restoreTargetState={
+                  restoreSelectMode
+                    ? piece && piece.foodType !== BOARD_NATIVE_FOOD_TYPES[index]
                       ? "available"
                       : "unavailable"
                     : null

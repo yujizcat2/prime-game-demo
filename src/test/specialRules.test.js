@@ -10,7 +10,7 @@ import { getNextSelectionIndexes } from "../game/selection";
 import { getCombinePreviewPlacement } from "../game/combinePreview";
 import { getFoodName } from "../data/food/foodRegistry";
 
-const stateWith=(pieces)=>{const seed=createGameState(pieces.map((piece,index)=>({...piece,boardIndex:index})));return {...seed,gameOver:false,board:[...seed.board]};};
+const stateWith=(pieces)=>{const seed=createGameState(pieces.map((piece,index)=>({...piece,boardIndex:index})));const board=seed.board.map((card,index)=>card?{...card,foodType:pieces[index].foodType}:null);return {...seed,gameOver:false,board};};
 const combine=(a,b)=>applyAction({...stateWith([a,b]),gameMode:"classic"},{type:"combine_ordered",indexes:[0,1]});
 
 assert.equal(combine({value:64,foodType:T.DAIRY_EGG},{value:25,foodType:T.FRUIT}).board[2].foodType,T.DAIRY_EGG);
@@ -63,11 +63,11 @@ const reduceAfterUsed=stateWith([{value:6,foodType:T.LAND},{value:12,foodType:T.
 assert.equal(getLegalActions(reduceAfterUsed).some(action=>action.type==="reduce"&&action.indexes.includes(0)&&action.indexes.includes(1)),true);
 assert.deepEqual(createGameState([{value:89,foodType:T.LAND,boardIndex:0},{value:6,foodType:T.FRUIT,boardIndex:1}]).usedCombinationPairs,[]);
 
-const simPair=createSimulationState([89,6,7]);assert.equal(applySimulationAction(simPair,{type:"combine",indexes:[0,1]}),true);simPair.board[4]={value:89,foodType:T.LAND};simPair.board[5]={value:6,foodType:T.VEGETABLE};
+const simPair=createSimulationState([89,6,7]);simPair.board[0].foodType=T.LAND;simPair.board[1].foodType=T.VEGETABLE;assert.equal(applySimulationAction(simPair,{type:"combine",indexes:[0,1]}),true);simPair.board[4]={value:89,foodType:T.LAND};simPair.board[5]={value:6,foodType:T.VEGETABLE};
 assert.equal(getSimulationLegalActions(simPair).some(action=>action.type.startsWith("combine")&&action.indexes.includes(4)&&action.indexes.includes(5)),false);
 assert.deepEqual(cloneSimulationState(simPair).usedCombinationPairs,["6-89"]);
 
-const eightStateWith=(pieces)=>{const state=createGameState(pieces.map((piece,index)=>({...piece,boardIndex:index,gameMode:"eightPalace"})));return {...state,gameOver:false,board:[...state.board]};};
+const eightStateWith=(pieces)=>{const state=createGameState(pieces.map((piece,index)=>({...piece,boardIndex:index,gameMode:"eightPalace"})));const board=state.board.map((card,index)=>card?{...card,foodType:pieces[index].foodType}:null);return {...state,gameOver:false,board};};
 const firstTrigger=applyAction(eightStateWith([{value:2,foodType:T.AQUATIC},{value:90,foodType:T.AQUATIC}]),{type:"reduce",indexes:[0,1]});
 assert.deepEqual(firstTrigger.usedKeyTriggerValues,[2]);assert.ok(firstTrigger.eightPalaceKeys[T.AQUATIC]);
 assert.equal(firstTrigger.eightPalaceKeys[T.AQUATIC].triggerValue,2);
@@ -88,7 +88,7 @@ const fruitTrigger=applyAction(eightStateWith([{value:13,foodType:T.FRUIT},{valu
 
 const simKey=createSimulationState([2,90,3]);simKey.board[0].foodType=T.AQUATIC;simKey.board[1].foodType=T.AQUATIC;assert.equal(applySimulationAction(simKey,{type:"reduce",indexes:[0,1]}),true);assert.deepEqual(simKey.usedKeyTriggerValues,[2]);simKey.board[3]={value:2,foodType:T.LAND};simKey.board[4]={value:78,foodType:T.LAND};assert.equal(applySimulationAction(simKey,{type:"reduce",indexes:[3,4]}),true);assert.equal(simKey.eightPalaceKeys[T.LAND],null);assert.deepEqual(cloneSimulationState(simKey).usedKeyTriggerValues,[2]);
 
-const positionedEight=(first,firstIndex,second,secondIndex)=>{const state=createGameState([{...first,boardIndex:firstIndex,gameMode:"eightPalace"},{...second,boardIndex:secondIndex,gameMode:"eightPalace"}]);return {...state,gameOver:false,board:[...state.board]};};
+const positionedEight=(first,firstIndex,second,secondIndex)=>{const state=createGameState([{...first,boardIndex:firstIndex,gameMode:"eightPalace"},{...second,boardIndex:secondIndex,gameMode:"eightPalace"}]);const board=[...state.board];board[firstIndex]={...board[firstIndex],foodType:first.foodType};board[secondIndex]={...board[secondIndex],foodType:second.foodType};return {...state,gameOver:false,board};};
 const earlierGrain=positionedEight({value:41,foodType:T.GRAIN_BEAN},1,{value:20,foodType:T.FRUIT},7);
 assert.equal(applyAction(earlierGrain,{type:"combine_ordered",indexes:[1,7]}).board[0].foodType,T.GRAIN_BEAN);
 assert.equal(applyAction(earlierGrain,{type:"combine_ordered",indexes:[7,1]}).board[0].foodType,T.FRUIT);

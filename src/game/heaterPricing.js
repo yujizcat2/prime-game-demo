@@ -1,15 +1,12 @@
-import { getLegalActions } from "./gameActions";
+import { getLegalCombineActions, getLegalReduceActions } from "./gameActions";
 
 export const BASE_HEATER_PRICE_STEP = 10;
 
 export function getNormalLegalActionCount(state){
   if(!state) return 0;
   const activeState = {...state, gameOver: false, gameOverReason: null};
-  return getLegalActions(activeState).filter(action =>
-    action.type === "combine"
-    || action.type === "combine_ordered"
-    || action.type === "reduce"
-  ).length;
+  return getLegalCombineActions(activeState).length
+    + getLegalReduceActions(activeState).length;
 }
 
 export function getHeaterBoardAdjustment(normalLegalActionCount){

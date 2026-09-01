@@ -5,7 +5,11 @@ export default function ItemBar({
   heaterCost = 10,
   heaterAvailable = false,
   heaterActive = false,
-  onHeaterClick
+  onHeaterClick,
+  restoreCost = 50,
+  restoreAvailable = false,
+  restoreActive = false,
+  onRestoreClick
 }){
   const [open, setOpen] = useState(false);
   const menuRef = useRef(null);
@@ -29,6 +33,11 @@ export default function ItemBar({
     setOpen(false);
   }
 
+  function handleRestoreClick(){
+    onRestoreClick?.();
+    setOpen(false);
+  }
+
   const items = [{
     id: "heater",
     name: "加热器",
@@ -37,19 +46,27 @@ export default function ItemBar({
     active: heaterActive,
     disabled: !heaterActive && !heaterAvailable,
     onClick: handleHeaterClick
+  }, {
+    id: "restore",
+    name: "归味",
+    effect: "恢复原生系",
+    costLabel: `¥${restoreCost}`,
+    active: restoreActive,
+    disabled: !restoreActive && !restoreAvailable,
+    onClick: handleRestoreClick
   }];
 
   return (
     <div className="item-bar" ref={menuRef} aria-label="道具栏">
       <button
         type="button"
-        className={`item-bar-trigger${heaterActive ? " item-bar-trigger--active" : ""}`}
+        className={`item-bar-trigger${heaterActive || restoreActive ? " item-bar-trigger--active" : ""}`}
         aria-expanded={open}
         aria-haspopup="menu"
         onClick={() => setOpen(current => !current)}
       >
         道具
-        {heaterActive && <span>选择中</span>}
+        {(heaterActive || restoreActive) && <span>选择中</span>}
       </button>
 
       {open && <div className="item-bar-menu" role="menu" aria-label="可使用道具">
@@ -61,14 +78,16 @@ export default function ItemBar({
           disabled={item.disabled}
           onClick={item.onClick}
         >
-          <span className="item-bar-name">{item.active ? "取消加热" : item.name}</span>
+          <span className="item-bar-name">{item.active ? `取消${item.name}` : item.name}</span>
           <span className="item-bar-effect">{item.active ? "选择中" : item.effect}</span>
           <span className="item-bar-cost">{item.costLabel}</span>
         </button>)}
-        <div className={`item-bar-status${heaterAvailable || heaterActive ? " item-bar-status--ready" : ""}`}>
-          {heaterActive
+        <div className={`item-bar-status${heaterAvailable || restoreAvailable || heaterActive || restoreActive ? " item-bar-status--ready" : ""}`}>
+          {restoreActive
+            ? "选择一道料理恢复原生系"
+            : heaterActive
             ? "选择一道料理进行加热"
-            : heaterAvailable
+            : heaterAvailable || restoreAvailable
               ? "可使用"
               : "金钱不足或没有可加热料理"}
         </div>

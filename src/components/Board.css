@@ -6012,3 +6012,29 @@
   filter: grayscale(.65);
   cursor: not-allowed;
 }
+
+.board-native-label {
+  position: absolute;
+  left: 6px;
+  bottom: 4px;
+  z-index: 8;
+  padding: 1px 4px;
+  border-radius: 999px;
+  color: rgba(72, 91, 80, .66);
+  background: rgba(255, 255, 255, .7);
+  font-size: 7px;
+  font-weight: 800;
+  line-height: 1.35;
+  pointer-events: none;
+}
+
+.board-cell--restore-available .board-piece {
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, .72), 0 8px 22px rgba(34, 197, 94, .22);
+  cursor: pointer;
+}
+
+.board-cell--restore-unavailable .board-piece {
+  opacity: .32;
+  filter: grayscale(.65);
+  cursor: not-allowed;
+}

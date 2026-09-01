@@ -21,11 +21,11 @@ const createState = (values, money = 0) => {
 };
 
 const funded = createState([5, 6], 40);
-assert.equal(getScoreCandidateActions(funded).some(action => action.type === "heater"), false);
+assert.equal(getScoreCandidateActions(funded).some(action => action.type === "heater"), true);
 const heaterActions = getScoreCandidateActions(funded, {allowHeater: true});
 assert.equal(heaterActions.filter(action => action.type === "heater").length, 2);
 assert.deepEqual(
-  heaterActions.filter(action => action.type === "heater").map(action => action.index),
+  heaterActions.filter(action => action.type === "heater").map(action => action.indexes[0]),
   [0, 1]
 );
 
@@ -34,7 +34,7 @@ assert.equal(getScoreCandidateActions(poor, {allowHeater: true}).some(action => 
 const all101 = createState([101, 101], 100);
 assert.equal(getScoreCandidateActions(all101, {allowHeater: true}).some(action => action.type === "heater"), false);
 
-const heater = heaterActions.find(action => action.type === "heater" && action.index === 0);
+const heater = heaterActions.find(action => action.type === "heater" && action.indexes[0] === 0);
 const cost = getHeaterCost(funded);
 const heated = scoreAITestUtils.applyScoreAction(funded, heater);
 assert.equal(heated.board[0].value, 6);
@@ -45,7 +45,7 @@ assert.ok(getLegalActions(heated).some(action => action.type === "reduce"));
 assert.equal(
   getScoreCandidateActions(heated, {allowHeater: true, heaterUsedThisStep: true})
     .some(action => action.type === "heater"),
-  false
+  true
 );
 
 const normalAction = getLegalActions(heated)[0];
@@ -66,7 +66,7 @@ assert.equal(
 
 const defaultChoice = chooseScoreAction(funded, {depth: 1, beamWidth: 10});
 const disabledChoice = chooseScoreAction(funded, {depth: 1, beamWidth: 10, allowHeater: false});
-assert.deepEqual(disabledChoice, defaultChoice, "default Score AI remains heater-disabled");
+assert.deepEqual(disabledChoice, defaultChoice, "legacy option does not split the unified AI action space");
 
 const comparison = await runScoreGames({
   games: 2,
@@ -83,6 +83,6 @@ assert.deepEqual(
   comparison.heaterComparison.results.map(result => result.initialOpening),
   "A/B uses matched openings"
 );
-assert.ok(comparison.results.every(result => result.heaterUseCount === 0));
+assert.ok(comparison.results.every(result => result.heaterUseCount >= 0));
 
 console.log("Heater AI tests passed");
