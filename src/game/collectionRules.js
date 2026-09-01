@@ -7,7 +7,7 @@ import {
 } from "./numberOrigin";
 
 import { getFoodName } from "../data/food/foodRegistry";
-import { getBaseScore } from "./scoreValue";
+import { getCollectionScoreGain } from "./scoreValue";
 import { getCollectionMoneyGain } from "./money";
 
 
@@ -1571,12 +1571,7 @@ export function getEightPalaceCollectionScoreGain(state, piece){
   const record = getCollectionRecord(piece);
   if(!record) return 0;
 
-  const collectionKey = getEightPalaceCollectionKey(record);
-  const alreadyCollected = (state.collectionCards ?? []).some(card =>
-    (card.collectionKey ?? getEightPalaceCollectionKey(card)) === collectionKey
-  );
-
-  return alreadyCollected ? 0 : record.scoreValue ?? getBaseScore(record.value);
+  return getCollectionScoreGain(state.collectionCards, record.value, record.foodType);
 }
 
 // The 100 Step Eight Palace mode collects the concrete card that existed
@@ -1607,7 +1602,7 @@ export function applyEightPalaceCollection(state, piece){
     parentFoods,
     origin: record.origin ? structuredClone(record.origin) : null,
     originType: record.origin?.type ?? null,
-    scoreGain: isNewCollection ? scoreGain : 0,
+    scoreGain,
     isNewCollection,
     moneyGain,
     cumulativeMoney,

@@ -1,100 +1,83 @@
 import assert from "node:assert/strict";
-import { applyAction, createCombineOutcome, createGameState } from "../game/gameEngine";
+import { readFileSync } from "node:fs";
+import { createGameState } from "../game/gameEngine";
 import { applyEightPalaceCollection } from "../game/collectionRules";
-import { FOOD_TYPES as T } from "../game/rules";
-import { getBaseScore, getCreatedScoreValue, getOriginMultiplier } from "../game/scoreValue";
+import { BASE_FOOD_TYPES } from "../game/rules";
+import {
+  BASE_SCORE_BANDS,
+  getBaseScore,
+  getCollectionScoreGain,
+  getCreatedScoreValue
+} from "../game/scoreValue";
 
-assert.deepEqual([2, 37, 83, 97, 100, 101].map(getBaseScore), [18, 110, 137, 139, 82, 140]);
-assert.equal(Number.isFinite(getBaseScore(202)), true);
+const allowedScores = new Set([10, 20, 30, 40, 50, 60, 70, 80]);
+const mappedEntries = Object.entries(BASE_SCORE_BANDS).flatMap(([score, values]) =>
+  values.map(value => [value, Number(score)])
+);
+const mappedNumbers = mappedEntries.map(([value]) => value);
 
-const eightState = pieces => {
-  const state = createGameState(pieces.map((piece, boardIndex) => ({...piece, boardIndex, gameMode: "eightPalace"})));
+assert.equal(mappedEntries.length, 100, "the table has exactly one entry for every number from 2 through 101");
+assert.equal(new Set(mappedNumbers).size, 100, "the table contains no duplicate number mappings");
+assert.deepEqual([...mappedNumbers].sort((a, b) => a - b), Array.from({length: 100}, (_, index) => index + 2));
+assert.ok(mappedEntries.every(([, score]) => allowedScores.has(score)), "only the eight formal scores are used");
+assert.deepEqual(BASE_SCORE_BANDS[80], [101], "101 is the unique 80-point number");
+assert.deepEqual(
+  [2, 3, 11, 13, 29, 43, 59, 79, 100, 101].map(getBaseScore),
+  [10, 10, 20, 30, 40, 50, 60, 70, 70, 80]
+);
+assert.equal(getCreatedScoreValue(29, {origin: {type: "combine"}}, {origin: {type: "combine"}}), 40);
+
+const stateWithBoard = () => {
+  const state = createGameState([{value: 7, foodType: BASE_FOOD_TYPES[0], boardIndex: 0, gameMode: "eightPalace"}]);
   return {...state, gameOver: false, board: [...state.board]};
 };
-
-const nativeState = eightState([
-  {value: 10, foodType: T.LAND},
-  {value: 20, foodType: T.VEGETABLE},
-  {value: 30, foodType: T.FRUIT}
-]);
-assert.equal(nativeState.board[0].scoreValue, getBaseScore(10));
-assert.equal(getOriginMultiplier(nativeState.board[0], nativeState.board[1]), 1.1);
-
-const nativeCombined = applyAction(nativeState, {type: "combine_ordered", indexes: [0, 1]});
-const firstCreated = nativeCombined.board[3];
-assert.equal(firstCreated.scoreValue, getCreatedScoreValue(30, nativeState.board[0], nativeState.board[1]));
-assert.equal(firstCreated.scoreValue, Math.round(getBaseScore(30) * 1.1));
-assert.equal(nativeCombined.board[0].scoreValue, nativeState.board[0].scoreValue);
-assert.equal(nativeCombined.board[1].scoreValue, nativeState.board[1].scoreValue);
-
-const mixedOutcome = createCombineOutcome(nativeCombined, 3, 2);
-assert.equal(getOriginMultiplier(firstCreated, nativeCombined.board[2]), 1.2);
-assert.equal(mixedOutcome.piece.scoreValue, Math.round(getBaseScore(60) * 1.2));
-
-let doubleCombined = eightState([
-  {value: 10, foodType: T.LAND},
-  {value: 20, foodType: T.VEGETABLE},
-  {value: 11, foodType: T.FRUIT},
-  {value: 22, foodType: T.SPICE}
-]);
-doubleCombined = applyAction(doubleCombined, {type: "combine_ordered", indexes: [0, 1]});
-doubleCombined = applyAction(doubleCombined, {type: "combine_ordered", indexes: [2, 3]});
-const combinedParentsOutcome = createCombineOutcome(doubleCombined, 4, 5);
-assert.equal(getOriginMultiplier(doubleCombined.board[4], doubleCombined.board[5]), 1.3);
-assert.equal(combinedParentsOutcome.piece.scoreValue, Math.round(getBaseScore(63) * 1.3));
-
-const wrapState = eightState([{value: 190, foodType: T.DRINK}, {value: 20, foodType: T.LAND}]);
-const wrapOutcome = createCombineOutcome(wrapState, 0, 1);
-assert.equal(wrapOutcome.kind, "wrap");
-assert.equal(wrapOutcome.piece.scoreValue, Math.round(getBaseScore(10) * 1.1));
-assert.notEqual(wrapOutcome.piece.scoreValue, wrapState.board[0].scoreValue);
-
-let reduced = eightState([
-  {value: 84, foodType: T.LAND},
-  {value: 2, foodType: T.VEGETABLE},
-  {value: 3, foodType: T.FRUIT}
-]);
-const locked84 = reduced.board[0].scoreValue;
-reduced = applyAction(reduced, {type: "reduce", indexes: [0, 1]});
-assert.equal(reduced.board[0].value, 42);
-assert.equal(reduced.board[0].scoreValue, locked84);
-reduced = applyAction({...reduced, gameOver: false}, {type: "reduce", indexes: [0, 2]});
-assert.equal(reduced.board[0].value, 14);
-assert.equal(reduced.board[0].scoreValue, locked84);
-reduced.board[1] = {...eightState([{value: 28, foodType: T.VEGETABLE}]).board[0], id: 999};
-reduced = applyAction({...reduced, gameOver: false}, {type: "reduce", indexes: [0, 1]});
-assert.equal(reduced.collectionCards.at(-1).value, 14);
-assert.equal(reduced.collectionCards.at(-1).scoreGain, locked84);
-
-const collectible = (value, foodType, scoreValue, origin = null) => ({
+const collectible = (value, foodType, scoreValue = 999) => ({
   value: 1,
   foodType,
-  origin: {type: "reduce", parent: {value, foodType, scoreValue, origin}}
+  origin: {type: "reduce", parent: {value, foodType, scoreValue, origin: null}}
 });
-let collectionState = eightState([{value: 7, foodType: T.SEASONING}]);
-collectionState = applyEightPalaceCollection(collectionState, collectible(83, T.LAND, getBaseScore(83)));
-assert.equal(collectionState.latestCollection.scoreGain, getBaseScore(83));
-assert.equal(collectionState.collectionCards[0].scoreGain, getBaseScore(83));
-assert.equal(collectionState.score, getBaseScore(83));
-const duplicateCollection = applyEightPalaceCollection(collectionState, collectible(83, T.LAND, 999));
-assert.equal(duplicateCollection.score, collectionState.score);
-assert.equal(duplicateCollection.money, collectionState.money);
-assert.equal(duplicateCollection.latestCollection.isNewCollection, false);
-assert.equal(duplicateCollection.latestCollection.moneyGain, 0);
+const collect = (state, value, foodType) => applyEightPalaceCollection(state, collectible(value, foodType));
 
-const combined83Score = Math.round(getBaseScore(83) * 1.1);
-collectionState = applyEightPalaceCollection(
-  collectionState,
-  collectible(83, T.FRUIT, combined83Score, {type: "combine", parents: []})
-);
-assert.notEqual(collectionState.collectionCards[0].scoreGain, collectionState.collectionCards[1].scoreGain);
-assert.equal(collectionState.collectionCards[1].scoreGain, combined83Score);
-assert.equal(collectionState.score, getBaseScore(83) + combined83Score);
+let state = stateWithBoard();
+state = collect(state, 29, BASE_FOOD_TYPES[0]);
+assert.equal(state.latestCollection.scoreGain, 40, "first collection of a number earns 100%");
+state = collect(state, 29, BASE_FOOD_TYPES[1]);
+assert.equal(state.latestCollection.scoreGain, 20, "second food type earns 50%");
+state = collect(state, 29, BASE_FOOD_TYPES[2]);
+assert.equal(state.latestCollection.scoreGain, 20, "third food type still earns 50%");
+for(const foodType of BASE_FOOD_TYPES.slice(3)){
+  state = collect(state, 29, foodType);
+  assert.equal(state.latestCollection.scoreGain, 20, "every later new food type still earns 50%");
+}
+assert.equal(state.score, 180, "all eight food types for base 40 total 180 with no bonus");
+assert.equal(state.collectionTimeline.reduce((sum, event) => sum + event.scoreGain, 0), state.score);
 
-const fallback = applyEightPalaceCollection(
-  eightState([{value: 7, foodType: T.SEASONING}]),
-  collectible(37, T.LAND, undefined)
-);
-assert.equal(fallback.latestCollection.scoreGain, getBaseScore(37));
+const beforeDuplicate = state.score;
+state = collect(state, 29, BASE_FOOD_TYPES[0]);
+assert.equal(state.latestCollection.scoreGain, 0, "same number and food type earns zero");
+assert.equal(state.score, beforeDuplicate);
+
+let separateNumbers = stateWithBoard();
+separateNumbers = collect(separateNumbers, 29, BASE_FOOD_TYPES[0]);
+separateNumbers = collect(separateNumbers, 43, BASE_FOOD_TYPES[0]);
+assert.deepEqual(separateNumbers.collectionTimeline.map(event => event.scoreGain), [40, 50]);
+
+let oneOhOne = stateWithBoard();
+for(const foodType of BASE_FOOD_TYPES) oneOhOne = collect(oneOhOne, 101, foodType);
+assert.deepEqual(oneOhOne.collectionTimeline.slice(0, 2).map(event => event.scoreGain), [80, 40]);
+assert.equal(oneOhOne.score, 360, "all eight food types for 101 total 360 with no bonus");
+
+let edgeBands = stateWithBoard();
+edgeBands = collect(edgeBands, 2, BASE_FOOD_TYPES[0]);
+edgeBands = collect(edgeBands, 2, BASE_FOOD_TYPES[1]);
+edgeBands = collect(edgeBands, 79, BASE_FOOD_TYPES[0]);
+edgeBands = collect(edgeBands, 79, BASE_FOOD_TYPES[1]);
+assert.deepEqual(edgeBands.collectionTimeline.map(event => event.scoreGain), [10, 5, 70, 35]);
+
+const previewCards = separateNumbers.collectionCards;
+const previewGain = getCollectionScoreGain(previewCards, 29, BASE_FOOD_TYPES[1]);
+const previewSettled = collect(separateNumbers, 29, BASE_FOOD_TYPES[1]);
+assert.equal(previewGain, previewSettled.latestCollection.scoreGain, "UI preview and settlement share the formal scorer");
+assert.match(readFileSync("src/components/Board.jsx", "utf8"), /scorePreview = availableScore/);
 
 console.log("score value tests passed");

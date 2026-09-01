@@ -20,6 +20,7 @@ import {
 import BoardCell from "./BoardCell";
 import { getCombinePreviewPlacement } from "../game/combinePreview";
 import { getEightPalaceCollectionScoreGain } from "../game/collectionRules";
+import { getCollectionScoreGain } from "../game/scoreValue";
 
 import "./Board.css";
 
@@ -754,7 +755,11 @@ export default function Board({
 
                     {scoreMode && combinePreview.piece?.scoreValue != null && (
                       <div className="board-piece-locked-score board-preview-locked-score">
-                        +{combinePreview.piece.scoreValue}
+                        +{getCollectionScoreGain(
+                          collectionCards,
+                          combinePreview.piece.value,
+                          combinePreview.piece.foodType
+                        )}
                       </div>
                     )}
 

@@ -30,7 +30,6 @@ export default function BoardCell({
   price = 0,
 
   scoreMode = false,
-
   availableScore = null,
 
   selected = false,
