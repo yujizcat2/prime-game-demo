@@ -130,6 +130,9 @@ export function createOriginSnapshot(
     scoreValue:
       number.scoreValue ?? null,
 
+    singleFlavorPenalty:
+      number.singleFlavorPenalty === true,
+
 
     foodType:
       number.foodType ?? null,
@@ -520,6 +523,9 @@ function cloneRecord(
 
     value:
       record.value,
+
+    singleFlavorPenalty:
+      record.singleFlavorPenalty === true,
 
 
     foodType:

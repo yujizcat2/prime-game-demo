@@ -1104,6 +1104,9 @@ export default function BoardCell({
                   {priceDelta > 0 ? "↑" : "↓"}{Math.abs(priceDelta)}
                 </span>
               )}
+              {scoreMode && piece.singleFlavorPenalty === true && (
+                <span className="board-piece-single-flavor">风味单一</span>
+              )}
             </div>
           }
 

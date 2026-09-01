@@ -44,6 +44,7 @@ import { applyHeater } from "./heater";
 import { applyRestore, getLegalRestoreActions } from "./restore";
 import { canUseHeater } from "./heater";
 import { applySuperHeater } from "./superHeater";
+import { markSingleFlavorBoardPieces } from "./singleFlavorPenalty";
 
 
 
@@ -365,7 +366,7 @@ export function applyAction(
   return resolveGameOver(
 
     resolveMazeHistoryAfterAction(
-      actionState
+      markSingleFlavorBoardPieces(actionState)
     )
 
   );

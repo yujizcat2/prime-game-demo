@@ -44,7 +44,8 @@ function snapshotBoard(board){
     index,
     value: piece.value,
     foodType: piece.foodType,
-    drinkOriginValue: piece.drinkOriginValue ?? null
+    drinkOriginValue: piece.drinkOriginValue ?? null,
+    singleFlavorPenalty: piece.singleFlavorPenalty === true
   } : null);
 }
 
@@ -62,6 +63,7 @@ function getStateKey(state){
     piece.purity ?? null,
     piece.sourceKey ?? null,
     piece.specialOne?.identity ?? null,
+    piece.singleFlavorPenalty === true,
     (piece.parents ?? []).join(","),
     (piece.parentFoods ?? []).map(parent => `${parent.value}:${parent.foodType}`).join(",")
   ] : null);
@@ -590,6 +592,10 @@ export async function runScoreGame({
     gameOverReason: state.gameOverReason,
     finalBoard: snapshotBoard(state.board),
     finalBoardCount: getBoardCount(state.board),
+    singleFlavorTriggered: state.singleFlavorTriggered === true,
+    singleFlavorFirstTriggeredStep: state.singleFlavorFirstTriggeredStep ?? null,
+    singleFlavorFirstTriggeredBoardCount: state.singleFlavorFirstTriggeredBoardCount ?? null,
+    finalSingleFlavorPenaltyCount: state.board.filter(piece => piece?.singleFlavorPenalty === true).length,
     actionPath
   };
 }
@@ -634,6 +640,7 @@ export function summarizeScoreResults(results){
   const totalSuperHeaterSpending = results.reduce((sum, result) => sum + (result.superHeaterSpending ?? 0), 0);
   const totalRestoreUseCount = results.reduce((sum, result) => sum + (result.restoreUseCount ?? 0), 0);
   const totalRestoreSpending = results.reduce((sum, result) => sum + (result.restoreSpending ?? 0), 0);
+  const singleFlavorResults = results.filter(result => result.singleFlavorTriggered);
   const heaterEvents = results.flatMap(result => result.heaterTimeline ?? []);
   const heaterPrices = heaterEvents.map(event => event.price ?? event.cost);
   const priceDistribution = {
@@ -665,6 +672,23 @@ export function summarizeScoreResults(results){
     averageRestoreSpending: average(results, result => result.restoreSpending ?? 0),
     totalRestoreUseCount,
     totalRestoreSpending,
+    singleFlavorTriggeredGameCount: singleFlavorResults.length,
+    singleFlavorTriggerRate: results.length ? singleFlavorResults.length / results.length : 0,
+    averageSingleFlavorFirstTriggeredStep: average(
+      singleFlavorResults,
+      result => result.singleFlavorFirstTriggeredStep
+    ),
+    earliestSingleFlavorFirstTriggeredStep: singleFlavorResults.length
+      ? Math.min(...singleFlavorResults.map(result => result.singleFlavorFirstTriggeredStep))
+      : null,
+    averageSingleFlavorTriggeredBoardCount: average(
+      singleFlavorResults,
+      result => result.singleFlavorFirstTriggeredBoardCount
+    ),
+    totalFinalSingleFlavorPenaltyCount: results.reduce(
+      (sum, result) => sum + (result.finalSingleFlavorPenaltyCount ?? 0),
+      0
+    ),
     averageSearchedNodes: average(results, result => result.searchedNodes ?? 0),
     averageEvaluatedNodes: average(results, result => result.evaluatedNodes ?? 0),
     averageGeneratedActions: average(results, result => result.generatedActions ?? 0),

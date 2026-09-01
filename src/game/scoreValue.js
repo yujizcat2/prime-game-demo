@@ -21,13 +21,13 @@ export function getBaseScore(value){
   return (BASE_SCORE_BY_NUMBER.get(value) ?? 0) * SCORE_SCALE;
 }
 
-export function getCollectionScoreGain(collectionCards, value, foodType){
+export function getCollectionScoreGain(collectionCards, value, foodType, singleFlavorPenalty = false){
   const cards = collectionCards ?? [];
   const sameNumberCards = cards.filter(card => card.value === value);
   if(sameNumberCards.some(card => (card.foodType ?? null) === (foodType ?? null))) return 0;
 
   const baseScore = getBaseScore(value);
-  return sameNumberCards.length === 0 ? baseScore : baseScore / 2;
+  return sameNumberCards.length === 0 && !singleFlavorPenalty ? baseScore : baseScore / 2;
 }
 
 // Compatibility helpers for piece creation. A number's score is now fixed,

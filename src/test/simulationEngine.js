@@ -13,6 +13,7 @@ import {
   canCombine,
   getDessertMutationFoodType
 } from "../game/rules";
+import { markSingleFlavorBoardPieces } from "../game/singleFlavorPenalty";
 
 import {
   createMazeStateKey
@@ -1011,7 +1012,8 @@ function applyCombine(
       parents:[a.value,b.value],
       sourceKey:[a.value,b.value].sort((left,right)=>left-right).join("|"),
       parentFoods:[a,b].map(piece=>({value:piece.value,foodType:piece.foodType,purity:piece.purity??null})),
-      previousValue:null
+      previousValue:null,
+      singleFlavorPenalty:false
     };
     state.steps++;
     state.combineHistoryKeys=addCombinePair(state.combineHistoryKeys,a,b);
@@ -1087,7 +1089,10 @@ function applyCombine(
     ],
 
     previousValue:
-      null
+      null,
+
+    singleFlavorPenalty:
+      false
 
   };
   const targetIndex=getNextEmptyIndex(state.board);
@@ -1913,6 +1918,8 @@ export function applySimulationAction(
 
 
 
+  Object.assign(state, markSingleFlavorBoardPieces(state));
+
   resolveMaze(
     state
   );
@@ -1956,6 +1963,9 @@ function clonePiece(
     drinkOriginValue:
       piece.drinkOriginValue
       ?? null,
+
+    singleFlavorPenalty:
+      piece.singleFlavorPenalty === true,
 
     purity:
       piece.purity,
@@ -2065,6 +2075,18 @@ export function cloneSimulationState(
 
     restoreUseCount:
       state.restoreUseCount ?? 0,
+
+    singleFlavorTriggered:
+      state.singleFlavorTriggered === true,
+
+    singleFlavorFirstTriggeredStep:
+      state.singleFlavorFirstTriggeredStep ?? null,
+
+    singleFlavorFirstTriggeredBoardCount:
+      state.singleFlavorFirstTriggeredBoardCount ?? null,
+
+    singleFlavorTriggerCount:
+      state.singleFlavorTriggerCount ?? 0,
 
     previousCollection:
       state.previousCollection ?? null,

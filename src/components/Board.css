@@ -6038,3 +6038,11 @@
   filter: grayscale(.65);
   cursor: not-allowed;
 }
+.board-piece-single-flavor {
+  display: block;
+  margin-top: 1px;
+  color: rgba(120, 75, 28, .76);
+  font-size: 8px;
+  line-height: 1;
+  white-space: nowrap;
+}

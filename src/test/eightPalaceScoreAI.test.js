@@ -96,7 +96,7 @@ for(const [difficulty, config] of Object.entries(DIFFICULTY_OPENINGS)){
   assert.equal(comparison.maxActions, 1);
 }
 
-const tenGames = await runScoreGames({games: 10, difficulty: "medium", depth: 1, beamWidth: 2, maxActions: 1});
+const tenGames = await runScoreGames({games: 10, difficulty: "medium", depth: 1, beamWidth: 2, maxActions: 20});
 assert.equal(tenGames.results.length, 10);
 assert.equal(tenGames.randomComparison.results.length, 10);
 assert.ok(tenGames.results.every(game => Array.isArray(game.actionPath)));
@@ -117,6 +117,14 @@ for(const summary of [tenGames, tenGames.randomComparison]){
   assert.equal(summary.averageCompositeCollectionCount, totalComposite / results.length);
   assert.equal(summary.primeCollectionShare, totalPrime + totalComposite ? totalPrime / (totalPrime + totalComposite) : 0);
   assert.equal(summary.compositeCollectionShare, totalPrime + totalComposite ? totalComposite / (totalPrime + totalComposite) : 0);
+  const triggered = results.filter(game => game.singleFlavorTriggered);
+  assert.equal(summary.singleFlavorTriggeredGameCount, triggered.length);
+  assert.equal(summary.singleFlavorTriggerRate, triggered.length / results.length);
+  assert.equal(
+    summary.earliestSingleFlavorFirstTriggeredStep,
+    triggered.length ? Math.min(...triggered.map(game => game.singleFlavorFirstTriggeredStep)) : null
+  );
+  assert.ok(results.every(game => Number.isInteger(game.finalScore) && !Number.isNaN(game.finalScore)));
 }
 
 const weightedSummary = summarizeScoreResults([
@@ -164,6 +172,16 @@ assert.notEqual(
   scoreAITestUtils.getStateKey({...base, board: base.board.map((piece, index) => index === 0 && piece ? {...piece, parentFoods: [{value: 99, foodType: BASE_FOOD_TYPES[0]}]} : piece)}),
   "transposition key preserves parent relation legality"
 );
+assert.notEqual(
+  scoreAITestUtils.getStateKey(base),
+  scoreAITestUtils.getStateKey({
+    ...base,
+    board: base.board.map((piece, index) =>
+      index === 0 && piece ? {...piece, singleFlavorPenalty: true} : piece
+    )
+  }),
+  "transposition key preserves per-instance single-flavor value"
+);
 const candidateState = {...base, money: 1_000};
 const candidateTelemetry = createSearchTelemetry();
 const allCandidates = getLegalActions(candidateState);
@@ -196,5 +214,11 @@ assert.equal(
 console.log("eight palace Score AI tests passed", {
   score: result.finalScore,
   collections: result.collectionCount,
-  steps: result.steps
+  steps: result.steps,
+  tenGameSingleFlavor: {
+    triggeredGames: tenGames.singleFlavorTriggeredGameCount,
+    triggerRate: tenGames.singleFlavorTriggerRate,
+    averageFirstStep: tenGames.averageSingleFlavorFirstTriggeredStep,
+    earliestFirstStep: tenGames.earliestSingleFlavorFirstTriggeredStep
+  }
 });

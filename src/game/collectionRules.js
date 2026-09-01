@@ -1572,7 +1572,12 @@ export function getEightPalaceCollectionScoreGain(state, piece){
   const record = getCollectionRecord(piece);
   if(!record) return 0;
 
-  return getCollectionScoreGain(state.collectionCards, record.value, record.foodType);
+  return getCollectionScoreGain(
+    state.collectionCards,
+    record.value,
+    record.foodType,
+    record.singleFlavorPenalty === true
+  );
 }
 
 // The 100 Step Eight Palace mode collects the concrete card that existed

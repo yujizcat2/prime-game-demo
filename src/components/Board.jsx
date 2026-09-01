@@ -760,7 +760,8 @@ export default function Board({
                         +{getCollectionScoreGain(
                           collectionCards,
                           combinePreview.piece.value,
-                          combinePreview.piece.foodType
+                          combinePreview.piece.foodType,
+                          combinePreview.piece.singleFlavorPenalty === true
                         )}
                       </div>
                     )}

@@ -1,0 +1,136 @@
+import assert from "node:assert/strict";
+import { applyAction, createGameState } from "../game/gameEngine";
+import { applyEightPalaceCollection, getEightPalaceCollectionScoreGain } from "../game/collectionRules";
+import { markSingleFlavorBoardPieces } from "../game/singleFlavorPenalty";
+import { BASE_FOOD_TYPES, FOOD_TYPES } from "../game/rules";
+import { cloneSimulationState, createSimulationState } from "./simulationEngine";
+
+const [land, aquatic, vegetable, grainBean, dairyEgg] = BASE_FOOD_TYPES;
+const piece = (id, value, foodType, extra = {}) => ({
+  id, value, foodType, purity: "pure", parents: null, parentFoods: null,
+  sourceKey: null, origin: null, ...extra
+});
+const board = (...pieces) => [...pieces, ...Array(9 - pieces.length).fill(null)];
+const baseState = pieces => ({
+  ...createGameState([
+    {value: 4, boardIndex: 0, gameMode: "simpleEightPalace"},
+    {value: 6, boardIndex: 1, gameMode: "simpleEightPalace"}
+  ]),
+  board: board(...pieces), gameOver: false, gameOverReason: null, money: 1_000
+});
+
+{
+  const marked = markSingleFlavorBoardPieces(baseState([
+    piece(1, 4, grainBean), piece(2, 6, grainBean), piece(3, 8, grainBean)
+  ]));
+  assert.ok(marked.board.filter(Boolean).every(card => card.singleFlavorPenalty === true));
+}
+
+{
+  const state = baseState([piece(1, 4, grainBean), piece(2, 6, dairyEgg)]);
+  assert.equal(markSingleFlavorBoardPieces(state), state);
+}
+
+for(const ignored of [
+  piece(3, 20, FOOD_TYPES.DRINK),
+  piece(3, 1, dairyEgg, {specialOne: {kind: "key", keyType: dairyEgg}})
+]){
+  const marked = markSingleFlavorBoardPieces(baseState([
+    piece(1, 4, grainBean), piece(2, 6, grainBean), ignored
+  ]));
+  assert.ok(marked.board.filter(Boolean).every(card => card.singleFlavorPenalty === true));
+}
+
+{
+  const marked = markSingleFlavorBoardPieces(baseState([
+    piece(1, 4, grainBean), piece(2, 6, grainBean), piece(3, 8, grainBean)
+  ]));
+  const restoreState = {...marked, board: board(
+    marked.board[0], marked.board[1], marked.board[2], null, null,
+    piece(4, 10, grainBean, {singleFlavorPenalty: true})
+  )};
+  const restored = applyAction(restoreState, {type: "restore", indexes: [5]});
+  assert.equal(restored.board[5].foodType, dairyEgg);
+  assert.equal(restored.board[5].singleFlavorPenalty, true);
+  assert.ok(restored.board.filter(Boolean).every(card => card.singleFlavorPenalty === true));
+}
+
+{
+  const state = baseState([
+    piece(1, 4, grainBean, {singleFlavorPenalty: true}),
+    piece(2, 6, dairyEgg, {singleFlavorPenalty: true})
+  ]);
+  const combined = applyAction(state, {type: "combine_ordered", indexes: [0, 1]});
+  const created = combined.board.find(card => card?.id === state.nextId);
+  assert.equal(created.singleFlavorPenalty, false);
+}
+
+{
+  const state = baseState([
+    piece(1, 4, grainBean, {singleFlavorPenalty: true}),
+    piece(2, 6, grainBean, {singleFlavorPenalty: true})
+  ]);
+  const combined = applyAction(state, {type: "combine", indexes: [0, 1]});
+  const created = combined.board.find(card => card?.id === state.nextId);
+  assert.equal(created.singleFlavorPenalty, true);
+}
+
+const collectible = (value, foodType, singleFlavorPenalty) => ({
+  value: 1, foodType, singleFlavorPenalty,
+  origin: {type: "reduce", parent: piece(20, value, foodType, {singleFlavorPenalty})}
+});
+
+{
+  const normalState = baseState([piece(1, 14, land), piece(2, 2, aquatic)]);
+  const penalizedState = baseState([
+    piece(1, 14, land), piece(2, 2, aquatic, {singleFlavorPenalty: true})
+  ]);
+  const normal = applyAction(normalState, {type: "reduce", indexes: [0, 1]});
+  const penalized = applyAction(penalizedState, {type: "reduce", indexes: [0, 1]});
+  assert.equal(normal.latestCollection.baseScore, 100);
+  assert.equal(penalized.latestCollection.baseScore, 50);
+  assert.equal(penalized.latestCollection.bonusScore, 7);
+  assert.equal(penalized.latestCollection.totalScore, 57);
+  assert.equal(normal.money, penalized.money);
+}
+
+{
+  const state = baseState([
+    piece(1, 12, land, {singleFlavorPenalty: true}), piece(2, 8, aquatic)
+  ]);
+  const reduced = applyAction(state, {type: "reduce", indexes: [0, 1]});
+  assert.equal(reduced.board[0].value, 3);
+  assert.equal(reduced.board[0].singleFlavorPenalty, true);
+}
+
+{
+  const state = baseState([]);
+  const card = collectible(11, vegetable, true);
+  assert.equal(getEightPalaceCollectionScoreGain(state, card), 100);
+  const settled = applyEightPalaceCollection(state, card);
+  assert.equal(settled.latestCollection.baseScore, 100);
+}
+
+{
+  const simulation = createSimulationState([4, 6, 8]);
+  simulation.board[0].singleFlavorPenalty = true;
+  simulation.singleFlavorTriggered = true;
+  simulation.singleFlavorFirstTriggeredStep = 3;
+  const cloned = cloneSimulationState(simulation);
+  assert.equal(cloned.board[0].singleFlavorPenalty, true);
+  assert.equal(cloned.singleFlavorFirstTriggeredStep, 3);
+}
+
+{
+  const marked = markSingleFlavorBoardPieces(baseState([
+    piece(1, 4, grainBean), piece(2, 6, grainBean)
+  ]));
+  const mixed = {...marked, board: [
+    {...marked.board[0], foodType: dairyEgg}, marked.board[1],
+    ...marked.board.slice(2)
+  ]};
+  const checked = markSingleFlavorBoardPieces(mixed);
+  assert.ok(checked.board.filter(Boolean).every(card => card.singleFlavorPenalty === true));
+}
+
+console.log("single flavor penalty tests passed");

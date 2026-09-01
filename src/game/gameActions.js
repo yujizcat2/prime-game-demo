@@ -304,7 +304,8 @@ export function createCombineOutcome(state,indexA,indexB){
       sourceKey:[main.value,pairing.value].sort((left,right)=>left-right).join("|"),
       parentFoods:[main,pairing].map(piece=>({value:piece.value,foodType:piece.foodType,purity:piece.purity??null})),
       crossed101:false,
-      origin:createCombineOrigin(wrappedValue,main,pairing)
+      origin:createCombineOrigin(wrappedValue,main,pairing),
+      singleFlavorPenalty:false
     };
     return {kind:"wrap",value:wrappedValue,foodType:normal.foodType,purity:piece.purity,piece,drinkIndex,ingredientIndex,targetIndex:drinkIndex};
   }
@@ -318,7 +319,8 @@ export function createCombineOutcome(state,indexA,indexB){
     sourceKey:[main.value,pairing.value].sort((left,right)=>left-right).join("|"),
     parentFoods:[main,pairing].map(piece=>({value:piece.value,foodType:piece.foodType,purity:piece.purity??null})),
     crossed101:main.value+pairing.value>101,
-    origin:createCombineOrigin(value,main,pairing)
+    origin:createCombineOrigin(value,main,pairing),
+    singleFlavorPenalty:false
   };
   return {
     kind:"new",
