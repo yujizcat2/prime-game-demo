@@ -2,7 +2,9 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import {
   chooseScoreAction,
+  createSearchTelemetry,
   evaluateScoreState,
+  getStrategicCandidateActions,
   getCollectionNumberCounts,
   runFixedScoreAttempts,
   runScoreGame,
@@ -65,6 +67,9 @@ assert.equal(JSON.stringify({
 assert.ok(result.actionPath.every(action =>
   action.scoreEfficiencyAfter === getScoreEfficiency(action.scoreAfter, action.stepAfter)
 ));
+for(const field of ["searchedNodes", "evaluatedNodes", "generatedActions", "prunedActions", "restoreCandidatesGenerated", "restoreCandidatesKept", "heaterCandidatesGenerated", "heaterCandidatesKept", "elapsedMs"]){
+  assert.equal(typeof result[field], "number", `${field} telemetry is reported`);
+}
 assert.equal(getScoreEfficiency(0, 1).toFixed(2), "0.00");
 assert.equal(getScoreEfficiency(64, 2).toFixed(2), "32.00");
 assert.equal(getScoreEfficiency(160, 3).toFixed(2), "53.33");
@@ -148,6 +153,20 @@ const equalClearState=createGameState([
 assert.deepEqual(scoreAITestUtils.getImmediateScorePotential(equalClearState),{total:0,best:0},"equal-value clear has no predicted collection reward");
 
 const base = createGameState(opening.map(card => ({...card, gameMode: "simpleEightPalace"})));
+assert.notEqual(
+  scoreAITestUtils.getStateKey(base),
+  scoreAITestUtils.getStateKey({...base, board: base.board.map((piece, index) => index === 0 && piece ? {...piece, parentFoods: [{value: 99, foodType: BASE_FOOD_TYPES[0]}]} : piece)}),
+  "transposition key preserves parent relation legality"
+);
+const candidateState = {...base, money: 1_000};
+const candidateTelemetry = createSearchTelemetry();
+const allCandidates = getLegalActions(candidateState);
+const strategicCandidates = getStrategicCandidateActions(candidateState, allCandidates, {telemetry: candidateTelemetry});
+assert.ok(strategicCandidates.length <= 24);
+assert.ok(strategicCandidates.filter(action => action.type === "restore").length <= 3);
+assert.ok(strategicCandidates.filter(action => action.type === "heater").length <= 2);
+assert.equal(candidateTelemetry.generatedActions, allCandidates.length);
+assert.equal(candidateTelemetry.prunedActions, allCandidates.length - strategicCandidates.length);
 const manyCardsHighScore = {...base, score: 200};
 const sparseLowScore = {...base, board: [base.board[0], base.board[1], null, null, null, null, null, null, null], score: 10};
 assert.ok(evaluateScoreState(manyCardsHighScore) > evaluateScoreState(sparseLowScore), "score beats board clearing");

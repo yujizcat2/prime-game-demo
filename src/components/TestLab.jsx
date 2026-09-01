@@ -494,7 +494,7 @@ export default function TestLab({
           maxActions: SCORE_AI_DEFAULTS.maxActions,
           onProgress: setProgress,
           compareRandom: false,
-          compareHeater: true
+          compareHeater: false
         });
 
       }
@@ -1488,6 +1488,13 @@ function ScoreSummaryGrid({result}){
       <ResultItem label="平均实际 Step" value={result.averageSteps.toFixed(2)} />
       <ResultItem label="完成 100 Step" value={`${result.completed100StepCount} / ${result.games ?? result.attempts} (${(result.completed100StepRate * 100).toFixed(1)}%)`} />
       <ResultItem label="提前死局" value={`${result.deadlockCount} / ${result.games ?? result.attempts} (${(result.deadlockRate * 100).toFixed(1)}%)`} />
+      <ResultItem label="平均搜索节点" value={Math.round(result.averageSearchedNodes ?? 0)} />
+      <ResultItem label="平均评价节点" value={Math.round(result.averageEvaluatedNodes ?? 0)} />
+      <ResultItem label="平均生成动作" value={Math.round(result.averageGeneratedActions ?? 0)} />
+      <ResultItem label="平均剪枝动作" value={Math.round(result.averagePrunedActions ?? 0)} />
+      <ResultItem label="Restore 候选（生成/保留）" value={`${Math.round(result.averageRestoreCandidatesGenerated ?? 0)} / ${Math.round(result.averageRestoreCandidatesKept ?? 0)}`} />
+      <ResultItem label="Heater 候选（生成/保留）" value={`${Math.round(result.averageHeaterCandidatesGenerated ?? 0)} / ${Math.round(result.averageHeaterCandidatesKept ?? 0)}`} />
+      <ResultItem label="平均耗时" value={`${(result.averageElapsedMs ?? 0).toFixed(1)}ms`} />
     </div>
   );
 }
