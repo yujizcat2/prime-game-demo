@@ -67,6 +67,9 @@ export default function BoardCell({
 }) {
   const nativeFoodType = getNativeFoodType(index);
   const nativeFoodTypeName = getFoodTypeShortName(nativeFoodType);
+  const nativeCellClass = nativeFoodType
+    ? `board-cell--native-${nativeFoodType}`
+    : "board-cell--native-neutral";
 
   const previousPriceRef = useRef(price);
   const [priceDelta, setPriceDelta] = useState(null);
@@ -100,6 +103,7 @@ export default function BoardCell({
         className={`
           board-cell
           board-cell--empty
+          ${nativeCellClass}
           ${
             clearFeedback
               ? `board-cell--cleared board-cell--cleared-${clearFeedback.foodType ?? "default"}`
@@ -120,7 +124,7 @@ export default function BoardCell({
           "
         >
 
-          <span className="board-native-label">原生 · {nativeFoodTypeName}</span>
+          {nativeFoodType && <span className="board-native-label">{nativeFoodTypeName}</span>}
 
 
           <div
@@ -648,6 +652,8 @@ export default function BoardCell({
 
         ${combinePreviewRole?`board-cell--combine-preview board-cell--combine-preview-${combinePreviewRole}`:""}
 
+        ${nativeCellClass}
+
         ${
           animationState?.phase === "enter" ||
           animationState?.phase === "settle"
@@ -661,9 +667,6 @@ export default function BoardCell({
       }
 
     >
-
-      <span className="board-native-label">原生 · {nativeFoodTypeName}</span>
-
 
       <div
 

@@ -1,36 +1,32 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import {
-  DIFFICULTY_OPENINGS,
-  createDifficultyInitialValues
+  createStandardInitialValues
 } from "../game/initialValues";
 import { createGameState } from "../game/gameState";
 import { BASE_FOOD_TYPES, FOOD_PURITY, FOOD_TYPES } from "../game/rules";
 import { getBaseScore } from "../game/scoreValue";
-import { BOARD_NATIVE_FOOD_TYPES } from "../game/nativeFoodTypes";
+import { BOARD_NATIVE_FOOD_TYPES, getNativeBoardIndex } from "../game/nativeFoodTypes";
 
-for(const [difficulty, config] of Object.entries(DIFFICULTY_OPENINGS)){
-  const seenCombinations = new Set();
+const seenCombinations = new Set();
 
-  for(let attempt = 0; attempt < 100; attempt++){
-    const opening = createDifficultyInitialValues(difficulty);
+for(let attempt = 0; attempt < 250; attempt++){
+    const opening = createStandardInitialValues();
     const values = opening.map(card => card.value);
     const foodTypes = opening.map(card => card.foodType);
 
-    assert.equal(opening.length, config.count, `${difficulty} card count`);
-    assert.equal(new Set(foodTypes).size, config.typeCount, `${difficulty} distinct food types`);
-    assert.equal(values.reduce((sum, value) => sum + value, 0), config.targetSum, `${difficulty} exact total`);
-    assert.ok(values.every(value => Number.isInteger(value) && value >= 2 && value <= 101), `${difficulty} legal values`);
-    assert.equal(new Set(values).size, config.count, `${difficulty} distinct values`);
-    assert.ok(foodTypes.every(foodType => BASE_FOOD_TYPES.includes(foodType)), `${difficulty} base food types only`);
-    assert.ok(!foodTypes.includes(FOOD_TYPES.DRINK), `${difficulty} excludes drink`);
-    if(difficulty === "hard"){
-      assert.deepEqual([...foodTypes].sort(), [...BASE_FOOD_TYPES].sort(), "hard covers every base food type");
-    }
+    assert.equal(opening.length, 4, "standard opening card count");
+    assert.equal(new Set(foodTypes).size, 4, "four distinct food types");
+    assert.equal(values.reduce((sum, value) => sum + value, 0), 30, "exact total");
+    assert.ok(values.every(value => Number.isInteger(value) && value >= 2 && value <= 101), "legal values");
+    assert.ok(foodTypes.every(foodType => BASE_FOOD_TYPES.includes(foodType)), "base food types only");
+    assert.ok(!foodTypes.includes(FOOD_TYPES.DRINK), "excludes drink");
+    opening.forEach(card => assert.equal(card.boardIndex, getNativeBoardIndex(card.foodType)));
 
     const state = createGameState(opening);
     const cards = state.board.filter(Boolean);
-    assert.equal(cards.length, config.count);
+    assert.equal(cards.length, 4);
+    assert.equal(state.board[4], null, "center starts empty");
     for(const [boardIndex, card] of state.board.entries()){
       if(!card) continue;
       assert.equal(card.scoreValue, getBaseScore(card.value));
@@ -47,19 +43,13 @@ for(const [difficulty, config] of Object.entries(DIFFICULTY_OPENINGS)){
     seenCombinations.add([...values].sort((left, right) => left - right).join(","));
   }
 
-  assert.ok(seenCombinations.size > 1, `${difficulty} produces varied number combinations`);
-}
-
-assert.deepEqual(createDifficultyInitialValues("easy").map(card => card.boardIndex), [0, 2, 6, 8]);
-assert.deepEqual(createDifficultyInitialValues("medium").map(card => card.boardIndex), [0, 2, 4, 6, 8]);
-assert.deepEqual(createDifficultyInitialValues("hard").map(card => card.boardIndex), [0, 1, 2, 3, 5, 6, 7, 8]);
+assert.ok(seenCombinations.size > 1, "standard opening produces varied number combinations");
+assert.equal(BOARD_NATIVE_FOOD_TYPES[4], null);
 
 const startScreenSource = readFileSync("src/components/StartScreen.jsx", "utf8");
 assert.doesNotMatch(startScreenSource, /随机探索|新手入门/);
 assert.doesNotMatch(startScreenSource, /4个数字|5个数字|8个数字|料理系|总和/);
-assert.match(startScreenSource, /id: "easy", label: "简单"/);
-assert.match(startScreenSource, /id: "medium", label: "中等"/);
-assert.match(startScreenSource, /id: "hard", label: "困难"/);
-assert.match(startScreenSource, /onClick=\{\(\) => startDifficulty\(difficulty\.id\)\}/);
+assert.doesNotMatch(startScreenSource, /label: "简单"|label: "中等"|label: "困难"|选择难度/);
+assert.match(startScreenSource, /onClick=\{startGame\}/);
 
-console.log("difficulty opening tests passed");
+console.log("standard opening tests passed");

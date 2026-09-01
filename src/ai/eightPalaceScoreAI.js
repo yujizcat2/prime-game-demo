@@ -1,5 +1,5 @@
 import {
-  createDifficultyInitialValues,
+  createStandardInitialValues,
   createEightPalaceInitialValues
 } from "../game/initialValues";
 import {
@@ -38,10 +38,7 @@ export const STRATEGIC_CANDIDATE_LIMITS = Object.freeze({
 export const PAID_ACTION_OPTION_VALUE_WEIGHT = 100;
 
 function createScoreOpening(opening = createEightPalaceInitialValues()){
-  return opening.map(card => ({
-    ...card,
-    gameMode: "simpleEightPalace"
-  }));
+  return opening.map(card => ({...card}));
 }
 
 function snapshotBoard(board){
@@ -776,7 +773,6 @@ export function summarizeScoreResults(results){
 
 export async function runScoreGames({
   games = 1,
-  difficulty = "medium",
   depth = SCORE_AI_DEFAULTS.depth,
   beamWidth = SCORE_AI_DEFAULTS.beamWidth,
   maxActions = SCORE_AI_DEFAULTS.maxActions,
@@ -789,7 +785,7 @@ export async function runScoreGames({
   const heaterResults = [];
 
   for(let gameIndex = 1; gameIndex <= games; gameIndex++){
-    const opening = createDifficultyInitialValues(difficulty);
+    const opening = createStandardInitialValues();
     const result = await runScoreGame({depth, beamWidth, maxActions, initialOpening: opening});
     result.gameIndex = gameIndex;
     result.openingId = gameIndex;
@@ -837,7 +833,6 @@ export async function runScoreGames({
     depth,
     beamWidth,
     maxActions,
-    difficulty,
     heaterComparison,
     heaterAverageScoreDifference: heaterComparison
       ? heaterComparison.averageFinalScore - scoreSummary.averageFinalScore

@@ -11,9 +11,9 @@ import { chooseStrategicAction, scoreAITestUtils } from "../ai/eightPalaceScoreA
 const opening = BOARD_NATIVE_FOOD_TYPES.map((_, boardIndex) => ({value: boardIndex + 2, boardIndex, gameMode: "eightPalace"}));
 const initial = createGameState(opening);
 assert.equal(BOARD_NATIVE_FOOD_TYPES.length, 9);
-assert.equal(BOARD_NATIVE_FOOD_TYPES[4], FOOD_TYPES.DRINK);
+assert.equal(BOARD_NATIVE_FOOD_TYPES[4], null);
 assert.deepEqual(new Set(BOARD_NATIVE_FOOD_TYPES.filter((_, index) => index !== 4)), new Set(BASE_FOOD_TYPES));
-assert.equal(initial.board.every((piece, index) => !piece || piece.foodType === BOARD_NATIVE_FOOD_TYPES[index]), true);
+assert.equal(initial.board.every((piece, index) => index === 4 || !piece || piece.foodType === BOARD_NATIVE_FOOD_TYPES[index]), true);
 
 const outer = structuredClone(initial);
 outer.board[0].foodType = FOOD_TYPES.AQUATIC;

@@ -14,7 +14,6 @@ import {
 } from "../ai/eightPalaceScoreAI";
 import { applyAction, createGameState, getLegalActions } from "../game/gameEngine";
 import {
-  DIFFICULTY_OPENINGS,
   createEightPalaceInitialValues
 } from "../game/initialValues";
 import { BASE_FOOD_TYPES } from "../game/rules";
@@ -119,14 +118,14 @@ assert.equal(getScoreEfficiency(64, 2).toFixed(2), "32.00");
 assert.equal(getScoreEfficiency(160, 3).toFixed(2), "53.33");
 assert.ok(getScoreEfficiency(160, 4) < getScoreEfficiency(160, 3));
 
-for(const [difficulty, config] of Object.entries(DIFFICULTY_OPENINGS)){
-  const comparison = await runScoreGames({games: 1, difficulty, depth: 1, beamWidth: 2, maxActions: 1});
+{
+  const comparison = await runScoreGames({games: 1, depth: 1, beamWidth: 2, maxActions: 1});
   const scoreGame = comparison.results[0];
   const randomGame = comparison.randomComparison.results[0];
-  assert.equal(scoreGame.initialOpening.length, config.count);
-  assert.equal(new Set(scoreGame.initialOpening.map(card => card.foodType)).size, config.typeCount);
-  assert.equal(scoreGame.initialOpening.reduce((sum, card) => sum + card.value, 0), config.targetSum);
-  assert.deepEqual(scoreGame.initialOpening, randomGame.initialOpening, `${difficulty} uses one shared opening`);
+  assert.equal(scoreGame.initialOpening.length, 4);
+  assert.equal(new Set(scoreGame.initialOpening.map(card => card.foodType)).size, 4);
+  assert.equal(scoreGame.initialOpening.reduce((sum, card) => sum + card.value, 0), 30);
+  assert.deepEqual(scoreGame.initialOpening, randomGame.initialOpening, "score and random AI use one shared opening");
   assert.equal(scoreGame.gameIndex, randomGame.gameIndex);
   assert.equal(scoreGame.openingId, randomGame.openingId);
   assert.equal(comparison.depth, 1);
@@ -134,7 +133,7 @@ for(const [difficulty, config] of Object.entries(DIFFICULTY_OPENINGS)){
   assert.equal(comparison.maxActions, 1);
 }
 
-const tenGames = await runScoreGames({games: 10, difficulty: "medium", depth: 1, beamWidth: 2, maxActions: 20});
+const tenGames = await runScoreGames({games: 10, depth: 1, beamWidth: 2, maxActions: 20});
 assert.equal(tenGames.results.length, 10);
 assert.equal(tenGames.randomComparison.results.length, 10);
 assert.ok(tenGames.results.every(game => Array.isArray(game.actionPath)));
@@ -184,7 +183,7 @@ assert.match(testLabSource, /Random AI 全部测试记录/);
 assert.match(testLabSource, /expanded && <div/);
 assert.match(testLabSource, /allowExpandAll = games\.length <= 100/);
 
-let replay = createGameState(opening.map(card => ({...card, gameMode: "simpleEightPalace"})));
+let replay = createGameState(opening);
 for(const entry of result.actionPath){
   const action = {type: entry.type, indexes: entry.indexes};
   const legalKeys = new Set(getLegalActions(replay).map(scoreAITestUtils.getActionKey));
@@ -196,7 +195,7 @@ for(const entry of result.actionPath){
 assert.equal(replay.score, result.finalScore, "AI simulation score matches formal collection score");
 assert.equal(replay.money, result.finalMoney, "AI simulation money matches formal game money");
 
-const atStep99 = {...createGameState(opening.map(card => ({...card, gameMode: "simpleEightPalace"}))), steps: 99};
+const atStep99 = {...createGameState(opening), steps: 99};
 const finalAction = chooseScoreAction(atStep99, {depth: 1, beamWidth: 8});
 assert.ok(finalAction, "Score AI can select the final legal action at Step 99");
 const atStep100 = applyAction(atStep99, finalAction);
@@ -205,12 +204,12 @@ assert.equal(atStep100.gameOverReason, "step_limit");
 assert.equal(chooseScoreAction(atStep100), null, "Score AI stops at Step 100");
 
 const equalClearState=createGameState([
-  {value:43,foodType:BASE_FOOD_TYPES[0],boardIndex:0,gameMode:"simpleEightPalace"},
-  {value:43,foodType:BASE_FOOD_TYPES[1],boardIndex:1,gameMode:"simpleEightPalace"}
+  {value:43,foodType:BASE_FOOD_TYPES[0],boardIndex:0},
+  {value:43,foodType:BASE_FOOD_TYPES[1],boardIndex:1}
 ]);
 assert.deepEqual(scoreAITestUtils.getImmediateScorePotential(equalClearState),{total:0,best:0},"equal-value clear has no predicted collection reward");
 
-const base = createGameState(opening.map(card => ({...card, gameMode: "simpleEightPalace"})));
+const base = createGameState(opening);
 assert.notEqual(
   scoreAITestUtils.getStateKey(base),
   scoreAITestUtils.getStateKey({...base, board: base.board.map((piece, index) => index === 0 && piece ? {...piece, parentFoods: [{value: 99, foodType: BASE_FOOD_TYPES[0]}]} : piece)}),

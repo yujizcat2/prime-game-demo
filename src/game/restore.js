@@ -5,17 +5,18 @@ import { getCurrentRestorePrice } from "./restorePricing";
 
 export function getRestoreOutcome(piece, index){
   const nativeFoodType = getNativeFoodType(index);
-  if(!piece || !nativeFoodType || piece.foodType === nativeFoodType) return null;
+  const restoredFoodType = index === 4 ? FOOD_TYPES.DRINK : nativeFoodType;
+  if(!piece || !restoredFoodType || piece.foodType === restoredFoodType) return null;
   return {
     piece: {
       ...piece,
       value: index === 4 ? piece.value + 100 : piece.value,
-      foodType: nativeFoodType
+      foodType: restoredFoodType
     },
     valueBefore: piece.value,
     valueAfter: index === 4 ? piece.value + 100 : piece.value,
     foodTypeBefore: piece.foodType,
-    foodTypeAfter: index === 4 ? FOOD_TYPES.DRINK : nativeFoodType
+    foodTypeAfter: restoredFoodType
   };
 }
 

@@ -3,6 +3,7 @@
 import {
   BASE_FOOD_TYPES
 } from "./rules";
+import { getNativeBoardIndex } from "./nativeFoodTypes";
 
 
 // ============================================================
@@ -22,20 +23,11 @@ export const INITIAL_VALUE_POOL = [
 
 ];
 
-const EIGHT_PALACE_VALUE_MIN = 2;
-const EIGHT_PALACE_VALUE_MAX = 101;
-
-export const DIFFICULTY_OPENINGS = Object.freeze({
-  easy: Object.freeze({count: 4, typeCount: 4, targetSum: 30}),
-  medium: Object.freeze({count: 5, typeCount: 5, targetSum: 100}),
-  hard: Object.freeze({count: 8, typeCount: 8, targetSum: 200})
-});
-
-const OPENING_BOARD_INDEXES = Object.freeze({
-  4: Object.freeze([0, 2, 6, 8]),
-  5: Object.freeze([0, 2, 4, 6, 8]),
-  8: Object.freeze([0, 1, 2, 3, 5, 6, 7, 8])
-});
+const STANDARD_OPENING_COUNT = 4;
+const STANDARD_OPENING_SUM = 30;
+const STANDARD_OPENING_VALUE_MIN = 2;
+const STANDARD_OPENING_VALUE_MAX = 12;
+const STANDARD_OPENING_MAX_SPREAD = 7;
 
 function shuffle(items){
   const result = [...items];
@@ -46,74 +38,37 @@ function shuffle(items){
   return result;
 }
 
-function createDistinctValues(count, targetSum){
-  const memo = new Map();
-
-  function canComplete(remainingCount, minimum, remainingSum){
-    if(remainingCount === 0) return remainingSum === 0;
-
-    const minimumSum = remainingCount * (2 * minimum + remainingCount - 1) / 2;
-    const maximumStart = EIGHT_PALACE_VALUE_MAX - remainingCount + 1;
-    const maximumSum = remainingCount * (maximumStart + EIGHT_PALACE_VALUE_MAX) / 2;
-    if(minimum > maximumStart || remainingSum < minimumSum || remainingSum > maximumSum) return false;
-
-    const key = `${remainingCount}:${minimum}:${remainingSum}`;
-    if(memo.has(key)) return memo.get(key);
-
-    for(let value = minimum; value <= maximumStart; value++){
-      if(canComplete(remainingCount - 1, value + 1, remainingSum - value)){
-        memo.set(key, true);
-        return true;
+const STANDARD_OPENING_COMBINATIONS = Object.freeze((() => {
+  const combinations = [];
+  for(let first = STANDARD_OPENING_VALUE_MIN; first <= STANDARD_OPENING_VALUE_MAX; first++){
+    for(let second = first + 1; second <= STANDARD_OPENING_VALUE_MAX; second++){
+      for(let third = second + 1; third <= STANDARD_OPENING_VALUE_MAX; third++){
+        for(let fourth = third + 1; fourth <= STANDARD_OPENING_VALUE_MAX; fourth++){
+          const values = [first, second, third, fourth];
+          if(
+            values.reduce((sum, value) => sum + value, 0) === STANDARD_OPENING_SUM
+            && fourth - first <= STANDARD_OPENING_MAX_SPREAD
+          ) combinations.push(Object.freeze(values));
+        }
       }
     }
-
-    memo.set(key, false);
-    return false;
   }
+  return combinations;
+})());
 
-  if(!canComplete(count, EIGHT_PALACE_VALUE_MIN, targetSum)){
-    throw new RangeError(`No legal Eight Palace opening for ${count} cards totaling ${targetSum}`);
-  }
+export function createStandardInitialValues(){
+  const values = shuffle(
+    STANDARD_OPENING_COMBINATIONS[
+      Math.floor(Math.random() * STANDARD_OPENING_COMBINATIONS.length)
+    ]
+  );
+  const foodTypes = shuffle(BASE_FOOD_TYPES).slice(0, STANDARD_OPENING_COUNT);
 
-  const values = [];
-  let minimum = EIGHT_PALACE_VALUE_MIN;
-  let remainingSum = targetSum;
-
-  for(let remainingCount = count; remainingCount > 0; remainingCount--){
-    const maximumCandidate = EIGHT_PALACE_VALUE_MAX - remainingCount + 1;
-    const candidates = [];
-    for(let value = minimum; value <= maximumCandidate; value++){
-      if(canComplete(remainingCount - 1, value + 1, remainingSum - value)) candidates.push(value);
-    }
-
-    const value = candidates[Math.floor(Math.random() * candidates.length)];
-    values.push(value);
-    minimum = value + 1;
-    remainingSum -= value;
-  }
-
-  return shuffle(values);
-}
-
-export function createDifficultyOpening({count, typeCount, targetSum}){
-  if(count !== typeCount || !OPENING_BOARD_INDEXES[count]){
-    throw new RangeError("Difficulty openings require 4, 5, or 8 cards with one distinct food type per card");
-  }
-
-  const values = createDistinctValues(count, targetSum);
-  const foodTypes = shuffle(BASE_FOOD_TYPES).slice(0, typeCount);
-
-  return OPENING_BOARD_INDEXES[count].map((boardIndex, index) => ({
+  return foodTypes.map((foodType, index) => ({
     value: values[index],
-    foodType: foodTypes[index],
-    boardIndex
+    foodType,
+    boardIndex: getNativeBoardIndex(foodType)
   }));
-}
-
-export function createDifficultyInitialValues(difficulty){
-  const config = DIFFICULTY_OPENINGS[difficulty];
-  if(!config) throw new RangeError(`Unknown difficulty: ${difficulty}`);
-  return createDifficultyOpening(config);
 }
 
 
@@ -278,20 +233,4 @@ export function createEightPalaceInitialValues(){
     })
   );
 
-}
-
-export function createSimpleEightPalaceInitialValues(){
-  const shuffledTypes=[...BASE_FOOD_TYPES].sort(()=>Math.random()-.5);
-  const targetFoodTypes=shuffledTypes.slice(0,2);
-  const patterns=[[1,3,5,7],[0,2,6,8]];
-  const boardIndexes=patterns[Math.floor(Math.random()*patterns.length)];
-  const values=[...INITIAL_VALUE_POOL].sort(()=>Math.random()-.5).slice(0,4);
-  const foodTypes=[targetFoodTypes[0],targetFoodTypes[1],targetFoodTypes[1],targetFoodTypes[0]];
-  return boardIndexes.map((boardIndex,index)=>({
-    value:values[index],
-    foodType:foodTypes[index],
-    boardIndex,
-    gameMode:"simpleEightPalace",
-    targetFoodTypes:[...targetFoodTypes]
-  }));
 }

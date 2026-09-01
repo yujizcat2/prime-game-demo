@@ -109,20 +109,6 @@ const FIXED_EIGHT_PALACE_OPTIONS = [
 const SCORE_GAME_OPTIONS = [1, 10, 100];
 const FIXED_SCORE_OPTIONS = [10, 20, 50, 100];
 
-const DIFFICULTY_OPTIONS = [
-  {id: "easy", label: "简单"},
-  {id: "medium", label: "中等"},
-  {id: "hard", label: "困难"}
-];
-
-const DIFFICULTY_LABELS = Object.fromEntries(
-  DIFFICULTY_OPTIONS.map(option => [option.id, option.label])
-);
-
-
-
-
-
 const SMART_DEPTH =
   4;
 
@@ -159,9 +145,6 @@ export default function TestLab({
   ] = useState(
     TEST_MODES.SCORE
   );
-
-  const [difficulty, setDifficulty] = useState("medium");
-
 
   const [
     games,
@@ -488,7 +471,6 @@ export default function TestLab({
 
         nextResult = await runScoreGames({
           games,
-          difficulty,
           depth: SCORE_AI_DEFAULTS.depth,
           beamWidth: SCORE_AI_DEFAULTS.beamWidth,
           maxActions: SCORE_AI_DEFAULTS.maxActions,
@@ -642,28 +624,6 @@ export default function TestLab({
         </header>
 
 
-
-        <section className="test-lab-control test-lab-difficulty-control">
-          <div className="test-lab-label">难度</div>
-          <div className="test-lab-options test-lab-difficulty-options">
-            {DIFFICULTY_OPTIONS.map(option => (
-              <button
-                key={option.id}
-                type="button"
-                className={difficulty === option.id ? "test-lab-option is-active" : "test-lab-option"}
-                disabled={running}
-                onClick={() => {
-                  setDifficulty(option.id);
-                  setResult(null);
-                  setProgress(null);
-                  setError(null);
-                }}
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
-        </section>
 
         <section
           className="
@@ -1116,7 +1076,7 @@ export default function TestLab({
 
             : mode === TEST_MODES.SCORE
 
-            ? <ScoreResults result={result} difficulty={difficulty} />
+            ? <ScoreResults result={result} />
 
             : isFixedEightPalaceMode
 
@@ -1611,12 +1571,11 @@ function RandomSummaryGrid({result}){
   );
 }
 
-function ScoreRecord({title, game, difficulty}){
+function ScoreRecord({title, game}){
   if(!game) return null;
   return (
     <div className="test-lab-record">
       <div className="test-lab-record-title">{title}</div>
-      {difficulty && <div>难度：{DIFFICULTY_LABELS[difficulty]}</div>}
       <div>开局 #{game.gameIndex ?? game.attemptIndex ?? 1}</div>
       <div className="test-lab-record-collection">开局：{formatScoreBoard(game.initialBoard)}</div>
       <div>
@@ -1777,15 +1736,13 @@ function AllScoreRecords({title = "全部测试记录", games = []}){
   );
 }
 
-function ScoreResults({result, difficulty}){
+function ScoreResults({result}){
   const random = result.randomComparison;
   const heater = result.heaterComparison;
   return (
     <section className="test-lab-results">
       <div className="test-lab-result-title">单局多次测试</div>
       <div className="test-lab-result-meta">
-        难度：<strong>{DIFFICULTY_LABELS[difficulty]}</strong>
-        {" · "}
         测试局数：<strong>{result.games}</strong>
       </div>
       <div className="test-lab-section-title">Score AI</div>
@@ -1815,8 +1772,8 @@ function ScoreResults({result, difficulty}){
         </div>
       )}
 
-      <ScoreRecord title="Score AI 最高分纪录" game={result.highScore} difficulty={difficulty} />
-      {heater?.highScore && <ScoreRecord title="Score + Heater AI 最高分纪录" game={heater.highScore} difficulty={difficulty} />}
+      <ScoreRecord title="Score AI 最高分纪录" game={result.highScore} />
+      {heater?.highScore && <ScoreRecord title="Score + Heater AI 最高分纪录" game={heater.highScore} />}
       <AllScoreRecords title="Score AI 全部测试记录" games={result.results} />
       {heater?.results?.length > 0 && (
         <AllScoreRecords title="Score + Heater AI 全部测试记录" games={heater.results} />

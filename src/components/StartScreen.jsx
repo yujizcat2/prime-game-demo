@@ -1,17 +1,11 @@
 import "./StartScreen.css";
 import {
-  createDifficultyInitialValues
+  createStandardInitialValues
 } from "../game/initialValues";
 
-const DIFFICULTIES = [
-  {id: "easy", label: "简单", detail: "轻松开局，慢慢熟悉料理搭配"},
-  {id: "medium", label: "中等", detail: "选择更多，开始考验搭配路线"},
-  {id: "hard", label: "困难", detail: "料理丰富，开局就要认真规划"}
-];
-
 export default function StartScreen({ onStart, onOpenTest }) {
-  function startDifficulty(difficulty) {
-    onStart(createDifficultyInitialValues(difficulty));
+  function startGame() {
+    onStart(createStandardInitialValues());
   }
 
   return (
@@ -50,25 +44,10 @@ export default function StartScreen({ onStart, onOpenTest }) {
           <span className="start-divider-line" />
         </div>
 
-        <section className="start-picker">
-          <div className="start-picker-title">选择难度</div>
-          <div className="start-difficulty-list">
-            {DIFFICULTIES.map(difficulty => (
-              <button
-                type="button"
-                className={`start-button start-button--${difficulty.id}`}
-                onClick={() => startDifficulty(difficulty.id)}
-                key={difficulty.id}
-              >
-                <span className="start-difficulty-copy">
-                  <span className="start-button-label">{difficulty.label}</span>
-                  <span className="start-difficulty-detail">{difficulty.detail}</span>
-                </span>
-                <span className="start-button-arrow">→</span>
-              </button>
-            ))}
-          </div>
-        </section>
+        <button type="button" className="start-button" onClick={startGame}>
+          <span className="start-button-label">正式开局</span>
+          <span className="start-button-arrow">→</span>
+        </button>
 
         <button type="button" className="start-test-button" onClick={onOpenTest}>TEST LAB</button>
         <div className="start-footer">EVERY PATH IS UNIQUE</div>

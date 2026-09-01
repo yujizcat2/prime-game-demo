@@ -93,20 +93,6 @@
   display: none;
 }
 
-.test-lab-difficulty-control {
-  margin-bottom: 20px;
-}
-
-.test-lab-difficulty-options {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.test-lab-difficulty-options .test-lab-option {
-  min-width: 0;
-}
-
-
 .test-lab-option {
   padding: 10px 18px;
   border-radius: 12px;
