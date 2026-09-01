@@ -17,6 +17,7 @@ const initial = createGameState(opening);
 assert.equal(initial.superHeaterUseCount, 0);
 assert.equal(getCurrentSuperHeaterPrice(initial), 100);
 assert.equal(getCurrentSuperHeaterPrice({...initial, superHeaterUseCount: 1}), 200);
+assert.equal(getCurrentSuperHeaterPrice({...initial, superHeaterUseCount: 2}), 300);
 assert.equal(canUseSuperHeater({...initial, money: 99}), false);
 
 const funded = {...initial, money: 250};

@@ -1,5 +1,5 @@
-export const BASE_RESTORE_PRICE = 50;
+export const BASE_RESTORE_PRICE_STEP = 40;
 
 export function getCurrentRestorePrice(state){
-  return BASE_RESTORE_PRICE * (2 ** (state?.restoreUseCount ?? 0));
+  return ((state?.restoreUseCount ?? 0) + 1) * BASE_RESTORE_PRICE_STEP;
 }
