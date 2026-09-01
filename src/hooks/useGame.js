@@ -1189,7 +1189,9 @@ export default function useGame(){
       []
     );
 
-    return true;
+    return {
+      collectionRewards: nextState.latestCollectionRewards ?? []
+    };
 
   }
 

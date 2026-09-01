@@ -65,7 +65,11 @@ assert.equal(simulation.money, formal.money, "formal and simulation engines sett
 assert.equal(simulation.money, 20);
 
 const scoreBeforeMoneyChecks = initial.score;
-assert.equal(twoNew.score, scoreBeforeMoneyChecks + getBaseScore(7) * 1.5);
+assert.equal(
+  twoNew.score,
+  scoreBeforeMoneyChecks + twoNew.collectionTimeline.reduce((sum, event) => sum + event.totalScore, 0),
+  "collection score includes base score and newly revealed bonuses"
+);
 assert.equal(twoRepeats.score, twoNew.score, "duplicate money events do not change score");
 
 assert.deepEqual(

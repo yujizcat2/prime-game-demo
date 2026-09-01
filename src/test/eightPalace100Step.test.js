@@ -78,7 +78,10 @@ assert.equal(typeof collectionState.collectionCards[0].name, "string");
 assert.deepEqual(collectionState.collectionCards[0].parents.map(parent => parent.value), [7, 17]);
 assert.ok(collectionState.collectionCards[0].parents.every(parent => typeof parent.name === "string"));
 assert.equal(collectionState.collectionTimeline.length, 4);
-assert.equal(collectionState.score, getBaseScore(24) + getBaseScore(83));
+assert.equal(
+  collectionState.score,
+  collectionState.collectionTimeline.reduce((sum, event) => sum + event.totalScore, 0)
+);
 assert.equal(collectionState.money, 20);
 
 const nativeCollection = applyEightPalaceCollection(createGameState(actionOpening), {
@@ -94,7 +97,7 @@ const reducedCollection = applyEightPalaceCollection(createGameState(actionOpeni
 assert.match(getCollectionSourceText(nativeCollection.collectionCards[0]), /^一种原生的/);
 assert.match(getCollectionSourceText(reducedCollection.collectionCards[0]), /^一种由.+处理而来的/);
 assert.match(getCollectionSourceText(collectionState.collectionCards[0]), /^一种由.+与.+制成的/);
-assert.equal(nativeCollection.collectionCards[0].scoreGain, getBaseScore(37));
+assert.equal(nativeCollection.collectionCards[0].baseScore, getBaseScore(37));
 const collectionPanelSource = readFileSync("src/components/EightPalaceCollectionPanel.jsx", "utf8");
 assert.match(collectionPanelSource, /\+\{card\.scoreGain/);
 assert.match(collectionPanelSource, /\{name\} \{card\.value\}/);

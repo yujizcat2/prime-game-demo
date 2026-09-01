@@ -40,44 +40,44 @@ const collect = (state, value, foodType) => applyEightPalaceCollection(state, co
 
 let state = stateWithBoard();
 state = collect(state, 29, BASE_FOOD_TYPES[0]);
-assert.equal(state.latestCollection.scoreGain, 40, "first collection of a number earns 100%");
+assert.equal(state.latestCollection.baseScore, 40, "first collection of a number earns 100% base score");
 state = collect(state, 29, BASE_FOOD_TYPES[1]);
-assert.equal(state.latestCollection.scoreGain, 20, "second food type earns 50%");
+assert.equal(state.latestCollection.baseScore, 20, "second food type earns 50% base score");
 state = collect(state, 29, BASE_FOOD_TYPES[2]);
-assert.equal(state.latestCollection.scoreGain, 20, "third food type still earns 50%");
+assert.equal(state.latestCollection.baseScore, 20, "third food type still earns 50% base score");
 for(const foodType of BASE_FOOD_TYPES.slice(3)){
   state = collect(state, 29, foodType);
-  assert.equal(state.latestCollection.scoreGain, 20, "every later new food type still earns 50%");
+  assert.equal(state.latestCollection.baseScore, 20, "every later new food type still earns 50% base score");
 }
-assert.equal(state.score, 180, "all eight food types for base 40 total 180 with no bonus");
+assert.equal(state.score, 520, "base score plus first-number and eight first-food-type bonuses are awarded");
 assert.equal(state.collectionTimeline.reduce((sum, event) => sum + event.scoreGain, 0), state.score);
 
 const beforeDuplicate = state.score;
 state = collect(state, 29, BASE_FOOD_TYPES[0]);
-assert.equal(state.latestCollection.scoreGain, 0, "same number and food type earns zero");
+assert.equal(state.latestCollection.baseScore, 0, "same number and food type earns zero");
 assert.equal(state.score, beforeDuplicate);
 
 let separateNumbers = stateWithBoard();
 separateNumbers = collect(separateNumbers, 29, BASE_FOOD_TYPES[0]);
 separateNumbers = collect(separateNumbers, 43, BASE_FOOD_TYPES[0]);
-assert.deepEqual(separateNumbers.collectionTimeline.map(event => event.scoreGain), [40, 50]);
+assert.deepEqual(separateNumbers.collectionTimeline.map(event => event.baseScore), [40, 50]);
 
 let oneOhOne = stateWithBoard();
 for(const foodType of BASE_FOOD_TYPES) oneOhOne = collect(oneOhOne, 101, foodType);
-assert.deepEqual(oneOhOne.collectionTimeline.slice(0, 2).map(event => event.scoreGain), [80, 40]);
-assert.equal(oneOhOne.score, 360, "all eight food types for 101 total 360 with no bonus");
+assert.deepEqual(oneOhOne.collectionTimeline.slice(0, 2).map(event => event.baseScore), [80, 40]);
+assert.equal(oneOhOne.score, 700, "base score and collection bonuses are both included");
 
 let edgeBands = stateWithBoard();
 edgeBands = collect(edgeBands, 2, BASE_FOOD_TYPES[0]);
 edgeBands = collect(edgeBands, 2, BASE_FOOD_TYPES[1]);
 edgeBands = collect(edgeBands, 79, BASE_FOOD_TYPES[0]);
 edgeBands = collect(edgeBands, 79, BASE_FOOD_TYPES[1]);
-assert.deepEqual(edgeBands.collectionTimeline.map(event => event.scoreGain), [10, 5, 70, 35]);
+assert.deepEqual(edgeBands.collectionTimeline.map(event => event.baseScore), [10, 5, 70, 35]);
 
 const previewCards = separateNumbers.collectionCards;
 const previewGain = getCollectionScoreGain(previewCards, 29, BASE_FOOD_TYPES[1]);
 const previewSettled = collect(separateNumbers, 29, BASE_FOOD_TYPES[1]);
-assert.equal(previewGain, previewSettled.latestCollection.scoreGain, "UI preview and settlement share the formal scorer");
+assert.equal(previewGain, previewSettled.latestCollection.baseScore, "UI preview exposes only the formal base scorer");
 assert.match(readFileSync("src/components/Board.jsx", "utf8"), /scorePreview = availableScore/);
 
 console.log("score value tests passed");

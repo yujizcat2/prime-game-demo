@@ -1,0 +1,59 @@
+import { FOOD_TYPE_LABELS } from "../data/specialOneRegistry";
+
+export const FIRST_FOOD_TYPE_BONUS = 40;
+export const FIRST_NUMBER_BONUS = 20;
+
+function hasSameCollection(cards, value, foodType){
+  return cards.some(card =>
+    card.value === value &&
+    (card.foodType ?? null) === (foodType ?? null)
+  );
+}
+
+export function createCollectionRewardSettlement({
+  collectionCards = [], value, foodType, name, baseScore
+}){
+  const cards = collectionCards ?? [];
+  const duplicate = hasSameCollection(cards, value, foodType);
+
+  if(duplicate || baseScore <= 0){
+    return {
+      collected: false, duplicate, value, foodType, name, baseScore: 0,
+      bonuses: [], bonusScore: 0, totalScore: 0, rewardLevel: "none"
+    };
+  }
+
+  const bonuses = [];
+  const isFirstFoodType = !cards.some(card =>
+    (card.foodType ?? null) === (foodType ?? null)
+  );
+  const isFirstNumber = !cards.some(card => card.value === value);
+
+  if(isFirstFoodType){
+    bonuses.push({
+      type: "first_food_type",
+      label: `首次获得${FOOD_TYPE_LABELS[foodType] ?? (foodType === "drink" ? "饮品" : foodType)}系`,
+      score: FIRST_FOOD_TYPE_BONUS
+    });
+  }
+
+  if(isFirstNumber){
+    bonuses.push({
+      type: "first_number",
+      label: `首次收藏数字${value}`,
+      score: FIRST_NUMBER_BONUS
+    });
+  }
+
+  const bonusScore = bonuses.reduce((sum, bonus) => sum + bonus.score, 0);
+  const rewardLevel = bonuses.length > 0
+    ? "major"
+    : baseScore === 5 || cards.some(card => card.value === value)
+      ? "minor"
+      : "normal";
+
+  return {
+    collected: true, duplicate: false, value, foodType, name, baseScore,
+    bonuses, bonusScore, totalScore: baseScore + bonusScore, rewardLevel
+  };
+}

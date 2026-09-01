@@ -19,6 +19,7 @@ import BoardStatus from "./components/BoardStatus";
 import GameOver from "./components/GameOver";
 import CombineHistoryPanel from "./components/CombineHistoryPanel";
 import ActionToast from "./components/ActionToast";
+import CollectionRewardModal from "./components/CollectionRewardModal";
 import BoardTypeTotals from "./components/BoardTypeTotals";
 import ItemBar from "./components/ItemBar";
 
@@ -58,6 +59,8 @@ function App(){
   const [keyNotice,setKeyNotice] = useState(null);
   const [showCombineHistory,setShowCombineHistory] = useState(false);
   const [actionToast,setActionToast] = useState(null);
+  const [collectionRewardQueue,setCollectionRewardQueue] = useState([]);
+  const [pendingMinorRewards,setPendingMinorRewards] = useState([]);
   const [heaterSelectMode,setHeaterSelectMode] = useState(false);
   const [restoreSelectMode,setRestoreSelectMode] = useState(false);
 
@@ -74,6 +77,22 @@ function App(){
       setActionToast(null);
       actionToastTimerRef.current=null;
     },1100);
+  }
+
+  function showMinorCollectionToast(rewards){
+    const total = rewards.reduce((sum, reward) => sum + reward.totalScore, 0);
+    showActionToast(
+      `获得 ${rewards.map(reward => `${reward.value} · ${reward.name}`).join("、")}`,
+      `+${total}分`
+    );
+  }
+
+  function closeCollectionReward(){
+    if(collectionRewardQueue.length === 1 && pendingMinorRewards.length > 0){
+      showMinorCollectionToast(pendingMinorRewards);
+      setPendingMinorRewards([]);
+    }
+    setCollectionRewardQueue(queue => queue.slice(1));
   }
 
   function toggleHeaterMode(){
@@ -491,8 +510,23 @@ function App(){
     scheduleAnimation(
       () => {
 
-        const succeeded=game.reduceNumbers();
-        if(succeeded)showActionToast(reduceToast.title,reduceToast.message);
+        const result=game.reduceNumbers();
+        if(result){
+          const rewards = result.collectionRewards ?? [];
+          const formalRewards = rewards.filter(reward =>
+            reward.rewardLevel === "normal" || reward.rewardLevel === "major"
+          );
+          const minorRewards = rewards.filter(reward => reward.rewardLevel === "minor");
+
+          if(formalRewards.length > 0){
+            setCollectionRewardQueue(queue => [...queue, ...formalRewards]);
+            setPendingMinorRewards(minorRewards);
+          }else if(minorRewards.length > 0){
+            showMinorCollectionToast(minorRewards);
+          }else{
+            showActionToast(reduceToast.title,reduceToast.message);
+          }
+        }
 
         if(game.preview.reduce.keyOutcome?.status==="used")setKeyNotice(`${game.preview.reduce.keyOutcome.triggerValue} 已经触发过钥匙，本次没有获得新钥匙`);
 
@@ -949,6 +983,14 @@ function App(){
         <CombineHistoryPanel
           history={game.combineHistory}
           onClose={() => setShowCombineHistory(false)}
+        />
+      }
+
+      {
+        collectionRewardQueue[0] &&
+        <CollectionRewardModal
+          reward={collectionRewardQueue[0]}
+          onClose={closeCollectionReward}
         />
       }
 

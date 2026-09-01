@@ -613,6 +613,7 @@ export function reduceCells(
     return consumeStep({
       ...state,
       board,
+      latestCollectionRewards: [],
       actionFatigue,
       recentActionSignatures:appendRecentActionSignature(state.recentActionSignatures,actionSignature)
     });
@@ -863,6 +864,8 @@ export function reduceCells(
 
     board:
       nextBoard,
+
+    latestCollectionRewards: [],
 
     actionFatigue
 

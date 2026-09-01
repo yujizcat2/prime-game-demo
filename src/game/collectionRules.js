@@ -8,6 +8,7 @@ import {
 
 import { getFoodName } from "../data/food/foodRegistry";
 import { getCollectionScoreGain } from "./scoreValue";
+import { createCollectionRewardSettlement } from "./collectionReward";
 import { getCollectionMoneyGain } from "./money";
 
 
@@ -1588,6 +1589,14 @@ export function applyEightPalaceCollection(state, piece){
     (card.collectionKey ?? getEightPalaceCollectionKey(card)) === collectionKey
   );
   const isNewCollection = !alreadyCollected;
+  const name = getFoodName(value, record.foodType);
+  const rewardSettlement = createCollectionRewardSettlement({
+    collectionCards: state.collectionCards,
+    value,
+    foodType: record.foodType ?? null,
+    name,
+    baseScore: scoreGain
+  });
   const moneyGain = getCollectionMoneyGain(isNewCollection);
   const cumulativeMoney = (state.money ?? 0) + moneyGain;
 
@@ -1596,13 +1605,18 @@ export function applyEightPalaceCollection(state, piece){
     id: (state.collectionEventId ?? 0) + 1,
     collectionKey,
     value,
-    name: getFoodName(value, record.foodType),
+    name,
     foodType: record.foodType ?? null,
     parents: parentFoods,
     parentFoods,
     origin: record.origin ? structuredClone(record.origin) : null,
     originType: record.origin?.type ?? null,
-    scoreGain,
+    scoreGain: rewardSettlement.totalScore,
+    baseScore: rewardSettlement.baseScore,
+    bonusScore: rewardSettlement.bonusScore,
+    totalScore: rewardSettlement.totalScore,
+    bonuses: rewardSettlement.bonuses,
+    rewardLevel: rewardSettlement.rewardLevel,
     isNewCollection,
     moneyGain,
     cumulativeMoney,
@@ -1617,7 +1631,11 @@ export function applyEightPalaceCollection(state, piece){
     collectionTimeline: [...(state.collectionTimeline ?? []), snapshot],
     collectionEventId: snapshot.id,
     latestCollection: snapshot,
-    score: (state.score ?? 0) + snapshot.scoreGain,
+    latestCollectionRewards: [
+      ...(state.latestCollectionRewards ?? []),
+      rewardSettlement
+    ],
+    score: (state.score ?? 0) + rewardSettlement.totalScore,
     money: cumulativeMoney
   };
 }
