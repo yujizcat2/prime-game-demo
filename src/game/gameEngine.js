@@ -43,6 +43,7 @@ import { GAME_MODES } from "./eightPalaceKeys";
 import { applyHeater } from "./heater";
 import { applyRestore, getLegalRestoreActions } from "./restore";
 import { canUseHeater } from "./heater";
+import { applySuperHeater } from "./superHeater";
 
 
 
@@ -300,6 +301,10 @@ export function applyAction(
       actionState = applyHeater(state, action.indexes?.[0] ?? action.index);
       break;
 
+    case "super_heater":
+      actionState = applySuperHeater(state);
+      break;
+
     case "restore":
       actionState = applyRestore(state, action.indexes?.[0] ?? action.index);
       break;
@@ -399,6 +404,7 @@ export function resolveGameOver(
     && !isSimpleEightPalace
     && boardCount <= 2
     && !canUseHeater(activeState)
+    && !getLegalActions(activeState).some(action => action.type === "super_heater")
     && getLegalRestoreActions(activeState).length === 0
   ){
 

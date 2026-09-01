@@ -308,6 +308,9 @@ export function createGameState(
     heaterUseCount:
       0,
 
+    superHeaterUseCount:
+      0,
+
     restoreUseCount:
       0,
 

@@ -11,6 +11,10 @@ assert.doesNotMatch(source, /¥10\+/);
 assert.match(source, /disabled: !heaterActive && !heaterAvailable/);
 assert.match(source, /`取消\$\{item\.name\}`/);
 assert.match(source, /name: "归味"/);
+assert.match(source, /name: "超级加热器"/);
+assert.match(source, /effect: "全盘数字 \+1"/);
+assert.match(source, /costLabel: `¥\$\{superHeaterCost\}`/);
+assert.match(source, /disabled: !superHeaterAvailable/);
 assert.match(source, /costLabel: `¥\$\{restoreCost\}`/);
 assert.match(source, /disabled: !restoreActive && !restoreAvailable/);
 assert.match(source, /item\.active \? "选择中"/);
@@ -24,5 +28,7 @@ assert.match(appSource, /setRestoreSelectMode\(true\)/);
 assert.match(hookSource, /getHeaterAvailability\(gameState\)/);
 assert.match(hookSource, /heaterAvailable = heaterAvailability\.canEnter/);
 assert.match(hookSource, /useRestoreOnCell/);
+assert.match(hookSource, /useSuperHeater/);
+assert.match(appSource, /showActionToast\("超级加热", `全盘 \+1/);
 
 console.log("ItemBar tests passed");

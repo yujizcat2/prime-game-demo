@@ -103,6 +103,18 @@ function App(){
     setRestoreSelectMode(true);
   }
 
+  function handleSuperHeater(){
+    if(!game.superHeaterAvailable){
+      const shortage = Math.max(0, game.superHeaterCost - game.money);
+      showActionToast("无法超级加热", shortage ? `还需要 ¥${shortage}` : "没有可加热的料理");
+      return;
+    }
+    setHeaterSelectMode(false);
+    setRestoreSelectMode(false);
+    const result = game.useSuperHeater();
+    if(result) showActionToast("超级加热", `全盘 +1 · -¥${result.cost}`);
+  }
+
   function handleHeaterTarget(index){
     const result = game.useHeaterOnCell(index);
     if(!result) return;
@@ -769,6 +781,9 @@ function App(){
               heaterAvailable={game.heaterAvailable}
               heaterActive={heaterSelectMode}
               onHeaterClick={toggleHeaterMode}
+              superHeaterCost={game.superHeaterCost}
+              superHeaterAvailable={game.superHeaterAvailable}
+              onSuperHeaterClick={handleSuperHeater}
               restoreCost={game.restoreCost}
               restoreAvailable={game.restoreAvailable}
               restoreActive={restoreSelectMode}

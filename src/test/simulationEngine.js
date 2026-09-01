@@ -33,6 +33,8 @@ import {
 import { getNativeFoodType } from "../game/nativeFoodTypes";
 import { getRestoreOutcome } from "../game/restore";
 import { getCurrentRestorePrice } from "../game/restorePricing";
+import { applyHeaterIncrement, isHeaterTarget } from "../game/heater";
+import { getCurrentSuperHeaterPrice } from "../game/superHeaterPricing";
 
 
 
@@ -403,6 +405,9 @@ export function createSimulationState(
       0,
 
     heaterUseCount:
+      0,
+
+    superHeaterUseCount:
       0,
 
     restoreUseCount:
@@ -899,6 +904,13 @@ export function getSimulationLegalActions(
       if(getRestoreOutcome(board[index], index)) actions.push({type: "restore", indexes: [index]});
     }
   }
+
+  const pieces = board.filter(Boolean);
+  if(
+    pieces.length > 0
+    && pieces.every(isHeaterTarget)
+    && (state.money ?? 0) >= getCurrentSuperHeaterPrice(state)
+  ) actions.push({type: "super_heater"});
 
   return actions;
 
@@ -1857,6 +1869,22 @@ export function applySimulationAction(
       break;
     }
 
+    case "super_heater": {
+      const price = getCurrentSuperHeaterPrice(state);
+      const pieces = state.board.filter(Boolean);
+      if(
+        pieces.length === 0
+        || !pieces.every(isHeaterTarget)
+        || (state.money ?? 0) < price
+      ) break;
+      state.board = state.board.map(piece => piece ? applyHeaterIncrement(piece) : null);
+      state.money -= price;
+      state.superHeaterUseCount = (state.superHeaterUseCount ?? 0) + 1;
+      state.latestSuperHeaterUse = {price, cost: price, affectedCount: pieces.length};
+      applied = true;
+      break;
+    }
+
 
 
 
@@ -2031,6 +2059,9 @@ export function cloneSimulationState(
 
     heaterUseCount:
       state.heaterUseCount ?? 0,
+
+    superHeaterUseCount:
+      state.superHeaterUseCount ?? 0,
 
     restoreUseCount:
       state.restoreUseCount ?? 0,

@@ -28,20 +28,25 @@ export function canUseHeater(state){
   return getHeaterAvailability(state).canEnter;
 }
 
+export function applyHeaterIncrement(piece){
+  if(!isHeaterTarget(piece)) return null;
+  return {
+    ...piece,
+    value: piece.value + 1,
+    origin: {
+      type: "heater",
+      from: createOriginSnapshot(piece)
+    }
+  };
+}
+
 export function applyHeater(state, targetIndex){
   if(!canUseHeaterOnPiece(state, targetIndex)) return state;
 
   const cost = getCurrentHeaterPrice(state);
   const previousPiece = state.board[targetIndex];
   const board = [...state.board];
-  board[targetIndex] = {
-    ...previousPiece,
-    value: previousPiece.value + 1,
-    origin: {
-      type: "heater",
-      from: createOriginSnapshot(previousPiece)
-    }
-  };
+  board[targetIndex] = applyHeaterIncrement(previousPiece);
 
   return {
     ...state,

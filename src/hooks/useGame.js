@@ -26,6 +26,8 @@ import { getHeaterCost } from "../game/heater";
 import { getHeaterAvailability } from "../game/heaterPricing";
 import { canRestorePiece } from "../game/restore";
 import { getCurrentRestorePrice } from "../game/restorePricing";
+import { canUseSuperHeater } from "../game/superHeater";
+import { getCurrentSuperHeaterPrice } from "../game/superHeaterPricing";
 
 import {
   createGameState,
@@ -238,6 +240,9 @@ export default function useGame(){
   const heaterCost = getHeaterCost(gameState);
   const heaterAvailability = getHeaterAvailability(gameState);
   const heaterAvailable = heaterAvailability.canEnter;
+  const superHeaterUseCount = gameState?.superHeaterUseCount ?? 0;
+  const superHeaterCost = getCurrentSuperHeaterPrice(gameState);
+  const superHeaterAvailable = canUseSuperHeater(gameState);
   const restoreUseCount = gameState?.restoreUseCount ?? 0;
   const restoreCost = getCurrentRestorePrice(gameState);
   const restoreAvailable = Boolean(gameState?.board?.some((_, index) => canRestorePiece(gameState, index)));
@@ -604,6 +609,15 @@ export default function useGame(){
     setGameState(nextState);
     clearSelection();
     return nextState.latestHeaterUse;
+  }
+
+  function useSuperHeater(){
+    if(!gameState) return null;
+    const nextState = applyAction(gameState, {type: "super_heater"});
+    if(nextState === gameState) return null;
+    setGameState(nextState);
+    clearSelection();
+    return nextState.latestSuperHeaterUse;
   }
 
   function useRestoreOnCell(index){
@@ -1384,6 +1398,9 @@ export default function useGame(){
     heaterCost,
 
     heaterAvailable,
+    superHeaterUseCount,
+    superHeaterCost,
+    superHeaterAvailable,
     restoreUseCount,
     restoreCost,
     restoreAvailable,
@@ -1428,6 +1445,7 @@ export default function useGame(){
     clearSelection,
 
     useHeaterOnCell,
+    useSuperHeater,
     useRestoreOnCell,
 
     combineNumbers,
