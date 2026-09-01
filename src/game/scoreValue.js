@@ -15,8 +15,10 @@ const BASE_SCORE_BY_NUMBER = new Map(
   )
 );
 
+export const SCORE_SCALE = 10;
+
 export function getBaseScore(value){
-  return BASE_SCORE_BY_NUMBER.get(value) ?? 0;
+  return (BASE_SCORE_BY_NUMBER.get(value) ?? 0) * SCORE_SCALE;
 }
 
 export function getCollectionScoreGain(collectionCards, value, foodType){

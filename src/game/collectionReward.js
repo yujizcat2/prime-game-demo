@@ -1,7 +1,7 @@
 import { FOOD_TYPE_LABELS } from "../data/specialOneRegistry";
 
-export const FIRST_FOOD_TYPE_BONUS = 40;
-export const FIRST_NUMBER_BONUS = 20;
+export const FIRST_FOOD_TYPE_BONUS = 5;
+export const FIRST_NUMBER_BONUS = 2;
 
 function hasSameCollection(cards, value, foodType){
   return cards.some(card =>
@@ -48,7 +48,7 @@ export function createCollectionRewardSettlement({
   const bonusScore = bonuses.reduce((sum, bonus) => sum + bonus.score, 0);
   const rewardLevel = bonuses.length > 0
     ? "major"
-    : baseScore === 5 || cards.some(card => card.value === value)
+    : baseScore === 50 || cards.some(card => card.value === value)
       ? "minor"
       : "normal";
 

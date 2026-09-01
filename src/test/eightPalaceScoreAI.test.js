@@ -42,6 +42,12 @@ if(result.steps === 100){
 }
 assert.notEqual(result.gameOverReason, "eight_palace_keys_missing");
 assert.equal(result.finalScore, result.collections.reduce((sum, card) => sum + card.scoreGain, 0));
+assert.ok(Number.isInteger(result.finalScore), "AI final score remains an integer");
+assert.ok(result.collections.every(card =>
+  Number.isInteger(card.baseScore) &&
+  Number.isInteger(card.bonusScore) &&
+  Number.isInteger(card.totalScore)
+), "AI collection settlements use integer scores");
 assert.equal(result.finalMoney, result.collectionCount * 10 - result.heaterSpending - result.restoreSpending);
 assert.equal(result.score, result.finalScore);
 assert.equal(result.scoreEfficiency, getScoreEfficiency(result.score, result.steps));
