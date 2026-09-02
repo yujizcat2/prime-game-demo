@@ -69,6 +69,7 @@ function App(){
   const animationTokenRef = useRef(0);
   const actionToastTimerRef = useRef(null);
   const notifiedEfficiencyStepRef = useRef(0);
+  const notifiedCheckpointIndexRef = useRef(0);
 
   function showActionToast(title,message){
     if(actionToastTimerRef.current)window.clearTimeout(actionToastTimerRef.current);
@@ -226,6 +227,18 @@ function App(){
       `最近10步 +${snapshot.recent10Collections}`
     );
   }, [game.collectionEfficiencyTimeline]);
+
+  useEffect(() => {
+    const result = game.latestCheckpointResult;
+    if(!result || !result.passed || result.index <= notifiedCheckpointIndexRef.current) return;
+    notifiedCheckpointIndexRef.current = result.index;
+    showActionToast(
+      "检查站通过",
+      result.type === "collection"
+        ? `收藏 ${game.collectionCards.length} / ${result.requiredCollectionCount}`
+        : `通行值 ${result.currentPassValue} / ${result.requiredPassValue}`
+    );
+  }, [game.latestCheckpointResult, game.collectionCards.length]);
 
 
   // ==========================================================
@@ -803,6 +816,7 @@ function App(){
             money={game.money}
             stepLimit={game.stepLimit}
             gameMode={game.gameMode}
+            checkpoint={game.checkpoint}
             collectionEfficiencyTimeline={game.collectionEfficiencyTimeline}
           />
 
@@ -1051,6 +1065,7 @@ function App(){
           reason={
             game.gameOverReason
           }
+          checkpointResult={game.latestCheckpointResult}
           gameMode={
             game.gameMode
           }

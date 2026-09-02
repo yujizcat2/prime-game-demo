@@ -85,7 +85,7 @@ const result = await runScoreGame({depth: 2, beamWidth: 12, maxActions: 20, init
 assert.ok(result.steps <= 100, "Score AI never exceeds 100 Step");
 if(result.steps === 100){
   assert.equal(result.completed100Steps, true);
-  assert.equal(result.gameOverReason, "step_limit");
+  assert.equal(result.reachedTestProtectionLimit, true);
 }
 assert.notEqual(result.gameOverReason, "eight_palace_keys_missing");
 assert.equal(result.finalScore, result.collections.reduce((sum, card) => sum + card.scoreGain, 0));
@@ -259,13 +259,13 @@ for(const entry of result.actionPath){
 assert.equal(replay.score, result.finalScore, "AI simulation score matches formal collection score");
 assert.equal(replay.money, result.finalMoney, "AI simulation money matches formal game money");
 
-const atStep99 = {...createGameState(opening), steps: 99};
+const atStep99 = {...createGameState(opening), steps: 99, checkpoint: {index: 8, step: 110, type: "passValue", requiredPassValue: 1}};
 const finalAction = chooseScoreAction(atStep99, {depth: 1, beamWidth: 8});
 assert.ok(finalAction, "Score AI can select the final legal action at Step 99");
 const atStep100 = applyAction(atStep99, finalAction);
 assert.equal(atStep100.steps, 100);
-assert.equal(atStep100.gameOverReason, "step_limit");
-assert.equal(chooseScoreAction(atStep100), null, "Score AI stops at Step 100");
+assert.notEqual(atStep100.gameOverReason, "step_limit");
+assert.notEqual(chooseScoreAction(atStep100), null, "Score AI remains playable at Step 100");
 
 const equalClearState=createGameState([
   {value:43,foodType:BASE_FOOD_TYPES[0],boardIndex:0},

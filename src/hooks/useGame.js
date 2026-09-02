@@ -291,6 +291,10 @@ export default function useGame(){
   const stepLimit = gameState?.stepLimit ?? 0;
   const combineHistoryKeys = gameState?.combineHistoryKeys ?? {};
   const combineHistory = gameState?.combineHistory ?? [];
+  const checkpoint = gameState?.checkpoint ?? null;
+  const passedCheckpointCount = gameState?.passedCheckpointCount ?? 0;
+  const checkpointHistory = gameState?.checkpointHistory ?? [];
+  const latestCheckpointResult = gameState?.latestCheckpointResult ?? null;
 
 
   const gameOver =
@@ -1424,6 +1428,10 @@ export default function useGame(){
     steps,
 
     stepLimit,
+    checkpoint,
+    passedCheckpointCount,
+    checkpointHistory,
+    latestCheckpointResult,
     combineHistoryKeys,
 
     combineHistory,

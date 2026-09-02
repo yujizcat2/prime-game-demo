@@ -100,6 +100,19 @@
   background: rgba(82, 111, 96, .11);
 }
 
+.checkpoint-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 12px;
+  color: #607168;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.checkpoint-status strong { color: #365f53; }
+
 .step-panel-progress > span {
   display: block;
   height: 100%;
@@ -159,6 +172,7 @@
   .step-panel-divider { height: 27px; margin: 0 clamp(5px, 2vw, 10px); }
   .step-panel-progress { height: 3px; margin-top: 11px; }
   .collection-efficiency-popover { max-height: 180px; }
+  .checkpoint-status { flex-wrap: wrap; gap: 5px 10px; font-size: 9px; }
 }
 
 @media (max-width: 360px) {

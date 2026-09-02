@@ -1,12 +1,14 @@
 import { applyHeaterIncrement, isHeaterTarget } from "./heater";
 import { getCurrentSuperHeaterPrice } from "./superHeaterPricing";
+import { GAME_MODES } from "./eightPalaceKeys";
 
 export function canUseSuperHeater(state){
   const pieces = (state?.board ?? []).filter(Boolean);
   return Boolean(
     state
     && !state.gameOver
-    && state.steps < state.stepLimit
+    && ([GAME_MODES.EIGHT_PALACE, GAME_MODES.SIMPLE_EIGHT_PALACE].includes(state.gameMode)
+      || state.steps < state.stepLimit)
     && pieces.length > 0
     && pieces.every(isHeaterTarget)
     && (state.money ?? 0) >= getCurrentSuperHeaterPrice(state)

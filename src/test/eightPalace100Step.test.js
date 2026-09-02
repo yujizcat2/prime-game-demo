@@ -7,6 +7,12 @@ import { applyEightPalaceCollection } from "../game/collectionRules";
 import { getCollectionSourceText } from "../components/collectionDisplay";
 import { BASE_FOOD_TYPES } from "../game/rules";
 import { getBaseScore, getNonDrinkBoardSum } from "../game/scoreValue";
+import {
+  createFirstCheckpoint,
+  getExpectedPassValue,
+  getNextCheckpointDistance,
+  getPassValue
+} from "../game/checkpoints";
 
 for(let attempt = 0; attempt < 200; attempt++){
   const opening = createEightPalaceInitialValues();
@@ -19,25 +25,57 @@ for(let attempt = 0; attempt < 200; attempt++){
 
 const openingState = createGameState(createEightPalaceInitialValues());
 assert.equal(openingState.stepLimit, 100);
+assert.deepEqual(openingState.checkpoint, createFirstCheckpoint());
+assert.equal(getPassValue(1000, 0), 0);
+assert.equal(getPassValue(400, 4), 200);
+assert.ok(getPassValue(400, 4) > getPassValue(400, 16));
+assert.ok(getExpectedPassValue(110) > getExpectedPassValue(100));
+assert.equal(getNextCheckpointDistance(100000, 178), 10);
+assert.equal(getNextCheckpointDistance(0, 178), 24);
+assert.ok(getNextCheckpointDistance(250, 178) < getNextCheckpointDistance(100, 178));
 
 const actionOpening = [
   {value: 6, foodType: BASE_FOOD_TYPES[0], boardIndex: 0, gameMode: "eightPalace"},
   {value: 12, foodType: BASE_FOOD_TYPES[1], boardIndex: 1, gameMode: "eightPalace"},
   {value: 17, foodType: BASE_FOOD_TYPES[2], boardIndex: 2, gameMode: "eightPalace"}
 ];
-const step99 = {...createGameState(actionOpening), steps: 99};
+const step99 = {...createGameState(actionOpening), steps: 99, checkpoint: {index: 8, step: 110, type: "passValue", requiredPassValue: 1}};
 assert.equal(resolveGameOver(step99).gameOver, false, "Step 99 remains playable");
 const step100 = applyAction(step99, {type: "reduce", indexes: [0, 1]});
 assert.equal(step100.steps, 100);
-assert.equal(step100.gameOver, true);
-assert.equal(step100.gameOverReason, "step_limit");
+assert.equal(step100.gameOver, false);
+assert.notEqual(step100.gameOverReason, "step_limit");
 assert.ok(step100.board.some(Boolean), "uncleared board still settles");
 assert.equal(Object.values(step100.eightPalaceKeys).filter(Boolean).length, 0, "missing keys do not block settlement");
+
+const failedFirst = resolveGameOver({...createGameState(actionOpening), steps: 10});
+assert.equal(failedFirst.gameOver, true);
+assert.equal(failedFirst.gameOverReason, "checkpoint_failed");
+const passedFirst = resolveGameOver({
+  ...createGameState(actionOpening),
+  steps: 10,
+  score: 360,
+  collectionCards: [{value: 2, foodType: BASE_FOOD_TYPES[0]}]
+});
+assert.equal(passedFirst.gameOver, false);
+assert.equal(passedFirst.passedCheckpointCount, 1);
+assert.equal(passedFirst.checkpoint.index, 2);
+assert.ok(passedFirst.checkpoint.step >= 20 && passedFirst.checkpoint.step <= 34);
+const passedDynamic = resolveGameOver({
+  ...passedFirst,
+  steps: passedFirst.checkpoint.step,
+  score: Math.ceil(passedFirst.checkpoint.requiredPassValue * Math.sqrt(passedFirst.checkpoint.step))
+});
+assert.equal(passedDynamic.gameOver, false);
+assert.equal(passedDynamic.passedCheckpointCount, 2);
+const failedDynamic = resolveGameOver({...passedFirst, steps: passedFirst.checkpoint.step, score: 0});
+assert.equal(failedDynamic.gameOverReason, "checkpoint_failed");
 
 const deadEarly = resolveGameOver({
   ...createGameState(actionOpening),
   board: [{id: 1, value: 17, foodType: BASE_FOOD_TYPES[0]}, ...Array(8).fill(null)],
-  steps: 73
+  steps: 73,
+  checkpoint: {index: 5, step: 80, type: "passValue", requiredPassValue: 1}
 });
 assert.equal(deadEarly.gameOver, true);
 assert.equal(deadEarly.gameOverReason, "no_legal_actions");
@@ -119,4 +157,4 @@ assert.match(settlementSource, />Step</);
 assert.match(settlementSource, />收藏</);
 assert.doesNotMatch(settlementSource, /挑战失败|Game Over/);
 
-console.log("eight palace 100 Step tests passed");
+console.log("dynamic checkpoint tests passed");

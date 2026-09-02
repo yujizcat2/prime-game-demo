@@ -19,11 +19,12 @@ import {
   createFoodTypeBoardSnapshot,
   summarizeFoodTypeTelemetry
 } from "./foodTypeTelemetry";
+import { getPassValue } from "../game/checkpoints";
 
 export const SCORE_AI_DEFAULTS = Object.freeze({
   depth: 3,
   beamWidth: 12,
-  maxActions: 100,
+  maxActions: 500,
   searchMode: "adaptive"
 });
 
@@ -417,7 +418,7 @@ export function chooseScoreAction(state, {
   searchMode = SCORE_AI_DEFAULTS.searchMode,
   adaptive = ADAPTIVE_SEARCH_DEFAULTS
 } = {}){
-  if(!state || state.gameOver || state.steps >= state.stepLimit) return null;
+  if(!state || state.gameOver) return null;
   const startedAt = performance.now();
   const stats = telemetry ?? createSearchTelemetry();
   const adaptiveMode = searchMode === "adaptive";
@@ -613,7 +614,7 @@ export async function runScoreGame({
   const foodTypeBoardTimeline = [createFoodTypeBoardSnapshot(state.board, state.steps)];
   let heaterUsedThisStep = false;
 
-  while(!state.gameOver && state.steps < state.stepLimit && state.steps < maxActions){
+  while(!state.gameOver && state.steps < maxActions){
     const legalActions = getScoreCandidateActions(state);
     if(legalActions.length === 0){
       state = {...state, gameOver: true, gameOverReason: "no_legal_actions"};
@@ -641,8 +642,9 @@ export async function runScoreGame({
     state = compactLiveState(nextState);
   }
 
-  const completed100Steps = state.steps === state.stepLimit;
-  const deadlocked = state.gameOverReason === "no_legal_actions" && !completed100Steps;
+  const completed100Steps = state.steps >= 100;
+  const reachedTestProtectionLimit = !state.gameOver && state.steps >= maxActions;
+  const deadlocked = state.gameOverReason === "no_legal_actions";
   const collectionNumberCounts = getCollectionNumberCounts(state.collectionCards);
   const collectionFoodTypeCounts = Object.fromEntries(
     [...BASE_FOOD_TYPES, FOOD_TYPES.DRINK].map(foodType => [
@@ -732,6 +734,7 @@ export async function runScoreGame({
     transpositionHits: searchTelemetry.transpositionHits,
     elapsedMs,
     scoreEfficiency: getScoreEfficiency(state.score, state.steps),
+    finalPassValue: getPassValue(state.score, state.steps),
     collectionCount: state.collectionCards.length,
     collectionEfficiencyTimeline: structuredClone(state.collectionEfficiencyTimeline ?? []),
     collections: state.collectionCards.map(card => structuredClone(card)),
@@ -750,6 +753,9 @@ export async function runScoreGame({
     steps: state.steps,
     actions: actionPath.length,
     completed100Steps,
+    reachedTestProtectionLimit,
+    passedCheckpointCount: state.passedCheckpointCount ?? 0,
+    checkpointHistory: structuredClone(state.checkpointHistory ?? []),
     deadlocked,
     gameOverReason: state.gameOverReason,
     finalBoard: snapshotBoard(state.board),
@@ -828,6 +834,28 @@ function thresholdCollectionSummary(results, threshold){
 export function summarizeScoreResults(results){
   const completed100StepCount = results.filter(result => result.completed100Steps).length;
   const deadlockCount = results.filter(result => result.deadlocked).length;
+  const checkpointIndexes = [...new Set(results.flatMap(result =>
+    (result.checkpointHistory ?? []).map(checkpoint => checkpoint.index)
+  ))].sort((left, right) => left - right);
+  const checkpointSurvival = checkpointIndexes.map(index => {
+    const reached = results.flatMap(result => {
+      const checkpoint = (result.checkpointHistory ?? []).find(item => item.index === index);
+      return checkpoint ? [checkpoint] : [];
+    });
+    const passedCount = reached.filter(checkpoint => checkpoint.passed).length;
+    return {
+      index,
+      reachedCount: reached.length,
+      passedCount,
+      gameCount: results.length,
+      passRate: results.length ? passedCount / results.length : 0,
+      averageStep: average(reached, checkpoint => checkpoint.step),
+      averageRequiredPassValue: average(
+        reached.filter(checkpoint => checkpoint.requiredPassValue != null),
+        checkpoint => checkpoint.requiredPassValue
+      )
+    };
+  });
   const highScore = results.length
     ? results.reduce((best, result) => result.finalScore > best.finalScore ? result : best)
     : null;
@@ -995,6 +1023,14 @@ export function summarizeScoreResults(results){
     compositeCollectionShare: classifiedCollectionCount ? totalCompositeCollectionCount / classifiedCollectionCount : 0,
     maxCollectionCount: results.length ? Math.max(...results.map(result => result.collectionCount)) : 0,
     averageSteps: average(results, result => result.steps),
+    averageFinalStep: average(results, result => result.steps),
+    averagePassedCheckpointCount: average(results, result => result.passedCheckpointCount ?? 0),
+    highestPassedCheckpointCount: results.length ? Math.max(...results.map(result => result.passedCheckpointCount ?? 0)) : 0,
+    lowestPassedCheckpointCount: results.length ? Math.min(...results.map(result => result.passedCheckpointCount ?? 0)) : 0,
+    averageFinalPassValue: average(results, result => result.finalPassValue ?? 0),
+    highestFinalPassValue: results.length ? Math.max(...results.map(result => result.finalPassValue ?? 0)) : 0,
+    checkpointSurvival,
+    reachedTestProtectionLimitCount: results.filter(result => result.reachedTestProtectionLimit).length,
     completed100StepCount,
     completed100StepRate: results.length ? completed100StepCount / results.length : 0,
     deadlockCount,

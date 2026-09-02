@@ -1284,7 +1284,7 @@ export function getLegalActions(
 
   if(
     !state ||
-    state.gameOver || state.steps >= state.stepLimit
+    state.gameOver || (!isEightPalaceMode(state) && state.steps >= state.stepLimit)
   ){
 
 

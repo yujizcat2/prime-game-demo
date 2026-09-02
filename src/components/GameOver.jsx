@@ -12,6 +12,8 @@ export default function GameOver({
 
   gameMode,
 
+  checkpointResult,
+
   onRestart
 
 }) {
@@ -127,12 +129,20 @@ export default function GameOver({
         >
 
           {isEightPalace
-            ? reason === "no_legal_actions" ? "已无合法操作" : `已完成 ${stepLimit} Step`
+            ? reason === "checkpoint_failed"
+              ? "未通过检查站"
+              : reason === "no_legal_actions" ? "已无合法操作" : "本局已结束"
             : reason === "board_depleted"
             ? "剩余料理不足以继续维持盘面。"
             : "本次数字路径已经完成"}
 
         </p>
+
+        {reason === "checkpoint_failed" && checkpointResult && <p className="mt-3 text-sm font-bold text-gray-600">
+          {checkpointResult.type === "collection"
+            ? "Step 10 前需要至少获得 1 个收藏"
+            : `通行值 ${checkpointResult.currentPassValue} / ${checkpointResult.requiredPassValue}`}
+        </p>}
 
 
         {
@@ -202,7 +212,7 @@ export default function GameOver({
             </div>
             <div className="rounded-2xl bg-gray-50 py-4">
               <div className="text-xs text-gray-400">Step</div>
-              <div className="mt-1 text-xl font-black text-gray-700">{steps} / {stepLimit}</div>
+              <div className="mt-1 text-xl font-black text-gray-700">{steps}</div>
             </div>
             <div className="rounded-2xl bg-gray-50 py-4">
               <div className="text-xs text-gray-400">收藏</div>

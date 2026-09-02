@@ -25,6 +25,7 @@ import {
 import { getBaseScore } from "./scoreValue";
 import { recordCollectionEfficiencySnapshot } from "./collectionEfficiency";
 import { getNativeFoodType } from "./nativeFoodTypes";
+import { createFirstCheckpoint } from "./checkpoints";
 
 
 
@@ -351,6 +352,11 @@ export function createGameState(
       usesPlacedInitialValues
         ? EIGHT_PALACE_STEP_LIMIT
         : GAME_CONFIG.START_STEP_LIMIT,
+
+    checkpoint: usesPlacedInitialValues ? createFirstCheckpoint() : null,
+    passedCheckpointCount: 0,
+    checkpointHistory: [],
+    latestCheckpointResult: null,
 
 
 

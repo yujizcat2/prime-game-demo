@@ -2,6 +2,12 @@ import { consumeStep } from "./gameState";
 import { FOOD_TYPES } from "./rules";
 import { getNativeFoodType } from "./nativeFoodTypes";
 import { getCurrentRestorePrice } from "./restorePricing";
+import { GAME_MODES } from "./eightPalaceKeys";
+
+function isAtStepLimit(state){
+  return ![GAME_MODES.EIGHT_PALACE, GAME_MODES.SIMPLE_EIGHT_PALACE].includes(state?.gameMode)
+    && state.steps >= state.stepLimit;
+}
 
 export function getRestoreOutcome(piece, index){
   const nativeFoodType = getNativeFoodType(index);
@@ -21,7 +27,7 @@ export function getRestoreOutcome(piece, index){
 }
 
 export function canRestorePiece(state, index){
-  if(!state || state.gameOver || state.steps >= state.stepLimit) return false;
+  if(!state || state.gameOver || isAtStepLimit(state)) return false;
   return Boolean(
     Number.isInteger(index)
     && getRestoreOutcome(state.board?.[index], index)
@@ -30,7 +36,7 @@ export function canRestorePiece(state, index){
 }
 
 export function getLegalRestoreActions(state){
-  if(!state || state.gameOver || state.steps >= state.stepLimit) return [];
+  if(!state || state.gameOver || isAtStepLimit(state)) return [];
   return (state.board ?? []).flatMap((piece, index) =>
     piece && canRestorePiece(state, index) ? [{type: "restore", indexes: [index]}] : []
   );

@@ -1,6 +1,7 @@
 import "./StepPanel.css";
 import { useState } from "react";
 import { getScoreEfficiency } from "../game/scoreEfficiency";
+import { getPassValue } from "../game/checkpoints";
 
 const numberFormatter = new Intl.NumberFormat("zh-CN");
 
@@ -10,6 +11,7 @@ export default function StepPanel({
   money = 0,
   stepLimit = 100,
   gameMode = null,
+  checkpoint = null,
   collectionEfficiencyTimeline = []
 }) {
   const isEightPalace = gameMode === "eightPalace" || gameMode === "simpleEightPalace";
@@ -17,9 +19,13 @@ export default function StepPanel({
   const displayStepLimit = isEightPalace ? stepLimit : 12;
   const timeLabel = isEightPalace ? "步数" : "时间";
   const scoreEfficiency = getScoreEfficiency(score, steps);
-  const stepProgress = displayStepLimit > 0
+  const checkpointStart = checkpoint ? Math.max(0, checkpoint.step - 24) : 0;
+  const stepProgress = isEightPalace && checkpoint
+    ? Math.min(100, Math.max(0, ((steps - checkpointStart) / (checkpoint.step - checkpointStart)) * 100))
+    : displayStepLimit > 0
     ? Math.min(100, Math.max(0, (displayStep / displayStepLimit) * 100))
     : 0;
+  const passValue = getPassValue(score, steps);
   const [showEfficiency, setShowEfficiency] = useState(false);
 
   return (
@@ -80,7 +86,7 @@ export default function StepPanel({
         <div className="step-panel-stat step-panel-stat--step">
           <strong className="step-panel-value step-panel-step-value">
             {displayStep}
-            <span className="step-panel-time-max"> / {displayStepLimit}</span>
+            {!isEightPalace && <span className="step-panel-time-max"> / {displayStepLimit}</span>}
           </strong>
           <span className="step-panel-label">
             {isEightPalace ? "STEP" : timeLabel}
@@ -88,12 +94,22 @@ export default function StepPanel({
         </div>
       </div>
 
+      {isEightPalace && checkpoint && <div className="checkpoint-status">
+        <strong>下一检查站</strong>
+        <span>Step {checkpoint.step}</span>
+        <span>{checkpoint.type === "collection"
+          ? `收藏 ≥ ${checkpoint.requiredCollectionCount}`
+          : `通行值 ≥ ${checkpoint.requiredPassValue}`}</span>
+        <span>当前 {passValue}</span>
+        <span>剩余 {Math.max(0, checkpoint.step - steps)} 步</span>
+      </div>}
+
       <div
         className="step-panel-progress"
         role="progressbar"
         aria-label="本局 Step 进度"
         aria-valuemin="0"
-        aria-valuemax={displayStepLimit}
+        aria-valuemax={isEightPalace && checkpoint ? checkpoint.step : displayStepLimit}
         aria-valuenow={displayStep}
       >
         <span style={{ width: `${stepProgress}%` }} />

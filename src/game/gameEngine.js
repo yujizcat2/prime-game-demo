@@ -45,6 +45,7 @@ import { applyRestore, getLegalRestoreActions } from "./restore";
 import { canUseHeater } from "./heater";
 import { applySuperHeater } from "./superHeater";
 import { markSingleFlavorBoardPieces } from "./singleFlavorPenalty";
+import { resolveCheckpoint } from "./checkpoints";
 
 
 
@@ -395,8 +396,13 @@ export function resolveGameOver(
     ? {...state, gameOver: false, gameOverReason: null}
     : state;
 
-  if((isEightPalace || isSimpleEightPalace) && state.steps >= state.stepLimit){
-    return {...state, gameOver: true, gameOverReason: "step_limit"};
+  if(state.gameOverReason === "checkpoint_failed") return state;
+
+  if(isEightPalace || isSimpleEightPalace){
+    const checkpointState = resolveCheckpoint(activeState);
+    if(checkpointState !== activeState) return checkpointState.gameOver
+      ? checkpointState
+      : resolveGameOver(checkpointState);
   }
 
 

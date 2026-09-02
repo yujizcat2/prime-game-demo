@@ -1427,6 +1427,7 @@ function ProgressPanel({
 
 function ScoreSummaryGrid({result}){
   return (
+    <>
     <div className="test-lab-result-grid">
       <ResultItem label="测试局数" value={result.games ?? result.attempts} />
       <ResultItem label="平均最终积分" value={result.averageFinalScore.toFixed(2)} highlight />
@@ -1460,7 +1461,11 @@ function ScoreSummaryGrid({result}){
       <ResultItem label="合数占比" value={`${(result.compositeCollectionShare * 100).toFixed(1)}%`} />
       <ResultItem label="最大收藏数量" value={result.maxCollectionCount} />
       <ResultItem label="平均实际 Step" value={result.averageSteps.toFixed(2)} />
-      <ResultItem label="完成 100 Step" value={`${result.completed100StepCount} / ${result.games ?? result.attempts} (${(result.completed100StepRate * 100).toFixed(1)}%)`} />
+      <ResultItem label="平均最终通行值" value={(result.averageFinalPassValue ?? 0).toFixed(2)} highlight />
+      <ResultItem label="最高最终通行值" value={result.highestFinalPassValue ?? 0} />
+      <ResultItem label="平均通过检查站" value={(result.averagePassedCheckpointCount ?? 0).toFixed(2)} />
+      <ResultItem label="通过检查站范围" value={`${result.lowestPassedCheckpointCount ?? 0}–${result.highestPassedCheckpointCount ?? 0}`} />
+      <ResultItem label="达到测试保护上限" value={`${result.reachedTestProtectionLimitCount ?? 0} / ${result.games ?? result.attempts}`} />
       <ResultItem label="提前死局" value={`${result.deadlockCount} / ${result.games ?? result.attempts} (${(result.deadlockRate * 100).toFixed(1)}%)`} />
       <ResultItem label="平均搜索节点" value={Math.round(result.averageSearchedNodes ?? 0)} />
       <ResultItem label="平均评价节点" value={Math.round(result.averageEvaluatedNodes ?? 0)} />
@@ -1471,6 +1476,13 @@ function ScoreSummaryGrid({result}){
       <ResultItem label="Super Heater 候选（生成/保留）" value={`${Math.round(result.averageSuperHeaterCandidatesGenerated ?? 0)} / ${Math.round(result.averageSuperHeaterCandidatesKept ?? 0)}`} />
       <ResultItem label="平均耗时" value={`${(result.averageElapsedMs ?? 0).toFixed(1)}ms`} />
     </div>
+    <div className="test-lab-timeline">
+      {(result.checkpointSurvival ?? []).map(checkpoint => <div key={checkpoint.index}>
+        站 {checkpoint.index}：平均 Step {checkpoint.averageStep.toFixed(1)} · 通过 {checkpoint.passedCount}/{checkpoint.gameCount} ({(checkpoint.passRate * 100).toFixed(1)}%)
+        {checkpoint.index > 1 && ` · 平均要求通行值 ${checkpoint.averageRequiredPassValue.toFixed(1)}`}
+      </div>)}
+    </div>
+    </>
   );
 }
 
@@ -1577,7 +1589,7 @@ function RandomSummaryGrid({result}){
       <ResultItem label="质数占比" value={`${(result.primeCollectionShare * 100).toFixed(1)}%`} />
       <ResultItem label="合数占比" value={`${(result.compositeCollectionShare * 100).toFixed(1)}%`} />
       <ResultItem label="平均实际 Step" value={result.averageSteps.toFixed(2)} />
-      <ResultItem label="完成 100 Step" value={`${result.completed100StepCount} / ${result.games} (${(result.completed100StepRate * 100).toFixed(1)}%)`} />
+      <ResultItem label="达到测试保护上限" value={`${result.reachedTestProtectionLimitCount ?? 0} / ${result.games}`} />
       <ResultItem label="提前死局" value={`${result.deadlockCount} / ${result.games} (${(result.deadlockRate * 100).toFixed(1)}%)`} />
     </div>
   );
@@ -1702,7 +1714,7 @@ function AllScoreRecords({title = "全部测试记录", games = []}){
       {games.map((game, index) => {
         const gameKey = getGameKey(game, index);
         const expanded = expandedGames.has(gameKey);
-        const status = game.completed100Steps ? "完成" : game.deadlocked ? "死局" : null;
+        const status = game.reachedTestProtectionLimit ? "达到测试保护上限" : game.gameOverReason === "checkpoint_failed" ? "检查站失败" : game.deadlocked ? "死局" : null;
         return (
           <details
             className="test-lab-record test-lab-score-game-record"
