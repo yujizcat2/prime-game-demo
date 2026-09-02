@@ -24,7 +24,15 @@ import {
 export const SCORE_AI_DEFAULTS = Object.freeze({
   depth: 3,
   beamWidth: 12,
-  maxActions: 100
+  maxActions: 100,
+  searchMode: "adaptive"
+});
+
+export const ADAPTIVE_SEARCH_DEFAULTS = Object.freeze({
+  beams: Object.freeze([20, 10, 6, 3, 2]),
+  evaluationBudget: 640,
+  maximumDepth: 5,
+  extensionHardCap: 2
 });
 
 export const STRATEGIC_CANDIDATE_LIMITS = Object.freeze({
@@ -334,9 +342,56 @@ export function createSearchTelemetry(){
     superHeaterCandidatesGenerated: 0,
     superHeaterCandidatesKept: 0,
     evaluationCacheHits: 0,
+    evaluationCacheMisses: 0,
     legalActionCacheHits: 0,
+    legalActionCacheMisses: 0,
+    transpositionHits: 0,
+    budgetHits: 0,
+    maximumReachedDepth: 0,
+    reachedDepthTotal: 0,
+    completedSearches: 0,
+    depthNodeCounts: {1: 0, 2: 0, 3: 0, 4: 0, 5: 0},
+    beamWidthsUsed: [],
+    heaterExtensionCount: 0,
+    restoreExtensionCount: 0,
+    superHeaterExtensionCount: 0,
+    retypeExtensionCount: 0,
+    heaterExtensionChosenCount: 0,
+    restoreExtensionChosenCount: 0,
+    superHeaterExtensionChosenCount: 0,
+    retypeExtensionChosenCount: 0,
     elapsedMs: 0
   };
+}
+
+export function getAdaptiveBeamWidth(level, beams = ADAPTIVE_SEARCH_DEFAULTS.beams){
+  return beams[Math.min(level, beams.length - 1)];
+}
+
+export function getAdaptiveBaseDepth(legalActionCount, defaultDepth = SCORE_AI_DEFAULTS.depth){
+  if(legalActionCount <= 4) return Math.min(ADAPTIVE_SEARCH_DEFAULTS.maximumDepth, defaultDepth + 2);
+  if(legalActionCount <= 7) return Math.min(ADAPTIVE_SEARCH_DEFAULTS.maximumDepth, defaultDepth + 1);
+  return defaultDepth;
+}
+
+function tacticalExtensionType(beforeState, action, afterState, beforeActions, afterActions){
+  const newCollections = (afterState.collectionCards ?? []).slice((beforeState.collectionCards ?? []).length);
+  if(newCollections.some(card => card.value >= 50)) return action.type;
+  const beforeReduce = beforeActions.filter(candidate => candidate.type === "reduce").length;
+  const afterReduce = afterActions.filter(candidate => candidate.type === "reduce").length;
+  const beforeCombine = beforeActions.filter(candidate => candidate.type.startsWith("combine")).length;
+  const afterCombine = afterActions.filter(candidate => candidate.type.startsWith("combine")).length;
+  const recovered = beforeActions.length <= 4 && afterActions.length >= 8;
+  if(["heater", "restore", "super_heater", "retype"].includes(action.type)
+    && (afterReduce > beforeReduce || afterCombine > beforeCombine || recovered)) return action.type;
+  if(action.type.startsWith("combine")){
+    const createdLargeOrdinary = afterState.board.some((piece, index) =>
+      piece && piece.value >= 50 && piece.foodType !== FOOD_TYPES.DRINK
+      && beforeState.board[index]?.value !== piece.value
+    );
+    if(createdLargeOrdinary) return action.type;
+  }
+  return null;
 }
 
 function applyScoreAction(state, action){
@@ -359,16 +414,22 @@ export function chooseScoreAction(state, {
   allowHeater: _allowHeater = true,
   heaterUsedThisStep = false,
   telemetry = null,
-  candidateLimits = STRATEGIC_CANDIDATE_LIMITS
+  candidateLimits = STRATEGIC_CANDIDATE_LIMITS,
+  searchMode = SCORE_AI_DEFAULTS.searchMode,
+  adaptive = ADAPTIVE_SEARCH_DEFAULTS
 } = {}){
   if(!state || state.gameOver || state.steps >= state.stepLimit) return null;
   const startedAt = performance.now();
   const stats = telemetry ?? createSearchTelemetry();
+  const adaptiveMode = searchMode === "adaptive";
+  const evaluationStart = stats.evaluatedNodes;
+  let budgetHit = false;
   const legalActionCache = new Map();
   const evaluationCache = new Map();
   const getCachedLegalActions = candidateState => {
     const key = getStateKey(candidateState);
     if(legalActionCache.has(key)){ stats.legalActionCacheHits++; return legalActionCache.get(key); }
+    stats.legalActionCacheMisses++;
     const actions = candidateState.gameOver ? [] : getLegalActions(candidateState);
     legalActionCache.set(key, actions);
     return actions;
@@ -376,19 +437,25 @@ export function chooseScoreAction(state, {
   const getCachedEvaluation = candidateState => {
     const key = getStateKey(candidateState);
     if(evaluationCache.has(key)){ stats.evaluationCacheHits++; return evaluationCache.get(key); }
+    if(adaptiveMode && stats.evaluatedNodes - evaluationStart >= adaptive.evaluationBudget) return null;
     const value = evaluateScoreState(candidateState, getCachedLegalActions(candidateState));
     evaluationCache.set(key, value);
     stats.evaluatedNodes++;
+    stats.evaluationCacheMisses++;
     return value;
   };
-  let frontier = [{state, firstAction: null, evaluation: getCachedEvaluation(state), heaterUsedThisStep, previousActionType: null}];
+  let frontier = [{state, firstAction: null, evaluation: getCachedEvaluation(state), heaterUsedThisStep, previousActionType: null, extensionCount: 0, extensionTypes: []}];
   let best = null;
   const seen = new Map([[getStateKey(state), frontier[0].evaluation]]);
+  const baseDepth = adaptiveMode ? getAdaptiveBaseDepth(getCachedLegalActions(state).length, depth) : depth;
+  const absoluteDepth = adaptiveMode ? adaptive.maximumDepth : depth;
+  let reachedDepth = 0;
 
-  for(let level = 0; level < depth; level++){
+  for(let level = 0; level < absoluteDepth; level++){
     const candidates = [];
 
     for(const node of frontier){
+      if(level >= Math.min(absoluteDepth, baseDepth + node.extensionCount)) continue;
       stats.searchedNodes++;
       const legalActions = getCachedLegalActions(node.state);
       const availableActions = getStrategicCandidateActions(node.state, legalActions, {
@@ -398,14 +465,26 @@ export function chooseScoreAction(state, {
       });
       const actions = explore ? shuffled(availableActions) : availableActions;
       for(const action of actions){
+        if(adaptiveMode && stats.evaluatedNodes - evaluationStart >= adaptive.evaluationBudget){ budgetHit = true; break; }
         const appliedState = applyScoreAction(node.state, action);
         if(appliedState === node.state) continue;
         const evaluation = getCachedEvaluation(appliedState);
+        if(evaluation === null){ budgetHit = true; break; }
         const nextState = compactSearchState(appliedState);
         const nextHeaterUsedThisStep = action.type === "heater";
         const key = getStateKey(nextState);
-        if((seen.get(key) ?? -Infinity) >= evaluation) continue;
+        if((seen.get(key) ?? -Infinity) >= evaluation){ stats.transpositionHits++; continue; }
         seen.set(key, evaluation);
+        const afterActions = getCachedLegalActions(nextState);
+        const extensionType = adaptiveMode && node.extensionCount < adaptive.extensionHardCap
+          ? tacticalExtensionType(node.state, action, nextState, legalActions, afterActions)
+          : null;
+        const extensionCount = node.extensionCount + (extensionType ? 1 : 0);
+        const extensionTypes = extensionType ? [...node.extensionTypes, extensionType] : node.extensionTypes;
+        if(extensionType === "heater") stats.heaterExtensionCount++;
+        else if(extensionType === "restore") stats.restoreExtensionCount++;
+        else if(extensionType === "super_heater") stats.superHeaterExtensionCount++;
+        else if(extensionType === "retype") stats.retypeExtensionCount++;
         candidates.push({
           state: nextState,
           firstAction: node.firstAction ?? action,
@@ -413,9 +492,12 @@ export function chooseScoreAction(state, {
           immediateGain: nextState.score - state.score,
           heaterUsedThisStep: nextHeaterUsedThisStep,
           previousActionType: action.type,
+          extensionCount,
+          extensionTypes,
           tieBreaker: explore ? Math.random() : 0
         });
       }
+      if(budgetHit) break;
     }
 
     candidates.sort((left, right) =>
@@ -424,9 +506,24 @@ export function chooseScoreAction(state, {
       || right.tieBreaker - left.tieBreaker
       || getActionKey(left.firstAction).localeCompare(getActionKey(right.firstAction))
     );
-    frontier = candidates.slice(0, beamWidth);
+    const currentBeamWidth = adaptiveMode ? getAdaptiveBeamWidth(level, adaptive.beams) : beamWidth;
+    stats.beamWidthsUsed.push(currentBeamWidth);
+    frontier = candidates.slice(0, currentBeamWidth);
     if(frontier.length === 0) break;
+    reachedDepth = level + 1;
+    stats.maximumReachedDepth = Math.max(stats.maximumReachedDepth, reachedDepth);
+    stats.depthNodeCounts[reachedDepth] = (stats.depthNodeCounts[reachedDepth] ?? 0) + candidates.length;
     if(!best || frontier[0].evaluation > best.evaluation) best = frontier[0];
+    if(budgetHit) break;
+  }
+  if(budgetHit) stats.budgetHits++;
+  stats.reachedDepthTotal += reachedDepth;
+  stats.completedSearches++;
+  for(const type of new Set(best?.extensionTypes ?? [])){
+    if(type === "heater") stats.heaterExtensionChosenCount++;
+    else if(type === "restore") stats.restoreExtensionChosenCount++;
+    else if(type === "super_heater") stats.superHeaterExtensionChosenCount++;
+    else if(type === "retype") stats.retypeExtensionChosenCount++;
   }
   stats.elapsedMs += performance.now() - startedAt;
   return best?.firstAction ?? null;
@@ -440,11 +537,16 @@ function describeAction(state, action, nextState, number){
       : [...(action.indexes ?? [])];
 
   const collectionBoardState = createFoodTypeBoardSnapshot(nextState.board, nextState.steps);
+  const preActionValues = state.board.filter(Boolean).map(piece => piece.value);
+  const preActionBoardAverage = preActionValues.length
+    ? preActionValues.reduce((sum, value) => sum + value, 0) / preActionValues.length
+    : 0;
   const collectionEvents = (nextState.collectionTimeline ?? [])
     .slice((state.collectionTimeline ?? []).length)
     .map(event => ({
       ...structuredClone(event),
-      collectionBoardState
+      collectionBoardState,
+      preActionBoardAverage
     }));
 
   return {
@@ -499,7 +601,9 @@ export async function runScoreGame({
   explore = false,
   strategy = "score",
   allowHeater: _allowHeater = true,
-  candidateLimits = STRATEGIC_CANDIDATE_LIMITS
+  candidateLimits = STRATEGIC_CANDIDATE_LIMITS,
+  searchMode = SCORE_AI_DEFAULTS.searchMode,
+  adaptive = ADAPTIVE_SEARCH_DEFAULTS
 } = {}){
   const gameStartedAt = performance.now();
   const searchTelemetry = createSearchTelemetry();
@@ -519,7 +623,7 @@ export async function runScoreGame({
 
     const action = strategy === "random"
       ? legalActions[Math.floor(Math.random() * legalActions.length)]
-      : chooseStrategicAction(state, {depth, beamWidth, explore, heaterUsedThisStep, telemetry: searchTelemetry, candidateLimits});
+      : chooseStrategicAction(state, {depth, beamWidth, explore, heaterUsedThisStep, telemetry: searchTelemetry, candidateLimits, searchMode, adaptive});
     if(!action) break;
 
     // Keep the exact legal set used for selection so tests and records can
@@ -592,6 +696,7 @@ export async function runScoreGame({
 
   return {
     strategy,
+    searchMode,
     initialOpening: opening.map(card => ({...card})),
     initialBoard,
     score: state.score,
@@ -621,6 +726,12 @@ export async function runScoreGame({
     heaterCandidatesKept: searchTelemetry.heaterCandidatesKept,
     superHeaterCandidatesGenerated: searchTelemetry.superHeaterCandidatesGenerated,
     superHeaterCandidatesKept: searchTelemetry.superHeaterCandidatesKept,
+    budgetHits: searchTelemetry.budgetHits,
+    maximumReachedDepth: searchTelemetry.maximumReachedDepth,
+    averageReachedDepth: searchTelemetry.completedSearches ? searchTelemetry.reachedDepthTotal / searchTelemetry.completedSearches : 0,
+    evaluationCacheHits: searchTelemetry.evaluationCacheHits,
+    evaluationCacheMisses: searchTelemetry.evaluationCacheMisses,
+    transpositionHits: searchTelemetry.transpositionHits,
     elapsedMs,
     scoreEfficiency: getScoreEfficiency(state.score, state.steps),
     collectionCount: state.collectionCards.length,
@@ -698,6 +809,25 @@ function getCollectedNormalFoodTypeStats(collections){
   return {count: seen.size, firstSteps};
 }
 
+function percentile(values, ratio){
+  if(values.length === 0) return 0;
+  const sorted = [...values].sort((left, right) => left - right);
+  const position = (sorted.length - 1) * ratio;
+  const lower = Math.floor(position);
+  const fraction = position - lower;
+  return sorted[lower] + ((sorted[lower + 1] ?? sorted[lower]) - sorted[lower]) * fraction;
+}
+
+function thresholdCollectionSummary(results, threshold){
+  const events = results.flatMap(result => (result.actionPath ?? []).flatMap(action =>
+    (action.collectionEvents ?? []).filter(event => event.isNewCollection !== false && event.value >= threshold)
+  ));
+  return {
+    averagePerGame: results.length ? events.length / results.length : 0,
+    averagePreActionBoardAverage: average(events, event => event.preActionBoardAverage ?? 0)
+  };
+}
+
 export function summarizeScoreResults(results){
   const completed100StepCount = results.filter(result => result.completed100Steps).length;
   const deadlockCount = results.filter(result => result.deadlocked).length;
@@ -748,11 +878,41 @@ export function summarizeScoreResults(results){
     const price = event.price ?? event.cost;
     priceDistribution[price >= 60 ? "60+" : String(price)]++;
   }
+  const scores = results.map(result => result.finalScore);
+  const times = results.map(result => result.elapsedMs ?? 0);
+  const meanScore = average(results, result => result.finalScore);
+  const scoreStandardDeviation = results.length
+    ? Math.sqrt(scores.reduce((sum, score) => sum + (score - meanScore) ** 2, 0) / results.length)
+    : 0;
+  const scoreBands = {
+    under2000: scores.filter(score => score < 2000).length,
+    under3000: scores.filter(score => score < 3000).length,
+    under4000: scores.filter(score => score < 4000).length,
+    under5000: scores.filter(score => score < 5000).length,
+    from5000To8000: scores.filter(score => score >= 5000 && score < 8000).length,
+    from8000To10000: scores.filter(score => score >= 8000 && score < 10000).length,
+    atLeast10000: scores.filter(score => score >= 10000).length,
+    atLeast12000: scores.filter(score => score >= 12000).length
+  };
+  const sumSearch = field => results.reduce((sum, result) => sum + (result.searchTelemetry?.[field] ?? 0), 0);
 
   return {
     ...foodTypeTelemetry,
     games: results.length,
-    averageFinalScore: average(results, result => result.finalScore),
+    averageFinalScore: meanScore,
+    medianFinalScore: percentile(scores, .5),
+    scoreStandardDeviation,
+    scoreP10: percentile(scores, .1),
+    scoreP25: percentile(scores, .25),
+    scoreP75: percentile(scores, .75),
+    scoreP90: percentile(scores, .9),
+    scoreBands,
+    largeCollections: {
+      atLeast50: thresholdCollectionSummary(results, 50),
+      atLeast70: thresholdCollectionSummary(results, 70),
+      atLeast90: thresholdCollectionSummary(results, 90),
+      atLeast100: thresholdCollectionSummary(results, 100)
+    },
     averageCollectedNormalFoodTypeCount: average(results, result => result.collectedNormalFoodTypeCount ?? 0),
     collectedNormalFoodTypeReachCounts,
     collectedNormalFoodTypeReachRates: Object.fromEntries(collectedTypeTargets.map(target => [
@@ -811,6 +971,22 @@ export function summarizeScoreResults(results){
     averageSuperHeaterCandidatesGenerated: average(results, result => result.superHeaterCandidatesGenerated ?? 0),
     averageSuperHeaterCandidatesKept: average(results, result => result.superHeaterCandidatesKept ?? 0),
     averageElapsedMs: average(results, result => result.elapsedMs ?? 0),
+    elapsedP50Ms: percentile(times, .5),
+    elapsedP90Ms: percentile(times, .9),
+    slowestElapsedMs: times.length ? Math.max(...times) : 0,
+    totalBudgetHits: sumSearch("budgetHits"),
+    averageMaximumReachedDepth: average(results, result => result.maximumReachedDepth ?? 0),
+    maximumReachedDepth: results.length ? Math.max(...results.map(result => result.maximumReachedDepth ?? 0)) : 0,
+    averageReachedDepth: average(results, result => result.averageReachedDepth ?? 0),
+    totalEvaluationCacheHits: sumSearch("evaluationCacheHits"),
+    totalEvaluationCacheMisses: sumSearch("evaluationCacheMisses"),
+    totalTranspositionHits: sumSearch("transpositionHits"),
+    extensionTelemetry: Object.fromEntries([
+      "heater", "restore", "superHeater", "retype"
+    ].map(name => [name, {
+      branches: sumSearch(`${name}ExtensionCount`),
+      chosen: sumSearch(`${name}ExtensionChosenCount`)
+    }])),
     averageScoreEfficiency: average(results, result => result.scoreEfficiency),
     highestScore: results.length ? Math.max(...results.map(result => result.finalScore)) : 0,
     lowestScore: results.length ? Math.min(...results.map(result => result.finalScore)) : 0,
@@ -842,15 +1018,18 @@ export async function runScoreGames({
   maxActions = SCORE_AI_DEFAULTS.maxActions,
   onProgress = null,
   compareRandom = true,
-  compareHeater = false
+  compareHeater = false,
+  searchMode = SCORE_AI_DEFAULTS.searchMode,
+  openings = null,
+  adaptive = ADAPTIVE_SEARCH_DEFAULTS
 } = {}){
   const scoreResults = [];
   const randomResults = [];
   const heaterResults = [];
 
   for(let gameIndex = 1; gameIndex <= games; gameIndex++){
-    const opening = createStandardInitialValues();
-    const result = await runScoreGame({depth, beamWidth, maxActions, initialOpening: opening});
+    const opening = openings?.[gameIndex - 1] ?? createStandardInitialValues();
+    const result = await runScoreGame({depth, beamWidth, maxActions, initialOpening: opening, searchMode, adaptive});
     result.gameIndex = gameIndex;
     result.openingId = gameIndex;
     scoreResults.push(result);
@@ -897,12 +1076,41 @@ export async function runScoreGames({
     depth,
     beamWidth,
     maxActions,
+    searchMode,
     heaterComparison,
     heaterAverageScoreDifference: heaterComparison
       ? heaterComparison.averageFinalScore - scoreSummary.averageFinalScore
       : 0,
     randomComparison: compareRandom ? summarizeScoreResults(randomResults) : null
   };
+}
+
+function seededRandom(seed){
+  let value = seed >>> 0;
+  return () => {
+    value += 0x6D2B79F5;
+    let mixed = value;
+    mixed = Math.imul(mixed ^ mixed >>> 15, mixed | 1);
+    mixed ^= mixed + Math.imul(mixed ^ mixed >>> 7, mixed | 61);
+    return ((mixed ^ mixed >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+export function createSeededScoreOpenings(seeds){
+  return seeds.map(seed => {
+    const originalRandom = Math.random;
+    Math.random = seededRandom(seed);
+    try { return createStandardInitialValues(); }
+    finally { Math.random = originalRandom; }
+  });
+}
+
+export async function runAdaptiveScoreBenchmark({games = 100, seedStart = 1, maxActions = 100, adaptive = ADAPTIVE_SEARCH_DEFAULTS} = {}){
+  const seeds = Array.from({length: games}, (_, index) => seedStart + index);
+  const openings = createSeededScoreOpenings(seeds);
+  const baseline = await runScoreGames({games, depth: 3, beamWidth: 12, maxActions, compareRandom: false, searchMode: "legacy", openings});
+  const adaptiveResult = await runScoreGames({games, depth: 3, beamWidth: 12, maxActions, compareRandom: false, searchMode: "adaptive", openings, adaptive});
+  return {seeds, openings, baseline, adaptive: adaptiveResult};
 }
 
 export function scoreRouteSignature(result){

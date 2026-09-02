@@ -56,6 +56,7 @@ export function createFoodTypeBoardSnapshot(board, step){
   const dominantFoodTypeRatio = normalPieceCount > 0
     ? dominantFoodTypeCount / normalPieceCount
     : 0;
+  const boardValues = (board ?? []).filter(Boolean).map(piece => piece.value);
 
   return {
     step,
@@ -64,6 +65,7 @@ export function createFoodTypeBoardSnapshot(board, step){
     normalPieceCount,
     drinkCount,
     boardPieceCount,
+    boardAverage: boardValues.length ? boardValues.reduce((sum, value) => sum + value, 0) / boardValues.length : 0,
     distinctNormalFoodTypes: populatedTypes.length,
     dominantFoodType,
     dominantFoodTypeCount,

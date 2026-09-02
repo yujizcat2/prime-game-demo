@@ -1,10 +1,14 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import {
+  ADAPTIVE_SEARCH_DEFAULTS,
   chooseScoreAction,
+  createSeededScoreOpenings,
   createSearchTelemetry,
   evaluateScoreState,
   getStrategicCandidateActions,
+  getAdaptiveBaseDepth,
+  getAdaptiveBeamWidth,
   getCollectionNumberCounts,
   runFixedScoreAttempts,
   runScoreGame,
@@ -61,6 +65,20 @@ assert.deepEqual(
   getCollectionNumberCounts([{value: 1}, {value: 2}, {value: 3}, {value: 4}, {value: 9}]),
   {primeCollectionCount: 2, compositeCollectionCount: 2, otherCollectionCount: 1}
 );
+
+assert.equal(getAdaptiveBaseDepth(4), 5, "small action sets search two levels deeper");
+assert.equal(getAdaptiveBaseDepth(7), 4, "medium action sets search one level deeper");
+assert.equal(getAdaptiveBaseDepth(8), 3, "large action sets keep the default depth");
+assert.deepEqual([0, 1, 2, 3, 4].map(level => getAdaptiveBeamWidth(level)), [20, 10, 6, 3, 2], "adaptive beam narrows by level");
+assert.equal(ADAPTIVE_SEARCH_DEFAULTS.extensionHardCap, 2, "extensions have a hard cap");
+{
+  const seededA = createSeededScoreOpenings([11, 12, 13]);
+  const seededB = createSeededScoreOpenings([11, 12, 13]);
+  assert.deepEqual(seededA, seededB, "benchmark seeds reproduce identical openings");
+  const baselineEvaluation = evaluateScoreState(createGameState(seededA[0]));
+  const adaptiveEvaluation = evaluateScoreState(createGameState(seededA[0]));
+  assert.equal(adaptiveEvaluation, baselineEvaluation, "adaptive search does not change heuristic scoring");
+}
 
 const opening = createEightPalaceInitialValues();
 const result = await runScoreGame({depth: 2, beamWidth: 12, maxActions: 20, initialOpening: opening});
@@ -120,6 +138,23 @@ assert.equal(getScoreEfficiency(0, 1).toFixed(2), "0.00");
 assert.equal(getScoreEfficiency(64, 2).toFixed(2), "32.00");
 assert.equal(getScoreEfficiency(160, 3).toFixed(2), "53.33");
 assert.ok(getScoreEfficiency(160, 4) < getScoreEfficiency(160, 3));
+
+{
+  const budgetTelemetry = createSearchTelemetry();
+  const budgetAction = chooseScoreAction(createGameState(opening), {
+    telemetry: budgetTelemetry,
+    searchMode: "adaptive",
+    adaptive: {...ADAPTIVE_SEARCH_DEFAULTS, evaluationBudget: 2}
+  });
+  assert.ok(budgetAction, "budget exhaustion still returns an action");
+  assert.ok(getLegalActions(createGameState(opening)).some(action =>
+    scoreAITestUtils.getActionKey(action) === scoreAITestUtils.getActionKey(budgetAction)
+  ), "budget fallback action is legal");
+  assert.equal(budgetTelemetry.budgetHits, 1, "evaluation budget stops expansion");
+  assert.ok(budgetTelemetry.evaluatedNodes <= 2, "evaluation node budget is enforced");
+  assert.ok(budgetTelemetry.maximumReachedDepth <= ADAPTIVE_SEARCH_DEFAULTS.maximumDepth, "adaptive search never exceeds maximum depth");
+  assert.ok(budgetTelemetry.beamWidthsUsed.every((width, index, widths) => index === 0 || width <= widths[index - 1]), "used beam widths never grow");
+}
 
 {
   const comparison = await runScoreGames({games: 1, depth: 1, beamWidth: 2, maxActions: 1});
