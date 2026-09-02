@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { createEightPalaceInitialValues } from "../game/initialValues";
 import { createGameState } from "../game/gameState";
-import { applyAction, resolveGameOver } from "../game/gameEngine";
+import { applyAction, recordGameRecapSnapshot, resolveGameOver } from "../game/gameEngine";
 import { applyEightPalaceCollection } from "../game/collectionRules";
 import { getCollectionSourceText } from "../components/collectionDisplay";
 import { BASE_FOOD_TYPES } from "../game/rules";
@@ -27,6 +27,17 @@ for(let attempt = 0; attempt < 200; attempt++){
 const openingState = createGameState(createEightPalaceInitialValues());
 assert.equal(openingState.stepLimit, 100);
 assert.deepEqual(openingState.checkpoint, createFirstCheckpoint());
+assert.deepEqual(openingState.gameRecapSnapshots, []);
+assert.deepEqual(openingState.recapActionCounts, {combine: 0, reduce: 0});
+const recapAt10 = recordGameRecapSnapshot({...openingState, steps: 10, score: 500});
+assert.equal(recapAt10.gameRecapSnapshots.length, 1);
+assert.deepEqual(
+  Object.keys(recapAt10.gameRecapSnapshots[0]),
+  ["step", "score", "collectionCount", "legalCombineCount", "legalReduceCount"]
+);
+const recapAt17 = recordGameRecapSnapshot({...recapAt10, steps: 17, score: 800}, true);
+assert.deepEqual(recapAt17.gameRecapSnapshots.map(snapshot => snapshot.step), [10, 17]);
+assert.deepEqual(createGameState(createEightPalaceInitialValues()).gameRecapSnapshots, [], "a new game clears recap snapshots");
 assert.equal(FIRST_SCORE_REFERENCE, 506);
 assert.equal(getNextCheckpointDistance(1), 16);
 assert.ok(getNextCheckpointDistance(700 / FIRST_SCORE_REFERENCE) < 16);
@@ -211,6 +222,8 @@ assert.match(settlementSource, /第 \$\{checkpointResult\?\.index/);
 assert.match(settlementSource, /检查站失败/);
 assert.match(settlementSource, /还差/);
 assert.doesNotMatch(settlementSource, /通行值/);
+assert.match(settlementSource, /本局复盘/);
+assert.match(settlementSource, /recapValue = value => value == null \? "—"/);
 assert.doesNotMatch(settlementSource, /挑战失败|Game Over/);
 
 console.log("dynamic checkpoint tests passed");

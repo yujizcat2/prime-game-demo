@@ -364,14 +364,43 @@ export function applyAction(
   // 统一进入迷宫历史系统。
   // ==========================================================
 
-  return resolveGameOver(
-
-    resolveMazeHistoryAfterAction(
-      markSingleFlavorBoardPieces(actionState)
-    )
-
+  const recapActionCounts = state.recapActionCounts ?? {combine: 0, reduce: 0};
+  const countedState = {
+    ...actionState,
+    recapActionCounts: {
+      combine: recapActionCounts.combine + (action.type === "combine" || action.type === "combine_ordered" ? 1 : 0),
+      reduce: recapActionCounts.reduce + (action.type === "reduce" ? 1 : 0)
+    },
+    recapItemSpending: (state.recapItemSpending ?? 0)
+      + (["heater", "restore", "super_heater"].includes(action.type)
+        ? Math.max(0, (state.money ?? 0) - (actionState.money ?? 0))
+        : 0)
+  };
+  const settledState = recordGameRecapSnapshot(
+    resolveMazeHistoryAfterAction(markSingleFlavorBoardPieces(countedState))
   );
+  const resolvedState = resolveGameOver(settledState);
+  if(!resolvedState.gameOver) return resolvedState;
+  const finalSnapshotState = recordGameRecapSnapshot(settledState, true);
+  return {...resolvedState, gameRecapSnapshots: finalSnapshotState.gameRecapSnapshots};
 
+}
+
+export function recordGameRecapSnapshot(state, force = false){
+  if(!state || (!force && (state.steps === 0 || state.steps % 10 !== 0))) return state;
+  const snapshots = state.gameRecapSnapshots ?? [];
+  if(snapshots.at(-1)?.step === state.steps) return state;
+  return {
+    ...state,
+    gameOver: force ? true : state.gameOver,
+    gameRecapSnapshots: [...snapshots, {
+      step: state.steps,
+      score: state.score ?? 0,
+      collectionCount: state.collectionCards?.length ?? state.collection?.length ?? 0,
+      legalCombineCount: getLegalCombineActions(state).length,
+      legalReduceCount: getLegalReduceActions(state).length
+    }]
+  };
 }
 
 

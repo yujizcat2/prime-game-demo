@@ -1073,6 +1073,14 @@ function App(){
             game.gameOverReason
           }
           checkpointResult={game.latestCheckpointResult}
+          money={game.money}
+          passedCheckpointCount={game.passedCheckpointCount}
+          heaterUseCount={game.heaterUseCount}
+          restoreUseCount={game.restoreUseCount}
+          superHeaterUseCount={game.superHeaterUseCount}
+          recapSnapshots={game.gameRecapSnapshots}
+          recapActionCounts={game.recapActionCounts}
+          recapItemSpending={game.recapItemSpending}
           gameMode={
             game.gameMode
           }

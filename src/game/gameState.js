@@ -358,6 +358,10 @@ export function createGameState(
     checkpointHistory: [],
     latestCheckpointResult: null,
 
+    gameRecapSnapshots: [],
+    recapActionCounts: {combine: 0, reduce: 0},
+    recapItemSpending: 0,
+
 
 
 

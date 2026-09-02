@@ -295,6 +295,9 @@ export default function useGame(){
   const passedCheckpointCount = gameState?.passedCheckpointCount ?? 0;
   const checkpointHistory = gameState?.checkpointHistory ?? [];
   const latestCheckpointResult = gameState?.latestCheckpointResult ?? null;
+  const gameRecapSnapshots = gameState?.gameRecapSnapshots ?? [];
+  const recapActionCounts = gameState?.recapActionCounts ?? null;
+  const recapItemSpending = gameState?.recapItemSpending ?? null;
 
 
   const gameOver =
@@ -1432,6 +1435,9 @@ export default function useGame(){
     passedCheckpointCount,
     checkpointHistory,
     latestCheckpointResult,
+    gameRecapSnapshots,
+    recapActionCounts,
+    recapItemSpending,
     combineHistoryKeys,
 
     combineHistory,
