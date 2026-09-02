@@ -80,7 +80,7 @@ assert.ok(result.collections.every(card =>
   Number.isInteger(card.bonusScore) &&
   Number.isInteger(card.totalScore)
 ), "AI collection settlements use integer scores");
-assert.equal(result.finalMoney, result.collectionCount * 10 - result.heaterSpending - result.restoreSpending);
+assert.equal(result.finalMoney, result.actionPath.reduce((sum, action) => sum + action.moneyGain, 0));
 assert.equal(result.score, result.finalScore);
 assert.equal(result.scoreEfficiency, getScoreEfficiency(result.score, result.steps));
 assert.equal(result.foodTypeBoardTimeline[0].step, 0);

@@ -50,7 +50,7 @@ import { getCreatedScoreValue } from "./scoreValue";
 import { getCurrentHeaterPrice, isHeaterTarget } from "./heaterPricing";
 import { getCurrentSuperHeaterPrice } from "./superHeaterPricing";
 import { getLegalRestoreActions } from "./restore";
-import { getNativeFoodType } from "./nativeFoodTypes";
+import { getReductionFoodTypes } from "./nativeFoodTypes";
 import { getBoardAbundance } from "./boardAbundance";
 
 import {
@@ -263,14 +263,9 @@ export function createReduceOutcome(state,indexA,indexB){
     divisor,
     results:[first,second].map(piece=>({value:1,foodType:piece.foodType,purity:piece.purity??null,clear:true,autoCollect:false}))
   };
-  let firstFoodType=first.foodType,secondFoodType=second.foodType;
   const template=first.foodType===FOOD_TYPES.DRINK?second:second.foodType===FOOD_TYPES.DRINK?first:null;
-  if(template)firstFoodType=secondFoodType=template.foodType;
   const firstResult=first.value/divisor,secondResult=second.value/divisor;
-  if(template){
-    if(first.foodType!==FOOD_TYPES.DRINK&&firstResult!==1)firstFoodType=getNativeFoodType(indexA)??firstFoodType;
-    if(second.foodType!==FOOD_TYPES.DRINK&&secondResult!==1)secondFoodType=getNativeFoodType(indexB)??secondFoodType;
-  }
+  let [firstFoodType,secondFoodType]=getReductionFoodTypes(first,second,firstResult,secondResult,indexA,indexB);
   if(first.foodType===FOOD_TYPES.DESSERT&&firstResult===1)secondFoodType=getDessertMutationFoodType(second.foodType)??secondFoodType;
   if(second.foodType===FOOD_TYPES.DESSERT&&secondResult===1)firstFoodType=getDessertMutationFoodType(first.foodType)??firstFoodType;
   return {kind:"reduce",divisor,results:[

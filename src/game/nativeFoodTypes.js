@@ -30,3 +30,18 @@ export function getNativeBoardIndex(foodType){
   const index = BOARD_NATIVE_FOOD_TYPES.indexOf(foodType);
   return index === -1 ? null : index;
 }
+
+export function getReductionFoodTypes(first,second,firstResult,secondResult,indexA,indexB){
+  const drinkIsFirst=first.foodType===FOOD_TYPES.DRINK;
+  const drinkIsSecond=second.foodType===FOOD_TYPES.DRINK;
+  if(drinkIsFirst===drinkIsSecond)return [first.foodType,second.foodType];
+  const normal=drinkIsFirst?second:first;
+  const normalResult=drinkIsFirst?secondResult:firstResult;
+  const drinkIndex=drinkIsFirst?indexA:indexB;
+  const drinkFoodType=normalResult===1
+    ? getNativeFoodType(drinkIndex)??normal.foodType
+    : normal.foodType;
+  return drinkIsFirst
+    ? [drinkFoodType,normal.foodType]
+    : [normal.foodType,drinkFoodType];
+}

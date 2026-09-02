@@ -31,7 +31,7 @@ import {
   addCombinePair,
   hasCombinePair
 } from "../game/combineHistory";
-import { getNativeFoodType } from "../game/nativeFoodTypes";
+import { getNativeFoodType, getReductionFoodTypes } from "../game/nativeFoodTypes";
 import { getRestoreOutcome } from "../game/restore";
 import { getCurrentRestorePrice } from "../game/restorePricing";
 import { applyHeaterIncrement, isHeaterTarget } from "../game/heater";
@@ -1290,21 +1290,8 @@ function applyReduce(
   // 默认类型保持
   // ==========================================================
 
-  let firstFoodType =
-
-    first.foodType;
-
-
-  let secondFoodType =
-
-    second.foodType;
-
   const reductionTemplate=first.foodType===FOOD_TYPES.DRINK?second:second.foodType===FOOD_TYPES.DRINK?first:null;
-  if(reductionTemplate)firstFoodType=secondFoodType=reductionTemplate.foodType;
-  if(reductionTemplate){
-    if(first.foodType!==FOOD_TYPES.DRINK&&firstResult!==1)firstFoodType=getNativeFoodType(indexA)??firstFoodType;
-    if(second.foodType!==FOOD_TYPES.DRINK&&secondResult!==1)secondFoodType=getNativeFoodType(indexB)??secondFoodType;
-  }
+  let [firstFoodType,secondFoodType]=getReductionFoodTypes(first,second,firstResult,secondResult,indexA,indexB);
   const reductionPurity=reductionTemplate?.purity??null;
 
 
