@@ -1,14 +1,9 @@
 // Dynamic checkpoints V2. All runtime requirements are generated from the
 // player's actual performance at the checkpoint they just reached.
 export const FIRST_CHECKPOINT_STEP = 10;
-export const FIRST_PASS_REFERENCE = 160;
+export const FIRST_SCORE_REFERENCE = Math.round(160 * Math.sqrt(FIRST_CHECKPOINT_STEP));
 export const CHECKPOINT_DISTANCE_MIN = 10;
 export const CHECKPOINT_DISTANCE_MAX = 24;
-
-export function getPassValue(score, step){
-  if(step <= 0) return 0;
-  return Math.round((score ?? 0) / Math.sqrt(step));
-}
 
 function clamp(value, minimum, maximum){
   return Math.min(maximum, Math.max(minimum, value));
@@ -26,17 +21,19 @@ export function getNextCheckpointDistance(performanceRatio){
 }
 
 export function getPassGrowthRate(nextCheckpointStep){
-  if(nextCheckpointStep < 40) return 0.08;
+  if(nextCheckpointStep < 40) return 0.12;
   if(nextCheckpointStep < 70) return 0.12;
-  if(nextCheckpointStep < 100) return 0.18;
+  if(nextCheckpointStep < 100) return 0.14;
   if(nextCheckpointStep < 150) return 0.25;
   return 0.30;
 }
 
-export function getNextRequiredPassValue(currentPassValue, distance, nextCheckpointStep){
+export function getNextRequiredScore(currentScore, currentStep, distance, nextCheckpointStep){
   const growthRate = getPassGrowthRate(nextCheckpointStep);
   return Math.round(
-    currentPassValue * (1 + growthRate * distance / 16)
+    currentScore
+      * (1 + growthRate * distance / 16)
+      * Math.sqrt(nextCheckpointStep / currentStep)
   );
 }
 
@@ -50,21 +47,21 @@ export function createFirstCheckpoint(){
 }
 
 export function createNextCheckpoint(state){
-  const currentPassValue = getPassValue(state.score, state.steps);
+  const currentScore = state.score ?? 0;
   const currentCheckpoint = state.checkpoint;
-  const referencePassValue = currentCheckpoint?.type === "collection"
-    ? FIRST_PASS_REFERENCE
-    : currentCheckpoint?.requiredPassValue;
-  const performanceRatio = currentPassValue / referencePassValue;
+  const referenceScore = currentCheckpoint?.type === "collection"
+    ? FIRST_SCORE_REFERENCE
+    : currentCheckpoint?.requiredScore;
+  const performanceRatio = currentScore / referenceScore;
   const distance = getNextCheckpointDistance(performanceRatio);
   const step = state.steps + distance;
   const growthRate = getPassGrowthRate(step);
   return {
     index: (state.checkpoint?.index ?? 0) + 1,
     step,
-    type: "passValue",
-    requiredPassValue: getNextRequiredPassValue(currentPassValue, distance, step),
-    generatedFromPassValue: currentPassValue,
+    type: "score",
+    requiredScore: getNextRequiredScore(currentScore, state.steps, distance, step),
+    generatedFromScore: currentScore,
     generatedDistance: distance,
     performanceRatio,
     growthRate
@@ -75,21 +72,25 @@ export function resolveCheckpoint(state){
   const checkpoint = state?.checkpoint;
   if(!checkpoint || state.steps < checkpoint.step) return state;
 
-  const currentPassValue = getPassValue(state.score, state.steps);
+  const currentScore = state.score ?? 0;
   const collectionCount = state.collectionCards?.length ?? state.collection?.length ?? 0;
   const passed = checkpoint.type === "collection"
     ? collectionCount >= checkpoint.requiredCollectionCount
-    : currentPassValue >= checkpoint.requiredPassValue;
+    : currentScore >= checkpoint.requiredScore;
   const result = {
     index: checkpoint.index,
     step: checkpoint.step,
     type: checkpoint.type,
     requiredCollectionCount: checkpoint.requiredCollectionCount ?? null,
-    requiredPassValue: checkpoint.requiredPassValue ?? null,
+    requiredScore: checkpoint.requiredScore ?? null,
+    generatedFromScore: checkpoint.generatedFromScore ?? null,
+    generatedProgressRatio: checkpoint.requiredScore
+      ? checkpoint.generatedFromScore / checkpoint.requiredScore
+      : null,
     growthRate: checkpoint.growthRate ?? null,
-    currentPassValue,
-    excessRatio: checkpoint.requiredPassValue
-      ? currentPassValue / checkpoint.requiredPassValue
+    currentScore,
+    excessRatio: checkpoint.requiredScore
+      ? currentScore / checkpoint.requiredScore
       : null,
     passed
   };

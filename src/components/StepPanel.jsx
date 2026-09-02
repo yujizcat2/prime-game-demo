@@ -1,7 +1,6 @@
 import "./StepPanel.css";
 import { useState } from "react";
 import { getScoreEfficiency } from "../game/scoreEfficiency";
-import { getPassValue } from "../game/checkpoints";
 
 const numberFormatter = new Intl.NumberFormat("zh-CN");
 
@@ -12,6 +11,7 @@ export default function StepPanel({
   stepLimit = 100,
   gameMode = null,
   checkpoint = null,
+  collectionCount = 0,
   collectionEfficiencyTimeline = []
 }) {
   const isEightPalace = gameMode === "eightPalace" || gameMode === "simpleEightPalace";
@@ -19,13 +19,19 @@ export default function StepPanel({
   const displayStepLimit = isEightPalace ? stepLimit : 12;
   const timeLabel = isEightPalace ? "步数" : "时间";
   const scoreEfficiency = getScoreEfficiency(score, steps);
-  const checkpointStart = checkpoint ? Math.max(0, checkpoint.step - 24) : 0;
-  const stepProgress = isEightPalace && checkpoint
-    ? Math.min(100, Math.max(0, ((steps - checkpointStart) / (checkpoint.step - checkpointStart)) * 100))
-    : displayStepLimit > 0
+  const stepProgress = displayStepLimit > 0
     ? Math.min(100, Math.max(0, (displayStep / displayStepLimit) * 100))
     : 0;
-  const passValue = getPassValue(score, steps);
+  const isCollectionCheckpoint = checkpoint?.type === "collection";
+  const checkpointTarget = isCollectionCheckpoint
+    ? checkpoint?.requiredCollectionCount ?? 1
+    : checkpoint?.requiredScore ?? 0;
+  const checkpointCurrent = isCollectionCheckpoint ? collectionCount : score;
+  const checkpointProgress = checkpointTarget > 0
+    ? Math.min(1, Math.max(0, checkpointCurrent / checkpointTarget))
+    : 0;
+  const checkpointDifference = checkpointCurrent - checkpointTarget;
+  const remainingSteps = Math.max(0, (checkpoint?.step ?? steps) - steps);
   const [showEfficiency, setShowEfficiency] = useState(false);
 
   return (
@@ -94,26 +100,45 @@ export default function StepPanel({
         </div>
       </div>
 
-      {isEightPalace && checkpoint && <div className="checkpoint-status">
-        <strong>下一检查站</strong>
-        <span>Step {checkpoint.step}</span>
-        <span>{checkpoint.type === "collection"
-          ? `收藏 ≥ ${checkpoint.requiredCollectionCount}`
-          : `通行值 ≥ ${checkpoint.requiredPassValue}`}</span>
-        <span>当前 {passValue}</span>
-        <span>剩余 {Math.max(0, checkpoint.step - steps)} 步</span>
-      </div>}
+      {isEightPalace && checkpoint && <section className={`checkpoint-card${checkpointDifference >= 0 ? " checkpoint-card--ready" : ""}`}>
+        <div className="checkpoint-card-heading">
+          <strong>下一检查站</strong>
+          <span className="checkpoint-card-step"><small>STEP</small>{checkpoint.step}</span>
+        </div>
+        <div className="checkpoint-card-score-row">
+          <div>
+            <span className="checkpoint-card-caption">目标</span>
+            <strong className="checkpoint-card-target">
+              {isCollectionCheckpoint
+                ? `收藏 ${checkpointTarget}`
+                : `${numberFormatter.format(checkpointTarget)} 分`}
+            </strong>
+          </div>
+          <div className="checkpoint-card-current">
+            <span>当前 {numberFormatter.format(checkpointCurrent)}{isCollectionCheckpoint ? " 个收藏" : " 分"}{checkpointDifference >= 0 ? " ✓" : ""}</span>
+            <strong>{checkpointDifference >= 0
+              ? checkpointDifference === 0 ? "已达标" : `领先 ${numberFormatter.format(checkpointDifference)}${isCollectionCheckpoint ? " 个" : " 分"}`
+              : `还差 ${numberFormatter.format(-checkpointDifference)}${isCollectionCheckpoint ? " 个" : " 分"}`}</strong>
+          </div>
+        </div>
+        <div className="checkpoint-score-progress" role="progressbar" aria-label="检查站目标进度" aria-valuemin="0" aria-valuemax={checkpointTarget} aria-valuenow={Math.min(checkpointCurrent, checkpointTarget)}>
+          <span style={{width: `${checkpointProgress * 100}%`}} />
+        </div>
+        <div className="checkpoint-card-footer">
+          {remainingSteps === 0 ? "正在检查" : `距检查站还有 ${remainingSteps} Step`}
+        </div>
+      </section>}
 
-      <div
+      {!isEightPalace && <div
         className="step-panel-progress"
         role="progressbar"
         aria-label="本局 Step 进度"
         aria-valuemin="0"
-        aria-valuemax={isEightPalace && checkpoint ? checkpoint.step : displayStepLimit}
+        aria-valuemax={displayStepLimit}
         aria-valuenow={displayStep}
       >
         <span style={{ width: `${stepProgress}%` }} />
-      </div>
+      </div>}
     </div>
   );
 }

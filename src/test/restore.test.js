@@ -42,7 +42,7 @@ assert.equal(canRestorePiece({...outer, money: 40}, 0), true);
 assert.equal(canRestorePiece({...outer, board: outer.board.map(() => null)}, 0), false);
 assert.equal(canRestorePiece({...outer, board: initial.board}, 0), false);
 
-const step99 = {...outer, steps: 99, stepLimit: 100, checkpoint: {index: 8, step: 110, type: "passValue", requiredPassValue: 1}};
+const step99 = {...outer, steps: 99, stepLimit: 100, checkpoint: {index: 8, step: 110, type: "score", requiredScore: 1}};
 const step100 = applyAction(step99, {type: "restore", indexes: [0]});
 assert.equal(step100.steps, 100);
 assert.notEqual(step100.gameOverReason, "step_limit");

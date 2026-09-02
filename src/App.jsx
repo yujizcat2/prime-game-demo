@@ -35,6 +35,8 @@ import { FOOD_TYPE_LABELS } from "./data/specialOneRegistry";
 import { getActionStatus } from "./game/actionStatus";
 import { getNonDrinkBoardSum } from "./game/scoreValue";
 
+const numberFormatter = new Intl.NumberFormat("zh-CN");
+
 
 function App(){
 
@@ -230,15 +232,19 @@ function App(){
 
   useEffect(() => {
     const result = game.latestCheckpointResult;
-    if(!result || !result.passed || result.index <= notifiedCheckpointIndexRef.current) return;
+    if(!result || result.index <= notifiedCheckpointIndexRef.current) return;
     notifiedCheckpointIndexRef.current = result.index;
-    showActionToast(
-      "检查站通过",
-      result.type === "collection"
-        ? `收藏 ${game.collectionCards.length} / ${result.requiredCollectionCount}`
-        : `通行值 ${result.currentPassValue} / ${result.requiredPassValue}`
-    );
-  }, [game.latestCheckpointResult, game.collectionCards.length]);
+    if(result.passed){
+      showActionToast("检查站通过", `下一站 Step ${game.checkpoint.step}`);
+    }else{
+      showActionToast(
+        "检查站未通过",
+        result.type === "collection"
+          ? "Step 10 前需要至少获得 1 个收藏"
+          : `目标 ${numberFormatter.format(result.requiredScore)} 分 · 最终 ${numberFormatter.format(result.currentScore)} 分`
+      );
+    }
+  }, [game.latestCheckpointResult, game.checkpoint]);
 
 
   // ==========================================================
@@ -817,6 +823,7 @@ function App(){
             stepLimit={game.stepLimit}
             gameMode={game.gameMode}
             checkpoint={game.checkpoint}
+            collectionCount={game.collectionCards.length}
             collectionEfficiencyTimeline={game.collectionEfficiencyTimeline}
           />
 

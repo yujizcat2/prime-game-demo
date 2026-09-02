@@ -209,9 +209,10 @@ for(const summary of [tenGames, tenGames.randomComparison]){
   );
   assert.ok(Object.values(summary.averageCollectionFoodTypeCounts).every(Number.isFinite));
   assert.ok(summary.checkpointSurvival.every(checkpoint =>
-    Number.isFinite(checkpoint.averageActualPassValue)
+    Number.isFinite(checkpoint.averageActualScore)
     && Number.isFinite(checkpoint.averageGrowthRate)
     && Number.isFinite(checkpoint.averageExcessRatio)
+    && Number.isFinite(checkpoint.averageGeneratedProgressRatio)
   ));
   assert.equal(
     summary.averageCollectedNormalFoodTypeCount,
@@ -264,7 +265,7 @@ for(const entry of result.actionPath){
 assert.equal(replay.score, result.finalScore, "AI simulation score matches formal collection score");
 assert.equal(replay.money, result.finalMoney, "AI simulation money matches formal game money");
 
-const atStep99 = {...createGameState(opening), steps: 99, checkpoint: {index: 8, step: 110, type: "passValue", requiredPassValue: 1}};
+const atStep99 = {...createGameState(opening), steps: 99, checkpoint: {index: 8, step: 110, type: "score", requiredScore: 1}};
 const finalAction = chooseScoreAction(atStep99, {depth: 1, beamWidth: 8});
 assert.ok(finalAction, "Score AI can select the final legal action at Step 99");
 const atStep100 = applyAction(atStep99, finalAction);

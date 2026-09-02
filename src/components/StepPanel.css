@@ -100,18 +100,69 @@
   background: rgba(82, 111, 96, .11);
 }
 
-.checkpoint-status {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  margin-top: 12px;
-  color: #607168;
-  font-size: 11px;
+.checkpoint-card {
+  min-height: 116px;
+  margin-top: 14px;
+  padding: 13px 16px 11px;
+  border: 1px solid rgba(82, 111, 96, .16);
+  border-radius: 15px;
+  background: rgba(255, 255, 255, .58);
+  color: #52675c;
   font-variant-numeric: tabular-nums;
 }
 
-.checkpoint-status strong { color: #365f53; }
+.checkpoint-card-heading,
+.checkpoint-card-score-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.checkpoint-card-heading > strong { font-size: 14px; color: #365f53; }
+
+.checkpoint-card-step {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  color: #365f53;
+  font-size: 24px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.checkpoint-card-step small {
+  color: #7d8f85;
+  font-size: 9px;
+  letter-spacing: .14em;
+}
+
+.checkpoint-card-score-row { margin-top: 7px; }
+.checkpoint-card-caption { display: block; color: #89958e; font-size: 11px; font-weight: 700; }
+.checkpoint-card-target { display: block; margin-top: 2px; color: #29362f; font-size: 25px; font-weight: 900; line-height: 1.1; }
+.checkpoint-card-current { min-width: 128px; text-align: right; font-size: 12px; }
+.checkpoint-card-current span,
+.checkpoint-card-current strong { display: block; }
+.checkpoint-card-current strong { margin-top: 4px; color: #8b7040; font-size: 13px; }
+.checkpoint-card--ready .checkpoint-card-current strong { color: #35705a; }
+
+.checkpoint-score-progress {
+  height: 7px;
+  margin-top: 11px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(82, 111, 96, .12);
+}
+
+.checkpoint-score-progress > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #789b88, #9cac7f);
+  transition: width 280ms ease-out;
+}
+
+.checkpoint-card-footer { margin-top: 7px; color: #667a6f; font-size: 12px; font-weight: 700; text-align: center; }
 
 .step-panel-progress > span {
   display: block;
@@ -172,7 +223,13 @@
   .step-panel-divider { height: 27px; margin: 0 clamp(5px, 2vw, 10px); }
   .step-panel-progress { height: 3px; margin-top: 11px; }
   .collection-efficiency-popover { max-height: 180px; }
-  .checkpoint-status { flex-wrap: wrap; gap: 5px 10px; font-size: 9px; }
+  .checkpoint-card { min-height: 112px; padding: 12px 13px 10px; }
+  .checkpoint-card-heading > strong { font-size: 13px; }
+  .checkpoint-card-step { font-size: 22px; }
+  .checkpoint-card-target { font-size: 22px; }
+  .checkpoint-card-current { min-width: 116px; font-size: 11px; }
+  .checkpoint-card-current strong,
+  .checkpoint-card-footer { font-size: 12px; }
 }
 
 @media (max-width: 360px) {
@@ -181,4 +238,7 @@
   .step-panel-stat--primary .step-panel-value { font-size: 17px; }
   .step-panel-label { font-size: 7px; }
   .step-panel-divider { margin: 0 4px; }
+  .checkpoint-card-score-row { gap: 8px; }
+  .checkpoint-card-target { font-size: 19px; }
+  .checkpoint-card-current { min-width: 105px; }
 }

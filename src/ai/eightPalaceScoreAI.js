@@ -19,7 +19,6 @@ import {
   createFoodTypeBoardSnapshot,
   summarizeFoodTypeTelemetry
 } from "./foodTypeTelemetry";
-import { getPassValue } from "../game/checkpoints";
 
 export const SCORE_AI_DEFAULTS = Object.freeze({
   depth: 3,
@@ -734,7 +733,6 @@ export async function runScoreGame({
     transpositionHits: searchTelemetry.transpositionHits,
     elapsedMs,
     scoreEfficiency: getScoreEfficiency(state.score, state.steps),
-    finalPassValue: getPassValue(state.score, state.steps),
     collectionCount: state.collectionCards.length,
     collectionEfficiencyTimeline: structuredClone(state.collectionEfficiencyTimeline ?? []),
     collections: state.collectionCards.map(card => structuredClone(card)),
@@ -850,11 +848,11 @@ export function summarizeScoreResults(results){
       gameCount: results.length,
       passRate: results.length ? passedCount / results.length : 0,
       averageStep: average(reached, checkpoint => checkpoint.step),
-      averageRequiredPassValue: average(
-        reached.filter(checkpoint => checkpoint.requiredPassValue != null),
-        checkpoint => checkpoint.requiredPassValue
+      averageRequiredScore: average(
+        reached.filter(checkpoint => checkpoint.requiredScore != null),
+        checkpoint => checkpoint.requiredScore
       ),
-      averageActualPassValue: average(reached, checkpoint => checkpoint.currentPassValue),
+      averageActualScore: average(reached, checkpoint => checkpoint.currentScore),
       averageGrowthRate: average(
         reached.filter(checkpoint => checkpoint.growthRate != null),
         checkpoint => checkpoint.growthRate
@@ -862,6 +860,10 @@ export function summarizeScoreResults(results){
       averageExcessRatio: average(
         reached.filter(checkpoint => checkpoint.excessRatio != null),
         checkpoint => checkpoint.excessRatio
+      ),
+      averageGeneratedProgressRatio: average(
+        reached.filter(checkpoint => checkpoint.generatedProgressRatio != null),
+        checkpoint => checkpoint.generatedProgressRatio
       )
     };
   });
@@ -1036,8 +1038,6 @@ export function summarizeScoreResults(results){
     averagePassedCheckpointCount: average(results, result => result.passedCheckpointCount ?? 0),
     highestPassedCheckpointCount: results.length ? Math.max(...results.map(result => result.passedCheckpointCount ?? 0)) : 0,
     lowestPassedCheckpointCount: results.length ? Math.min(...results.map(result => result.passedCheckpointCount ?? 0)) : 0,
-    averageFinalPassValue: average(results, result => result.finalPassValue ?? 0),
-    highestFinalPassValue: results.length ? Math.max(...results.map(result => result.finalPassValue ?? 0)) : 0,
     checkpointSurvival,
     reachedTestProtectionLimitCount: results.filter(result => result.reachedTestProtectionLimit).length,
     completed100StepCount,

@@ -1461,8 +1461,6 @@ function ScoreSummaryGrid({result}){
       <ResultItem label="合数占比" value={`${(result.compositeCollectionShare * 100).toFixed(1)}%`} />
       <ResultItem label="最大收藏数量" value={result.maxCollectionCount} />
       <ResultItem label="平均实际 Step" value={result.averageSteps.toFixed(2)} />
-      <ResultItem label="平均最终通行值" value={(result.averageFinalPassValue ?? 0).toFixed(2)} highlight />
-      <ResultItem label="最高最终通行值" value={result.highestFinalPassValue ?? 0} />
       <ResultItem label="平均通过检查站" value={(result.averagePassedCheckpointCount ?? 0).toFixed(2)} />
       <ResultItem label="通过检查站范围" value={`${result.lowestPassedCheckpointCount ?? 0}–${result.highestPassedCheckpointCount ?? 0}`} />
       <ResultItem label="达到测试保护上限" value={`${result.reachedTestProtectionLimitCount ?? 0} / ${result.games ?? result.attempts}`} />
@@ -1479,8 +1477,8 @@ function ScoreSummaryGrid({result}){
     <div className="test-lab-timeline">
       {(result.checkpointSurvival ?? []).map(checkpoint => <div key={checkpoint.index}>
         站 {checkpoint.index}：平均 Step {checkpoint.averageStep.toFixed(1)} · 通过 {checkpoint.passedCount}/{checkpoint.gameCount} ({(checkpoint.passRate * 100).toFixed(1)}%)
-        {` · 平均实际通行值 ${checkpoint.averageActualPassValue.toFixed(1)}`}
-        {checkpoint.index > 1 && ` · 增长率 ${(checkpoint.averageGrowthRate * 100).toFixed(1)}% · 平均要求 ${checkpoint.averageRequiredPassValue.toFixed(1)} · 平均超额 ${checkpoint.averageExcessRatio.toFixed(2)}×`}
+        {` · 平均实际积分 ${checkpoint.averageActualScore.toFixed(1)}`}
+        {checkpoint.index > 1 && ` · 增长率 ${(checkpoint.averageGrowthRate * 100).toFixed(1)}% · 平均要求积分 ${checkpoint.averageRequiredScore.toFixed(1)} · 平均超额 ${checkpoint.averageExcessRatio.toFixed(2)}× · 生成时完成度 ${(checkpoint.averageGeneratedProgressRatio * 100).toFixed(1)}%`}
       </div>)}
     </div>
     </>

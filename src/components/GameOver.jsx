@@ -141,7 +141,7 @@ export default function GameOver({
         {reason === "checkpoint_failed" && checkpointResult && <p className="mt-3 text-sm font-bold text-gray-600">
           {checkpointResult.type === "collection"
             ? "Step 10 前需要至少获得 1 个收藏"
-            : `通行值 ${checkpointResult.currentPassValue} / ${checkpointResult.requiredPassValue}`}
+            : `最终积分 ${checkpointResult.currentScore} / 目标积分 ${checkpointResult.requiredScore} · Step ${checkpointResult.step}`}
         </p>}
 
 
