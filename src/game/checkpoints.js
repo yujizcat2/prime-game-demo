@@ -2,7 +2,6 @@
 // player's actual performance at the checkpoint they just reached.
 export const FIRST_CHECKPOINT_STEP = 10;
 export const FIRST_PASS_REFERENCE = 160;
-export const PASS_GROWTH_PER_16_STEPS = 0.30;
 export const CHECKPOINT_DISTANCE_MIN = 10;
 export const CHECKPOINT_DISTANCE_MAX = 24;
 
@@ -26,9 +25,18 @@ export function getNextCheckpointDistance(performanceRatio){
   );
 }
 
-export function getNextRequiredPassValue(currentPassValue, distance){
+export function getPassGrowthRate(nextCheckpointStep){
+  if(nextCheckpointStep < 40) return 0.08;
+  if(nextCheckpointStep < 70) return 0.12;
+  if(nextCheckpointStep < 100) return 0.18;
+  if(nextCheckpointStep < 150) return 0.25;
+  return 0.30;
+}
+
+export function getNextRequiredPassValue(currentPassValue, distance, nextCheckpointStep){
+  const growthRate = getPassGrowthRate(nextCheckpointStep);
   return Math.round(
-    currentPassValue * (1 + PASS_GROWTH_PER_16_STEPS * distance / 16)
+    currentPassValue * (1 + growthRate * distance / 16)
   );
 }
 
@@ -50,14 +58,16 @@ export function createNextCheckpoint(state){
   const performanceRatio = currentPassValue / referencePassValue;
   const distance = getNextCheckpointDistance(performanceRatio);
   const step = state.steps + distance;
+  const growthRate = getPassGrowthRate(step);
   return {
     index: (state.checkpoint?.index ?? 0) + 1,
     step,
     type: "passValue",
-    requiredPassValue: getNextRequiredPassValue(currentPassValue, distance),
+    requiredPassValue: getNextRequiredPassValue(currentPassValue, distance, step),
     generatedFromPassValue: currentPassValue,
     generatedDistance: distance,
-    performanceRatio
+    performanceRatio,
+    growthRate
   };
 }
 
@@ -76,6 +86,7 @@ export function resolveCheckpoint(state){
     type: checkpoint.type,
     requiredCollectionCount: checkpoint.requiredCollectionCount ?? null,
     requiredPassValue: checkpoint.requiredPassValue ?? null,
+    growthRate: checkpoint.growthRate ?? null,
     currentPassValue,
     excessRatio: checkpoint.requiredPassValue
       ? currentPassValue / checkpoint.requiredPassValue

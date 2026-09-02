@@ -9,10 +9,10 @@ import { BASE_FOOD_TYPES } from "../game/rules";
 import { getBaseScore, getNonDrinkBoardSum } from "../game/scoreValue";
 import {
   FIRST_PASS_REFERENCE,
-  PASS_GROWTH_PER_16_STEPS,
   createFirstCheckpoint,
   getNextCheckpointDistance,
   getNextRequiredPassValue,
+  getPassGrowthRate,
   getPassValue
 } from "../game/checkpoints";
 
@@ -32,15 +32,18 @@ assert.equal(getPassValue(1000, 0), 0);
 assert.equal(getPassValue(400, 4), 200);
 assert.ok(getPassValue(400, 4) > getPassValue(400, 16));
 assert.equal(FIRST_PASS_REFERENCE, 160);
-assert.equal(PASS_GROWTH_PER_16_STEPS, .30);
 assert.equal(getNextCheckpointDistance(1), 16);
 assert.ok(getNextCheckpointDistance(210 / FIRST_PASS_REFERENCE) < 16);
 assert.ok(getNextCheckpointDistance(100 / FIRST_PASS_REFERENCE) > 16);
 assert.equal(getNextCheckpointDistance(1000), 10);
 assert.equal(getNextCheckpointDistance(0), 24);
-assert.equal(getNextRequiredPassValue(160, 16), 208);
-assert.equal(getNextRequiredPassValue(160, 10), 190);
-assert.equal(getNextRequiredPassValue(160, 24), 232);
+assert.deepEqual(
+  [39, 40, 69, 70, 99, 100, 149, 150].map(getPassGrowthRate),
+  [.08, .12, .12, .18, .18, .25, .25, .30]
+);
+assert.equal(getNextRequiredPassValue(170, 15, 25), 183);
+assert.equal(getNextRequiredPassValue(320, 15, 70), 374);
+assert.equal(getNextRequiredPassValue(450, 14, 100), 548);
 
 const actionOpening = [
   {value: 6, foodType: BASE_FOOD_TYPES[0], boardIndex: 0, gameMode: "eightPalace"},
@@ -69,7 +72,8 @@ assert.equal(passedFirst.gameOver, false);
 assert.equal(passedFirst.passedCheckpointCount, 1);
 assert.equal(passedFirst.checkpoint.index, 2);
 assert.equal(passedFirst.checkpoint.step, 26);
-assert.equal(passedFirst.checkpoint.requiredPassValue, 208);
+assert.equal(passedFirst.checkpoint.requiredPassValue, 173);
+assert.equal(passedFirst.checkpoint.growthRate, .08);
 assert.equal(passedFirst.checkpoint.generatedFromPassValue, 160);
 assert.equal(passedFirst.checkpoint.generatedDistance, 16);
 const passedDynamic = resolveGameOver({
@@ -83,11 +87,11 @@ assert.equal(passedDynamic.checkpoint.performanceRatio, 300 / passedFirst.checkp
 assert.equal(passedDynamic.checkpoint.generatedFromPassValue, 300);
 assert.equal(
   passedDynamic.checkpoint.requiredPassValue,
-  getNextRequiredPassValue(300, passedDynamic.checkpoint.generatedDistance)
+  getNextRequiredPassValue(300, passedDynamic.checkpoint.generatedDistance, passedDynamic.checkpoint.step)
 );
 assert.notEqual(
   passedDynamic.checkpoint.requiredPassValue,
-  getNextRequiredPassValue(passedFirst.checkpoint.requiredPassValue, passedDynamic.checkpoint.generatedDistance)
+  getNextRequiredPassValue(passedFirst.checkpoint.requiredPassValue, passedDynamic.checkpoint.generatedDistance, passedDynamic.checkpoint.step)
 );
 const failedDynamic = resolveGameOver({...passedFirst, steps: passedFirst.checkpoint.step, score: 0});
 assert.equal(failedDynamic.gameOverReason, "checkpoint_failed");
@@ -100,6 +104,16 @@ const afterStep100 = resolveGameOver({
 });
 assert.equal(afterStep100.gameOver, false);
 assert.ok(afterStep100.checkpoint.step > 110);
+
+const afterStep150 = resolveGameOver({
+  ...passedDynamic,
+  steps: 150,
+  score: Math.ceil(600 * Math.sqrt(150)),
+  checkpoint: {index: 12, step: 150, type: "passValue", requiredPassValue: 500, growthRate: .30}
+});
+assert.equal(afterStep150.gameOver, false);
+assert.ok(afterStep150.checkpoint.step > 150);
+assert.equal(afterStep150.checkpoint.growthRate, .30);
 
 const deadEarly = resolveGameOver({
   ...createGameState(actionOpening),

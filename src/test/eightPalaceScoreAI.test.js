@@ -210,6 +210,7 @@ for(const summary of [tenGames, tenGames.randomComparison]){
   assert.ok(Object.values(summary.averageCollectionFoodTypeCounts).every(Number.isFinite));
   assert.ok(summary.checkpointSurvival.every(checkpoint =>
     Number.isFinite(checkpoint.averageActualPassValue)
+    && Number.isFinite(checkpoint.averageGrowthRate)
     && Number.isFinite(checkpoint.averageExcessRatio)
   ));
   assert.equal(

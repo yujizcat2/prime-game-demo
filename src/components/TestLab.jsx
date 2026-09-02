@@ -1480,7 +1480,7 @@ function ScoreSummaryGrid({result}){
       {(result.checkpointSurvival ?? []).map(checkpoint => <div key={checkpoint.index}>
         站 {checkpoint.index}：平均 Step {checkpoint.averageStep.toFixed(1)} · 通过 {checkpoint.passedCount}/{checkpoint.gameCount} ({(checkpoint.passRate * 100).toFixed(1)}%)
         {` · 平均实际通行值 ${checkpoint.averageActualPassValue.toFixed(1)}`}
-        {checkpoint.index > 1 && ` · 平均要求 ${checkpoint.averageRequiredPassValue.toFixed(1)} · 平均超额 ${checkpoint.averageExcessRatio.toFixed(2)}×`}
+        {checkpoint.index > 1 && ` · 增长率 ${(checkpoint.averageGrowthRate * 100).toFixed(1)}% · 平均要求 ${checkpoint.averageRequiredPassValue.toFixed(1)} · 平均超额 ${checkpoint.averageExcessRatio.toFixed(2)}×`}
       </div>)}
     </div>
     </>

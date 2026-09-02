@@ -855,6 +855,10 @@ export function summarizeScoreResults(results){
         checkpoint => checkpoint.requiredPassValue
       ),
       averageActualPassValue: average(reached, checkpoint => checkpoint.currentPassValue),
+      averageGrowthRate: average(
+        reached.filter(checkpoint => checkpoint.growthRate != null),
+        checkpoint => checkpoint.growthRate
+      ),
       averageExcessRatio: average(
         reached.filter(checkpoint => checkpoint.excessRatio != null),
         checkpoint => checkpoint.excessRatio
