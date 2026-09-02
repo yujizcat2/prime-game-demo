@@ -1465,6 +1465,11 @@ function ScoreSummaryGrid({result}){
       <ResultItem label="通过检查站范围" value={`${result.lowestPassedCheckpointCount ?? 0}–${result.highestPassedCheckpointCount ?? 0}`} />
       <ResultItem label="达到测试保护上限" value={`${result.reachedTestProtectionLimitCount ?? 0} / ${result.games ?? result.attempts}`} />
       <ResultItem label="提前死局" value={`${result.deadlockCount} / ${result.games ?? result.attempts} (${(result.deadlockRate * 100).toFixed(1)}%)`} />
+      <ResultItem label="检查站前3步平均得分" value={(result.checkpointAwarenessTelemetry?.averageScoreGainBefore3Steps ?? 0).toFixed(1)} />
+      <ResultItem label="检查站前5步平均得分" value={(result.checkpointAwarenessTelemetry?.averageScoreGainBefore5Steps ?? 0).toFixed(1)} />
+      <ResultItem label="压线通过 / 提前达标" value={`${result.checkpointAwarenessTelemetry?.closePassCount ?? 0} / ${result.checkpointAwarenessTelemetry?.earlyTargetCount ?? 0}`} />
+      <ResultItem label="失败平均差分" value={`${(result.checkpointAwarenessTelemetry?.averageFailureGap ?? 0).toFixed(1)} 分`} />
+      <ResultItem label="通过平均领先" value={`${(result.checkpointAwarenessTelemetry?.averagePassLead ?? 0).toFixed(1)} 分`} />
       <ResultItem label="平均搜索节点" value={Math.round(result.averageSearchedNodes ?? 0)} />
       <ResultItem label="平均评价节点" value={Math.round(result.averageEvaluatedNodes ?? 0)} />
       <ResultItem label="平均生成动作" value={Math.round(result.averageGeneratedActions ?? 0)} />

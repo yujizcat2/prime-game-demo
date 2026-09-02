@@ -43,6 +43,40 @@ export const STRATEGIC_CANDIDATE_LIMITS = Object.freeze({
 });
 
 export const PAID_ACTION_OPTION_VALUE_WEIGHT = 100;
+export const CHECKPOINT_SCORE_WEIGHT = 250_000_000;
+export const CHECKPOINT_PASS_BONUS = 750_000_000;
+
+export function getCheckpointUrgency(state){
+  const checkpoint = state?.checkpoint;
+  if(checkpoint?.type !== "score" || (state.score ?? 0) >= checkpoint.requiredScore) return 0;
+  const remainingSteps = checkpoint.step - (state.steps ?? 0);
+  if(remainingSteps <= 1) return 1;
+  if(remainingSteps <= 3) return .8;
+  if(remainingSteps <= 5) return .55;
+  if(remainingSteps <= 8) return .3;
+  return .1;
+}
+
+export function getCheckpointGapPressure(state){
+  const checkpoint = state?.checkpoint;
+  if(checkpoint?.type !== "score" || !checkpoint.requiredScore) return 0;
+  const scoreGap = Math.max(0, checkpoint.requiredScore - (state.score ?? 0));
+  if(scoreGap === 0) return 0;
+  return Math.min(.5, scoreGap / checkpoint.requiredScore);
+}
+
+export function evaluateCheckpointAwareness(rootState, leafState){
+  const checkpoint = rootState?.checkpoint;
+  const urgency = getCheckpointUrgency(rootState);
+  if(checkpoint?.type !== "score" || urgency === 0) return 0;
+  const gapPressure = getCheckpointGapPressure(rootState);
+  const scoreGain = Math.max(0, (leafState.score ?? 0) - (rootState.score ?? 0));
+  const attainableGapWeight = .5 + gapPressure;
+  const scoreValue = scoreGain * urgency * attainableGapWeight * CHECKPOINT_SCORE_WEIGHT;
+  const reachesTarget = (leafState.steps ?? 0) <= checkpoint.step
+    && (leafState.score ?? 0) >= checkpoint.requiredScore;
+  return scoreValue + (reachesTarget ? CHECKPOINT_PASS_BONUS * urgency : 0);
+}
 
 function createScoreOpening(opening = createStandardInitialValues()){
   return opening.map(card => ({...card}));
@@ -188,6 +222,14 @@ export function evaluateScoreState(state, legalActions = state.gameOver ? [] : g
     + legalActions.length * 10
     + Math.min(state.money ?? 0, 200) * PAID_ACTION_OPTION_VALUE_WEIGHT
     - (terminalDeadlock ? 100_000_000 : 0);
+}
+
+export function evaluateScoreSearchState(rootState, candidateState, {
+  checkpointAware = true,
+  legalActions = candidateState.gameOver ? [] : getLegalActions(candidateState)
+} = {}){
+  return evaluateScoreState(candidateState, legalActions)
+    + (checkpointAware ? evaluateCheckpointAwareness(rootState, candidateState) : 0);
 }
 
 export function getScoreCandidateActions(state, {
@@ -415,7 +457,8 @@ export function chooseScoreAction(state, {
   telemetry = null,
   candidateLimits = STRATEGIC_CANDIDATE_LIMITS,
   searchMode = SCORE_AI_DEFAULTS.searchMode,
-  adaptive = ADAPTIVE_SEARCH_DEFAULTS
+  adaptive = ADAPTIVE_SEARCH_DEFAULTS,
+  checkpointAware = true
 } = {}){
   if(!state || state.gameOver) return null;
   const startedAt = performance.now();
@@ -437,7 +480,10 @@ export function chooseScoreAction(state, {
     const key = getStateKey(candidateState);
     if(evaluationCache.has(key)){ stats.evaluationCacheHits++; return evaluationCache.get(key); }
     if(adaptiveMode && stats.evaluatedNodes - evaluationStart >= adaptive.evaluationBudget) return null;
-    const value = evaluateScoreState(candidateState, getCachedLegalActions(candidateState));
+    const value = evaluateScoreSearchState(state, candidateState, {
+      checkpointAware,
+      legalActions: getCachedLegalActions(candidateState)
+    });
     evaluationCache.set(key, value);
     stats.evaluatedNodes++;
     stats.evaluationCacheMisses++;
@@ -602,7 +648,8 @@ export async function runScoreGame({
   allowHeater: _allowHeater = true,
   candidateLimits = STRATEGIC_CANDIDATE_LIMITS,
   searchMode = SCORE_AI_DEFAULTS.searchMode,
-  adaptive = ADAPTIVE_SEARCH_DEFAULTS
+  adaptive = ADAPTIVE_SEARCH_DEFAULTS,
+  checkpointAware = true
 } = {}){
   const gameStartedAt = performance.now();
   const searchTelemetry = createSearchTelemetry();
@@ -622,7 +669,7 @@ export async function runScoreGame({
 
     const action = strategy === "random"
       ? legalActions[Math.floor(Math.random() * legalActions.length)]
-      : chooseStrategicAction(state, {depth, beamWidth, explore, heaterUsedThisStep, telemetry: searchTelemetry, candidateLimits, searchMode, adaptive});
+      : chooseStrategicAction(state, {depth, beamWidth, explore, heaterUsedThisStep, telemetry: searchTelemetry, candidateLimits, searchMode, adaptive, checkpointAware});
     if(!action) break;
 
     // Keep the exact legal set used for selection so tests and records can
@@ -696,6 +743,7 @@ export async function runScoreGame({
   return {
     strategy,
     searchMode,
+    checkpointAware,
     initialOpening: opening.map(card => ({...card})),
     initialBoard,
     score: state.score,
@@ -867,6 +915,26 @@ export function summarizeScoreResults(results){
       )
     };
   });
+  const scoreCheckpointEvents = results.flatMap(result =>
+    (result.checkpointHistory ?? [])
+      .filter(checkpoint => checkpoint.type === "score")
+      .map(checkpoint => ({...checkpoint, result}))
+  );
+  const checkpointWindowGain = window => average(scoreCheckpointEvents, ({checkpoint, result}) =>
+    (result.actionPath ?? [])
+      .filter(action => action.stepAfter > checkpoint.step - window && action.stepAfter <= checkpoint.step)
+      .reduce((sum, action) => sum + (action.scoreGain ?? 0), 0)
+  );
+  const passedScoreCheckpoints = scoreCheckpointEvents.filter(({checkpoint}) => checkpoint.passed);
+  const failedScoreCheckpoints = scoreCheckpointEvents.filter(({checkpoint}) => !checkpoint.passed);
+  const closePassCount = passedScoreCheckpoints.filter(({checkpoint}) =>
+    checkpoint.currentScore - checkpoint.requiredScore <= checkpoint.requiredScore * .05
+  ).length;
+  const earlyTargetCount = passedScoreCheckpoints.filter(({checkpoint, result}) =>
+    (result.actionPath ?? []).some(action =>
+      action.stepAfter < checkpoint.step && action.scoreAfter >= checkpoint.requiredScore
+    )
+  ).length;
   const highScore = results.length
     ? results.reduce((best, result) => result.finalScore > best.finalScore ? result : best)
     : null;
@@ -1039,6 +1107,14 @@ export function summarizeScoreResults(results){
     highestPassedCheckpointCount: results.length ? Math.max(...results.map(result => result.passedCheckpointCount ?? 0)) : 0,
     lowestPassedCheckpointCount: results.length ? Math.min(...results.map(result => result.passedCheckpointCount ?? 0)) : 0,
     checkpointSurvival,
+    checkpointAwarenessTelemetry: {
+      averageScoreGainBefore3Steps: checkpointWindowGain(3),
+      averageScoreGainBefore5Steps: checkpointWindowGain(5),
+      closePassCount,
+      earlyTargetCount,
+      averageFailureGap: average(failedScoreCheckpoints, ({checkpoint}) => checkpoint.requiredScore - checkpoint.currentScore),
+      averagePassLead: average(passedScoreCheckpoints, ({checkpoint}) => checkpoint.currentScore - checkpoint.requiredScore)
+    },
     reachedTestProtectionLimitCount: results.filter(result => result.reachedTestProtectionLimit).length,
     completed100StepCount,
     completed100StepRate: results.length ? completed100StepCount / results.length : 0,
@@ -1060,7 +1136,8 @@ export async function runScoreGames({
   compareHeater = false,
   searchMode = SCORE_AI_DEFAULTS.searchMode,
   openings = null,
-  adaptive = ADAPTIVE_SEARCH_DEFAULTS
+  adaptive = ADAPTIVE_SEARCH_DEFAULTS,
+  checkpointAware = true
 } = {}){
   const scoreResults = [];
   const randomResults = [];
@@ -1068,7 +1145,7 @@ export async function runScoreGames({
 
   for(let gameIndex = 1; gameIndex <= games; gameIndex++){
     const opening = openings?.[gameIndex - 1] ?? createStandardInitialValues();
-    const result = await runScoreGame({depth, beamWidth, maxActions, initialOpening: opening, searchMode, adaptive});
+    const result = await runScoreGame({depth, beamWidth, maxActions, initialOpening: opening, searchMode, adaptive, checkpointAware});
     result.gameIndex = gameIndex;
     result.openingId = gameIndex;
     scoreResults.push(result);
@@ -1116,6 +1193,7 @@ export async function runScoreGames({
     beamWidth,
     maxActions,
     searchMode,
+    checkpointAware,
     heaterComparison,
     heaterAverageScoreDifference: heaterComparison
       ? heaterComparison.averageFinalScore - scoreSummary.averageFinalScore

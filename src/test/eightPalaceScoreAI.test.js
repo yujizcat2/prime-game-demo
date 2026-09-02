@@ -5,7 +5,11 @@ import {
   chooseScoreAction,
   createSeededScoreOpenings,
   createSearchTelemetry,
+  evaluateCheckpointAwareness,
+  evaluateScoreSearchState,
   evaluateScoreState,
+  getCheckpointGapPressure,
+  getCheckpointUrgency,
   getStrategicCandidateActions,
   getAdaptiveBaseDepth,
   getAdaptiveBeamWidth,
@@ -32,6 +36,32 @@ assert.equal(getScoreEfficiency(0, 0).toFixed(2), "0.00");
 assert.deepEqual([2, 3, 5, 7].map(isPrime), [true, true, true, true]);
 assert.deepEqual([4, 6, 8, 9].map(isPrime), [false, false, false, false]);
 assert.equal(isPrime(1), false);
+
+const checkpointState = (steps, score, checkpoint = {index: 2, step: 20, type: "score", requiredScore: 200}) => ({
+  steps,
+  score,
+  checkpoint
+});
+assert.equal(getCheckpointUrgency(checkpointState(10, 100, null)), 0);
+assert.equal(getCheckpointUrgency(checkpointState(18, 200)), 0);
+assert.ok(getCheckpointUrgency(checkpointState(19, 100)) > getCheckpointUrgency(checkpointState(12, 100)));
+assert.ok(getCheckpointGapPressure(checkpointState(18, 50)) > getCheckpointGapPressure(checkpointState(18, 150)));
+assert.equal(evaluateCheckpointAwareness(checkpointState(18, 200), checkpointState(19, 250)), 0);
+assert.equal(
+  evaluateScoreSearchState(checkpointState(18, 100), checkpointState(19, 150), {checkpointAware: false, legalActions: []}),
+  evaluateScoreState(checkpointState(19, 150), []),
+  "checkpointAware=false exactly preserves the legacy evaluation"
+);
+assert.ok(
+  evaluateCheckpointAwareness(checkpointState(18, 100), checkpointState(20, 205))
+  > evaluateCheckpointAwareness(checkpointState(18, 100), checkpointState(20, 199)),
+  "a visible checkpoint pass earns the finite survival bonus"
+);
+assert.ok(
+  evaluateCheckpointAwareness(checkpointState(19, 100), checkpointState(20, 150))
+  > evaluateCheckpointAwareness(checkpointState(10, 100), checkpointState(11, 150)),
+  "distant checkpoints exert less pressure"
+);
 {
   const snapshot = createFoodTypeBoardSnapshot([
     {value: 4, foodType: BASE_FOOD_TYPES[0], singleFlavorPenalty: true},
