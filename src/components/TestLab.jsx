@@ -1435,6 +1435,19 @@ function ScoreSummaryGrid({result}){
       <ResultItem label="最高积分" value={result.highestScore} highlight />
       <ResultItem label="最低积分" value={result.lowestScore} />
       <ResultItem label="平均收藏数量" value={result.averageCollectionCount.toFixed(2)} />
+      <ResultItem label="平均累计收藏普通系" value={(result.averageCollectedNormalFoodTypeCount ?? 0).toFixed(2)} />
+      {[5, 6, 7, 8].map(target => <ResultItem
+        key={`collected-type-${target}`}
+        label={`${target}系达成 / 首次平均 Step`}
+        value={`${result.collectedNormalFoodTypeReachCounts?.[target] ?? 0} / ${result.games ?? result.attempts} · ${result.averageFirstCollectedNormalFoodTypeSteps?.[target]?.toFixed(1) ?? "—"}`}
+      />)}
+      <ResultItem label="平均新系奖励 / 占总分" value={`${(result.averageNewFoodTypeBonus ?? 0).toFixed(1)} · ${((result.newFoodTypeBonusScoreRatio ?? 0) * 100).toFixed(2)}%`} />
+      <ResultItem label="平均盘面强度奖励 / 占总分" value={`${(result.averageBoardPowerBonus ?? 0).toFixed(1)} · ${((result.boardPowerBonusScoreRatio ?? 0) * 100).toFixed(2)}%`} />
+      {[50, 70, 90].map(threshold => <ResultItem
+        key={`large-collection-${threshold}`}
+        label={`≥${threshold} 收藏 / 当时盘面均值`}
+        value={`${(result.largeCollectionSummary?.[threshold]?.averageCount ?? 0).toFixed(2)} · ${result.largeCollectionSummary?.[threshold]?.averageBoardValue?.toFixed(1) ?? "—"}`}
+      />)}
       <ResultItem label="平均加热次数" value={result.averageHeaterUseCount.toFixed(2)} />
       <ResultItem label="平均加热支出" value={`¥${result.averageHeaterSpending.toFixed(2)}`} />
       <ResultItem label="平均超级加热器次数" value={(result.averageSuperHeaterUseCount ?? 0).toFixed(2)} />
@@ -1597,6 +1610,12 @@ function ScoreRecord({title, game}){
       <div className="test-lab-record-collection">
         料理系收藏构成：{formatFoodTypeCounts(game.collectionFoodTypeCounts)}
         {game.dominantCollectionFoodType && ` · 最多${FOOD_TYPE_LABELS[game.dominantCollectionFoodType] ?? game.dominantCollectionFoodType} ${game.dominantCollectionFoodTypeCount}/${game.collectionCount} (${(game.dominantCollectionFoodTypeRatio * 100).toFixed(1)}%)`}
+      </div>
+      <div className="test-lab-record-collection">
+        累计收藏普通系：{game.collectedNormalFoodTypeCount ?? 0}
+      </div>
+      <div className="test-lab-record-collection">
+        新系奖励：{game.newFoodTypeBonusTotal ?? 0} · 盘面强度奖励：{game.boardPowerBonusTotal ?? 0}
       </div>
       <div className="test-lab-record-collection">最终盘面：{formatScoreBoard(game.finalBoard) || "空"}</div>
       {game.heaterTimeline?.length > 0 && <div className="test-lab-record-collection">

@@ -8,7 +8,7 @@ import {
 
 import { getFoodName } from "../data/food/foodRegistry";
 import { getCollectionScoreGain } from "./scoreValue";
-import { createCollectionRewardSettlement } from "./collectionReward";
+import { createCollectionRewardSettlement, getBoardAverageValue } from "./collectionReward";
 import { getCollectionMoneyGain } from "./money";
 import { getBoardAbundance } from "./boardAbundance";
 
@@ -1587,7 +1587,8 @@ export function getEightPalaceCollectionScoreGain(state, piece){
 export function applyEightPalaceCollection(
   state,
   piece,
-  abundance = getBoardAbundance(state?.board)
+  abundance = getBoardAbundance(state?.board),
+  boardAverageValue = getBoardAverageValue(state?.board)
 ){
   const record = getCollectionRecord(piece);
   if(!record) return state;
@@ -1606,7 +1607,8 @@ export function applyEightPalaceCollection(
     foodType: record.foodType ?? null,
     name,
     baseScore: scoreGain,
-    abundance
+    abundance,
+    boardAverageValue
   });
   const moneyGain = getCollectionMoneyGain(isNewCollection);
   const cumulativeMoney = (state.money ?? 0) + moneyGain;
@@ -1627,6 +1629,9 @@ export function applyEightPalaceCollection(
     abundance: rewardSettlement.abundance,
     abundanceBonusRate: rewardSettlement.abundanceBonusRate,
     abundanceBonusScore: rewardSettlement.abundanceBonusScore,
+    boardAverageValue: rewardSettlement.boardAverageValue,
+    newFoodTypeBonus: rewardSettlement.newFoodTypeBonus ?? 0,
+    boardPowerBonus: rewardSettlement.boardPowerBonus ?? 0,
     bonusScore: rewardSettlement.bonusScore,
     totalScore: rewardSettlement.totalScore,
     bonuses: rewardSettlement.bonuses,

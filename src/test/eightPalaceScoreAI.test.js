@@ -171,6 +171,34 @@ for(const summary of [tenGames, tenGames.randomComparison]){
     new Set(["0.6", "0.7", "0.8", "1"])
   );
   assert.ok(Object.values(summary.averageCollectionFoodTypeCounts).every(Number.isFinite));
+  assert.equal(
+    summary.averageCollectedNormalFoodTypeCount,
+    summary.results.reduce((sum, game) => sum + game.collectedNormalFoodTypeCount, 0) / summary.results.length
+  );
+  for(const target of [5, 6, 7, 8]){
+    assert.equal(
+      summary.collectedNormalFoodTypeReachCounts[target],
+      summary.results.filter(game => game.collectedNormalFoodTypeCount >= target).length
+    );
+    assert.equal(
+      summary.collectedNormalFoodTypeReachRates[target],
+      summary.collectedNormalFoodTypeReachCounts[target] / summary.results.length
+    );
+  }
+  assert.equal(
+    summary.averageNewFoodTypeBonus,
+    summary.results.reduce((sum, game) => sum + game.newFoodTypeBonusTotal, 0) / summary.results.length
+  );
+  assert.equal(
+    summary.averageBoardPowerBonus,
+    summary.results.reduce((sum, game) => sum + game.boardPowerBonusTotal, 0) / summary.results.length
+  );
+  for(const threshold of [50, 70, 90]){
+    assert.equal(
+      summary.largeCollectionSummary[threshold].averageCount,
+      summary.results.reduce((sum, game) => sum + game.largeCollectionStats[threshold].count, 0) / summary.results.length
+    );
+  }
 }
 
 const weightedSummary = summarizeScoreResults([

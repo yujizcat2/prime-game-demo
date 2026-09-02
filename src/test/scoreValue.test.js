@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { createGameState } from "../game/gameEngine";
 import { applyEightPalaceCollection } from "../game/collectionRules";
 import { BASE_FOOD_TYPES } from "../game/rules";
+import { FIRST_NUMBER_BONUS, getNewFoodTypeBonus } from "../game/collectionReward";
 import {
   BASE_SCORE_BANDS,
   SCORE_SCALE,
@@ -54,7 +55,8 @@ for(const foodType of BASE_FOOD_TYPES.slice(3)){
   state = collect(state, 29, foodType);
   assert.equal(state.latestCollection.baseScore, 200, "every later new food type still earns 50% base score");
 }
-assert.equal(state.score, 1842, "scaled base score plus small integer bonuses are awarded");
+const discoveryBonusAtSeven = BASE_FOOD_TYPES.reduce((sum, _, index) => sum + getNewFoodTypeBonus(index + 1, 7), 0);
+assert.equal(state.score, 1800 + discoveryBonusAtSeven + FIRST_NUMBER_BONUS, "scaled base score plus discovery bonuses are awarded");
 assert.equal(state.collectionTimeline.reduce((sum, event) => sum + event.scoreGain, 0), state.score);
 
 const beforeDuplicate = state.score;
@@ -70,7 +72,7 @@ assert.deepEqual(separateNumbers.collectionTimeline.map(event => event.baseScore
 let oneOhOne = stateWithBoard();
 for(const foodType of BASE_FOOD_TYPES) oneOhOne = collect(oneOhOne, 101, foodType);
 assert.deepEqual(oneOhOne.collectionTimeline.slice(0, 2).map(event => event.baseScore), [800, 400]);
-assert.equal(oneOhOne.score, 3642, "scaled base score and small collection bonuses are both included");
+assert.equal(oneOhOne.score, 3600 + discoveryBonusAtSeven + FIRST_NUMBER_BONUS, "scaled base score and discovery bonuses are both included");
 
 let edgeBands = stateWithBoard();
 edgeBands = collect(edgeBands, 2, BASE_FOOD_TYPES[0]);

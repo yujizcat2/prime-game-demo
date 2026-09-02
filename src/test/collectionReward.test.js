@@ -2,7 +2,9 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import {
   createCollectionRewardSettlement,
-  FIRST_FOOD_TYPE_BONUS,
+  getBoardAverageValue,
+  getBoardPowerBonus,
+  getNewFoodTypeBonus,
   FIRST_NUMBER_BONUS
 } from "../game/collectionReward";
 import {
@@ -11,11 +13,12 @@ import {
   getBoardAbundance
 } from "../game/boardAbundance";
 import { applyAction, createGameState } from "../game/gameEngine";
+import { BASE_FOOD_TYPES, FOOD_TYPES } from "../game/rules";
 
 const card = (value, foodType) => ({value, foodType});
-const settle = (collectionCards, value, foodType, baseScore, abundance = 0) =>
+const settle = (collectionCards, value, foodType, baseScore, abundance = 0, boardAverageValue = 0) =>
   createCollectionRewardSettlement({
-    collectionCards, value, foodType, name: `${value}号料理`, baseScore, abundance
+    collectionCards, value, foodType, name: `${value}号料理`, baseScore, abundance, boardAverageValue
   });
 
 for(const [abundance, expectedRate] of [
@@ -53,6 +56,7 @@ assert.equal(getAbundanceBonusScore(40, 320), 8);
   assert.equal(getBoardAbundance(state.board), 153);
   assert.equal(getBoardAbundance(nextState.board), 50);
   assert.equal(event.abundance, 153, "collection uses the board before the action");
+  assert.equal(event.boardAverageValue, 76.5, "collection uses the board average before the action");
   assert.equal(event.abundanceBonusRate, 0.1);
   assert.equal(event.abundanceBonusScore, Math.round(event.baseScore * 0.1));
 
@@ -81,8 +85,7 @@ assert.equal(getAbundanceBonusScore(40, 320), 8);
 
 {
   const reward = settle([card(17, "land")], 17, "spice", 150);
-  assert.equal(reward.bonusScore, FIRST_FOOD_TYPE_BONUS);
-  assert.equal(reward.bonusScore, 5);
+  assert.equal(reward.bonusScore, 10);
   assert.equal(reward.bonuses[0].type, "first_food_type");
 }
 
@@ -95,9 +98,58 @@ assert.equal(getAbundanceBonusScore(40, 320), 8);
 
 {
   const reward = settle([], 17, "spice", 300);
-  assert.equal(reward.bonusScore, 7);
-  assert.equal(reward.totalScore, 307);
+  assert.equal(reward.bonusScore, 12);
+  assert.equal(reward.totalScore, 312);
   assert.equal(reward.rewardLevel, "major");
+}
+
+for(const [discoveredCount, boardAverageValue, expected] of [
+  [5, 18, 15], [6, 32, 22], [7, 45, 27], [8, 60, 34]
+]){
+  const foodType = BASE_FOOD_TYPES[discoveredCount - 1];
+  const previousTypes = BASE_FOOD_TYPES.slice(0, discoveredCount - 1);
+  const reward = settle([card(17, FOOD_TYPES.DRINK), ...previousTypes.map(type => card(17, type))], 17, foodType, 300, 0, boardAverageValue);
+  assert.equal(reward.newFoodTypeBonus, expected);
+  assert.equal(reward.totalScore, 300 + expected);
+}
+assert.equal(getNewFoodTypeBonus(1, 0), 10);
+assert.equal(getNewFoodTypeBonus(8, 1_000), 50);
+
+{
+  const reward = settle([card(13, FOOD_TYPES.AQUATIC), card(17, FOOD_TYPES.LAND)], 17, FOOD_TYPES.AQUATIC, 300);
+  assert.equal(reward.newFoodTypeBonus, 0);
+  assert.equal(reward.totalScore, 300);
+}
+
+assert.equal(getBoardPowerBonus(49, 1_500, 70), 0);
+assert.equal(getBoardPowerBonus(50, 500, 30), 30);
+assert.equal(getBoardPowerBonus(90, 1_500, 60), 100);
+assert.equal(getBoardAverageValue([{value: 180}, null, {value: 45}]), 112.5);
+
+{
+  const reward = settle([card(13, FOOD_TYPES.AQUATIC), card(50, FOOD_TYPES.LAND)], 50, FOOD_TYPES.AQUATIC, 500, 0, 30);
+  assert.equal(reward.boardPowerBonus, 30);
+  assert.equal(reward.totalScore, 530);
+}
+
+{
+  const reward = settle([card(13, FOOD_TYPES.AQUATIC), card(90, FOOD_TYPES.LAND)], 90, FOOD_TYPES.AQUATIC, 1_500, 0, 60);
+  assert.equal(reward.boardPowerBonus, 100);
+  assert.equal(reward.totalScore, 1_600);
+}
+
+{
+  const reward = settle([card(50, FOOD_TYPES.LAND)], 50, FOOD_TYPES.LAND, 500, 0, 60);
+  assert.equal(reward.duplicate, true);
+  assert.equal(reward.boardPowerBonus, 0);
+  assert.equal(reward.totalScore, 0);
+}
+
+{
+  const reward = settle(BASE_FOOD_TYPES.slice(0, 4).map(type => card(17, type)), 17, FOOD_TYPES.DRINK, 300);
+  assert.equal(reward.newFoodTypeBonus, 0);
+  assert.equal(reward.bonuses.some(bonus => bonus.type === "first_food_type"), false);
+  assert.equal(reward.totalScore, 300);
 }
 
 {

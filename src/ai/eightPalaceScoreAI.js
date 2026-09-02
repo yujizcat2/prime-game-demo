@@ -551,6 +551,18 @@ export async function runScoreGame({
     state.collectionCards,
     state.steps
   );
+  const collectedNormalFoodTypeStats = getCollectedNormalFoodTypeStats(state.collectionCards);
+  const newFoodTypeBonusTotal = state.collectionCards.reduce((sum, card) => sum + (card.newFoodTypeBonus ?? 0), 0);
+  const boardPowerBonusTotal = state.collectionCards.reduce((sum, card) => sum + (card.boardPowerBonus ?? 0), 0);
+  const largeCollectionStats = Object.fromEntries([50, 70, 90].map(threshold => {
+    const cards = state.collectionCards.filter(card => card.value >= threshold);
+    return [threshold, {
+      count: cards.length,
+      averageBoardValue: cards.length
+        ? cards.reduce((sum, card) => sum + (card.boardAverageValue ?? 0), 0) / cards.length
+        : null
+    }];
+  }));
   const dominantCollectionEntry = Object.entries(collectionFoodTypeCounts).reduce(
     (best, entry) => best === null || entry[1] > best[1] ? entry : best,
     null
@@ -616,6 +628,11 @@ export async function runScoreGame({
     collections: state.collectionCards.map(card => structuredClone(card)),
     collectionFoodTypeCounts,
     collectionFoodTypeTimeline,
+    collectedNormalFoodTypeCount: collectedNormalFoodTypeStats.count,
+    firstCollectedNormalFoodTypeSteps: collectedNormalFoodTypeStats.firstSteps,
+    newFoodTypeBonusTotal,
+    boardPowerBonusTotal,
+    largeCollectionStats,
     dominantCollectionFoodType: dominantCollectionEntry?.[0] ?? null,
     dominantCollectionFoodTypeCount: dominantCollectionEntry?.[1] ?? 0,
     dominantCollectionFoodTypeRatio: state.collectionCards.length
@@ -670,6 +687,17 @@ function average(results, selector){
     : 0;
 }
 
+function getCollectedNormalFoodTypeStats(collections){
+  const seen = new Set();
+  const firstSteps = {5: null, 6: null, 7: null, 8: null};
+  for(const card of collections ?? []){
+    if(!BASE_FOOD_TYPES.includes(card.foodType) || seen.has(card.foodType)) continue;
+    seen.add(card.foodType);
+    if(seen.size >= 5) firstSteps[seen.size] = card.step ?? null;
+  }
+  return {count: seen.size, firstSteps};
+}
+
 export function summarizeScoreResults(results){
   const completed100StepCount = results.filter(result => result.completed100Steps).length;
   const deadlockCount = results.filter(result => result.deadlocked).length;
@@ -688,6 +716,29 @@ export function summarizeScoreResults(results){
   const singleFlavorResults = results.filter(result => result.singleFlavorTriggered);
   const foodTypeTelemetry = summarizeFoodTypeTelemetry(results);
   const heaterEvents = results.flatMap(result => result.heaterTimeline ?? []);
+  const collectedTypeTargets = [5, 6, 7, 8];
+  const collectedNormalFoodTypeReachCounts = Object.fromEntries(collectedTypeTargets.map(target => [
+    target,
+    results.filter(result => (result.collectedNormalFoodTypeCount ?? 0) >= target).length
+  ]));
+  const averageFirstCollectedNormalFoodTypeSteps = Object.fromEntries(collectedTypeTargets.map(target => {
+    const reached = results.filter(result => result.firstCollectedNormalFoodTypeSteps?.[target] != null);
+    return [target, reached.length ? average(reached, result => result.firstCollectedNormalFoodTypeSteps[target]) : null];
+  }));
+  const totalFinalScore = results.reduce((sum, result) => sum + result.finalScore, 0);
+  const totalNewFoodTypeBonus = results.reduce((sum, result) => sum + (result.newFoodTypeBonusTotal ?? 0), 0);
+  const totalBoardPowerBonus = results.reduce((sum, result) => sum + (result.boardPowerBonusTotal ?? 0), 0);
+  const largeCollectionSummary = Object.fromEntries([50, 70, 90].map(threshold => {
+    const totalCount = results.reduce((sum, result) => sum + (result.largeCollectionStats?.[threshold]?.count ?? 0), 0);
+    const boardValueTotal = results.reduce((sum, result) => {
+      const stats = result.largeCollectionStats?.[threshold];
+      return sum + (stats?.averageBoardValue ?? 0) * (stats?.count ?? 0);
+    }, 0);
+    return [threshold, {
+      averageCount: results.length ? totalCount / results.length : 0,
+      averageBoardValue: totalCount ? boardValueTotal / totalCount : null
+    }];
+  }));
   const heaterPrices = heaterEvents.map(event => event.price ?? event.cost);
   const priceDistribution = {
     "10": 0, "20": 0, "25": 0, "30": 0, "35": 0,
@@ -702,6 +753,19 @@ export function summarizeScoreResults(results){
     ...foodTypeTelemetry,
     games: results.length,
     averageFinalScore: average(results, result => result.finalScore),
+    averageCollectedNormalFoodTypeCount: average(results, result => result.collectedNormalFoodTypeCount ?? 0),
+    collectedNormalFoodTypeReachCounts,
+    collectedNormalFoodTypeReachRates: Object.fromEntries(collectedTypeTargets.map(target => [
+      target,
+      results.length ? collectedNormalFoodTypeReachCounts[target] / results.length : 0
+    ])),
+    averageFirstCollectedNormalFoodTypeSteps,
+    averageNewFoodTypeBonus: average(results, result => result.newFoodTypeBonusTotal ?? 0),
+    averageBoardPowerBonus: average(results, result => result.boardPowerBonusTotal ?? 0),
+    newFoodTypeBonusScoreRatio: totalFinalScore ? totalNewFoodTypeBonus / totalFinalScore : 0,
+    boardPowerBonusScoreRatio: totalFinalScore ? totalBoardPowerBonus / totalFinalScore : 0,
+    combinedAuxiliaryBonusScoreRatio: totalFinalScore ? (totalNewFoodTypeBonus + totalBoardPowerBonus) / totalFinalScore : 0,
+    largeCollectionSummary,
     averageFinalMoney: average(results, result => result.finalMoney ?? 0),
     averageHeaterUseCount: average(results, result => result.heaterUseCount ?? 0),
     averageHeaterSpending: average(results, result => result.heaterSpending ?? 0),

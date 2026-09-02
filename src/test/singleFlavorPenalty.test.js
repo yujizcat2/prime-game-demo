@@ -108,8 +108,8 @@ const collectible = (value, foodType, singleFlavorPenalty) => ({
   const penalized = applyAction(penalizedState, {type: "reduce", indexes: [0, 1]});
   assert.equal(normal.latestCollection.baseScore, 100);
   assert.equal(penalized.latestCollection.baseScore, 50);
-  assert.equal(penalized.latestCollection.bonusScore, 7);
-  assert.equal(penalized.latestCollection.totalScore, 57);
+  assert.equal(penalized.latestCollection.bonusScore, 12);
+  assert.equal(penalized.latestCollection.totalScore, 62);
   assert.equal(normal.money, penalized.money);
 }
 
