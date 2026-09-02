@@ -47,8 +47,8 @@ function App(){
   const removingIndex = null;
 
   const [
-    boardAnimation,
-    setBoardAnimation
+    activeAnimation,
+    setActiveAnimation
   ] = useState(null);
 
   const [
@@ -60,7 +60,6 @@ function App(){
   const [showCombineHistory,setShowCombineHistory] = useState(false);
   const [actionToast,setActionToast] = useState(null);
   const [collectionRewardQueue,setCollectionRewardQueue] = useState([]);
-  const [pendingMinorRewards,setPendingMinorRewards] = useState([]);
   const [heaterSelectMode,setHeaterSelectMode] = useState(false);
   const [restoreSelectMode,setRestoreSelectMode] = useState(false);
 
@@ -79,19 +78,7 @@ function App(){
     },1100);
   }
 
-  function showMinorCollectionToast(rewards){
-    const total = rewards.reduce((sum, reward) => sum + reward.totalScore, 0);
-    showActionToast(
-      `获得 ${rewards.map(reward => `${reward.value} · ${reward.name}`).join("、")}`,
-      `+${total}分`
-    );
-  }
-
   function closeCollectionReward(){
-    if(collectionRewardQueue.length === 1 && pendingMinorRewards.length > 0){
-      showMinorCollectionToast(pendingMinorRewards);
-      setPendingMinorRewards([]);
-    }
     setCollectionRewardQueue(queue => queue.slice(1));
   }
 
@@ -131,13 +118,29 @@ function App(){
     setHeaterSelectMode(false);
     setRestoreSelectMode(false);
     const result = game.useSuperHeater();
-    if(result) showActionToast("超级加热", `全盘 +1 · -¥${result.cost}`);
+    if(result){
+      beginInstantAnimation({
+        type: "super-heater",
+        sourceIndexes: game.board.flatMap((piece,index)=>piece ? [index] : []),
+        targetIndexes: game.board.flatMap((piece,index)=>piece ? [index] : []),
+        beforeValues: game.board.filter(Boolean).map(piece=>piece.value),
+        afterValues: game.board.filter(Boolean).map(piece=>piece.value+1)
+      },620);
+      showActionToast("超级加热", `全盘 +1 · -¥${result.cost}`);
+    }
   }
 
   function handleHeaterTarget(index){
     const result = game.useHeaterOnCell(index);
     if(!result) return;
     setHeaterSelectMode(false);
+    beginInstantAnimation({
+      type: "heater",
+      sourceIndexes: [index],
+      targetIndexes: [index],
+      beforeValues: [result.fromValue],
+      afterValues: [result.toValue]
+    },430);
     showActionToast(`${result.fromValue} → ${result.toValue}`, `加热完成 · -¥${result.cost}`);
   }
 
@@ -145,6 +148,13 @@ function App(){
     const result = game.useRestoreOnCell(index);
     if(!result) return;
     setRestoreSelectMode(false);
+    beginInstantAnimation({
+      type: "restore",
+      sourceIndexes: [index],
+      targetIndexes: [index],
+      beforeValues: [result.valueBefore],
+      afterValues: [result.valueAfter]
+    },480);
     showActionToast(
       "归味",
       `${FOOD_TYPE_LABELS[result.foodTypeBefore] ?? "饮品"} ${result.valueBefore} → ${FOOD_TYPE_LABELS[result.foodTypeAfter] ?? "饮品"} ${result.valueAfter} · -¥${result.cost}`
@@ -177,6 +187,15 @@ function App(){
       timer
     );
 
+  }
+
+  function beginInstantAnimation(animation,duration){
+    clearAnimationTimers();
+    const token=++animationTokenRef.current;
+    setActiveAnimation({...animation,phase:"active",startedAt:Date.now(),token});
+    scheduleAnimation(()=>{
+      setActiveAnimation(current=>current?.token===token ? null : current);
+    },duration);
   }
 
 
@@ -215,7 +234,7 @@ function App(){
 
 
     if(
-      boardAnimation ||
+      activeAnimation?.phase === "exit" ||
       removingIndex !== null ||
       game.selectedIndexes.length !== 2 ||
       !game.preview?.combine
@@ -258,11 +277,16 @@ function App(){
     setClearedCells([]);
 
 
-    setBoardAnimation(
+    setActiveAnimation(
       {
         type: "combine",
         phase: "exit",
         indexes,
+        sourceIndexes:indexes,
+        targetIndexes:[targetIndex],
+        beforeValues:indexes.map(index=>game.board[index]?.value),
+        afterValues:[game.preview.combine.value],
+        startedAt:Date.now(),
         targetIndex,
         combineKind,
         drinkIndex,
@@ -279,11 +303,16 @@ function App(){
         if(succeeded)showActionToast(combineToast.title,combineToast.message);
 
 
-        setBoardAnimation(
+        setActiveAnimation(
           {
             type: "combine",
             phase: "enter",
             indexes,
+            sourceIndexes:indexes,
+            targetIndexes:[targetIndex],
+            beforeValues:indexes.map(index=>game.board[index]?.value),
+            afterValues:[game.preview.combine.value],
+            startedAt:Date.now(),
             targetIndex,
             combineKind,
             drinkIndex,
@@ -298,7 +327,7 @@ function App(){
 
 
     scheduleAnimation(
-      () => setBoardAnimation(null),
+      () => setActiveAnimation(null),
       560
     );
 
@@ -328,7 +357,7 @@ function App(){
   function handleReduce(){
 
     if(
-      boardAnimation ||
+      activeAnimation?.phase === "compress" ||
       removingIndex !== null ||
       game.selectedIndexes.length !== 2 ||
       !game.preview?.reduce
@@ -489,7 +518,7 @@ function App(){
 
     const commitDelay =
       removedIndexes.length > 0
-        ? 420
+        ? 240
         : 150;
 
 
@@ -498,10 +527,15 @@ function App(){
     setClearedCells([]);
 
 
-    setBoardAnimation({
+    setActiveAnimation({
       type: "reduce",
       phase: "compress",
       indexes,
+      sourceIndexes:indexes,
+      targetIndexes:indexes.filter(index=>!removedIndexes.includes(index)),
+      beforeValues:indexes.map(index=>game.board[index]?.value),
+      afterValues:game.preview.reduce.results?.map(result=>result.value)??[],
+      startedAt:Date.now(),
       removedIndexes,
       token
     });
@@ -513,16 +547,8 @@ function App(){
         const result=game.reduceNumbers();
         if(result){
           const rewards = result.collectionRewards ?? [];
-          const formalRewards = rewards.filter(reward =>
-            reward.rewardLevel === "normal" || reward.rewardLevel === "major"
-          );
-          const minorRewards = rewards.filter(reward => reward.rewardLevel === "minor");
-
-          if(formalRewards.length > 0){
-            setCollectionRewardQueue(queue => [...queue, ...formalRewards]);
-            setPendingMinorRewards(minorRewards);
-          }else if(minorRewards.length > 0){
-            showMinorCollectionToast(minorRewards);
+          if(rewards.length > 0){
+            setCollectionRewardQueue(queue => [...queue, ...rewards]);
           }else{
             showActionToast(reduceToast.title,reduceToast.message);
           }
@@ -531,10 +557,15 @@ function App(){
         if(game.preview.reduce.keyOutcome?.status==="used")setKeyNotice(`${game.preview.reduce.keyOutcome.triggerValue} 已经触发过钥匙，本次没有获得新钥匙`);
 
 
-        setBoardAnimation({
+        setActiveAnimation({
           type: "reduce",
           phase: "settle",
           indexes,
+          sourceIndexes:indexes,
+          targetIndexes:indexes.filter(index=>!removedIndexes.includes(index)),
+          beforeValues:[],
+          afterValues:[],
+          startedAt:Date.now(),
           removedIndexes,
           token
         });
@@ -564,7 +595,7 @@ function App(){
 
     scheduleAnimation(
       () =>
-        setBoardAnimation(null),
+        setActiveAnimation(null),
       commitDelay +
         (
           removedIndexes.length > 0
@@ -582,7 +613,7 @@ function App(){
 
     if(
       removingIndex !== null ||
-      boardAnimation
+      activeAnimation?.type === "remove"
     ){
       return;
     }
@@ -617,9 +648,15 @@ function App(){
     setClearedCells([]);
 
 
-    setBoardAnimation({
-      type: "claim_key",
+    setActiveAnimation({
+      type: "remove",
+      phase:"exit",
       index,
+      sourceIndexes:[index],
+      targetIndexes:[],
+      beforeValues:[piece.value],
+      afterValues:[],
+      startedAt:Date.now(),
       token:
         ++animationTokenRef.current
     });
@@ -651,7 +688,7 @@ function App(){
 
     scheduleAnimation(
       () =>
-        setBoardAnimation(null),
+        setActiveAnimation(null),
       300
     );
 
@@ -850,6 +887,12 @@ function App(){
             <div className="game-board-main">
 
               <ActionToast toast={actionToast} />
+              {collectionRewardQueue[0] && (
+                <CollectionRewardModal
+                  reward={collectionRewardQueue[0]}
+                  onClose={closeCollectionReward}
+                />
+              )}
 
               <Board
                 board={
@@ -864,7 +907,7 @@ function App(){
                 heaterSelectMode={heaterSelectMode}
                 restoreSelectMode={restoreSelectMode}
                 onSelectCell={
-                  boardAnimation
+                  activeAnimation?.phase === "exit" || activeAnimation?.phase === "compress"
                     ? undefined
                     : restoreSelectMode
                       ? handleRestoreTarget
@@ -900,7 +943,7 @@ function App(){
                   game.mazeTurn
                 }
                 animationState={
-                  boardAnimation
+                  activeAnimation
                 }
                 actionCandidates={
                   game.actionCandidates
@@ -918,7 +961,7 @@ function App(){
                   onBlockedCombine={handleBlockedCombine}
                   onReduce={handleReduce}
                   gameOver={game.gameOver || heaterSelectMode || restoreSelectMode}
-                  removingId={removingIndex ?? boardAnimation?.token ?? null}
+                  removingId={removingIndex ?? ((activeAnimation?.phase === "exit" || activeAnimation?.phase === "compress") ? activeAnimation.token : null)}
                 />
               </div>
 
@@ -983,14 +1026,6 @@ function App(){
         <CombineHistoryPanel
           history={game.combineHistory}
           onClose={() => setShowCombineHistory(false)}
-        />
-      }
-
-      {
-        collectionRewardQueue[0] &&
-        <CollectionRewardModal
-          reward={collectionRewardQueue[0]}
-          onClose={closeCollectionReward}
         />
       }
 

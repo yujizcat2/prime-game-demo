@@ -1189,8 +1189,14 @@ export default function useGame(){
       []
     );
 
+    const rewards=nextState.latestCollectionRewards ?? [];
+    const collectionEvents=(nextState.collectionTimeline ?? []).slice(-rewards.length);
     return {
-      collectionRewards: nextState.latestCollectionRewards ?? []
+      collectionRewards: rewards.map((reward,index)=>({
+        ...reward,
+        isNewCollection:collectionEvents[index]?.isNewCollection,
+        moneyGain:collectionEvents[index]?.moneyGain
+      }))
     };
 
   }

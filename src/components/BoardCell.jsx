@@ -597,8 +597,8 @@ export default function BoardCell({
     animationState.targetIndex !== undefined
 
       ? {
-          "--combine-shift-x": `${Math.sign((animationState.targetIndex % 3) - (index % 3)) * 5}px`,
-          "--combine-shift-y": `${Math.sign(Math.floor(animationState.targetIndex / 3) - Math.floor(index / 3)) * 4}px`
+          "--combine-shift-x": `${Math.sign((animationState.targetIndex % 3) - (index % 3)) * 12}px`,
+          "--combine-shift-y": `${Math.sign(Math.floor(animationState.targetIndex / 3) - Math.floor(index / 3)) * 10}px`
         }
 
       : undefined;
@@ -823,7 +823,13 @@ export default function BoardCell({
 
             ${applyOneCandidate?"board-piece--apply-one-candidate":""}
 
-            ${animationState?.type==="claim_key"&&animationState.index===index?"board-piece--claim-key":""}
+            ${animationState?.type==="remove"&&animationState.index===index?"board-piece--remove-action":""}
+
+            ${animationState?.type==="heater"?"board-piece--heating":""}
+
+            ${animationState?.type==="restore"?"board-piece--restoring":""}
+
+            ${animationState?.type==="super-heater"?"board-piece--super-heating":""}
 
             ${
               autoCollectPreview &&
@@ -1071,6 +1077,10 @@ export default function BoardCell({
                   animationState?.type === "reduce" &&
                   animationState.phase === "settle"
                     ? "board-piece-number--changed"
+                    : animationState?.type === "heater"
+                      ? "board-piece-number--heated"
+                      : animationState?.type === "restore"
+                        ? "board-piece-number--restored"
                     : ""
                 }
 

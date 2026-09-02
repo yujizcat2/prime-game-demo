@@ -544,6 +544,7 @@ export default function Board({
 
             : ""
         }
+        ${animationState?.type === "super-heater" ? "board--super-heating" : ""}
       `}
     >
 
@@ -885,6 +886,14 @@ export default function Board({
             const animation =
 
               animationState?.indexes?.includes(index)
+
+              ||
+
+              animationState?.sourceIndexes?.includes(index)
+
+              ||
+
+              animationState?.targetIndexes?.includes(index)
 
               ||
 

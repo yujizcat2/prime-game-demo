@@ -1,33 +1,34 @@
 import "./CollectionRewardModal.css";
+import { useEffect } from "react";
+import { FOOD_TYPE_LABELS } from "../data/specialOneRegistry";
 
 export default function CollectionRewardModal({reward, onClose}){
+  useEffect(()=>{
+    if(!reward)return undefined;
+    const timer=window.setTimeout(onClose,1800);
+    return()=>window.clearTimeout(timer);
+  },[reward,onClose]);
+
   if(!reward) return null;
 
+  const first=reward.isNewCollection ?? !reward.duplicate;
+  const typeLabel=FOOD_TYPE_LABELS[reward.foodType] ?? (reward.foodType === "drink" ? "饮品" : reward.foodType);
+
   return (
-    <div className="collection-reward-overlay" role="presentation">
+    <div className="collection-reward-overlay">
       <section
-        className={`collection-reward-modal collection-reward-modal--${reward.rewardLevel}`}
-        role="dialog"
-        aria-modal="true"
+        className={`collection-reward-modal collection-reward-modal--${first ? "new" : "repeat"}`}
+        role="status"
+        aria-live="polite"
         aria-labelledby="collection-reward-title"
       >
-        <p className="collection-reward-kicker">恭喜获得</p>
-        <h2 id="collection-reward-title">{reward.value} · {reward.name}</h2>
-
-        <div className="collection-reward-lines">
-          <div><span>基础分</span><strong>+{reward.baseScore}</strong></div>
-          {reward.bonuses.map(bonus => (
-            <div className="collection-reward-bonus" key={bonus.type}>
-              <span>{bonus.label}</span><strong>+{bonus.score}</strong>
-            </div>
-          ))}
-        </div>
-
+        <p className="collection-reward-kicker">✦ {first ? "新料理收藏" : "已经收录"}</p>
+        <h2 id="collection-reward-title">{reward.name} · {reward.value}</h2>
+        {typeLabel && <p className="collection-reward-meta">{typeLabel} · 质数</p>}
         <div className="collection-reward-total">
-          <span>本次共获得</span><strong>+{reward.totalScore} 分</strong>
+          {reward.totalScore != null && <strong>+{reward.totalScore}分</strong>}
+          {reward.moneyGain != null && <strong>{reward.moneyGain > 0 ? "+" : ""}¥{reward.moneyGain}</strong>}
         </div>
-
-        <button type="button" autoFocus onClick={onClose}>收下</button>
       </section>
     </div>
   );

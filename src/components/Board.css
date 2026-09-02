@@ -159,17 +159,17 @@
 @keyframes boardPieceCreated {
   0% {
     opacity: 0;
-    transform: translateY(6px) scale(.58);
+    transform: translateY(4px) scale(.86);
     filter: brightness(1.12);
   }
   58% {
     opacity: 1;
-    transform: translateY(0) scale(1.17);
+    transform: translateY(0) scale(1.04);
     filter: brightness(1.1);
   }
   80% {
     opacity: 1;
-    transform: translateY(0) scale(.96);
+    transform: translateY(0) scale(.99);
     filter: brightness(1.03);
   }
   100% {
@@ -218,7 +218,7 @@
 @keyframes boardPieceReduceCompress {
   to {
     opacity: .7;
-    transform: scale(.86);
+    transform: scale(.95);
     filter: blur(1px) brightness(1.05);
   }
 }
@@ -257,7 +257,7 @@
 
 @keyframes boardPieceReduceSettle {
   0% {
-    transform: scale(.86);
+    transform: scale(.92);
     border-color: rgba(8,145,178,.48);
     filter: brightness(1.08);
   }
@@ -268,6 +268,66 @@
     transform: scale(1);
     filter: brightness(1);
   }
+}
+
+.board-piece.board-piece--remove-action {
+  pointer-events: none;
+  animation: boardPieceRemoveAction .3s ease-out both;
+}
+
+@keyframes boardPieceRemoveAction {
+  0% { opacity:1; transform:translateY(0) scale(1); filter:brightness(1); }
+  22% { opacity:1; transform:translateY(-2px) scale(1.03); filter:brightness(1.16); }
+  100% { opacity:0; transform:translateY(-26px) scale(.55); filter:brightness(1.04); }
+}
+
+.board-piece.board-piece--heating {
+  animation: boardPieceHeating .42s ease-out both;
+}
+.board-piece--heating .board-piece-number {
+  animation: boardPieceHeatedNumber .36s ease-out both;
+}
+@keyframes boardPieceHeating {
+  0%,100% { transform:translateX(0); filter:brightness(1); }
+  18% { transform:translateX(-2px); }
+  34% { transform:translateX(2px); filter:brightness(1.11); }
+  50% { transform:translateX(-1px); }
+}
+@keyframes boardPieceHeatedNumber {
+  0% { opacity:0; transform:translateY(5px); }
+  45%,100% { opacity:1; transform:translateY(0); }
+}
+
+.board-piece.board-piece--restoring {
+  animation: boardPieceRestoring .48s cubic-bezier(.2,.8,.3,1) both;
+}
+.board-piece--restoring .board-piece-number {
+  animation: boardPieceRestoredNumber .4s ease-out both;
+}
+@keyframes boardPieceRestoring {
+  0% { opacity:.5; transform:translateY(-4px) scale(.94); }
+  62% { opacity:1; transform:translateY(0) scale(1.03); }
+  100% { opacity:1; transform:translateY(0) scale(1); }
+}
+@keyframes boardPieceRestoredNumber {
+  from { opacity:.5; transform:translateY(-4px); }
+  to { opacity:1; transform:translateY(0); }
+}
+
+.board.board--super-heating {
+  animation: boardSuperHeating .62s ease-out both;
+}
+.board-piece.board-piece--super-heating {
+  animation: boardPieceSuperHeating .58s cubic-bezier(.2,.8,.3,1) both;
+}
+@keyframes boardSuperHeating {
+  0%,100% { transform:scale(1); box-shadow:inset 0 1px 2px rgba(15,23,42,.055),0 8px 24px rgba(15,23,42,.045); }
+  28% { transform:scale(.992); box-shadow:inset 0 0 0 2px rgba(226,157,57,.18),0 9px 27px rgba(170,105,30,.12); }
+}
+@keyframes boardPieceSuperHeating {
+  0%,100% { transform:scale(1); filter:brightness(1); }
+  34% { transform:translateY(-3px) scale(.96); filter:brightness(1.14); }
+  66% { transform:translateY(0) scale(1.035); }
 }
 
 .board-piece-number--changed {
@@ -419,6 +479,11 @@
   .board-piece--reduce-compress,
   .board-piece--reduce-auto-exit,
   .board-piece--reduce-settle,
+  .board-piece--remove-action,
+  .board-piece--heating,
+  .board-piece--restoring,
+  .board-piece--super-heating,
+  .board--super-heating,
   .board-piece-number--changed,
   .board-piece--remove,
   .board-piece-remove-flash,
