@@ -79,6 +79,7 @@ const passedDynamic = resolveGameOver({
 });
 assert.equal(passedDynamic.gameOver, false);
 assert.equal(passedDynamic.passedCheckpointCount, 2);
+assert.equal(passedDynamic.checkpoint.index, 3);
 assert.equal(passedDynamic.checkpoint.performanceRatio, (passedFirst.checkpoint.requiredScore + 300) / passedFirst.checkpoint.requiredScore);
 assert.equal(passedDynamic.checkpoint.generatedFromScore, passedFirst.checkpoint.requiredScore + 300);
 assert.equal(
@@ -190,11 +191,15 @@ const hudSource = readFileSync("src/components/StepPanel.jsx", "utf8");
 assert.match(hudSource, /isEightPalace \? "积分" : "金钱"/);
 assert.match(hudSource, /isEightPalace \? "步数" : "时间"/);
 assert.match(hudSource, /!isEightPalace && <span/);
-assert.match(hudSource, /下一检查站/);
+assert.match(hudSource, /第 \{checkpoint\.index\} 检查站/);
+assert.match(hudSource, /CHECKPOINT/);
 assert.match(hudSource, /目标/);
+assert.match(hudSource, /获得至少 1 个收藏/);
 assert.match(hudSource, /还差/);
 assert.match(hudSource, /领先/);
 assert.match(hudSource, /checkpointProgress \* 100/);
+assert.match(hudSource, /checkpoint-card--near/);
+assert.match(hudSource, /checkpoint-card--imminent/);
 assert.doesNotMatch(hudSource, /通行值/);
 
 const settlementSource = readFileSync("src/components/GameOver.jsx", "utf8");
@@ -202,6 +207,9 @@ assert.match(settlementSource, /\? "本局结束"/);
 assert.match(settlementSource, />积分</);
 assert.match(settlementSource, />Step</);
 assert.match(settlementSource, />收藏</);
+assert.match(settlementSource, /第 \$\{checkpointResult\?\.index/);
+assert.match(settlementSource, /检查站失败/);
+assert.match(settlementSource, /还差/);
 assert.doesNotMatch(settlementSource, /通行值/);
 assert.doesNotMatch(settlementSource, /挑战失败|Game Over/);
 

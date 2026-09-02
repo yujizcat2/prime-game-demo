@@ -32,6 +32,11 @@ export default function StepPanel({
     : 0;
   const checkpointDifference = checkpointCurrent - checkpointTarget;
   const remainingSteps = Math.max(0, (checkpoint?.step ?? steps) - steps);
+  const proximityClass = remainingSteps <= 2
+    ? " checkpoint-card--imminent"
+    : remainingSteps <= 5
+      ? " checkpoint-card--near"
+      : "";
   const [showEfficiency, setShowEfficiency] = useState(false);
 
   return (
@@ -100,24 +105,28 @@ export default function StepPanel({
         </div>
       </div>
 
-      {isEightPalace && checkpoint && <section className={`checkpoint-card${checkpointDifference >= 0 ? " checkpoint-card--ready" : ""}`}>
+      {isEightPalace && checkpoint && <section className={`checkpoint-card${checkpointDifference >= 0 ? " checkpoint-card--ready" : ""}${proximityClass}`}>
         <div className="checkpoint-card-heading">
-          <strong>下一检查站</strong>
-          <span className="checkpoint-card-step"><small>STEP</small>{checkpoint.step}</span>
+          <div className="checkpoint-card-identity">
+            <span className="checkpoint-card-marker" aria-hidden="true" />
+            <span>CHECKPOINT</span>
+            <strong>第 {checkpoint.index} 检查站</strong>
+          </div>
+          <span className="checkpoint-card-step"><small>STEP</small><strong>{checkpoint.step}</strong></span>
         </div>
         <div className="checkpoint-card-score-row">
           <div>
-            <span className="checkpoint-card-caption">目标</span>
+            <span className="checkpoint-card-caption">{isCollectionCheckpoint ? "任务" : "目标"}</span>
             <strong className="checkpoint-card-target">
               {isCollectionCheckpoint
-                ? `收藏 ${checkpointTarget}`
+                ? "获得至少 1 个收藏"
                 : `${numberFormatter.format(checkpointTarget)} 分`}
             </strong>
           </div>
           <div className="checkpoint-card-current">
-            <span>当前 {numberFormatter.format(checkpointCurrent)}{isCollectionCheckpoint ? " 个收藏" : " 分"}{checkpointDifference >= 0 ? " ✓" : ""}</span>
+            <span>当前 {numberFormatter.format(checkpointCurrent)}{isCollectionCheckpoint ? " 个收藏" : " 分"}</span>
             <strong>{checkpointDifference >= 0
-              ? checkpointDifference === 0 ? "已达标" : `领先 ${numberFormatter.format(checkpointDifference)}${isCollectionCheckpoint ? " 个" : " 分"}`
+              ? checkpointDifference === 0 ? "已达标" : isCollectionCheckpoint ? `${checkpointCurrent} / ${checkpointTarget} · 已完成` : `已达标 · 领先 ${numberFormatter.format(checkpointDifference)} 分`
               : `还差 ${numberFormatter.format(-checkpointDifference)}${isCollectionCheckpoint ? " 个" : " 分"}`}</strong>
           </div>
         </div>
@@ -125,7 +134,7 @@ export default function StepPanel({
           <span style={{width: `${checkpointProgress * 100}%`}} />
         </div>
         <div className="checkpoint-card-footer">
-          {remainingSteps === 0 ? "正在检查" : `距检查站还有 ${remainingSteps} Step`}
+          {remainingSteps === 0 ? "正在检查" : <><span>剩余</span><strong>{remainingSteps}</strong><span>STEP</span></>}
         </div>
       </section>}
 

@@ -130,7 +130,7 @@ export default function GameOver({
 
           {isEightPalace
             ? reason === "checkpoint_failed"
-              ? "未通过检查站"
+              ? `第 ${checkpointResult?.index ?? "—"} 检查站失败`
               : reason === "no_legal_actions" ? "已无合法操作" : "本局已结束"
             : reason === "board_depleted"
             ? "剩余料理不足以继续维持盘面。"
@@ -140,8 +140,8 @@ export default function GameOver({
 
         {reason === "checkpoint_failed" && checkpointResult && <p className="mt-3 text-sm font-bold text-gray-600">
           {checkpointResult.type === "collection"
-            ? "Step 10 前需要至少获得 1 个收藏"
-            : `最终积分 ${checkpointResult.currentScore} / 目标积分 ${checkpointResult.requiredScore} · Step ${checkpointResult.step}`}
+            ? `Step ${checkpointResult.step} · 任务：获得至少 1 个收藏`
+            : `Step ${checkpointResult.step} · 最终积分 ${checkpointResult.currentScore} · 目标积分 ${checkpointResult.requiredScore} · 还差 ${Math.max(0, checkpointResult.requiredScore - checkpointResult.currentScore)} 分`}
         </p>}
 
 
