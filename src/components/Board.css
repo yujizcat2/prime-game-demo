@@ -6098,7 +6098,7 @@
   position: absolute;
   left: 6px;
   bottom: 4px;
-  z-index: 2;
+  z-index: 30;
   padding: 1px 4px;
   border-radius: 999px;
   color: rgba(72, 91, 80, .48);
@@ -6107,6 +6107,16 @@
   font-weight: 800;
   line-height: 1.35;
   pointer-events: none;
+}
+
+.board-cell--occupied .board-native-label {
+  color: rgba(72, 91, 80, .42);
+  background: rgba(255, 255, 255, .72);
+}
+
+.board-cell--selected .board-native-label {
+  color: rgba(255, 255, 255, .82);
+  background: rgba(31, 41, 55, .38);
 }
 
 .board-cell--restore-available .board-piece {

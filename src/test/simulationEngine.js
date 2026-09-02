@@ -1301,6 +1301,10 @@ function applyReduce(
 
   const reductionTemplate=first.foodType===FOOD_TYPES.DRINK?second:second.foodType===FOOD_TYPES.DRINK?first:null;
   if(reductionTemplate)firstFoodType=secondFoodType=reductionTemplate.foodType;
+  if(reductionTemplate){
+    if(first.foodType!==FOOD_TYPES.DRINK&&firstResult!==1)firstFoodType=getNativeFoodType(indexA)??firstFoodType;
+    if(second.foodType!==FOOD_TYPES.DRINK&&secondResult!==1)secondFoodType=getNativeFoodType(indexB)??secondFoodType;
+  }
   const reductionPurity=reductionTemplate?.purity??null;
 
 

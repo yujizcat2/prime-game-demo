@@ -67,6 +67,7 @@ export default function BoardCell({
 }) {
   const nativeFoodType = getNativeFoodType(index);
   const nativeFoodTypeName = getFoodTypeShortName(nativeFoodType);
+  const nativePositionLabel = nativeFoodType ? `原 · ${nativeFoodTypeName}` : "中心";
   const nativeCellClass = nativeFoodType
     ? `board-cell--native-${nativeFoodType}`
     : "board-cell--native-neutral";
@@ -124,7 +125,7 @@ export default function BoardCell({
           "
         >
 
-          {nativeFoodType && <span className="board-native-label">{nativeFoodTypeName}</span>}
+          <span className="board-native-label">{nativePositionLabel}</span>
 
 
           <div
@@ -667,6 +668,8 @@ export default function BoardCell({
       }
 
     >
+
+      <span className="board-native-label">{nativePositionLabel}</span>
 
       <div
 
