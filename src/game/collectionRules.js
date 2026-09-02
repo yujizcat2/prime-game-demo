@@ -10,6 +10,7 @@ import { getFoodName } from "../data/food/foodRegistry";
 import { getCollectionScoreGain } from "./scoreValue";
 import { createCollectionRewardSettlement } from "./collectionReward";
 import { getCollectionMoneyGain } from "./money";
+import { getBoardAbundance } from "./boardAbundance";
 
 
 // ============================================================
@@ -1583,7 +1584,11 @@ export function getEightPalaceCollectionScoreGain(state, piece){
 // The 100 Step Eight Palace mode collects the concrete card that existed
 // immediately before reduction. Names and direct parents are captured now,
 // rather than reconstructed from a future registry.
-export function applyEightPalaceCollection(state, piece){
+export function applyEightPalaceCollection(
+  state,
+  piece,
+  abundance = getBoardAbundance(state?.board)
+){
   const record = getCollectionRecord(piece);
   if(!record) return state;
 
@@ -1600,7 +1605,8 @@ export function applyEightPalaceCollection(state, piece){
     value,
     foodType: record.foodType ?? null,
     name,
-    baseScore: scoreGain
+    baseScore: scoreGain,
+    abundance
   });
   const moneyGain = getCollectionMoneyGain(isNewCollection);
   const cumulativeMoney = (state.money ?? 0) + moneyGain;
@@ -1618,6 +1624,9 @@ export function applyEightPalaceCollection(state, piece){
     originType: record.origin?.type ?? null,
     scoreGain: rewardSettlement.totalScore,
     baseScore: rewardSettlement.baseScore,
+    abundance: rewardSettlement.abundance,
+    abundanceBonusRate: rewardSettlement.abundanceBonusRate,
+    abundanceBonusScore: rewardSettlement.abundanceBonusScore,
     bonusScore: rewardSettlement.bonusScore,
     totalScore: rewardSettlement.totalScore,
     bonuses: rewardSettlement.bonuses,

@@ -29,6 +29,11 @@ export default function CollectionRewardModal({reward, onClose}){
           {reward.totalScore != null && <strong>+{reward.totalScore}分</strong>}
           {reward.moneyGain != null && <strong>{reward.moneyGain > 0 ? "+" : ""}¥{reward.moneyGain}</strong>}
         </div>
+        {reward.abundanceBonusScore > 0 && (
+          <p className="collection-reward-breakdown">
+            基础{reward.baseScore} · 丰盛度+{reward.abundanceBonusScore}
+          </p>
+        )}
       </section>
     </div>
   );

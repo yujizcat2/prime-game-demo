@@ -1,4 +1,8 @@
 import { FOOD_TYPE_LABELS } from "../data/specialOneRegistry";
+import {
+  getAbundanceBonusRate,
+  getAbundanceBonusScore
+} from "./boardAbundance";
 
 export const FIRST_FOOD_TYPE_BONUS = 5;
 export const FIRST_NUMBER_BONUS = 2;
@@ -11,7 +15,7 @@ function hasSameCollection(cards, value, foodType){
 }
 
 export function createCollectionRewardSettlement({
-  collectionCards = [], value, foodType, name, baseScore
+  collectionCards = [], value, foodType, name, baseScore, abundance = 0
 }){
   const cards = collectionCards ?? [];
   const duplicate = hasSameCollection(cards, value, foodType);
@@ -19,6 +23,8 @@ export function createCollectionRewardSettlement({
   if(duplicate || baseScore <= 0){
     return {
       collected: false, duplicate, value, foodType, name, baseScore: 0,
+      abundance, abundanceBonusRate: getAbundanceBonusRate(abundance),
+      abundanceBonusScore: 0,
       bonuses: [], bonusScore: 0, totalScore: 0, rewardLevel: "none"
     };
   }
@@ -45,6 +51,16 @@ export function createCollectionRewardSettlement({
     });
   }
 
+  const abundanceBonusRate = getAbundanceBonusRate(abundance);
+  const abundanceBonusScore = getAbundanceBonusScore(baseScore, abundance);
+  if(abundanceBonusScore > 0){
+    bonuses.push({
+      type: "abundance",
+      label: `丰盛度奖励 +${Math.round(abundanceBonusRate * 100)}%`,
+      score: abundanceBonusScore
+    });
+  }
+
   const bonusScore = bonuses.reduce((sum, bonus) => sum + bonus.score, 0);
   const rewardLevel = bonuses.length > 0
     ? "major"
@@ -54,6 +70,7 @@ export function createCollectionRewardSettlement({
 
   return {
     collected: true, duplicate: false, value, foodType, name, baseScore,
+    abundance, abundanceBonusRate, abundanceBonusScore,
     bonuses, bonusScore, totalScore: baseScore + bonusScore, rewardLevel
   };
 }

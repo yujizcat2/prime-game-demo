@@ -74,6 +74,9 @@ assert.equal(result.finalScore, result.collections.reduce((sum, card) => sum + c
 assert.ok(Number.isInteger(result.finalScore), "AI final score remains an integer");
 assert.ok(result.collections.every(card =>
   Number.isInteger(card.baseScore) &&
+  Number.isInteger(card.abundance) &&
+  typeof card.abundanceBonusRate === "number" &&
+  Number.isInteger(card.abundanceBonusScore) &&
   Number.isInteger(card.bonusScore) &&
   Number.isInteger(card.totalScore)
 ), "AI collection settlements use integer scores");

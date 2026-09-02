@@ -51,6 +51,7 @@ import { getCurrentHeaterPrice, isHeaterTarget } from "./heaterPricing";
 import { getCurrentSuperHeaterPrice } from "./superHeaterPricing";
 import { getLegalRestoreActions } from "./restore";
 import { getNativeFoodType } from "./nativeFoodTypes";
+import { getBoardAbundance } from "./boardAbundance";
 
 import {
   addCombinePair,
@@ -598,6 +599,7 @@ export function reduceCells(
 
   const reductionOutcome=createReduceOutcome(state,indexA,indexB);
   if(!reductionOutcome)return state;
+  const abundanceBeforeAction = getBoardAbundance(state.board);
   const [firstOutcome,secondOutcome]=reductionOutcome.results;
   const firstResult=firstOutcome.value;
   const secondResult=secondOutcome.value;
@@ -879,8 +881,8 @@ export function reduceCells(
   };
 
   if(eightPalace){
-    if(firstResult === 1) nextState = applyEightPalaceCollection(nextState, firstReducedPiece);
-    if(secondResult === 1) nextState = applyEightPalaceCollection(nextState, secondReducedPiece);
+    if(firstResult === 1) nextState = applyEightPalaceCollection(nextState, firstReducedPiece, abundanceBeforeAction);
+    if(secondResult === 1) nextState = applyEightPalaceCollection(nextState, secondReducedPiece, abundanceBeforeAction);
     nextState = applyEightPalaceKeyFromReduction(nextState,first,second,firstResult,secondResult);
   }
 
