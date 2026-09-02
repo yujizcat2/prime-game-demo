@@ -1,6 +1,5 @@
 import {
-  createStandardInitialValues,
-  createEightPalaceInitialValues
+  createStandardInitialValues
 } from "../game/initialValues";
 import {
   applyAction,
@@ -45,7 +44,7 @@ export const STRATEGIC_CANDIDATE_LIMITS = Object.freeze({
 
 export const PAID_ACTION_OPTION_VALUE_WEIGHT = 100;
 
-function createScoreOpening(opening = createEightPalaceInitialValues()){
+function createScoreOpening(opening = createStandardInitialValues()){
   return opening.map(card => ({...card}));
 }
 
@@ -607,7 +606,7 @@ export async function runScoreGame({
 } = {}){
   const gameStartedAt = performance.now();
   const searchTelemetry = createSearchTelemetry();
-  const opening = createScoreOpening(initialOpening ?? createEightPalaceInitialValues());
+  const opening = createScoreOpening(initialOpening ?? createStandardInitialValues());
   let state = resolveGameOver(createGameState(opening));
   const initialBoard = snapshotBoard(state.board);
   const actionPath = [];
@@ -1120,7 +1119,7 @@ export async function runFixedScoreAttempts({
   fixedOpening = null,
   onProgress = null
 } = {}){
-  const opening = createScoreOpening(fixedOpening ?? createEightPalaceInitialValues());
+  const opening = createScoreOpening(fixedOpening ?? createStandardInitialValues());
   const results = [];
 
   for(let attemptIndex = 1; attemptIndex <= attempts; attemptIndex++){

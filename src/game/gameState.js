@@ -158,7 +158,8 @@ export function createGameState(
           getBaseScore(value),
 
 
-        foodType: getNativeFoodType(boardIndex)
+        foodType: (usesPlacedInitialValues ? initialValue.foodType : null)
+          ?? getNativeFoodType(boardIndex)
           ?? initialFoodTypes[index]
           ?? FOOD_TYPES.LAND,
 

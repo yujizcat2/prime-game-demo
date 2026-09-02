@@ -8,8 +8,6 @@ import { BASE_FOOD_TYPES, FOOD_PURITY, FOOD_TYPES } from "../game/rules";
 import { getBaseScore } from "../game/scoreValue";
 import { BOARD_NATIVE_FOOD_TYPES, getNativeBoardIndex } from "../game/nativeFoodTypes";
 
-const seenCombinations = new Set();
-
 for(let attempt = 0; attempt < 250; attempt++){
     const opening = createStandardInitialValues();
     const values = opening.map(card => card.value);
@@ -17,20 +15,19 @@ for(let attempt = 0; attempt < 250; attempt++){
 
     assert.equal(opening.length, 4, "standard opening card count");
     assert.equal(new Set(foodTypes).size, 4, "four distinct food types");
-    assert.equal(values.reduce((sum, value) => sum + value, 0), 30, "exact total");
-    assert.ok(values.every(value => Number.isInteger(value) && value >= 2 && value <= 101), "legal values");
+    assert.ok(values.every(value => Number.isInteger(value) && value >= 2 && value <= 9), "values are independently sampled from 2-9");
     assert.ok(foodTypes.every(foodType => BASE_FOOD_TYPES.includes(foodType)), "base food types only");
     assert.ok(!foodTypes.includes(FOOD_TYPES.DRINK), "excludes drink");
-    opening.forEach(card => assert.equal(card.boardIndex, getNativeBoardIndex(card.foodType)));
+    assert.equal(new Set(opening.map(card => card.boardIndex)).size, 4, "four distinct board positions");
+    assert.ok(opening.every(card => card.boardIndex >= 0 && card.boardIndex <= 8), "positions are on the board");
 
     const state = createGameState(opening);
     const cards = state.board.filter(Boolean);
     assert.equal(cards.length, 4);
-    assert.equal(state.board[4], null, "center starts empty");
     for(const [boardIndex, card] of state.board.entries()){
       if(!card) continue;
       assert.equal(card.scoreValue, getBaseScore(card.value));
-      assert.equal(card.foodType, BOARD_NATIVE_FOOD_TYPES[boardIndex]);
+      assert.equal(card.foodType, opening.find(item => item.boardIndex === boardIndex).foodType);
       assert.equal(card.purity, FOOD_PURITY.PURE);
       assert.equal(card.origin, null);
       assert.ok(Object.hasOwn(card, "id"));
@@ -39,11 +36,17 @@ for(let attempt = 0; attempt < 250; attempt++){
       assert.ok(Object.hasOwn(card, "drinkOriginValue"));
       assert.ok(Object.hasOwn(card, "sourceKey"));
     }
-
-    seenCombinations.add([...values].sort((left, right) => left - right).join(","));
   }
 
-assert.ok(seenCombinations.size > 1, "standard opening produces varied number combinations");
+const controlledOpening = createStandardInitialValues(() => 0);
+assert.deepEqual(controlledOpening.map(card => card.value), [2, 2, 2, 2], "duplicate values are supported");
+assert.ok(controlledOpening.some(card => card.boardIndex === 4), "center is an available opening position");
+assert.ok(
+  controlledOpening.some(card => card.boardIndex !== getNativeBoardIndex(card.foodType)),
+  "food types can start outside their native positions"
+);
+const controlledState = createGameState(controlledOpening);
+assert.ok(controlledOpening.every(card => controlledState.board[card.boardIndex].foodType === card.foodType));
 assert.equal(BOARD_NATIVE_FOOD_TYPES[4], null);
 
 const startScreenSource = readFileSync("src/components/StartScreen.jsx", "utf8");

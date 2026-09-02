@@ -3,7 +3,6 @@
 import {
   BASE_FOOD_TYPES
 } from "./rules";
-import { getNativeBoardIndex } from "./nativeFoodTypes";
 
 
 // ============================================================
@@ -24,50 +23,25 @@ export const INITIAL_VALUE_POOL = [
 ];
 
 const STANDARD_OPENING_COUNT = 4;
-const STANDARD_OPENING_SUM = 30;
-const STANDARD_OPENING_VALUE_MIN = 2;
-const STANDARD_OPENING_VALUE_MAX = 12;
-const STANDARD_OPENING_MAX_SPREAD = 7;
 
-function shuffle(items){
+function shuffle(items, random){
   const result = [...items];
   for(let index = result.length - 1; index > 0; index--){
-    const swapIndex = Math.floor(Math.random() * (index + 1));
+    const swapIndex = Math.floor(random() * (index + 1));
     [result[index], result[swapIndex]] = [result[swapIndex], result[index]];
   }
   return result;
 }
 
-const STANDARD_OPENING_COMBINATIONS = Object.freeze((() => {
-  const combinations = [];
-  for(let first = STANDARD_OPENING_VALUE_MIN; first <= STANDARD_OPENING_VALUE_MAX; first++){
-    for(let second = first + 1; second <= STANDARD_OPENING_VALUE_MAX; second++){
-      for(let third = second + 1; third <= STANDARD_OPENING_VALUE_MAX; third++){
-        for(let fourth = third + 1; fourth <= STANDARD_OPENING_VALUE_MAX; fourth++){
-          const values = [first, second, third, fourth];
-          if(
-            values.reduce((sum, value) => sum + value, 0) === STANDARD_OPENING_SUM
-            && fourth - first <= STANDARD_OPENING_MAX_SPREAD
-          ) combinations.push(Object.freeze(values));
-        }
-      }
-    }
-  }
-  return combinations;
-})());
-
-export function createStandardInitialValues(){
-  const values = shuffle(
-    STANDARD_OPENING_COMBINATIONS[
-      Math.floor(Math.random() * STANDARD_OPENING_COMBINATIONS.length)
-    ]
-  );
-  const foodTypes = shuffle(BASE_FOOD_TYPES).slice(0, STANDARD_OPENING_COUNT);
+export function createStandardInitialValues(random = Math.random){
+  const foodTypes = shuffle(BASE_FOOD_TYPES, random).slice(0, STANDARD_OPENING_COUNT);
+  const boardIndexes = shuffle(Array.from({length: 9}, (_, index) => index), random)
+    .slice(0, STANDARD_OPENING_COUNT);
 
   return foodTypes.map((foodType, index) => ({
-    value: values[index],
+    value: INITIAL_VALUE_POOL[Math.floor(random() * INITIAL_VALUE_POOL.length)],
     foodType,
-    boardIndex: getNativeBoardIndex(foodType)
+    boardIndex: boardIndexes[index]
   }));
 }
 
