@@ -853,6 +853,11 @@ export function summarizeScoreResults(results){
       averageRequiredPassValue: average(
         reached.filter(checkpoint => checkpoint.requiredPassValue != null),
         checkpoint => checkpoint.requiredPassValue
+      ),
+      averageActualPassValue: average(reached, checkpoint => checkpoint.currentPassValue),
+      averageExcessRatio: average(
+        reached.filter(checkpoint => checkpoint.excessRatio != null),
+        checkpoint => checkpoint.excessRatio
       )
     };
   });

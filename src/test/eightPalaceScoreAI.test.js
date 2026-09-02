@@ -208,6 +208,10 @@ for(const summary of [tenGames, tenGames.randomComparison]){
     new Set(["0.6", "0.7", "0.8", "1"])
   );
   assert.ok(Object.values(summary.averageCollectionFoodTypeCounts).every(Number.isFinite));
+  assert.ok(summary.checkpointSurvival.every(checkpoint =>
+    Number.isFinite(checkpoint.averageActualPassValue)
+    && Number.isFinite(checkpoint.averageExcessRatio)
+  ));
   assert.equal(
     summary.averageCollectedNormalFoodTypeCount,
     summary.results.reduce((sum, game) => sum + game.collectedNormalFoodTypeCount, 0) / summary.results.length
