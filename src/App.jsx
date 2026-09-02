@@ -33,13 +33,13 @@ import { getCollectionMoneyGain } from "./game/money";
 
 import { FOOD_TYPE_LABELS } from "./data/specialOneRegistry";
 import { getActionStatus } from "./game/actionStatus";
-import { getAbundanceBonusRate, getBoardAbundance } from "./game/boardAbundance";
+import { getNonDrinkBoardSum } from "./game/scoreValue";
 
 
 function App(){
 
   const game = useGame();
-  const boardAbundance = getBoardAbundance(game.board);
+  const nonDrinkBoardSum = getNonDrinkBoardSum(game.board);
 
   const [
     showTestLab,
@@ -844,8 +844,7 @@ function App(){
               numberCount={
                 game.numbers.length
               }
-              abundance={boardAbundance}
-              abundanceBonusRate={getAbundanceBonusRate(boardAbundance)}
+              nonDrinkBoardSum={nonDrinkBoardSum}
               dead={
                 activityStatus.dead
               }

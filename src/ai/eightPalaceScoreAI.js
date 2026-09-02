@@ -657,7 +657,6 @@ export async function runScoreGame({
   );
   const collectedNormalFoodTypeStats = getCollectedNormalFoodTypeStats(state.collectionCards);
   const newFoodTypeBonusTotal = state.collectionCards.reduce((sum, card) => sum + (card.newFoodTypeBonus ?? 0), 0);
-  const boardPowerBonusTotal = state.collectionCards.reduce((sum, card) => sum + (card.boardPowerBonus ?? 0), 0);
   const largeCollectionStats = Object.fromEntries([50, 70, 90].map(threshold => {
     const cards = state.collectionCards.filter(card => card.value >= threshold);
     return [threshold, {
@@ -742,7 +741,6 @@ export async function runScoreGame({
     collectedNormalFoodTypeCount: collectedNormalFoodTypeStats.count,
     firstCollectedNormalFoodTypeSteps: collectedNormalFoodTypeStats.firstSteps,
     newFoodTypeBonusTotal,
-    boardPowerBonusTotal,
     largeCollectionStats,
     dominantCollectionFoodType: dominantCollectionEntry?.[0] ?? null,
     dominantCollectionFoodTypeCount: dominantCollectionEntry?.[1] ?? 0,
@@ -857,7 +855,6 @@ export function summarizeScoreResults(results){
   }));
   const totalFinalScore = results.reduce((sum, result) => sum + result.finalScore, 0);
   const totalNewFoodTypeBonus = results.reduce((sum, result) => sum + (result.newFoodTypeBonusTotal ?? 0), 0);
-  const totalBoardPowerBonus = results.reduce((sum, result) => sum + (result.boardPowerBonusTotal ?? 0), 0);
   const largeCollectionSummary = Object.fromEntries([50, 70, 90].map(threshold => {
     const totalCount = results.reduce((sum, result) => sum + (result.largeCollectionStats?.[threshold]?.count ?? 0), 0);
     const boardValueTotal = results.reduce((sum, result) => {
@@ -921,10 +918,8 @@ export function summarizeScoreResults(results){
     ])),
     averageFirstCollectedNormalFoodTypeSteps,
     averageNewFoodTypeBonus: average(results, result => result.newFoodTypeBonusTotal ?? 0),
-    averageBoardPowerBonus: average(results, result => result.boardPowerBonusTotal ?? 0),
     newFoodTypeBonusScoreRatio: totalFinalScore ? totalNewFoodTypeBonus / totalFinalScore : 0,
-    boardPowerBonusScoreRatio: totalFinalScore ? totalBoardPowerBonus / totalFinalScore : 0,
-    combinedAuxiliaryBonusScoreRatio: totalFinalScore ? (totalNewFoodTypeBonus + totalBoardPowerBonus) / totalFinalScore : 0,
+    combinedAuxiliaryBonusScoreRatio: totalFinalScore ? totalNewFoodTypeBonus / totalFinalScore : 0,
     largeCollectionSummary,
     averageFinalMoney: average(results, result => result.finalMoney ?? 0),
     averageHeaterUseCount: average(results, result => result.heaterUseCount ?? 0),

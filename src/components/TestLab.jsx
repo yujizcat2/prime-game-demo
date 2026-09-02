@@ -1442,7 +1442,6 @@ function ScoreSummaryGrid({result}){
         value={`${result.collectedNormalFoodTypeReachCounts?.[target] ?? 0} / ${result.games ?? result.attempts} · ${result.averageFirstCollectedNormalFoodTypeSteps?.[target]?.toFixed(1) ?? "—"}`}
       />)}
       <ResultItem label="平均新系奖励 / 占总分" value={`${(result.averageNewFoodTypeBonus ?? 0).toFixed(1)} · ${((result.newFoodTypeBonusScoreRatio ?? 0) * 100).toFixed(2)}%`} />
-      <ResultItem label="平均盘面强度奖励 / 占总分" value={`${(result.averageBoardPowerBonus ?? 0).toFixed(1)} · ${((result.boardPowerBonusScoreRatio ?? 0) * 100).toFixed(2)}%`} />
       {[50, 70, 90].map(threshold => <ResultItem
         key={`large-collection-${threshold}`}
         label={`≥${threshold} 收藏 / 当时盘面均值`}
@@ -1615,7 +1614,7 @@ function ScoreRecord({title, game}){
         累计收藏普通系：{game.collectedNormalFoodTypeCount ?? 0}
       </div>
       <div className="test-lab-record-collection">
-        新系奖励：{game.newFoodTypeBonusTotal ?? 0} · 盘面强度奖励：{game.boardPowerBonusTotal ?? 0}
+        新系奖励：{game.newFoodTypeBonusTotal ?? 0}
       </div>
       <div className="test-lab-record-collection">最终盘面：{formatScoreBoard(game.finalBoard) || "空"}</div>
       {game.heaterTimeline?.length > 0 && <div className="test-lab-record-collection">

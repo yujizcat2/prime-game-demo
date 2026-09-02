@@ -6,7 +6,7 @@ import { applyAction, resolveGameOver } from "../game/gameEngine";
 import { applyEightPalaceCollection } from "../game/collectionRules";
 import { getCollectionSourceText } from "../components/collectionDisplay";
 import { BASE_FOOD_TYPES } from "../game/rules";
-import { getBaseScore } from "../game/scoreValue";
+import { getBaseScore, getNonDrinkBoardSum } from "../game/scoreValue";
 
 for(let attempt = 0; attempt < 200; attempt++){
   const opening = createEightPalaceInitialValues();
@@ -97,7 +97,10 @@ const reducedCollection = applyEightPalaceCollection(createGameState(actionOpeni
 assert.match(getCollectionSourceText(nativeCollection.collectionCards[0]), /^一种原生的/);
 assert.match(getCollectionSourceText(reducedCollection.collectionCards[0]), /^一种由.+处理而来的/);
 assert.match(getCollectionSourceText(collectionState.collectionCards[0]), /^一种由.+与.+制成的/);
-assert.equal(nativeCollection.collectionCards[0].baseScore, getBaseScore(37));
+assert.equal(
+  nativeCollection.collectionCards[0].baseScore,
+  getBaseScore(37, getNonDrinkBoardSum(createGameState(actionOpening).board))
+);
 const collectionPanelSource = readFileSync("src/components/EightPalaceCollectionPanel.jsx", "utf8");
 assert.match(collectionPanelSource, /\+\{card\.scoreGain/);
 assert.match(collectionPanelSource, /\{name\} \{card\.value\}/);

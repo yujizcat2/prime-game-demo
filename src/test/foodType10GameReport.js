@@ -42,7 +42,6 @@ console.log(JSON.stringify({
   averageNewFoodTypeBonus: report.averageNewFoodTypeBonus,
   averageBoardPowerBonus: report.averageBoardPowerBonus,
   newFoodTypeBonusScoreRatio: report.newFoodTypeBonusScoreRatio,
-  boardPowerBonusScoreRatio: report.boardPowerBonusScoreRatio,
   combinedAuxiliaryBonusScoreRatio: report.combinedAuxiliaryBonusScoreRatio,
   largeCollectionSummary: report.largeCollectionSummary,
   lowestScore: report.lowestScore

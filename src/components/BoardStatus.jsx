@@ -17,8 +17,7 @@ export default function BoardStatus({
   activityReduceLegal = 0,
 
   numberCount = 0,
-  abundance = 0,
-  abundanceBonusRate = 0,
+  nonDrinkBoardSum = 0,
 
   dead = false,
 
@@ -184,7 +183,7 @@ export default function BoardStatus({
 
 
           <div className="board-status-metrics">
-            <span>丰盛度 <strong>{abundance}</strong>{abundanceBonusRate > 0 && ` · 收藏 +${Math.round(abundanceBonusRate * 100)}%`}</span>
+            <span>料理总和 <strong>{nonDrinkBoardSum}</strong></span>
             <span>搭配 <strong>{activityCombineLegal}</strong></span>
             <span>处理 <strong>{activityReduceLegal}</strong></span>
           </div>

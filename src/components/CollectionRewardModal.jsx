@@ -24,14 +24,18 @@ export default function CollectionRewardModal({reward, onClose}){
       >
         <p className="collection-reward-kicker">✦ {first ? "新料理收藏" : "已经收录"}</p>
         <h2 id="collection-reward-title">{reward.name} · {reward.value}</h2>
-        {typeLabel && <p className="collection-reward-meta">{typeLabel} · 质数</p>}
+        {typeLabel && <p className="collection-reward-meta">{typeLabel}</p>}
         <div className="collection-reward-total">
           {reward.totalScore != null && <strong>+{reward.totalScore}分</strong>}
           {reward.moneyGain != null && <strong>{reward.moneyGain > 0 ? "+" : ""}¥{reward.moneyGain}</strong>}
         </div>
-        {reward.abundanceBonusScore > 0 && (
+        {reward.totalScore > 0 && (
           <p className="collection-reward-breakdown">
-            基础{reward.baseScore} · 丰盛度+{reward.abundanceBonusScore}
+            收藏{reward.collectionScore}
+            {reward.isFirstNumber && !reward.collectedPieceSingleFlavorPenalty
+              ? ` · 首次发现 +${Math.round(reward.firstDiscoveryRate * 100)}%`
+              : ""}
+            {reward.newFoodTypeBonus > 0 ? ` · 新料理系 +${reward.newFoodTypeBonus}` : ""}
           </p>
         )}
       </section>

@@ -4,6 +4,7 @@ import { applyEightPalaceCollection, getEightPalaceCollectionScoreGain } from ".
 import { markSingleFlavorBoardPieces } from "../game/singleFlavorPenalty";
 import { BASE_FOOD_TYPES, FOOD_TYPES } from "../game/rules";
 import { cloneSimulationState, createSimulationState } from "./simulationEngine";
+import { getRawBaseScore } from "../game/scoreValue";
 
 const [land, aquatic, vegetable, grainBean, dairyEgg] = BASE_FOOD_TYPES;
 const piece = (id, value, foodType, extra = {}) => ({
@@ -106,10 +107,13 @@ const collectible = (value, foodType, singleFlavorPenalty) => ({
   ]);
   const normal = applyAction(normalState, {type: "reduce", indexes: [0, 1]});
   const penalized = applyAction(penalizedState, {type: "reduce", indexes: [0, 1]});
-  assert.equal(normal.latestCollection.baseScore, 100);
-  assert.equal(penalized.latestCollection.baseScore, 50);
-  assert.equal(penalized.latestCollection.bonusScore, 12);
-  assert.equal(penalized.latestCollection.totalScore, 62);
+  const rawBaseScore = getRawBaseScore(2, 16);
+  assert.equal(normal.latestCollection.baseScore, Math.round(rawBaseScore));
+  assert.equal(normal.latestCollection.collectionScore, Math.round(rawBaseScore * (1 + normal.latestCollection.firstDiscoveryRate)));
+  assert.equal(penalized.latestCollection.baseScore, Math.round(rawBaseScore));
+  assert.equal(penalized.latestCollection.collectionScore, Math.round(rawBaseScore * 0.5));
+  assert.equal(penalized.latestCollection.newFoodTypeBonus, normal.latestCollection.newFoodTypeBonus);
+  assert.equal(penalized.latestCollection.totalScore, penalized.latestCollection.collectionScore + penalized.latestCollection.newFoodTypeBonus);
   assert.equal(normal.money, penalized.money);
 }
 
@@ -125,9 +129,12 @@ const collectible = (value, foodType, singleFlavorPenalty) => ({
 {
   const state = baseState([]);
   const card = collectible(11, vegetable, true);
-  assert.equal(getEightPalaceCollectionScoreGain(state, card), 100);
+  const expectedCollectionScore = Math.round(getRawBaseScore(11, 0) * 0.5);
+  const expectedTotal = expectedCollectionScore + 10;
+  assert.equal(getEightPalaceCollectionScoreGain(state, card), expectedTotal);
   const settled = applyEightPalaceCollection(state, card);
-  assert.equal(settled.latestCollection.baseScore, 100);
+  assert.equal(settled.latestCollection.collectionScore, expectedCollectionScore);
+  assert.equal(settled.latestCollection.totalScore, expectedTotal);
 }
 
 {

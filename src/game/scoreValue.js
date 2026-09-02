@@ -1,37 +1,90 @@
-export const BASE_SCORE_BANDS = Object.freeze({
-  10: Object.freeze([2, 3, 4, 5, 6, 7, 8, 9, 10, 12]),
-  20: Object.freeze([11, 14, 15, 16, 18, 20, 21, 22, 24, 25, 27, 28, 30]),
-  30: Object.freeze([13, 17, 19, 23, 26, 32, 33, 34, 35, 36, 39, 40, 42]),
-  40: Object.freeze([29, 31, 37, 38, 41, 44, 45, 46, 48, 49, 50, 51, 52, 54, 55, 56]),
-  50: Object.freeze([43, 47, 53, 57, 58, 60, 62, 63, 64, 65, 66, 68, 69, 70, 72]),
-  60: Object.freeze([59, 61, 67, 71, 73, 74, 75, 76, 77, 78, 80, 81, 82, 84, 85]),
-  70: Object.freeze([79, 83, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100]),
-  80: Object.freeze([101])
-});
+import { BASE_FOOD_TYPES } from "./rules";
 
-const BASE_SCORE_BY_NUMBER = new Map(
-  Object.entries(BASE_SCORE_BANDS).flatMap(([score, values]) =>
-    values.map(value => [value, Number(score)])
-  )
-);
+export const BOARD_SUM_NORMALIZER = 900;
+export const MIN_SCORE_EXPONENT = 1.30;
+export const SCORE_EXPONENT_RANGE = 0.10;
+export const MIN_FIRST_DISCOVERY_RATE = 0.10;
+export const FIRST_DISCOVERY_RATE_RANGE = 0.10;
 
-export const SCORE_SCALE = 10;
-
-export function getBaseScore(value){
-  return (BASE_SCORE_BY_NUMBER.get(value) ?? 0) * SCORE_SCALE;
+export function getNonDrinkBoardSum(board = []){
+  if(!Array.isArray(board)) return 0;
+  return board.reduce((sum, piece) =>
+    (BASE_FOOD_TYPES.includes(piece?.foodType) || piece?.foodType === "meat") &&
+      Number.isFinite(piece?.value)
+      ? sum + piece.value
+      : sum
+  , 0);
 }
 
-export function getCollectionScoreGain(collectionCards, value, foodType, singleFlavorPenalty = false){
+export function getBoardScoreStrength(nonDrinkBoardSum = 0){
+  return Math.min(1, Math.max(0, nonDrinkBoardSum / BOARD_SUM_NORMALIZER));
+}
+
+export function getCollectionScoreParameters(nonDrinkBoardSum = 0){
+  const strength = getBoardScoreStrength(nonDrinkBoardSum);
+  return {
+    strength,
+    exponent: MIN_SCORE_EXPONENT + SCORE_EXPONENT_RANGE * strength,
+    firstDiscoveryRate: MIN_FIRST_DISCOVERY_RATE + FIRST_DISCOVERY_RATE_RANGE * strength
+  };
+}
+
+export function getRawBaseScore(value, nonDrinkBoardSum = 0){
+  if(!Number.isFinite(value) || value < 0) return 0;
+  const {exponent} = getCollectionScoreParameters(nonDrinkBoardSum);
+  return Math.pow(value, exponent) + 100;
+}
+
+export function getBaseScore(value, nonDrinkBoardSum = 0){
+  return Math.round(getRawBaseScore(value, nonDrinkBoardSum));
+}
+
+export function getCollectionScoreBreakdown(
+  collectionCards,
+  value,
+  foodType,
+  nonDrinkBoardSum = 0,
+  singleFlavorPenalty = false
+){
   const cards = collectionCards ?? [];
   const sameNumberCards = cards.filter(card => card.value === value);
-  if(sameNumberCards.some(card => (card.foodType ?? null) === (foodType ?? null))) return 0;
+  const duplicate = sameNumberCards.some(card =>
+    (card.foodType ?? null) === (foodType ?? null)
+  );
+  const {strength, exponent, firstDiscoveryRate} = getCollectionScoreParameters(nonDrinkBoardSum);
 
-  const baseScore = getBaseScore(value);
-  return sameNumberCards.length === 0 && !singleFlavorPenalty ? baseScore : baseScore / 2;
+  if(duplicate){
+    return {
+      duplicate: true, isFirstNumber: false, strength, exponent, firstDiscoveryRate,
+      rawBaseScore: 0, baseScore: 0, collectionScore: 0
+    };
+  }
+
+  const rawBaseScore = getRawBaseScore(value, nonDrinkBoardSum);
+  const baseScore = Math.round(rawBaseScore);
+  const isFirstNumber = sameNumberCards.length === 0;
+  const collectionScore = isFirstNumber && !singleFlavorPenalty
+    ? Math.round(rawBaseScore * (1 + firstDiscoveryRate))
+    : Math.round(rawBaseScore * 0.5);
+
+  return {
+    duplicate: false, isFirstNumber, strength, exponent, firstDiscoveryRate,
+    rawBaseScore, baseScore, collectionScore
+  };
 }
 
-// Compatibility helpers for piece creation. A number's score is now fixed,
-// regardless of its parents or creation path.
+export function getCollectionScoreGain(
+  collectionCards,
+  value,
+  foodType,
+  nonDrinkBoardSum = 0,
+  singleFlavorPenalty = false
+){
+  return getCollectionScoreBreakdown(
+    collectionCards, value, foodType, nonDrinkBoardSum, singleFlavorPenalty
+  ).collectionScore;
+}
+
 export function getOriginMultiplier(){
   return 1;
 }

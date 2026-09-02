@@ -7,10 +7,9 @@ import {
 } from "./numberOrigin";
 
 import { getFoodName } from "../data/food/foodRegistry";
-import { getCollectionScoreGain } from "./scoreValue";
+import { getNonDrinkBoardSum } from "./scoreValue";
 import { createCollectionRewardSettlement, getBoardAverageValue } from "./collectionReward";
 import { getCollectionMoneyGain } from "./money";
-import { getBoardAbundance } from "./boardAbundance";
 
 
 // ============================================================
@@ -1573,12 +1572,15 @@ export function getEightPalaceCollectionScoreGain(state, piece){
   const record = getCollectionRecord(piece);
   if(!record) return 0;
 
-  return getCollectionScoreGain(
-    state.collectionCards,
-    record.value,
-    record.foodType,
-    record.singleFlavorPenalty === true
-  );
+  return createCollectionRewardSettlement({
+    collectionCards: state.collectionCards,
+    value: record.value,
+    foodType: record.foodType,
+    name: getFoodName(record.value, record.foodType),
+    nonDrinkBoardSum: getNonDrinkBoardSum(state?.board),
+    boardAverageValue: getBoardAverageValue(state?.board),
+    singleFlavorPenalty: record.singleFlavorPenalty === true
+  }).totalScore;
 }
 
 // The 100 Step Eight Palace mode collects the concrete card that existed
@@ -1587,14 +1589,12 @@ export function getEightPalaceCollectionScoreGain(state, piece){
 export function applyEightPalaceCollection(
   state,
   piece,
-  abundance = getBoardAbundance(state?.board),
-  boardAverageValue = getBoardAverageValue(state?.board)
+  settlementBoard = state?.board
 ){
   const record = getCollectionRecord(piece);
   if(!record) return state;
 
   const value = record.value;
-  const scoreGain = getEightPalaceCollectionScoreGain(state, piece);
   const collectionKey = getEightPalaceCollectionKey(record);
   const alreadyCollected = (state.collectionCards ?? []).some(card =>
     (card.collectionKey ?? getEightPalaceCollectionKey(card)) === collectionKey
@@ -1606,9 +1606,9 @@ export function applyEightPalaceCollection(
     value,
     foodType: record.foodType ?? null,
     name,
-    baseScore: scoreGain,
-    abundance,
-    boardAverageValue
+    nonDrinkBoardSum: getNonDrinkBoardSum(settlementBoard),
+    boardAverageValue: getBoardAverageValue(settlementBoard),
+    singleFlavorPenalty: record.singleFlavorPenalty === true
   });
   const moneyGain = getCollectionMoneyGain(isNewCollection);
   const cumulativeMoney = (state.money ?? 0) + moneyGain;
@@ -1626,12 +1626,13 @@ export function applyEightPalaceCollection(
     originType: record.origin?.type ?? null,
     scoreGain: rewardSettlement.totalScore,
     baseScore: rewardSettlement.baseScore,
-    abundance: rewardSettlement.abundance,
-    abundanceBonusRate: rewardSettlement.abundanceBonusRate,
-    abundanceBonusScore: rewardSettlement.abundanceBonusScore,
-    boardAverageValue: rewardSettlement.boardAverageValue,
+    nonDrinkBoardSum: rewardSettlement.nonDrinkBoardSum,
+    strength: rewardSettlement.strength,
+    exponent: rewardSettlement.exponent,
+    firstDiscoveryRate: rewardSettlement.firstDiscoveryRate,
+    collectionScore: rewardSettlement.collectionScore,
+    isFirstNumber: rewardSettlement.isFirstNumber ?? false,
     newFoodTypeBonus: rewardSettlement.newFoodTypeBonus ?? 0,
-    boardPowerBonus: rewardSettlement.boardPowerBonus ?? 0,
     bonusScore: rewardSettlement.bonusScore,
     totalScore: rewardSettlement.totalScore,
     bonuses: rewardSettlement.bonuses,

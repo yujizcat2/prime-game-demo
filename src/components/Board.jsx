@@ -20,7 +20,6 @@ import {
 import BoardCell from "./BoardCell";
 import { getCombinePreviewPlacement } from "../game/combinePreview";
 import { getEightPalaceCollectionScoreGain } from "../game/collectionRules";
-import { getCollectionScoreGain } from "../game/scoreValue";
 import { BOARD_NATIVE_FOOD_TYPES } from "../game/nativeFoodTypes";
 
 import "./Board.css";
@@ -758,11 +757,9 @@ export default function Board({
 
                     {scoreMode && combinePreview.piece?.scoreValue != null && (
                       <div className="board-piece-locked-score board-preview-locked-score">
-                        +{getCollectionScoreGain(
-                          collectionCards,
-                          combinePreview.piece.value,
-                          combinePreview.piece.foodType,
-                          combinePreview.piece.singleFlavorPenalty === true
+                        +{getEightPalaceCollectionScoreGain(
+                          {collectionCards, board},
+                          {value: 1, origin: {type: "reduce", parent: combinePreview.piece}}
                         )}
                       </div>
                     )}
@@ -991,7 +988,7 @@ export default function Board({
 
             const availableScore = scoreMode
               ? getEightPalaceCollectionScoreGain(
-                  {collectionCards},
+                  {collectionCards, board},
                   {
                     value: 1,
                     origin: {type: "reduce", parent: piece}
