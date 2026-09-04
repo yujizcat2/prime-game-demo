@@ -6156,10 +6156,20 @@
 }
 
 .board-piece-compound-number {
+  display: flex;
+  align-items: baseline;
+  gap: 1px;
+  left: 12px;
   color: #303940;
   font-size: clamp(25px, 7vw, 40px);
   letter-spacing: .04em;
   text-shadow: 0 1px 0 rgba(255, 255, 255, .42);
+}
+
+.board-piece-compound-letter {
+  font-size: .62em;
+  font-weight: 900;
+  opacity: .76;
 }
 
 .board-piece-compound-main {

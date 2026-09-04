@@ -3,6 +3,7 @@ import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import ActionButtons from "../components/ActionButtons";
 import BoardCell from "../components/BoardCell";
+import { getFoodCardDisplayName, getFoodOriginDescription } from "../components/foodCardDisplay";
 import {
   getCompoundDisplayName,
   getCompoundDisplayValue,
@@ -20,6 +21,7 @@ import { getBoardCount } from "../game/boardRules";
 import { getNativeFoodType } from "../game/nativeFoodTypes";
 import { getNonDrinkBoardSum } from "../game/scoreValue";
 import { getNextSelectionIndexes } from "../game/selection";
+import { getFoodName } from "../data/food/foodRegistry";
 
 function createLifecycleState(){
   const board = Array(9).fill(null);
@@ -189,10 +191,28 @@ const compoundCard = renderToStaticMarkup(React.createElement(BoardCell, {
   selected: true,
   onClick: () => {}
 }));
-assert.match(compoundCard, /复合系 · A/);
-assert.match(compoundCard, /board-piece-compound-number">45</);
+assert.match(compoundCard, />复合系</);
+assert.doesNotMatch(compoundCard, /复合系 · A/);
+assert.match(compoundCard, /board-piece-compound-letter">A</);
+assert.match(compoundCard, /board-piece-compound-letter">A<\/span><span>45/);
 assert.match(compoundCard, /31 × 虾鱼饼14/);
 assert.match(compoundCard, /board-piece--selected/);
+
+const typeBCard = renderToStaticMarkup(React.createElement(BoardCell, {
+  index: 1,
+  piece: {
+    value: 20,
+    foodType: "aquatic",
+    isCompound: true,
+    compoundType: "B",
+    compoundDishName: "青柠煎柠檬",
+    compoundPartner: {value: 8, foodType: "fruit", name: "柠檬"}
+  },
+  onClick: () => {}
+}));
+assert.match(typeBCard, />复合系</);
+assert.doesNotMatch(typeBCard, /复合系 · B/);
+assert.match(typeBCard, /board-piece-compound-letter">B<\/span><span>28/);
 
 const recombinedCard = renderToStaticMarkup(React.createElement(BoardCell, {
   index: 0,
@@ -200,6 +220,33 @@ const recombinedCard = renderToStaticMarkup(React.createElement(BoardCell, {
   onClick: () => {}
 }));
 assert.doesNotMatch(recombinedCard, /复合系 · [A-L]/);
+assert.doesNotMatch(recombinedCard, /board-piece-compound-letter/);
+
+const namedResultBoard = Array(9).fill(null);
+namedResultBoard[0] = {id: 40, value: 3, foodType: "land", purity: "pure"};
+namedResultBoard[1] = {id: 41, value: 8, foodType: "aquatic", purity: "pure"};
+namedResultBoard[3] = {id: 42, value: 4, foodType: "vegetable", purity: "pure"};
+namedResultBoard[4] = {id: 43, value: 7, foodType: "seasoning", purity: "pure"};
+const namedResultGroups = compoundCells(
+  compoundCells({board: namedResultBoard, gameOver: false, steps: 0}, 0, 1),
+  3,
+  4
+);
+const namedResults = compoundCells(namedResultGroups, 0, 3);
+const valueTwoResult = namedResults.board[0];
+const otherNamedResult = namedResults.board[3];
+assert.equal(valueTwoResult.isCompound, undefined);
+assert.equal(valueTwoResult.value, 2);
+assert.equal(valueTwoResult.foodType, getNativeFoodType(0));
+assert.equal(valueTwoResult.name, getFoodName(2, getNativeFoodType(0)));
+assert.equal(valueTwoResult.displayName, getFoodName(2, getNativeFoodType(0)));
+assert.notEqual(valueTwoResult.name, "2");
+assert.equal(getFoodCardDisplayName(valueTwoResult), getFoodName(2, getNativeFoodType(0)));
+assert.notEqual(getFoodOriginDescription(valueTwoResult), "一种原生的2");
+assert.equal(otherNamedResult.value, 20);
+assert.equal(otherNamedResult.foodType, getNativeFoodType(3));
+assert.equal(otherNamedResult.name, getFoodName(20, getNativeFoodType(3)));
+assert.notEqual(otherNamedResult.name, "20");
 
 const recombinationButton = renderToStaticMarkup(React.createElement(ActionButtons, {
   selected: [1, 3],

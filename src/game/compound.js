@@ -68,9 +68,12 @@ export function canCompoundCells(state, indexA, indexB){
 }
 
 function createRecombinedPiece(source, value, foodType){
+  const displayName = getFoodName(value, foodType);
   return {
     id: source.id,
     value,
+    name: displayName,
+    displayName,
     foodType,
     purity: "pure",
     parents: null,
