@@ -89,10 +89,6 @@
   margin: 14px 0 20px;
 }
 
-.test-lab-rule-options { display: flex; flex-wrap: wrap; gap: 10px; }
-.test-lab-rule-options label { display: flex; align-items: center; gap: 7px; padding: 9px 13px; border: 1px solid rgba(98, 117, 106, .18); border-radius: 12px; background: rgba(255, 255, 255, .7); color: #52675c; font-size: 13px; font-weight: 800; cursor: pointer; }
-.test-lab-rule-options input { accent-color: #648471; }
-
 .test-lab-mode-control {
   display: none;
 }
@@ -267,6 +263,48 @@
 
 .test-lab-score-game-detail li + li {
   margin-top: 8px;
+}
+
+.test-lab-day-record {
+  margin-top: 8px;
+  padding: 8px 10px;
+  border: 1px solid rgba(94, 67, 39, .12);
+  border-radius: 10px;
+  background: rgba(255, 252, 244, .6);
+}
+
+.test-lab-day-record > summary,
+.test-lab-action-snapshot > summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.test-lab-day-section {
+  margin-top: 10px;
+}
+
+.test-lab-action-snapshot {
+  margin-top: 6px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, .72);
+}
+
+.test-lab-compact-board {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(52px, 1fr));
+  width: min(100%, 260px);
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.test-lab-compact-board span {
+  min-height: 24px;
+  padding: 3px 5px;
+  border-radius: 6px;
+  background: rgba(106, 76, 44, .08);
+  text-align: center;
+  font-size: 11px;
 }
 
 

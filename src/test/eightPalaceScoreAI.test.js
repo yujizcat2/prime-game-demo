@@ -14,6 +14,7 @@ import {
   getAdaptiveBaseDepth,
   getAdaptiveBeamWidth,
   getCollectionNumberCounts,
+  getScoreTelemetryClock,
   runFixedScoreAttempts,
   runScoreGame,
   runScoreGames,
@@ -238,12 +239,6 @@ for(const summary of [tenGames, tenGames.randomComparison]){
     new Set(["0.6", "0.7", "0.8", "1"])
   );
   assert.ok(Object.values(summary.averageCollectionFoodTypeCounts).every(Number.isFinite));
-  assert.ok(summary.checkpointSurvival.every(checkpoint =>
-    Number.isFinite(checkpoint.averageActualScore)
-    && Number.isFinite(checkpoint.averageGrowthRate)
-    && Number.isFinite(checkpoint.averageExcessRatio)
-    && Number.isFinite(checkpoint.averageGeneratedProgressRatio)
-  ));
   assert.equal(
     summary.averageCollectedNormalFoodTypeCount,
     summary.results.reduce((sum, game) => sum + game.collectedNormalFoodTypeCount, 0) / summary.results.length
@@ -277,35 +272,42 @@ const weightedSummary = summarizeScoreResults([
 assert.equal(weightedSummary.primeCollectionShare, 0.1, "batch share weights every classified collection equally");
 assert.notEqual(weightedSummary.primeCollectionShare, 0.5, "batch share is not an average of per-game shares");
 
-const checkpointSummary = summarizeScoreResults([{
-  finalScore: 105,
-  scoreEfficiency: 10.5,
-  collectionCount: 0,
-  primeCollectionCount: 0,
-  compositeCollectionCount: 0,
-  steps: 10,
-  completed100Steps: false,
-  deadlocked: false,
-  checkpointHistory: [{
-    index: 1,
-    step: 10,
-    type: "score",
-    passed: true,
-    requiredScore: 100,
-    currentScore: 105
-  }],
-  actionPath: [{stepAfter: 9, scoreAfter: 105, scoreGain: 5}]
-}]);
-assert.equal(checkpointSummary.checkpointAwarenessTelemetry.closePassCount, 1);
-assert.equal(checkpointSummary.checkpointAwarenessTelemetry.averageScoreGainBefore3Steps, 5);
-
 const testLabSource = readFileSync("src/components/TestLab.jsx", "utf8");
 assert.match(testLabSource, /Score AI 全部测试记录/);
 assert.match(testLabSource, /Random AI 全部测试记录/);
 assert.match(testLabSource, /expanded && <div/);
 assert.match(testLabSource, /allowExpandAll = games\.length <= 100/);
+assert.doesNotMatch(testLabSource, /旧检查站|score-ai-rules|scoreDayCycleEnabled|平均通过检查站|检查站前3步|压线通过/);
+assert.match(testLabSource, /dayCycleEnabled: true/);
+const scoreReportSource = testLabSource.slice(
+  testLabSource.indexOf("function ScoreSummaryGrid"),
+  testLabSource.indexOf("function EightPalaceResults")
+);
+assert.doesNotMatch(scoreReportSource, /Step /, "Score AI report uses Day and in-game time instead of visible Step labels");
 
-let replay = createGameState(opening);
+assert.deepEqual([0, 20, 21, 40].map(getScoreTelemetryClock), [
+  {day: 1, time: "10:00", dayActionIndex: 0},
+  {day: 1, time: "20:00", dayActionIndex: 20},
+  {day: 2, time: "10:30", dayActionIndex: 1},
+  {day: 2, time: "20:00", dayActionIndex: 20}
+]);
+{
+  const longSnapshots = Array.from({length: 120}, (_, index) => ({
+    actionIndex: index + 1,
+    day: Math.ceil((index + 1) / 20),
+    collections: []
+  }));
+  const longRecords = scoreAITestUtils.createDayRecords(
+    Array.from({length: 6}, (_, index) => ({day: index + 1})),
+    longSnapshots,
+    [],
+    6
+  );
+  assert.equal(longRecords.length, 6);
+  assert.ok(longRecords.every(day => day.actions.length === 20), "100+ action telemetry is retained without truncation");
+}
+
+let replay = createGameState(opening, {dayCycleEnabled: true});
 for(const entry of result.actionPath){
   const action = {type: entry.type, indexes: entry.indexes};
   const legalKeys = new Set(getLegalActions(replay).map(scoreAITestUtils.getActionKey));
@@ -376,10 +378,6 @@ assert.equal(
   fixed.results.reduce((sum, game) => sum + game.scoreEfficiency, 0) / fixed.results.length
 );
 
-const legacyScoreGame = await runScoreGame({depth: 1, beamWidth: 2, maxActions: 10, initialOpening: opening});
-assert.equal(legacyScoreGame.dayCycleEnabled, false);
-assert.ok(legacyScoreGame.checkpointHistory.length > 0, "legacy Score AI records checkpoint settlements");
-
 const dayCycleScoreGame = await runScoreGame({depth: 1, beamWidth: 2, maxActions: 30, initialOpening: opening, dayCycleEnabled: true});
 assert.equal(dayCycleScoreGame.checkpointHistory.length, 0, "day-cycle Score AI does not use checkpoints");
 assert.equal(dayCycleScoreGame.dayHistory[0]?.passed, true, "Score AI passes the first day in the regression opening");
@@ -390,6 +388,36 @@ assert.ok(firstDayTwoAction, "Score AI continues searching from the Day 2 board"
 assert.ok(firstDayTwoAction.inputs.every(input => dayCycleScoreGame.dayHistory[0].nextDayCards.some(card =>
   card.value === input.value && card.foodType === input.foodType
 )), "the first Day 2 action uses the five compressed cards");
+const formalActions = dayCycleScoreGame.actionPath.filter(action => action.stepAfter > action.stepBefore);
+assert.equal(dayCycleScoreGame.actionSnapshots.length, formalActions.length, "every time-consuming action has exactly one snapshot");
+assert.equal(dayCycleScoreGame.dayRecords[0].actions.length, 20, "a completed day contains 20 action snapshots");
+assert.ok(dayCycleScoreGame.actionSnapshots.every(snapshot =>
+  snapshot.board.length === 9
+  && snapshot.board.every(piece => piece === null || (Number.isInteger(piece.value) && typeof piece.foodType === "string"))
+  && Number.isFinite(snapshot.scoreBefore)
+  && Number.isFinite(snapshot.score)
+  && Number.isFinite(snapshot.boardSum)
+  && Number.isInteger(snapshot.legalActionCount)
+), "action snapshots preserve a complete minimal 3x3 board and analysis fields");
+assert.deepEqual(
+  dayCycleScoreGame.dayRecords[1].opening.board.filter(Boolean).map(card => ({value: card.value, foodType: card.foodType})),
+  dayCycleScoreGame.dayHistory[0].nextDayCards.map(card => ({value: card.value, foodType: card.foodType})),
+  "Day 2 opening uses the stored closing preparation"
+);
+const firstDayCollections = dayCycleScoreGame.dayRecords[0].collectionSequence;
+for(const [roundIndex, round] of ["A", "B", "C", "D"].entries()){
+  assert.deepEqual(
+    dayCycleScoreGame.dayRecords[0].collectionRounds[round],
+    firstDayCollections.filter((_, index) => index % 4 === roundIndex),
+    `${round} round follows collection order modulo four`
+  );
+}
+const laterMaximum = firstDayCollections.reduce((best, card) => !best || card.value >= best.value ? card : best, null);
+assert.deepEqual(
+  (({value, foodType}) => ({value, foodType}))(dayCycleScoreGame.dayHistory[0].nextDayCards.at(-1)),
+  (({value, foodType}) => ({value, foodType}))(laterMaximum),
+  "the fifth preparation is the latest maximum collection"
+);
 
 const failedDayOne = resolveGameOver({
   ...createGameState(opening, {dayCycleEnabled: true}),
@@ -397,6 +425,7 @@ const failedDayOne = resolveGameOver({
   score: 499
 });
 assert.equal(failedDayOne.gameOverReason, "day_target_failed", "an unmet Day 1 target ends the day-cycle run");
+assert.equal(failedDayOne.daySettlement.nextDayCards.length, 0, "a failed day does not prepare or open another day");
 
 const daySummary = summarizeScoreResults([
   {finalScore: 600, scoreEfficiency: 30, collectionCount: 1, primeCollectionCount: 1, compositeCollectionCount: 0, steps: 20, completed100Steps: false, deadlocked: false, dayCycleEnabled: true, finalDay: 1, dayHistory: [{day: 1, targetScore: 500, finalScore: 600, collectionGainToday: 1, boardSum: 100, passed: true}]},

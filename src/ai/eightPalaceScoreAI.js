@@ -14,12 +14,13 @@ import { isPrime } from "../game/prime";
 import { summarizeCollectionEfficiencyTimelines } from "../game/collectionEfficiency";
 import { BASE_FOOD_TYPES, FOOD_TYPES } from "../game/rules";
 import { BOARD_NATIVE_FOOD_TYPES } from "../game/nativeFoodTypes";
+import { getNonDrinkBoardSum } from "../game/scoreValue";
 import {
   createCollectionFoodTypeTimeline,
   createFoodTypeBoardSnapshot,
   summarizeFoodTypeTelemetry
 } from "./foodTypeTelemetry";
-import { advanceToNextDay, getDayScoreTarget } from "../game/dayCycle";
+import { ACTIONS_PER_DAY, advanceToNextDay, getDayScoreTarget, getDayTime } from "../game/dayCycle";
 
 export const SCORE_AI_DEFAULTS = Object.freeze({
   depth: 3,
@@ -87,10 +88,96 @@ function snapshotBoard(board){
   return board.map((piece, index) => piece ? {
     index,
     value: piece.value,
-    foodType: piece.foodType,
-    drinkOriginValue: piece.drinkOriginValue ?? null,
-    singleFlavorPenalty: piece.singleFlavorPenalty === true
+    foodType: piece.foodType
   } : null);
+}
+
+export function getScoreTelemetryClock(step = 0){
+  const normalizedStep = Math.max(0, step);
+  const day = normalizedStep === 0 ? 1 : Math.ceil(normalizedStep / ACTIONS_PER_DAY);
+  const dayStartStep = (day - 1) * ACTIONS_PER_DAY;
+  return {
+    day,
+    time: getDayTime({steps: normalizedStep, dayStartStep}),
+    dayActionIndex: normalizedStep - dayStartStep
+  };
+}
+
+function createOpeningSnapshot(state){
+  return {
+    day: state.day,
+    time: getDayTime(state),
+    score: state.score ?? 0,
+    money: state.money ?? 0,
+    collectionCount: state.collectionCards?.length ?? 0,
+    board: snapshotBoard(state.board),
+    boardCount: getBoardCount(state.board),
+    boardSum: getNonDrinkBoardSum(state.board)
+  };
+}
+
+function createTimedActionSnapshot(state, nextState, describedAction, toolsUsedSincePreviousAction){
+  const foodTypes = createFoodTypeBoardSnapshot(nextState.board, nextState.steps);
+  const legalActions = nextState.gameOver || nextState.daySettlement ? [] : getLegalActions(nextState);
+  const collections = describedAction.collectionEvents.map(event => ({
+    value: event.value,
+    foodType: event.foodType,
+    isNewCollection: event.isNewCollection !== false,
+    scoreGain: event.totalScore ?? event.scoreGain ?? 0
+  }));
+  return {
+    actionIndex: nextState.steps,
+    day: nextState.day,
+    time: getDayTime(nextState),
+    dayActionIndex: nextState.steps - nextState.dayStartStep,
+    scoreBefore: state.score ?? 0,
+    score: nextState.score ?? 0,
+    scoreGain: (nextState.score ?? 0) - (state.score ?? 0),
+    money: nextState.money ?? 0,
+    collectionCount: nextState.collectionCards?.length ?? 0,
+    collectionGain: (nextState.collectionCards?.length ?? 0) - (state.collectionCards?.length ?? 0),
+    newCollection: collections.find(event => event.isNewCollection) ?? null,
+    collections,
+    board: snapshotBoard(nextState.board),
+    boardCount: foodTypes.boardPieceCount,
+    boardSum: getNonDrinkBoardSum(nextState.board),
+    foodTypeCounts: foodTypes.foodTypeCounts,
+    distinctNormalFoodTypes: foodTypes.distinctNormalFoodTypes,
+    dominantFoodType: foodTypes.dominantFoodType,
+    dominantFoodTypeRatio: foodTypes.dominantFoodTypeRatio,
+    penalizedPieceCount: foodTypes.penalizedPieceCount,
+    singleFlavor: foodTypes.singleFlavor,
+    legalActionCount: legalActions.length,
+    combineCount: legalActions.filter(action => action.type === "combine" || action.type === "combine_ordered").length,
+    reduceCount: legalActions.filter(action => action.type === "reduce").length,
+    action: {
+      type: describedAction.type,
+      indexes: describedAction.indexes,
+      inputs: describedAction.inputs
+    },
+    toolsUsedSincePreviousAction
+  };
+}
+
+function createDayRecords(openings, actionSnapshots, dayHistory, finalDay){
+  return Array.from({length: finalDay ?? 0}, (_, index) => index + 1).map(day => {
+    const actions = actionSnapshots.filter(snapshot => snapshot.day === day);
+    const settlement = dayHistory.find(item => item.day === day) ?? null;
+    const collectionSequence = actions.flatMap(snapshot => snapshot.collections).filter(event => event.isNewCollection);
+    return {
+      day,
+      opening: openings.find(item => item.day === day) ?? null,
+      actions,
+      closing: settlement ? actions.at(-1) ?? null : null,
+      settlement,
+      collectionSequence,
+      collectionRounds: Object.fromEntries(["A", "B", "C", "D"].map((round, roundIndex) => [
+        round,
+        collectionSequence.filter((_, collectionIndex) => collectionIndex % 4 === roundIndex)
+      ])),
+      nextDayCards: settlement?.nextDayCards ?? []
+    };
+  });
 }
 
 function getActionKey(action){
@@ -615,6 +702,8 @@ function describeAction(state, action, nextState, number){
     moneyGain: (nextState.money ?? 0) - (state.money ?? 0),
     heaterUse: action.type === "heater" ? {
       step: state.steps,
+      day: state.day,
+      time: getDayTime(state),
       fromValue: state.board[indexes[0]]?.value ?? null,
       toValue: nextState.board[indexes[0]]?.value ?? null,
       foodType: state.board[indexes[0]]?.foodType ?? null,
@@ -626,12 +715,18 @@ function describeAction(state, action, nextState, number){
     superHeaterUse: action.type === "super_heater" ? {
       ...structuredClone(nextState.latestSuperHeaterUse),
       step: state.steps,
+      day: state.day,
+      time: getDayTime(state),
       legalActionsBefore: getLegalActions(state).length,
       legalActionsAfter: nextState.gameOver ? 0 : getLegalActions(nextState).length,
       reduceActionsBefore: getLegalActions(state).filter(candidate => candidate.type === "reduce").length,
       reduceActionsAfter: nextState.gameOver ? 0 : getLegalActions(nextState).filter(candidate => candidate.type === "reduce").length
     } : null,
-    restoreUse: action.type === "restore" ? structuredClone(nextState.latestRestoreUse) : null,
+    restoreUse: action.type === "restore" ? {
+      ...structuredClone(nextState.latestRestoreUse),
+      day: nextState.day,
+      time: getDayTime(nextState)
+    } : null,
     collectionEvents,
     foodTypeBoardState: collectionBoardState,
     collectionCountAfter: nextState.collectionCards.length,
@@ -651,7 +746,7 @@ export async function runScoreGame({
   searchMode = SCORE_AI_DEFAULTS.searchMode,
   adaptive = ADAPTIVE_SEARCH_DEFAULTS,
   checkpointAware = true,
-  dayCycleEnabled = false
+  dayCycleEnabled = true
 } = {}){
   const gameStartedAt = performance.now();
   const searchTelemetry = createSearchTelemetry();
@@ -659,6 +754,9 @@ export async function runScoreGame({
   let state = resolveGameOver(createGameState(opening, {dayCycleEnabled}));
   const initialBoard = snapshotBoard(state.board);
   const actionPath = [];
+  const actionSnapshots = [];
+  const dayOpenings = [createOpeningSnapshot(state)];
+  let toolsUsedSincePreviousAction = [];
   const foodTypeBoardTimeline = [createFoodTypeBoardSnapshot(state.board, state.steps)];
   let heaterUsedThisStep = false;
 
@@ -687,15 +785,27 @@ export async function runScoreGame({
     if(nextState === state) throw new Error("Score AI action was rejected by the formal game engine");
     const describedAction = describeAction(state, action, nextState, actionPath.length + 1);
     actionPath.push(describedAction);
+    if(nextState.steps > state.steps){
+      actionSnapshots.push(createTimedActionSnapshot(state, nextState, describedAction, toolsUsedSincePreviousAction));
+      toolsUsedSincePreviousAction = [];
+    }else{
+      toolsUsedSincePreviousAction.push({
+        type: describedAction.type,
+        indexes: describedAction.indexes,
+        moneyBefore: describedAction.moneyBefore,
+        moneyAfter: describedAction.moneyAfter
+      });
+    }
     if(nextState.steps > foodTypeBoardTimeline.at(-1).step){
       foodTypeBoardTimeline.push(describedAction.foodTypeBoardState);
     }
     heaterUsedThisStep = action.type === "heater";
-    state = compactLiveState(
+    const continuedState =
       nextState.daySettlement?.passed
         ? advanceToNextDay(nextState)
-        : nextState
-    );
+        : nextState;
+    if(continuedState.day !== nextState.day) dayOpenings.push(createOpeningSnapshot(continuedState));
+    state = compactLiveState(continuedState);
   }
 
   const completed100Steps = state.steps >= 100;
@@ -749,6 +859,8 @@ export async function runScoreGame({
   const restoreTimeline = actionPath.flatMap(action => action.restoreUse ? [action.restoreUse] : []);
   const restoreSpending = restoreTimeline.reduce((sum, event) => sum + event.cost, 0);
   const elapsedMs = performance.now() - gameStartedAt;
+  const dayHistory = structuredClone(state.dayHistory ?? []);
+  const finalDay = state.day ?? 1;
 
   return {
     strategy,
@@ -813,8 +925,11 @@ export async function runScoreGame({
     reachedTestProtectionLimit,
     passedCheckpointCount: state.passedCheckpointCount ?? 0,
     checkpointHistory: structuredClone(state.checkpointHistory ?? []),
-    dayHistory: structuredClone(state.dayHistory ?? []),
-    finalDay: state.day ?? null,
+    dayHistory,
+    dayOpenings,
+    actionSnapshots,
+    dayRecords: createDayRecords(dayOpenings, actionSnapshots, dayHistory, finalDay),
+    finalDay,
     completedDayCount: (state.dayHistory ?? []).filter(day => day.passed).length,
     deadlocked,
     gameOverReason: state.gameOverReason,
@@ -894,41 +1009,6 @@ function thresholdCollectionSummary(results, threshold){
 export function summarizeScoreResults(results){
   const completed100StepCount = results.filter(result => result.completed100Steps).length;
   const deadlockCount = results.filter(result => result.deadlocked).length;
-  const checkpointIndexes = [...new Set(results.flatMap(result =>
-    (result.checkpointHistory ?? []).map(checkpoint => checkpoint.index)
-  ))].sort((left, right) => left - right);
-  const checkpointSurvival = checkpointIndexes.map(index => {
-    const reached = results.flatMap(result => {
-      const checkpoint = (result.checkpointHistory ?? []).find(item => item.index === index);
-      return checkpoint ? [checkpoint] : [];
-    });
-    const passedCount = reached.filter(checkpoint => checkpoint.passed).length;
-    return {
-      index,
-      reachedCount: reached.length,
-      passedCount,
-      gameCount: results.length,
-      passRate: results.length ? passedCount / results.length : 0,
-      averageStep: average(reached, checkpoint => checkpoint.step),
-      averageRequiredScore: average(
-        reached.filter(checkpoint => checkpoint.requiredScore != null),
-        checkpoint => checkpoint.requiredScore
-      ),
-      averageActualScore: average(reached, checkpoint => checkpoint.currentScore),
-      averageGrowthRate: average(
-        reached.filter(checkpoint => checkpoint.growthRate != null),
-        checkpoint => checkpoint.growthRate
-      ),
-      averageExcessRatio: average(
-        reached.filter(checkpoint => checkpoint.excessRatio != null),
-        checkpoint => checkpoint.excessRatio
-      ),
-      averageGeneratedProgressRatio: average(
-        reached.filter(checkpoint => checkpoint.generatedProgressRatio != null),
-        checkpoint => checkpoint.generatedProgressRatio
-      )
-    };
-  });
   const maximumDay = results.length ? Math.max(0, ...results.map(result => result.finalDay ?? 0)) : 0;
   const daySummaries = Array.from({length: maximumDay}, (_, index) => index + 1).map(day => {
     const reached = results.filter(result => (result.finalDay ?? 0) >= day);
@@ -937,6 +1017,7 @@ export function summarizeScoreResults(results){
       return settlement ? [settlement] : [];
     });
     const passedCount = settlements.filter(settlement => settlement.passed).length;
+    const preparations = settlements.filter(settlement => settlement.nextDayCards?.length > 0);
     return {
       day,
       targetScore: getDayScoreTarget(day),
@@ -945,30 +1026,17 @@ export function summarizeScoreResults(results){
       passRate: reached.length ? passedCount / reached.length : 0,
       averageClosingScore: average(settlements, settlement => settlement.finalScore),
       averageLeadOrDeficit: average(settlements, settlement => settlement.finalScore - settlement.targetScore),
+      averageScoreGainToday: average(settlements, settlement => settlement.scoreGainToday),
       averageCollectionCount: average(settlements, settlement => settlement.collectionGainToday),
-      averageBoardSum: average(settlements, settlement => settlement.boardSum)
+      averageBoardSum: average(settlements, settlement => settlement.boardSum),
+      averagePreparationValues: Array.from({length: 5}, (_, cardIndex) => average(
+        preparations.filter(settlement => settlement.nextDayCards[cardIndex]),
+        settlement => settlement.nextDayCards[cardIndex].value
+      )),
+      averagePreparationMaximum: average(preparations, settlement => Math.max(...settlement.nextDayCards.map(card => card.value))),
+      averagePreparationSum: average(preparations, settlement => settlement.nextDayCards.reduce((sum, card) => sum + card.value, 0))
     };
   });
-  const scoreCheckpointEvents = results.flatMap(result =>
-    (result.checkpointHistory ?? [])
-      .filter(checkpoint => checkpoint.type === "score")
-      .map(checkpoint => ({checkpoint, result}))
-  );
-  const checkpointWindowGain = window => average(scoreCheckpointEvents, ({checkpoint, result}) =>
-    (result.actionPath ?? [])
-      .filter(action => action.stepAfter > checkpoint.step - window && action.stepAfter <= checkpoint.step)
-      .reduce((sum, action) => sum + (action.scoreGain ?? 0), 0)
-  );
-  const passedScoreCheckpoints = scoreCheckpointEvents.filter(({checkpoint}) => checkpoint.passed);
-  const failedScoreCheckpoints = scoreCheckpointEvents.filter(({checkpoint}) => !checkpoint.passed);
-  const closePassCount = passedScoreCheckpoints.filter(({checkpoint}) =>
-    checkpoint.currentScore - checkpoint.requiredScore <= checkpoint.requiredScore * .05
-  ).length;
-  const earlyTargetCount = passedScoreCheckpoints.filter(({checkpoint, result}) =>
-    (result.actionPath ?? []).some(action =>
-      action.stepAfter < checkpoint.step && action.scoreAfter >= checkpoint.requiredScore
-    )
-  ).length;
   const highScore = results.length
     ? results.reduce((best, result) => result.finalScore > best.finalScore ? result : best)
     : null;
@@ -1142,18 +1210,6 @@ export function summarizeScoreResults(results){
     highestOperatingDays: results.length ? Math.max(...results.map(result => result.finalDay ?? 0)) : 0,
     lowestOperatingDays: results.length ? Math.min(...results.map(result => result.finalDay ?? 0)) : 0,
     daySummaries,
-    averagePassedCheckpointCount: average(results, result => result.passedCheckpointCount ?? 0),
-    highestPassedCheckpointCount: results.length ? Math.max(...results.map(result => result.passedCheckpointCount ?? 0)) : 0,
-    lowestPassedCheckpointCount: results.length ? Math.min(...results.map(result => result.passedCheckpointCount ?? 0)) : 0,
-    checkpointSurvival,
-    checkpointAwarenessTelemetry: {
-      averageScoreGainBefore3Steps: checkpointWindowGain(3),
-      averageScoreGainBefore5Steps: checkpointWindowGain(5),
-      closePassCount,
-      earlyTargetCount,
-      averageFailureGap: average(failedScoreCheckpoints, ({checkpoint}) => checkpoint.requiredScore - checkpoint.currentScore),
-      averagePassLead: average(passedScoreCheckpoints, ({checkpoint}) => checkpoint.currentScore - checkpoint.requiredScore)
-    },
     reachedTestProtectionLimitCount: results.filter(result => result.reachedTestProtectionLimit).length,
     completed100StepCount,
     completed100StepRate: results.length ? completed100StepCount / results.length : 0,
@@ -1177,7 +1233,7 @@ export async function runScoreGames({
   openings = null,
   adaptive = ADAPTIVE_SEARCH_DEFAULTS,
   checkpointAware = true,
-  dayCycleEnabled = false
+  dayCycleEnabled = true
 } = {}){
   const scoreResults = [];
   const randomResults = [];
@@ -1283,7 +1339,7 @@ export async function runFixedScoreAttempts({
   maxActions = SCORE_AI_DEFAULTS.maxActions,
   fixedOpening = null,
   onProgress = null,
-  dayCycleEnabled = false
+  dayCycleEnabled = true
 } = {}){
   const opening = createScoreOpening(fixedOpening ?? createStandardInitialValues());
   const results = [];
@@ -1321,5 +1377,6 @@ export const scoreAITestUtils = {
   getActionKey,
   getStateKey,
   getImmediateScorePotential,
-  applyScoreAction
+  applyScoreAction,
+  createDayRecords
 };
