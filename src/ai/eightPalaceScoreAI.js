@@ -19,6 +19,7 @@ import {
   createFoodTypeBoardSnapshot,
   summarizeFoodTypeTelemetry
 } from "./foodTypeTelemetry";
+import { advanceToNextDay, getDayScoreTarget } from "../game/dayCycle";
 
 export const SCORE_AI_DEFAULTS = Object.freeze({
   depth: 3,
@@ -649,18 +650,23 @@ export async function runScoreGame({
   candidateLimits = STRATEGIC_CANDIDATE_LIMITS,
   searchMode = SCORE_AI_DEFAULTS.searchMode,
   adaptive = ADAPTIVE_SEARCH_DEFAULTS,
-  checkpointAware = true
+  checkpointAware = true,
+  dayCycleEnabled = false
 } = {}){
   const gameStartedAt = performance.now();
   const searchTelemetry = createSearchTelemetry();
   const opening = createScoreOpening(initialOpening ?? createStandardInitialValues());
-  let state = resolveGameOver(createGameState(opening));
+  let state = resolveGameOver(createGameState(opening, {dayCycleEnabled}));
   const initialBoard = snapshotBoard(state.board);
   const actionPath = [];
   const foodTypeBoardTimeline = [createFoodTypeBoardSnapshot(state.board, state.steps)];
   let heaterUsedThisStep = false;
 
-  while(!state.gameOver && state.steps < maxActions){
+  const isWithinProtectionLimit = () => dayCycleEnabled
+    ? actionPath.length < maxActions
+    : state.steps < maxActions;
+
+  while(!state.gameOver && isWithinProtectionLimit()){
     const legalActions = getScoreCandidateActions(state);
     if(legalActions.length === 0){
       state = {...state, gameOver: true, gameOverReason: "no_legal_actions"};
@@ -685,11 +691,15 @@ export async function runScoreGame({
       foodTypeBoardTimeline.push(describedAction.foodTypeBoardState);
     }
     heaterUsedThisStep = action.type === "heater";
-    state = compactLiveState(nextState);
+    state = compactLiveState(
+      nextState.daySettlement?.passed
+        ? advanceToNextDay(nextState)
+        : nextState
+    );
   }
 
   const completed100Steps = state.steps >= 100;
-  const reachedTestProtectionLimit = !state.gameOver && state.steps >= maxActions;
+  const reachedTestProtectionLimit = !state.gameOver && !isWithinProtectionLimit();
   const deadlocked = state.gameOverReason === "no_legal_actions";
   const collectionNumberCounts = getCollectionNumberCounts(state.collectionCards);
   const collectionFoodTypeCounts = Object.fromEntries(
@@ -744,6 +754,7 @@ export async function runScoreGame({
     strategy,
     searchMode,
     checkpointAware,
+    dayCycleEnabled,
     initialOpening: opening.map(card => ({...card})),
     initialBoard,
     score: state.score,
@@ -802,6 +813,9 @@ export async function runScoreGame({
     reachedTestProtectionLimit,
     passedCheckpointCount: state.passedCheckpointCount ?? 0,
     checkpointHistory: structuredClone(state.checkpointHistory ?? []),
+    dayHistory: structuredClone(state.dayHistory ?? []),
+    finalDay: state.day ?? null,
+    completedDayCount: (state.dayHistory ?? []).filter(day => day.passed).length,
     deadlocked,
     gameOverReason: state.gameOverReason,
     finalBoard: snapshotBoard(state.board),
@@ -913,6 +927,26 @@ export function summarizeScoreResults(results){
         reached.filter(checkpoint => checkpoint.generatedProgressRatio != null),
         checkpoint => checkpoint.generatedProgressRatio
       )
+    };
+  });
+  const maximumDay = results.length ? Math.max(0, ...results.map(result => result.finalDay ?? 0)) : 0;
+  const daySummaries = Array.from({length: maximumDay}, (_, index) => index + 1).map(day => {
+    const reached = results.filter(result => (result.finalDay ?? 0) >= day);
+    const settlements = reached.flatMap(result => {
+      const settlement = (result.dayHistory ?? []).find(item => item.day === day);
+      return settlement ? [settlement] : [];
+    });
+    const passedCount = settlements.filter(settlement => settlement.passed).length;
+    return {
+      day,
+      targetScore: getDayScoreTarget(day),
+      reachedCount: reached.length,
+      passedCount,
+      passRate: reached.length ? passedCount / reached.length : 0,
+      averageClosingScore: average(settlements, settlement => settlement.finalScore),
+      averageLeadOrDeficit: average(settlements, settlement => settlement.finalScore - settlement.targetScore),
+      averageCollectionCount: average(settlements, settlement => settlement.collectionGainToday),
+      averageBoardSum: average(settlements, settlement => settlement.boardSum)
     };
   });
   const scoreCheckpointEvents = results.flatMap(result =>
@@ -1103,6 +1137,11 @@ export function summarizeScoreResults(results){
     maxCollectionCount: results.length ? Math.max(...results.map(result => result.collectionCount)) : 0,
     averageSteps: average(results, result => result.steps),
     averageFinalStep: average(results, result => result.steps),
+    dayCycleEnabled: results.some(result => result.dayCycleEnabled),
+    averageOperatingDays: average(results, result => result.finalDay ?? 0),
+    highestOperatingDays: results.length ? Math.max(...results.map(result => result.finalDay ?? 0)) : 0,
+    lowestOperatingDays: results.length ? Math.min(...results.map(result => result.finalDay ?? 0)) : 0,
+    daySummaries,
     averagePassedCheckpointCount: average(results, result => result.passedCheckpointCount ?? 0),
     highestPassedCheckpointCount: results.length ? Math.max(...results.map(result => result.passedCheckpointCount ?? 0)) : 0,
     lowestPassedCheckpointCount: results.length ? Math.min(...results.map(result => result.passedCheckpointCount ?? 0)) : 0,
@@ -1137,7 +1176,8 @@ export async function runScoreGames({
   searchMode = SCORE_AI_DEFAULTS.searchMode,
   openings = null,
   adaptive = ADAPTIVE_SEARCH_DEFAULTS,
-  checkpointAware = true
+  checkpointAware = true,
+  dayCycleEnabled = false
 } = {}){
   const scoreResults = [];
   const randomResults = [];
@@ -1145,7 +1185,7 @@ export async function runScoreGames({
 
   for(let gameIndex = 1; gameIndex <= games; gameIndex++){
     const opening = openings?.[gameIndex - 1] ?? createStandardInitialValues();
-    const result = await runScoreGame({depth, beamWidth, maxActions, initialOpening: opening, searchMode, adaptive, checkpointAware});
+    const result = await runScoreGame({depth, beamWidth, maxActions, initialOpening: opening, searchMode, adaptive, checkpointAware, dayCycleEnabled});
     result.gameIndex = gameIndex;
     result.openingId = gameIndex;
     scoreResults.push(result);
@@ -1156,7 +1196,8 @@ export async function runScoreGames({
         beamWidth,
         maxActions,
         initialOpening: opening,
-        allowHeater: true
+        allowHeater: true,
+        dayCycleEnabled
       });
       heaterResult.gameIndex = gameIndex;
       heaterResult.openingId = gameIndex;
@@ -1164,7 +1205,7 @@ export async function runScoreGames({
     }
 
     if(compareRandom){
-      const randomResult = await runScoreGame({maxActions, initialOpening: opening, strategy: "random"});
+      const randomResult = await runScoreGame({maxActions, initialOpening: opening, strategy: "random", dayCycleEnabled});
       randomResult.gameIndex = gameIndex;
       randomResult.openingId = gameIndex;
       randomResults.push(randomResult);
@@ -1194,6 +1235,7 @@ export async function runScoreGames({
     maxActions,
     searchMode,
     checkpointAware,
+    dayCycleEnabled,
     heaterComparison,
     heaterAverageScoreDifference: heaterComparison
       ? heaterComparison.averageFinalScore - scoreSummary.averageFinalScore
@@ -1240,7 +1282,8 @@ export async function runFixedScoreAttempts({
   beamWidth = SCORE_AI_DEFAULTS.beamWidth,
   maxActions = SCORE_AI_DEFAULTS.maxActions,
   fixedOpening = null,
-  onProgress = null
+  onProgress = null,
+  dayCycleEnabled = false
 } = {}){
   const opening = createScoreOpening(fixedOpening ?? createStandardInitialValues());
   const results = [];
@@ -1251,7 +1294,8 @@ export async function runFixedScoreAttempts({
       beamWidth,
       maxActions,
       initialOpening: opening,
-      explore: true
+      explore: true,
+      dayCycleEnabled
     });
     result.attemptIndex = attemptIndex;
     result.routeSignature = scoreRouteSignature(result);
@@ -1268,7 +1312,8 @@ export async function runFixedScoreAttempts({
     distinctFinalScoreCount: new Set(results.map(result => result.finalScore)).size,
     depth,
     beamWidth,
-    maxActions
+    maxActions,
+    dayCycleEnabled
   };
 }
 

@@ -20,7 +20,7 @@ import {
   scoreAITestUtils,
   summarizeScoreResults
 } from "../ai/eightPalaceScoreAI";
-import { applyAction, createGameState, getLegalActions } from "../game/gameEngine";
+import { applyAction, createGameState, getLegalActions, resolveGameOver } from "../game/gameEngine";
 import {
   createEightPalaceInitialValues
 } from "../game/initialValues";
@@ -375,6 +375,31 @@ assert.equal(
   fixed.averageScoreEfficiency,
   fixed.results.reduce((sum, game) => sum + game.scoreEfficiency, 0) / fixed.results.length
 );
+
+const legacyScoreGame = await runScoreGame({depth: 1, beamWidth: 2, maxActions: 10, initialOpening: opening});
+assert.equal(legacyScoreGame.dayCycleEnabled, false);
+assert.ok(legacyScoreGame.checkpointHistory.length > 0, "legacy Score AI records checkpoint settlements");
+
+const dayCycleScoreGame = await runScoreGame({depth: 1, beamWidth: 2, maxActions: 30, initialOpening: opening, dayCycleEnabled: true});
+assert.equal(dayCycleScoreGame.checkpointHistory.length, 0, "day-cycle Score AI does not use checkpoints");
+assert.equal(dayCycleScoreGame.dayHistory[0]?.passed, true, "Score AI passes the first day in the regression opening");
+assert.equal(dayCycleScoreGame.finalDay, 2, "a passed closing automatically advances Score AI to Day 2");
+
+const failedDayOne = resolveGameOver({
+  ...createGameState(opening, {dayCycleEnabled: true}),
+  steps: 20,
+  score: 499
+});
+assert.equal(failedDayOne.gameOverReason, "day_target_failed", "an unmet Day 1 target ends the day-cycle run");
+
+const daySummary = summarizeScoreResults([
+  {finalScore: 600, scoreEfficiency: 30, collectionCount: 1, primeCollectionCount: 1, compositeCollectionCount: 0, steps: 20, completed100Steps: false, deadlocked: false, dayCycleEnabled: true, finalDay: 1, dayHistory: [{day: 1, targetScore: 500, finalScore: 600, collectionGainToday: 1, boardSum: 100, passed: true}]},
+  {finalScore: 400, scoreEfficiency: 20, collectionCount: 0, primeCollectionCount: 0, compositeCollectionCount: 0, steps: 20, completed100Steps: false, deadlocked: false, dayCycleEnabled: true, finalDay: 1, dayHistory: [{day: 1, targetScore: 500, finalScore: 400, collectionGainToday: 0, boardSum: 80, passed: false}]},
+  {finalScore: 0, scoreEfficiency: 0, collectionCount: 0, primeCollectionCount: 0, compositeCollectionCount: 0, steps: 4, completed100Steps: false, deadlocked: true, dayCycleEnabled: true, finalDay: 1, dayHistory: []}
+]);
+assert.equal(daySummary.daySummaries[0].reachedCount, 3);
+assert.equal(daySummary.daySummaries[0].passedCount, 1);
+assert.equal(daySummary.daySummaries[0].passRate, 1 / 3, "day pass rate uses reachedCount as its denominator");
 
 console.log("eight palace Score AI tests passed", {
   score: result.finalScore,
