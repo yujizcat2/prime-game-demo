@@ -1,9 +1,10 @@
 import { applyHeaterIncrement, isHeaterTarget } from "./heater";
 import { getCurrentSuperHeaterPrice } from "./superHeaterPricing";
 import { GAME_MODES } from "./eightPalaceKeys";
+import { isCompoundPiece } from "./compound";
 
 export function canUseSuperHeater(state){
-  const pieces = (state?.board ?? []).filter(Boolean);
+  const pieces = (state?.board ?? []).filter(piece => piece && !isCompoundPiece(piece));
   return Boolean(
     state
     && !state.gameOver
@@ -19,7 +20,7 @@ export function applySuperHeater(state){
   if(!canUseSuperHeater(state)) return state;
 
   const price = getCurrentSuperHeaterPrice(state);
-  const board = state.board.map(piece => piece ? applyHeaterIncrement(piece) : null);
+  const board = state.board.map(piece => piece && !isCompoundPiece(piece) ? applyHeaterIncrement(piece) : piece);
   return {
     ...state,
     board,

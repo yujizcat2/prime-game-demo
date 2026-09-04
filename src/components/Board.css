@@ -6137,3 +6137,15 @@
   line-height: 1;
   white-space: nowrap;
 }
+.board-piece--compound {
+  border-color: rgba(91, 92, 145, .28);
+  background: linear-gradient(145deg, #f2f1fb, #deddf0);
+  color: #575989;
+  cursor: default;
+  opacity: 1;
+}
+
+.board-piece-compound-number {
+  font-size: clamp(26px, 7vw, 42px);
+  letter-spacing: .04em;
+}

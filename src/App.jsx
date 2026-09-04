@@ -372,6 +372,11 @@ function App(){
     showActionToast("暂时无法搭配",status.combine.reason);
   }
 
+  function handleCompound(){
+    if(game.selectedIndexes.length !== 2 || !game.preview?.compound) return;
+    game.compoundNumbers();
+  }
+
 
   // ==========================================================
   // 约分
@@ -995,6 +1000,7 @@ function App(){
                   onCombine={handleCombine}
                   onBlockedCombine={handleBlockedCombine}
                   onReduce={handleReduce}
+                  onCompound={handleCompound}
                   gameOver={game.gameOver || Boolean(game.daySettlement) || heaterSelectMode || restoreSelectMode}
                   removingId={removingIndex ?? ((activeAnimation?.phase === "exit" || activeAnimation?.phase === "compress") ? activeAnimation.token : null)}
                 />

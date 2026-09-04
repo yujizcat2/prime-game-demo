@@ -57,6 +57,7 @@ import {
   createCombineHistoryRecord,
   hasCombinePair
 } from "./combineHistory";
+import { isCompoundPiece } from "./compound";
 
 function isEightPalaceMode(state){
   return state?.gameMode === GAME_MODES.EIGHT_PALACE
@@ -121,7 +122,9 @@ export function canCombineCells(
 
   if(
     !a ||
-    !b
+    !b ||
+    isCompoundPiece(a) ||
+    isCompoundPiece(b)
   ){
 
 
@@ -221,7 +224,9 @@ export function canReduceCells(
 
   if(
     !a ||
-    !b
+    !b ||
+    isCompoundPiece(a) ||
+    isCompoundPiece(b)
   ){
 
 

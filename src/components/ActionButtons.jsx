@@ -13,6 +13,8 @@ export default function ActionButtons({
 
   onReduce,
 
+  onCompound,
+
   gameOver,
 
   removingId = null,
@@ -47,6 +49,12 @@ export default function ActionButtons({
     selected.length === 2 &&
 
     !!preview?.reduce;
+
+  const canCompound =
+    !gameOver &&
+    !busy &&
+    selected.length === 2 &&
+    !!preview?.compound;
 
   const canTryBlockedCombine =
     !gameOver &&
@@ -190,6 +198,17 @@ export default function ActionButtons({
 
 
       </button>
+
+      {canCompound && (
+        <button
+          type="button"
+          onClick={onCompound}
+          className="action-toolbar-button action-toolbar-button--compound-active"
+        >
+          <span className="action-toolbar-icon">◇</span>
+          <span className="action-toolbar-label">复合</span>
+        </button>
+      )}
 
 
     </div>

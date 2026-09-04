@@ -159,6 +159,29 @@ export default function BoardCell({
 
   }
 
+  if(piece.isCompound === true){
+    return (
+      <div
+        className={`board-cell board-cell--occupied ${nativeCellClass}`}
+        data-index={index}
+      >
+        <span className="board-native-label">{nativePositionLabel}</span>
+        <div className="board-piece-wrapper board-piece-wrapper--enter">
+          <button
+            type="button"
+            disabled
+            className="board-piece board-piece--compound"
+            aria-label={`复合卡 ${piece.compoundType}${piece.value}`}
+          >
+            <div className="board-piece-number board-piece-compound-number">
+              {piece.compoundType}{piece.value}
+            </div>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
 
 
 
