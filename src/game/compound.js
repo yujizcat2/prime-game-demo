@@ -1,5 +1,6 @@
 import { getNativeFoodType } from "./nativeFoodTypes";
 import { getFoodName } from "../data/food/foodRegistry";
+import { consumeStep } from "./gameState";
 
 export const COMPOUND_EDGES = Object.freeze({
   "0-1": "A", "1-2": "B", "3-4": "C", "4-5": "D", "6-7": "E", "7-8": "F",
@@ -28,17 +29,9 @@ function getPieceName(piece){
   return piece?.displayName ?? piece?.name ?? getFoodName(piece?.value, piece?.foodType);
 }
 
-function getValidPartner(state, compound){
+function getStoredPartner(compound){
   const partner = compound?.compoundPartner;
-  const current = state?.board?.[partner?.index];
-  return partner
-    && isOrdinaryPiece(current)
-    && current.id === partner.id
-    && current.value === partner.value
-    && current.foodType === partner.foodType
-    && (current.purity ?? null) === partner.purity
-    ? current
-    : null;
+  return partner && Number.isFinite(partner.value) ? partner : null;
 }
 
 export function getCompoundRecombination(state, indexA, indexB){
@@ -46,11 +39,9 @@ export function getCompoundRecombination(state, indexA, indexB){
   const first = state.board?.[indexA];
   const second = state.board?.[indexB];
   if(!isCompoundPiece(first) || !isCompoundPiece(second)) return null;
-  const firstPartner = getValidPartner(state, first);
-  const secondPartner = getValidPartner(state, second);
+  const firstPartner = getStoredPartner(first);
+  const secondPartner = getStoredPartner(second);
   if(!firstPartner || !secondPartner) return null;
-  const consumedIndexes = [first.compoundPartner.index, second.compoundPartner.index];
-  if(new Set([indexA, indexB, ...consumedIndexes]).size !== 4) return null;
   const exchangedFirst = first.value + secondPartner.value;
   const exchangedSecond = second.value + firstPartner.value;
   const difference = Math.abs(exchangedFirst - exchangedSecond);
@@ -62,7 +53,6 @@ export function getCompoundRecombination(state, indexA, indexB){
     secondValue: total - difference,
     firstFoodType: getNativeFoodType(indexA),
     secondFoodType: getNativeFoodType(indexB),
-    consumedIndexes,
     targetIndexes: [indexA, indexB]
   };
 }
@@ -98,8 +88,7 @@ export function compoundCells(state, indexA, indexB){
   if(recombination){
     board[indexA] = createRecombinedPiece(state.board[indexA], recombination.firstValue, recombination.firstFoodType);
     board[indexB] = createRecombinedPiece(state.board[indexB], recombination.secondValue, recombination.secondFoodType);
-    recombination.consumedIndexes.forEach(index => { board[index] = null; });
-    return {...state, board};
+    return consumeStep({...state, steps: state.steps ?? 0, board});
   }
 
   const first = state.board[indexA];
@@ -123,5 +112,6 @@ export function compoundCells(state, indexA, indexB){
       name: partnerName
     }
   };
-  return {...state, board};
+  board[indexB] = null;
+  return consumeStep({...state, steps: state.steps ?? 0, board});
 }

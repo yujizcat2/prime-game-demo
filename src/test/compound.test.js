@@ -32,21 +32,26 @@ function createLifecycleState(){
 
 const initial = createLifecycleState();
 const initialSum = getNonDrinkBoardSum(initial.board);
+const illegalFirstCompound = compoundCells(initial, 0, 4);
+assert.equal(illegalFirstCompound, initial);
+assert.equal(illegalFirstCompound.steps, 0);
 const firstBound = compoundCells(initial, 0, 1);
 assert.equal(firstBound.board[0].value, 31);
-assert.equal(firstBound.board[1].value, 14);
+assert.equal(firstBound.board[1], null);
 assert.equal(isCompoundPiece(firstBound.board[0]), true);
-assert.equal(isCompoundPiece(firstBound.board[1]), false);
 assert.deepEqual(firstBound.board[0].compoundPartner, {
   id: 2, index: 1, value: 14, foodType: "aquatic", purity: "pure", name: "虾鱼饼"
 });
-assert.equal(getBoardCount(firstBound.board), 4);
-assert.equal(getNonDrinkBoardSum(firstBound.board), initialSum);
+assert.equal(getBoardCount(firstBound.board), 3);
+assert.equal(firstBound.steps, 1);
+assert.equal(firstBound.board[0].value + firstBound.board[0].compoundPartner.value, 45);
+assert.equal(initialSum, 78);
 
 const namedBoard = Array(9).fill(null);
 namedBoard[0] = {id: 10, value: 3, foodType: "aquatic", purity: "pure", displayName: "青蟹"};
 namedBoard[1] = {id: 11, value: 8, foodType: "dairyEgg", purity: "pure", displayName: "皮蛋"};
-const namedCompound = compoundCells({board: namedBoard, gameOver: false}, 0, 1).board[0];
+const namedState = compoundCells({board: namedBoard, gameOver: false, steps: 0}, 0, 1);
+const namedCompound = namedState.board[0];
 assert.equal(COMPOUND_COOKING_METHODS.A, "炒");
 assert.deepEqual(COMPOUND_COOKING_METHODS, {
   A: "炒", B: "煎", C: "蒸", D: "烧", E: "烤", F: "焖",
@@ -58,8 +63,13 @@ assert.equal(namedCompound.isCompound, true);
 assert.equal(namedCompound.compoundPartner.value, 8);
 assert.equal(namedCompound.compoundCookingMethod, "炒");
 assert.equal(namedCompound.compoundDishName, "青蟹炒皮蛋");
+assert.equal(namedCompound.compoundType, "A");
+assert.equal(COMPOUND_COOKING_METHODS[namedCompound.compoundType], namedCompound.compoundCookingMethod);
 assert.equal(getCompoundDisplayName(namedCompound), "青蟹炒皮蛋");
 assert.equal(getCompoundParentSignature(namedCompound), "青蟹3 × 皮蛋8");
+assert.equal(getCompoundDisplayValue(namedCompound), 11);
+assert.equal(namedState.board[1], null);
+assert.equal(namedState.steps, 1);
 
 const displayValuePiece = {
   value: 20,
@@ -75,9 +85,9 @@ assert.equal(getCompoundParentSignature(displayValuePiece), "虾鱼糕20 × 鲈�
 const twoGroups = compoundCells(firstBound, 3, 4);
 assert.equal(isCompoundPiece(twoGroups.board[0]), true);
 assert.equal(isCompoundPiece(twoGroups.board[3]), true);
-assert.equal(twoGroups.board[1].value, 14);
-assert.equal(twoGroups.board[4].value, 11);
-assert.equal(getNonDrinkBoardSum(twoGroups.board), 78);
+assert.equal(twoGroups.board[1], null);
+assert.equal(twoGroups.board[4], null);
+assert.equal(twoGroups.steps, 2);
 
 const preview = getCompoundRecombination(twoGroups, 0, 3);
 assert.deepEqual(preview, {
@@ -86,7 +96,6 @@ assert.deepEqual(preview, {
   secondValue: 72,
   firstFoodType: getNativeFoodType(0),
   secondFoodType: getNativeFoodType(3),
-  consumedIndexes: [1, 4],
   targetIndexes: [0, 3]
 });
 
@@ -104,6 +113,7 @@ assert.equal(recombined.board[4], null);
 assert.equal(getBoardCount(recombined.board), 2);
 assert.equal(getNonDrinkBoardSum(recombined.board), 78);
 assert.equal(recombined.board[0].value + recombined.board[3].value, 31 + 14 + 22 + 11);
+assert.equal(recombined.steps, 3);
 
 const alternate = createLifecycleState();
 alternate.board[0] = {id: 3, value: 22, foodType: "land", purity: "pure"};
@@ -129,6 +139,7 @@ assert.equal(smallResult.board[3].value, 16);
 assert.equal(smallResult.board[1], null);
 assert.equal(smallResult.board[4], null);
 assert.equal(getNonDrinkBoardSum(smallResult.board), 31);
+assert.equal(smallResult.steps, 3);
 for(const piece of [smallResult.board[0], smallResult.board[3]]){
   assert.equal(piece.isCompound, undefined);
   assert.equal(piece.compoundPartner, undefined);
@@ -152,18 +163,19 @@ assert.equal(canCompoundCells(zeroDifferenceGroups, 0, 3), false);
 assert.equal(compoundCells(zeroDifferenceGroups, 0, 3), zeroDifferenceGroups);
 assert.equal(zeroDifferenceGroups.board.some(piece => piece?.value === 0), false);
 
-const stalePartner = {
+const missingStoredPartner = {
   ...twoGroups,
   board: twoGroups.board.map(piece => piece ? {...piece} : null)
 };
-stalePartner.board[1].value = 15;
-assert.equal(getCompoundRecombination(stalePartner, 0, 3), null);
-assert.equal(canCompoundCells(stalePartner, 0, 3), false);
-assert.equal(compoundCells(stalePartner, 0, 3), stalePartner);
+delete missingStoredPartner.board[0].compoundPartner;
+assert.equal(getCompoundRecombination(missingStoredPartner, 0, 3), null);
+assert.equal(canCompoundCells(missingStoredPartner, 0, 3), false);
+assert.equal(compoundCells(missingStoredPartner, 0, 3), missingStoredPartner);
+assert.equal(missingStoredPartner.steps, 2);
 
 assert.equal(firstBound.board[0].value, 31);
-assert.equal(firstBound.board[1].value, 14);
-assert.equal(firstBound.board.filter(Boolean).length, 4);
+assert.equal(firstBound.board[1], null);
+assert.equal(firstBound.board.filter(Boolean).length, 3);
 assert.equal(canCombineCells(twoGroups, 0, 3), false);
 assert.equal(canReduceCells(twoGroups, 0, 3), false);
 assert.equal(getLegalActions(twoGroups).some(action => action.type === "compound" || action.type === "recombine"), false);
@@ -177,10 +189,17 @@ const compoundCard = renderToStaticMarkup(React.createElement(BoardCell, {
   selected: true,
   onClick: () => {}
 }));
-assert.match(compoundCard, /复合系/);
+assert.match(compoundCard, /复合系 · A/);
 assert.match(compoundCard, /board-piece-compound-number">45</);
 assert.match(compoundCard, /31 × 虾鱼饼14/);
 assert.match(compoundCard, /board-piece--selected/);
+
+const recombinedCard = renderToStaticMarkup(React.createElement(BoardCell, {
+  index: 0,
+  piece: recombined.board[0],
+  onClick: () => {}
+}));
+assert.doesNotMatch(recombinedCard, /复合系 · [A-L]/);
 
 const recombinationButton = renderToStaticMarkup(React.createElement(ActionButtons, {
   selected: [1, 3],

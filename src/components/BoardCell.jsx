@@ -186,7 +186,9 @@ export default function BoardCell({
             aria-label={`复合料理 ${compoundDisplayValue}`}
           >
             {selected && <div className="board-piece-selected-ring" />}
-            <div className="board-piece-cuisine-type board-piece-compound-type">复合系</div>
+            <div className="board-piece-cuisine-type board-piece-compound-type">
+              复合系 · {piece.compoundType}
+            </div>
             <div className="board-piece-number board-piece-compound-number">
               {compoundDisplayValue}
             </div>
