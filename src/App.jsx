@@ -15,6 +15,8 @@ import ActionHintPanel from "./components/ActionHintPanel";
 import CollectionPanel from "./components/CollectionPanel";
 import EightPalaceCollectionPanel from "./components/EightPalaceCollectionPanel";
 import StepPanel from "./components/StepPanel";
+import DayPanel from "./components/DayPanel";
+import DaySettlement from "./components/DaySettlement";
 import BoardStatus from "./components/BoardStatus";
 import GameOver from "./components/GameOver";
 import CombineHistoryPanel from "./components/CombineHistoryPanel";
@@ -221,6 +223,7 @@ function App(){
   useEffect(()=>{if(!keyNotice)return undefined;const timer=window.setTimeout(()=>setKeyNotice(null),2200);return()=>window.clearTimeout(timer);},[keyNotice]);
 
   useEffect(() => {
+    if(game.dayCycleEnabled) return;
     const snapshot = game.collectionEfficiencyTimeline.at(-1);
     if(!snapshot || snapshot.step <= notifiedEfficiencyStepRef.current) return;
     notifiedEfficiencyStepRef.current = snapshot.step;
@@ -228,9 +231,10 @@ function App(){
       `Step ${snapshot.step} · 效率 ${snapshot.collectionEfficiency.toFixed(2)}`,
       `最近10步 +${snapshot.recent10Collections}`
     );
-  }, [game.collectionEfficiencyTimeline]);
+  }, [game.collectionEfficiencyTimeline, game.dayCycleEnabled]);
 
   useEffect(() => {
+    if(game.dayCycleEnabled) return;
     const result = game.latestCheckpointResult;
     if(!result || result.index <= notifiedCheckpointIndexRef.current) return;
     notifiedCheckpointIndexRef.current = result.index;
@@ -244,7 +248,7 @@ function App(){
           : `目标 ${numberFormatter.format(result.requiredScore)} 分 · 最终 ${numberFormatter.format(result.currentScore)} 分`
       );
     }
-  }, [game.latestCheckpointResult, game.checkpoint]);
+  }, [game.latestCheckpointResult, game.checkpoint, game.dayCycleEnabled]);
 
 
   // ==========================================================
@@ -810,7 +814,14 @@ function App(){
 
         <section className="game-top-status">
 
-          <StepPanel
+          {game.dayCycleEnabled ? <DayPanel
+            day={game.day}
+            time={game.dayTime}
+            period={game.dayPeriod}
+            dayStep={game.dayStep}
+            score={game.score}
+            target={game.dayTarget}
+          /> : <StepPanel
             steps={
               game.steps
             }
@@ -825,7 +836,7 @@ function App(){
             checkpoint={game.checkpoint}
             collectionCount={game.collectionCards.length}
             collectionEfficiencyTimeline={game.collectionEfficiencyTimeline}
-          />
+          />}
 
 
         </section>
@@ -873,14 +884,14 @@ function App(){
 
             <ItemBar
               heaterCost={game.heaterCost}
-              heaterAvailable={game.heaterAvailable}
+              heaterAvailable={game.heaterAvailable && !game.daySettlement}
               heaterActive={heaterSelectMode}
               onHeaterClick={toggleHeaterMode}
               superHeaterCost={game.superHeaterCost}
-              superHeaterAvailable={game.superHeaterAvailable}
+              superHeaterAvailable={game.superHeaterAvailable && !game.daySettlement}
               onSuperHeaterClick={handleSuperHeater}
               restoreCost={game.restoreCost}
-              restoreAvailable={game.restoreAvailable}
+              restoreAvailable={game.restoreAvailable && !game.daySettlement}
               restoreActive={restoreSelectMode}
               onRestoreClick={toggleRestoreMode}
             />
@@ -931,7 +942,7 @@ function App(){
                 heaterSelectMode={heaterSelectMode}
                 restoreSelectMode={restoreSelectMode}
                 onSelectCell={
-                  activeAnimation?.phase === "exit" || activeAnimation?.phase === "compress"
+                  game.daySettlement || activeAnimation?.phase === "exit" || activeAnimation?.phase === "compress"
                     ? undefined
                     : restoreSelectMode
                       ? handleRestoreTarget
@@ -984,7 +995,7 @@ function App(){
                   onCombine={handleCombine}
                   onBlockedCombine={handleBlockedCombine}
                   onReduce={handleReduce}
-                  gameOver={game.gameOver || heaterSelectMode || restoreSelectMode}
+                  gameOver={game.gameOver || Boolean(game.daySettlement) || heaterSelectMode || restoreSelectMode}
                   removingId={removingIndex ?? ((activeAnimation?.phase === "exit" || activeAnimation?.phase === "compress") ? activeAnimation.token : null)}
                 />
               </div>
@@ -1073,6 +1084,7 @@ function App(){
             game.gameOverReason
           }
           checkpointResult={game.latestCheckpointResult}
+          daySettlement={game.daySettlement}
           money={game.money}
           passedCheckpointCount={game.passedCheckpointCount}
           heaterUseCount={game.heaterUseCount}
@@ -1098,6 +1110,8 @@ function App(){
           }
         />
       }
+
+      <DaySettlement settlement={game.daySettlement} onContinue={game.startNextDay} />
 
     </div>
 

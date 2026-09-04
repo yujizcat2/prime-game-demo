@@ -1,0 +1,42 @@
+.day-panel {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 13px 18px 11px;
+  border: 1px solid rgba(94, 116, 104, .14);
+  border-radius: 18px;
+  background: linear-gradient(120deg, rgba(214, 229, 220, .8), rgba(255, 255, 255, .72) 52%, rgba(231, 225, 207, .5));
+  box-shadow: 0 7px 22px rgba(40, 58, 49, .055), inset 0 1px 0 rgba(255, 255, 255, .8);
+  color: #33453c;
+  font-variant-numeric: tabular-nums;
+}
+
+.day-panel-heading, .day-panel-business { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.day-panel-heading > div, .day-panel-clock { display: flex; flex-direction: column; }
+.day-panel-heading > div > strong { font-size: 18px; font-weight: 950; letter-spacing: .04em; }
+.day-panel-heading span { color: #849088; font-size: 10px; font-weight: 700; }
+.day-panel-clock { align-items: flex-end; }
+.day-panel-clock > strong { color: #2c3b34; font-size: 29px; font-weight: 950; line-height: .9; letter-spacing: -.045em; }
+
+.day-panel-business { margin-top: 10px; }
+.day-panel-business > div { display: flex; flex-direction: column; }
+.day-panel-business > div > span { color: #7d8982; font-size: 10px; font-weight: 800; letter-spacing: .08em; }
+.day-panel-business > div > strong { margin-top: 2px; font-size: 20px; font-weight: 950; line-height: 1; }
+.day-panel-business small { color: #718078; font-size: 12px; font-weight: 800; }
+.day-panel-gap, .day-panel-complete { font-size: 12px; font-weight: 900; }
+.day-panel-gap { color: #936d3f; }
+.day-panel-complete { color: #337158; }
+
+.day-panel-progress { height: 6px; margin-top: 8px; overflow: hidden; border-radius: 999px; background: rgba(82, 111, 96, .12); }
+.day-panel-progress > span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #789b88, #a4b37e); transition: width 260ms ease-out; }
+.day-panel-remaining { margin-top: 7px; color: #697970; font-size: 11px; font-weight: 800; text-align: right; }
+.day-panel-remaining strong { color: #456455; font-size: 15px; font-weight: 950; }
+.day-panel--near { border-color: rgba(158, 125, 68, .3); }
+.day-panel--urgent { border-color: rgba(145, 104, 54, .46); }
+.day-panel--urgent .day-panel-remaining, .day-panel--urgent .day-panel-remaining strong { color: #875f34; }
+
+@media (max-width: 480px) {
+  .day-panel { padding: 11px 14px 9px; border-radius: 16px; }
+  .day-panel-clock > strong { font-size: 26px; }
+  .day-panel-business { margin-top: 8px; }
+  .day-panel-business > div > strong { font-size: 18px; }
+}

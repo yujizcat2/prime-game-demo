@@ -19,6 +19,8 @@ export default function GameOver({
 
   checkpointResult,
 
+  daySettlement,
+
   money,
 
   passedCheckpointCount,
@@ -141,9 +143,9 @@ export default function GameOver({
 
         >
 
-          {isEightPalace
-            ? "本局结束"
-            : "探索结束"}
+          {reason === "day_target_failed"
+            ? "今日营业未完成"
+            : isEightPalace ? "本局结束" : "探索结束"}
 
         </h2>
 
@@ -161,7 +163,9 @@ export default function GameOver({
         >
 
           {isEightPalace
-            ? reason === "checkpoint_failed"
+            ? reason === "day_target_failed"
+              ? `第 ${daySettlement?.day ?? "—"} 营业日未达标`
+              : reason === "checkpoint_failed"
               ? `第 ${checkpointResult?.index ?? "—"} 检查站失败`
               : reason === "no_legal_actions" ? "已无合法操作" : "本局已结束"
             : reason === "board_depleted"
@@ -175,6 +179,13 @@ export default function GameOver({
             ? `Step ${checkpointResult.step} · 任务：获得至少 1 个收藏`
             : `Step ${checkpointResult.step} · 最终积分 ${checkpointResult.currentScore} · 目标积分 ${checkpointResult.requiredScore} · 还差 ${Math.max(0, checkpointResult.requiredScore - checkpointResult.currentScore)} 分`}
         </p>}
+
+        {reason === "day_target_failed" && daySettlement && <div className="mt-5 rounded-2xl bg-amber-50/70 px-5 py-4 text-left text-sm font-bold text-gray-600">
+          <div className="mb-3 text-center text-xs tracking-[.14em] text-amber-700">DAY {daySettlement.day} · 打烊</div>
+          <div className="flex justify-between py-1"><span>最终积分</span><strong>{daySettlement.finalScore}</strong></div>
+          <div className="flex justify-between py-1"><span>营业目标</span><strong>{daySettlement.targetScore}</strong></div>
+          <div className="flex justify-between py-1 text-amber-800"><span>还差</span><strong>{Math.max(0, daySettlement.targetScore - daySettlement.finalScore)}</strong></div>
+        </div>}
 
 
         {

@@ -75,7 +75,8 @@ import { createFirstCheckpoint } from "./checkpoints";
 // ============================================================
 
 export function createGameState(
-  values
+  values,
+  runtimeConfig = {}
 ){
 
 
@@ -353,10 +354,20 @@ export function createGameState(
         ? EIGHT_PALACE_STEP_LIMIT
         : GAME_CONFIG.START_STEP_LIMIT,
 
-    checkpoint: usesPlacedInitialValues ? createFirstCheckpoint() : null,
+    checkpoint: usesPlacedInitialValues && runtimeConfig.dayCycleEnabled !== true
+      ? createFirstCheckpoint()
+      : null,
     passedCheckpointCount: 0,
     checkpointHistory: [],
     latestCheckpointResult: null,
+
+    dayCycleEnabled: runtimeConfig.dayCycleEnabled === true,
+    day: runtimeConfig.dayCycleEnabled === true ? 1 : null,
+    dayStartStep: 0,
+    dayStartScore: 0,
+    dayStartCollectionCount: 0,
+    daySettlement: null,
+    dayHistory: [],
 
     gameRecapSnapshots: [],
     recapActionCounts: {combine: 0, reduce: 0},

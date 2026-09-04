@@ -44,6 +44,7 @@ import {
   resolveGameOver
 
 } from "../game/gameEngine";
+import { advanceToNextDay, getDayPeriod, getDayScoreTarget, getDayStep, getDayTime } from "../game/dayCycle";
 
 
 export default function useGame(){
@@ -111,7 +112,8 @@ export default function useGame(){
       resolveGameOver(
 
         createGameState(
-          values
+          values,
+          {dayCycleEnabled: true}
         )
 
       );
@@ -295,6 +297,14 @@ export default function useGame(){
   const passedCheckpointCount = gameState?.passedCheckpointCount ?? 0;
   const checkpointHistory = gameState?.checkpointHistory ?? [];
   const latestCheckpointResult = gameState?.latestCheckpointResult ?? null;
+  const dayCycleEnabled = gameState?.dayCycleEnabled ?? false;
+  const day = gameState?.day ?? 1;
+  const dayStep = getDayStep(gameState);
+  const dayTime = getDayTime(gameState);
+  const dayPeriod = getDayPeriod(gameState);
+  const dayTarget = getDayScoreTarget(day);
+  const daySettlement = gameState?.daySettlement ?? null;
+  const dayHistory = gameState?.dayHistory ?? [];
   const gameRecapSnapshots = gameState?.gameRecapSnapshots ?? [];
   const recapActionCounts = gameState?.recapActionCounts ?? null;
   const recapItemSpending = gameState?.recapItemSpending ?? null;
@@ -634,6 +644,12 @@ export default function useGame(){
     setGameState(nextState);
     clearSelection();
     return nextState.latestRestoreUse;
+  }
+
+  function startNextDay(){
+    if(!gameState) return;
+    setGameState(advanceToNextDay(gameState));
+    clearSelection();
   }
 
 
@@ -1435,6 +1451,14 @@ export default function useGame(){
     passedCheckpointCount,
     checkpointHistory,
     latestCheckpointResult,
+    dayCycleEnabled,
+    day,
+    dayStep,
+    dayTime,
+    dayPeriod,
+    dayTarget,
+    daySettlement,
+    dayHistory,
     gameRecapSnapshots,
     recapActionCounts,
     recapItemSpending,
@@ -1469,6 +1493,7 @@ export default function useGame(){
     useHeaterOnCell,
     useSuperHeater,
     useRestoreOnCell,
+    startNextDay,
 
     combineNumbers,
 

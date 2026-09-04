@@ -46,6 +46,7 @@ import { canUseHeater } from "./heater";
 import { applySuperHeater } from "./superHeater";
 import { markSingleFlavorBoardPieces } from "./singleFlavorPenalty";
 import { resolveCheckpoint } from "./checkpoints";
+import { settleDayIfNeeded } from "./dayCycle";
 
 
 
@@ -197,7 +198,8 @@ export function applyAction(
 
   if(
     !state ||
-    !action
+    !action ||
+    state.daySettlement
   ){
 
 
@@ -425,9 +427,13 @@ export function resolveGameOver(
     ? {...state, gameOver: false, gameOverReason: null}
     : state;
 
-  if(state.gameOverReason === "checkpoint_failed") return state;
+  if((state.gameOverReason === "checkpoint_failed" && !state.dayCycleEnabled) || state.gameOverReason === "day_target_failed") return state;
 
-  if(isEightPalace || isSimpleEightPalace){
+  const dayState = settleDayIfNeeded(activeState);
+  if(dayState !== activeState) return dayState;
+  if(activeState.daySettlement) return activeState;
+
+  if(!activeState.dayCycleEnabled && (isEightPalace || isSimpleEightPalace)){
     const checkpointState = resolveCheckpoint(activeState);
     if(checkpointState !== activeState) return checkpointState.gameOver
       ? checkpointState
