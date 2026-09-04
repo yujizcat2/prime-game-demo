@@ -1067,8 +1067,8 @@ export default function BoardCell({
 
           {
             !isOne &&
-            <div className="board-piece-score">
-              {scoreMode ? `+${availableScore}` : null}
+            <div className="board-piece-available-score">
+              {scoreMode ? `+${availableScore}分` : null}
               {scoreMode && piece.singleFlavorPenalty === true && (
                 <span className="board-piece-single-flavor">风味单一</span>
               )}

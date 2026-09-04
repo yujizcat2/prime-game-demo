@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { createGameState } from "../game/gameEngine";
 import { applyEightPalaceCollection, getEightPalaceCollectionScoreGain } from "../game/collectionRules";
 import { BASE_FOOD_TYPES, FOOD_TYPES } from "../game/rules";
@@ -57,5 +58,13 @@ assert.equal(settled.latestCollection.collectionScore, Math.round(raw * 1.15));
 assert.equal(settled.latestCollection.totalScore, settled.latestCollection.collectionScore + settled.latestCollection.newFoodTypeBonus);
 assert.equal(settled.latestCollection.abundanceBonusScore, undefined);
 assert.equal(settled.latestCollection.boardPowerBonus, undefined);
+
+const repeatedPreview = getEightPalaceCollectionScoreGain(settled, piece);
+assert.equal(repeatedPreview, 0, "an already collected number and food type previews +0 points");
+
+const boardCellSource = readFileSync("src/components/BoardCell.jsx", "utf8");
+assert.match(boardCellSource, /board-piece-available-score/);
+assert.match(boardCellSource, /`\+\$\{availableScore\}分`/);
+assert.equal(boardCellSource.includes(String.fromCodePoint(165)), false);
 
 console.log("score value tests passed");
