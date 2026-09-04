@@ -37,7 +37,7 @@ assert.deepEqual(horizontal.board[0], {
 });
 assert.equal(horizontal.board[1], null);
 assert.equal(getCompoundDisplayName(horizontal.board[0]), "羊肉炒香菇");
-assert.equal(getCompoundParentSignature(horizontal.board[0]), "由羊肉7与香菇11复合");
+assert.equal(getCompoundParentSignature(horizontal.board[0]), "由羊肉与香菇复合");
 assert.deepEqual(COMPOUND_COOKING_LABELS, {
   A: "炒", B: "煎", C: "蒸", D: "烧", E: "烤", F: "焖",
   G: "炖", H: "烩", I: "拌", J: "煮", K: "卤", L: "炸"
@@ -60,8 +60,16 @@ const sourced = compoundCells(sourcedState, 0, 1).board[0];
 assert.deepEqual(sourced.parentSourceNames, [["白虾", "猪肉"], []]);
 assert.equal(
   getCompoundParentSignature(sourced),
-  "由羊肉7（白虾、猪肉）与香菇11（原生）复合"
+  "羊肉源自白虾与猪肉，再与香菇复合"
 );
+assert.equal(getCompoundParentSignature({
+  parentNames: ["土豆", "鳗鱼"],
+  parentSourceNames: [[], ["蟹肉棒", "鸭蛋"]]
+}), "鳗鱼源自蟹肉棒与鸭蛋，再与土豆复合");
+assert.equal(getCompoundParentSignature({
+  parentNames: ["鳗鱼", "蟹肉棒"],
+  parentSourceNames: [["蟹肉棒", "鸭蛋"], ["鲈鱼", "土豆"]]
+}), "鳗鱼源自蟹肉棒与鸭蛋，蟹肉棒源自鲈鱼与土豆，两者复合");
 
 const diagonal = stateWith(0, 7, 4, 11);
 assert.equal(canCompoundCells(diagonal, 0, 4), false);
@@ -99,7 +107,8 @@ const compoundCard = renderToStaticMarkup(React.createElement(BoardCell, {
 assert.match(compoundCard, /复合系/);
 assert.match(compoundCard, /A4/);
 assert.match(compoundCard, /羊肉炒香菇/);
-assert.match(compoundCard, /由羊肉7与香菇11复合/);
+assert.match(compoundCard, /由羊肉与香菇复合/);
+assert.doesNotMatch(compoundCard, /羊肉7|香菇11/);
 assert.doesNotMatch(compoundCard, /原 · 陆产/);
 
 console.log("compound V0 tests passed");

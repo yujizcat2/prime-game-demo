@@ -13,13 +13,17 @@ export function getCompoundDisplayName(piece){
 
 export function getCompoundParentSignature(piece){
   const [firstName, secondName] = piece?.parentNames ?? [];
-  const [firstValue, secondValue] = piece?.parentValues ?? [];
-  if(!firstName || !secondName || firstValue == null || secondValue == null) return "";
+  if(!firstName || !secondName) return "";
   const [firstSources = [], secondSources = []] = piece?.parentSourceNames ?? [];
   if(firstSources.length === 0 && secondSources.length === 0){
-    return `由${firstName}${firstValue}与${secondName}${secondValue}复合`;
+    return `由${firstName}与${secondName}复合`;
   }
-  const describe = (name, value, sources) =>
-    `${name}${value}（${sources.length ? sources.join("、") : "原生"}）`;
-  return `由${describe(firstName, firstValue, firstSources)}与${describe(secondName, secondValue, secondSources)}复合`;
+  const sourceText = sources => sources.join("与");
+  if(firstSources.length > 0 && secondSources.length === 0){
+    return `${firstName}源自${sourceText(firstSources)}，再与${secondName}复合`;
+  }
+  if(firstSources.length === 0 && secondSources.length > 0){
+    return `${secondName}源自${sourceText(secondSources)}，再与${firstName}复合`;
+  }
+  return `${firstName}源自${sourceText(firstSources)}，${secondName}源自${sourceText(secondSources)}，两者复合`;
 }
