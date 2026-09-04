@@ -277,6 +277,28 @@ const weightedSummary = summarizeScoreResults([
 assert.equal(weightedSummary.primeCollectionShare, 0.1, "batch share weights every classified collection equally");
 assert.notEqual(weightedSummary.primeCollectionShare, 0.5, "batch share is not an average of per-game shares");
 
+const checkpointSummary = summarizeScoreResults([{
+  finalScore: 105,
+  scoreEfficiency: 10.5,
+  collectionCount: 0,
+  primeCollectionCount: 0,
+  compositeCollectionCount: 0,
+  steps: 10,
+  completed100Steps: false,
+  deadlocked: false,
+  checkpointHistory: [{
+    index: 1,
+    step: 10,
+    type: "score",
+    passed: true,
+    requiredScore: 100,
+    currentScore: 105
+  }],
+  actionPath: [{stepAfter: 9, scoreAfter: 105, scoreGain: 5}]
+}]);
+assert.equal(checkpointSummary.checkpointAwarenessTelemetry.closePassCount, 1);
+assert.equal(checkpointSummary.checkpointAwarenessTelemetry.averageScoreGainBefore3Steps, 5);
+
 const testLabSource = readFileSync("src/components/TestLab.jsx", "utf8");
 assert.match(testLabSource, /Score AI 全部测试记录/);
 assert.match(testLabSource, /Random AI 全部测试记录/);

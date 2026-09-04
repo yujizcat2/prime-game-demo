@@ -918,7 +918,7 @@ export function summarizeScoreResults(results){
   const scoreCheckpointEvents = results.flatMap(result =>
     (result.checkpointHistory ?? [])
       .filter(checkpoint => checkpoint.type === "score")
-      .map(checkpoint => ({...checkpoint, result}))
+      .map(checkpoint => ({checkpoint, result}))
   );
   const checkpointWindowGain = window => average(scoreCheckpointEvents, ({checkpoint, result}) =>
     (result.actionPath ?? [])
