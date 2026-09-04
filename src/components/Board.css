@@ -6138,22 +6138,26 @@
   white-space: nowrap;
 }
 .board-piece--compound {
-  --cuisine-primary: #57558f;
-  --cuisine-secondary: #8580bd;
-  --cuisine-border: #817bae;
-  --cuisine-surface: #f1f0fa;
-  border-color: rgba(87, 85, 143, .34);
-  background: linear-gradient(145deg, #f7f6fc 0%, #e7e5f4 100%);
-  color: #504d83;
+  --cuisine-primary: #d9d3f4;
+  --cuisine-secondary: #9b91cf;
+  --cuisine-border: #a58cdc;
+  --cuisine-surface: #282347;
+  border-color: rgba(165, 140, 220, .65);
+  background:
+    radial-gradient(circle at 76% 18%, rgba(150, 125, 220, .17), transparent 38%),
+    linear-gradient(145deg, rgba(50, 45, 92, .98) 0%, rgba(35, 31, 70, .98) 50%, rgba(24, 27, 55, .99) 100%);
+  color: #e7e2f6;
   cursor: default;
   opacity: 1;
   overflow: hidden;
+  box-shadow: inset 0 1px 0 rgba(236, 229, 255, .12), 0 4px 10px rgba(29, 25, 55, .14);
 }
 
 .board-piece-compound-number {
-  color: #514e89;
+  color: #f1edff;
   font-size: clamp(25px, 7vw, 40px);
   letter-spacing: .04em;
+  text-shadow: 0 1px 2px rgba(10, 8, 28, .34);
 }
 
 .board-piece-compound-main {
@@ -6167,7 +6171,7 @@
   display: -webkit-box;
   max-width: 100%;
   overflow: hidden;
-  color: #454273;
+  color: #f5f2fb;
   font-size: 20px;
   line-height: 1.08;
   letter-spacing: -.04em;
@@ -6181,7 +6185,7 @@
 .board-piece-compound-name--very-long { font-size: 14px; }
 
 .board-piece-compound-type {
-  color: #625e98;
+  color: #c9bff0;
   font-weight: 800;
   opacity: .9;
 }
@@ -6189,15 +6193,19 @@
 .board-piece-compound-signature {
   left: 7px;
   right: 7px;
-  color: #625e87;
-  font-size: 9px;
-  line-height: 1.1;
-  white-space: nowrap;
-  opacity: .8;
+  bottom: 5px;
+  color: #bbb4d4;
+  font-size: 8px;
+  line-height: 1.12;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  opacity: .9;
 }
 
 .board-piece-compound-signature span {
+  display: -webkit-box;
   min-width: 0;
   overflow: hidden;
-  text-overflow: ellipsis;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
 }

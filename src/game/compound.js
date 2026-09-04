@@ -14,6 +14,17 @@ export function getCompoundType(indexA, indexB){
   return COMPOUND_EDGES[[indexA, indexB].sort((left, right) => left - right).join("-")] ?? null;
 }
 
+function getDirectSourceNames(piece){
+  const sourcePieces = piece?.origin?.type === "combine"
+    ? piece.origin.parents
+    : piece?.origin?.parent
+      ? [piece.origin.parent]
+      : piece?.origin?.from
+        ? [piece.origin.from]
+        : [];
+  return (sourcePieces ?? []).map(source => getFoodName(source.value, source.foodType));
+}
+
 export function canCompoundCells(state, indexA, indexB){
   if(!state || state.gameOver || state.daySettlement) return false;
   const first = state.board?.[indexA];
@@ -38,7 +49,8 @@ export function compoundCells(state, indexA, indexB){
       getFoodName(first.value, first.foodType),
       getFoodName(second.value, second.foodType)
     ],
-    parentValues: [first.value, second.value]
+    parentValues: [first.value, second.value],
+    parentSourceNames: [getDirectSourceNames(first), getDirectSourceNames(second)]
   };
   board[indexB] = null;
   return {...state, board};

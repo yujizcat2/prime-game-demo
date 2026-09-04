@@ -14,7 +14,12 @@ export function getCompoundDisplayName(piece){
 export function getCompoundParentSignature(piece){
   const [firstName, secondName] = piece?.parentNames ?? [];
   const [firstValue, secondValue] = piece?.parentValues ?? [];
-  return firstName && secondName && firstValue != null && secondValue != null
-    ? `${firstName}${firstValue} ◇ ${secondName}${secondValue}`
-    : "";
+  if(!firstName || !secondName || firstValue == null || secondValue == null) return "";
+  const [firstSources = [], secondSources = []] = piece?.parentSourceNames ?? [];
+  if(firstSources.length === 0 && secondSources.length === 0){
+    return `由${firstName}${firstValue}与${secondName}${secondValue}复合`;
+  }
+  const describe = (name, value, sources) =>
+    `${name}${value}（${sources.length ? sources.join("、") : "原生"}）`;
+  return `由${describe(firstName, firstValue, firstSources)}与${describe(secondName, secondValue, secondSources)}复合`;
 }
