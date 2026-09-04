@@ -4,6 +4,13 @@ export function getCompoundDisplayName(piece){
   return piece?.compoundDishName ?? getFoodName(piece?.value, piece?.foodType);
 }
 
+export function getCompoundDisplayValue(piece){
+  const partnerValue = piece?.compoundPartner?.value;
+  return Number.isFinite(piece?.value) && Number.isFinite(partnerValue)
+    ? piece.value + partnerValue
+    : piece?.value;
+}
+
 export function getCompoundParentSignature(piece){
   const partner = piece?.compoundPartner;
   return partner?.value != null

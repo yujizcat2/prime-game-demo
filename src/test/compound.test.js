@@ -3,7 +3,11 @@ import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import ActionButtons from "../components/ActionButtons";
 import BoardCell from "../components/BoardCell";
-import { getCompoundDisplayName, getCompoundParentSignature } from "../components/compoundDisplay";
+import {
+  getCompoundDisplayName,
+  getCompoundDisplayValue,
+  getCompoundParentSignature
+} from "../components/compoundDisplay";
 import {
   canCompoundCells,
   COMPOUND_COOKING_METHODS,
@@ -56,6 +60,17 @@ assert.equal(namedCompound.compoundCookingMethod, "炒");
 assert.equal(namedCompound.compoundDishName, "青蟹炒皮蛋");
 assert.equal(getCompoundDisplayName(namedCompound), "青蟹炒皮蛋");
 assert.equal(getCompoundParentSignature(namedCompound), "青蟹3 × 皮蛋8");
+
+const displayValuePiece = {
+  value: 20,
+  foodType: "aquatic",
+  displayName: "虾鱼糕",
+  compoundPartner: {value: 13, foodType: "aquatic", name: "鲈鱼"}
+};
+assert.equal(getCompoundDisplayValue(displayValuePiece), 33);
+assert.equal(displayValuePiece.value, 20);
+assert.equal(displayValuePiece.compoundPartner.value, 13);
+assert.equal(getCompoundParentSignature(displayValuePiece), "虾鱼糕20 × 鲈鱼13");
 
 const twoGroups = compoundCells(firstBound, 3, 4);
 assert.equal(isCompoundPiece(twoGroups.board[0]), true);
@@ -163,7 +178,7 @@ const compoundCard = renderToStaticMarkup(React.createElement(BoardCell, {
   onClick: () => {}
 }));
 assert.match(compoundCard, /复合系/);
-assert.match(compoundCard, />31</);
+assert.match(compoundCard, /board-piece-compound-number">45</);
 assert.match(compoundCard, /31 × 虾鱼饼14/);
 assert.match(compoundCard, /board-piece--selected/);
 

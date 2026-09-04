@@ -15,7 +15,11 @@ import {
 import { getSpecialOneName } from "../data/specialOneRegistry";
 import { getFoodCardDisplayName, getFoodOriginDescription } from "./foodCardDisplay";
 import { getNativeFoodType } from "../game/nativeFoodTypes";
-import { getCompoundDisplayName, getCompoundParentSignature } from "./compoundDisplay";
+import {
+  getCompoundDisplayName,
+  getCompoundDisplayValue,
+  getCompoundParentSignature
+} from "./compoundDisplay";
 
 import "./Board.css";
 
@@ -162,6 +166,7 @@ export default function BoardCell({
 
   if(piece.isCompound === true){
     const compoundName = getCompoundDisplayName(piece);
+    const compoundDisplayValue = getCompoundDisplayValue(piece);
     const compoundNameSizeClass = compoundName.length >= 9
       ? "board-piece-compound-name--very-long"
       : compoundName.length >= 7
@@ -178,12 +183,12 @@ export default function BoardCell({
             disabled={removing}
             onClick={removing ? undefined : onClick}
             className={`board-piece board-piece--compound ${selected ? "board-piece--selected" : ""}`}
-            aria-label={`复合料理 ${piece.value}`}
+            aria-label={`复合料理 ${compoundDisplayValue}`}
           >
             {selected && <div className="board-piece-selected-ring" />}
             <div className="board-piece-cuisine-type board-piece-compound-type">复合系</div>
             <div className="board-piece-number board-piece-compound-number">
-              {piece.value}
+              {compoundDisplayValue}
             </div>
             <div className="board-piece-main board-piece-compound-main">
               <span className={`board-piece-name board-piece-compound-name ${compoundNameSizeClass}`}>
