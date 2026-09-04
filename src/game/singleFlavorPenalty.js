@@ -1,10 +1,11 @@
 import { isNormalFoodType } from "./rules";
+import { isCompoundPiece } from "./compound";
 
 export const MIN_SINGLE_FLAVOR_NORMAL_PIECES = 5;
 
 export function getSingleFlavorNormalPieces(board){
   return (board ?? []).filter(piece =>
-    piece && piece.value !== 1 && isNormalFoodType(piece.foodType)
+    piece && !isCompoundPiece(piece) && piece.value !== 1 && isNormalFoodType(piece.foodType)
   );
 }
 
@@ -25,7 +26,7 @@ export function markSingleFlavorBoardPieces(state){
 
   let newlyPenalizedCount = 0;
   const board = state.board.map(piece => {
-    if(!piece || piece.singleFlavorPenalty === true) return piece;
+    if(!piece || isCompoundPiece(piece) || piece.singleFlavorPenalty === true) return piece;
     newlyPenalizedCount++;
     return {...piece, singleFlavorPenalty: true};
   });

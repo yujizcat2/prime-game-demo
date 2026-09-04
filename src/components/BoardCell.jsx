@@ -169,19 +169,21 @@ export default function BoardCell({
         : "";
     return (
       <div
-        className={`board-cell board-cell--occupied ${nativeCellClass}`}
+        className={`board-cell board-cell--occupied ${selected ? "board-cell--selected" : ""} ${nativeCellClass}`}
         data-index={index}
       >
         <div className="board-piece-wrapper board-piece-wrapper--enter">
           <button
             type="button"
-            disabled
-            className="board-piece board-piece--compound"
-            aria-label={`复合卡 ${piece.compoundType}${piece.value}`}
+            disabled={removing}
+            onClick={removing ? undefined : onClick}
+            className={`board-piece board-piece--compound ${selected ? "board-piece--selected" : ""}`}
+            aria-label={`复合料理 ${piece.value}`}
           >
+            {selected && <div className="board-piece-selected-ring" />}
             <div className="board-piece-cuisine-type board-piece-compound-type">复合系</div>
             <div className="board-piece-number board-piece-compound-number">
-              {piece.compoundType}{piece.value}
+              {piece.value}
             </div>
             <div className="board-piece-main board-piece-compound-main">
               <span className={`board-piece-name board-piece-compound-name ${compoundNameSizeClass}`}>

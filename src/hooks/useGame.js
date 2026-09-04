@@ -45,7 +45,7 @@ import {
 
 } from "../game/gameEngine";
 import { advanceToNextDay, getDayPeriod, getDayScoreTarget, getDayStep, getDayTime } from "../game/dayCycle";
-import { canCompoundCells, compoundCells, getCompoundType, isCompoundPiece } from "../game/compound";
+import { canCompoundCells, compoundCells, getCompoundRecombination, isCompoundPiece } from "../game/compound";
 
 
 export default function useGame(){
@@ -550,12 +550,11 @@ export default function useGame(){
 
     }
 
-    if(isCompoundPiece(target)) return;
-
-
     if(
       functionOneIndex !== null
     ){
+
+      if(isCompoundPiece(target)) return;
 
       const nextState =
 
@@ -831,12 +830,11 @@ export default function useGame(){
 
             null,
 
-      compound: canCompoundCells(gameState, first.index, second.index)
-        ? {
-            compoundType: getCompoundType(first.index, second.index),
-            value: Math.abs(first.piece.value - second.piece.value)
-          }
-        : null
+      compound: (() => {
+        if(!canCompoundCells(gameState, first.index, second.index)) return null;
+        return getCompoundRecombination(gameState, first.index, second.index)
+          ?? {kind: "bind", value: first.piece.value};
+      })()
 
     };
 

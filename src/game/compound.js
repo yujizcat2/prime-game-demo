@@ -1,4 +1,4 @@
-import { getFoodName } from "../data/food/foodRegistry";
+import { getNativeFoodType } from "./nativeFoodTypes";
 
 export const COMPOUND_EDGES = Object.freeze({
   "0-1": "A", "1-2": "B", "3-4": "C", "4-5": "D", "6-7": "E", "7-8": "F",
@@ -14,44 +14,91 @@ export function getCompoundType(indexA, indexB){
   return COMPOUND_EDGES[[indexA, indexB].sort((left, right) => left - right).join("-")] ?? null;
 }
 
-function getDirectSourceNames(piece){
-  const sourcePieces = piece?.origin?.type === "combine"
-    ? piece.origin.parents
-    : piece?.origin?.parent
-      ? [piece.origin.parent]
-      : piece?.origin?.from
-        ? [piece.origin.from]
-        : [];
-  return (sourcePieces ?? []).map(source => getFoodName(source.value, source.foodType));
+function isOrdinaryPiece(piece){
+  return Boolean(piece && !isCompoundPiece(piece) && Number.isFinite(piece.value) && piece.value !== 1);
+}
+
+function getValidPartner(state, compound){
+  const partner = compound?.compoundPartner;
+  const current = state?.board?.[partner?.index];
+  return partner
+    && isOrdinaryPiece(current)
+    && current.id === partner.id
+    && current.value === partner.value
+    && current.foodType === partner.foodType
+    && (current.purity ?? null) === partner.purity
+    ? current
+    : null;
+}
+
+export function getCompoundRecombination(state, indexA, indexB){
+  if(!state || state.gameOver || state.daySettlement || !getCompoundType(indexA, indexB)) return null;
+  const first = state.board?.[indexA];
+  const second = state.board?.[indexB];
+  if(!isCompoundPiece(first) || !isCompoundPiece(second)) return null;
+  const firstPartner = getValidPartner(state, first);
+  const secondPartner = getValidPartner(state, second);
+  if(!firstPartner || !secondPartner) return null;
+  const consumedIndexes = [first.compoundPartner.index, second.compoundPartner.index];
+  if(new Set([indexA, indexB, ...consumedIndexes]).size !== 4) return null;
+  return {
+    kind: "recombine",
+    firstValue: first.value + secondPartner.value,
+    secondValue: second.value + firstPartner.value,
+    firstFoodType: getNativeFoodType(indexA),
+    secondFoodType: getNativeFoodType(indexB),
+    consumedIndexes,
+    targetIndexes: [indexA, indexB]
+  };
 }
 
 export function canCompoundCells(state, indexA, indexB){
-  if(!state || state.gameOver || state.daySettlement) return false;
+  if(!state || state.gameOver || state.daySettlement || !getCompoundType(indexA, indexB)) return false;
   const first = state.board?.[indexA];
   const second = state.board?.[indexB];
-  return Boolean(first && second && !isCompoundPiece(first) && !isCompoundPiece(second)
-    && Number.isFinite(first.value) && Number.isFinite(second.value)
-    && first.value !== 1 && second.value !== 1
-    && first.value !== second.value && getCompoundType(indexA, indexB));
+  if(isCompoundPiece(first) || isCompoundPiece(second)){
+    return Boolean(getCompoundRecombination(state, indexA, indexB));
+  }
+  return isOrdinaryPiece(first) && isOrdinaryPiece(second) && first.value !== second.value;
+}
+
+function createRecombinedPiece(source, value, foodType){
+  return {
+    id: source.id,
+    value,
+    foodType,
+    purity: "pure",
+    parents: null,
+    parentFoods: null,
+    sourceKey: null,
+    origin: null,
+    singleFlavorPenalty: false
+  };
 }
 
 export function compoundCells(state, indexA, indexB){
   if(!canCompoundCells(state, indexA, indexB)) return state;
-  const first = state.board[indexA];
-  const second = state.board[indexB];
+  const recombination = getCompoundRecombination(state, indexA, indexB);
   const board = [...state.board];
+  if(recombination){
+    board[indexA] = createRecombinedPiece(state.board[indexA], recombination.firstValue, recombination.firstFoodType);
+    board[indexB] = createRecombinedPiece(state.board[indexB], recombination.secondValue, recombination.secondFoodType);
+    recombination.consumedIndexes.forEach(index => { board[index] = null; });
+    return {...state, board};
+  }
+
+  const first = state.board[indexA];
+  const partner = state.board[indexB];
   board[indexA] = {
-    id: first.id,
+    ...first,
     isCompound: true,
-    compoundType: getCompoundType(indexA, indexB),
-    value: Math.abs(first.value - second.value),
-    parentNames: [
-      getFoodName(first.value, first.foodType),
-      getFoodName(second.value, second.foodType)
-    ],
-    parentValues: [first.value, second.value],
-    parentSourceNames: [getDirectSourceNames(first), getDirectSourceNames(second)]
+    compoundPartner: {
+      id: partner.id,
+      index: indexB,
+      value: partner.value,
+      foodType: partner.foodType,
+      purity: partner.purity ?? null
+    }
   };
-  board[indexB] = null;
   return {...state, board};
 }

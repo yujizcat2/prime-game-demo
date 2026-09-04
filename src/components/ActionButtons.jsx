@@ -1,4 +1,5 @@
 import "./ActionButtons.css";
+import { getFoodTypeShortName } from "../data/food/foodRegistry";
 
 
 export default function ActionButtons({
@@ -55,6 +56,13 @@ export default function ActionButtons({
     !busy &&
     selected.length === 2 &&
     !!preview?.compound;
+
+  const recombination = preview?.compound?.kind === "recombine"
+    ? preview.compound
+    : null;
+  const recombinationLabel = recombination
+    ? `${getFoodTypeShortName(recombination.firstFoodType) || "中心"}${recombination.firstValue} / ${getFoodTypeShortName(recombination.secondFoodType) || "中心"}${recombination.secondValue}`
+    : null;
 
   const canTryBlockedCombine =
     !gameOver &&
@@ -203,12 +211,19 @@ export default function ActionButtons({
         type="button"
         onClick={canCompound ? onCompound : undefined}
         disabled={!canCompound}
+        title={recombination
+          ? `重组后：${recombinationLabel}`
+          : undefined}
         className={`action-toolbar-button ${canCompound
           ? "action-toolbar-button--compound-active"
           : "action-toolbar-button--disabled"}`}
       >
         <span className="action-toolbar-icon">◇</span>
-        <span className="action-toolbar-label">复合</span>
+        <span className="action-toolbar-label">
+          {recombination
+            ? `重组 ${recombinationLabel}`
+            : "复合"}
+        </span>
       </button>
 
 

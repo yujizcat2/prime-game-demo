@@ -1,114 +1,123 @@
 import assert from "node:assert/strict";
-import { COMPOUND_EDGES, canCompoundCells, compoundCells, getCompoundType } from "../game/compound";
-import { canCombineCells, canReduceCells, getLegalActions } from "../game/gameEngine";
-import { isHeaterTarget } from "../game/heaterPricing";
-import { applyMazeTurn } from "../game/mazeEngine";
-import { getRestoreOutcome } from "../game/restore";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import ActionButtons from "../components/ActionButtons";
 import BoardCell from "../components/BoardCell";
-import { COMPOUND_COOKING_LABELS, getCompoundDisplayName, getCompoundParentSignature } from "../components/compoundDisplay";
+import { getCompoundDisplayName, getCompoundParentSignature } from "../components/compoundDisplay";
+import {
+  canCompoundCells,
+  compoundCells,
+  getCompoundRecombination,
+  isCompoundPiece
+} from "../game/compound";
+import { canCombineCells, canReduceCells, getLegalActions } from "../game/gameEngine";
+import { getBoardCount } from "../game/boardRules";
+import { getNativeFoodType } from "../game/nativeFoodTypes";
+import { getNonDrinkBoardSum } from "../game/scoreValue";
+import { getNextSelectionIndexes } from "../game/selection";
 
-function stateWith(firstIndex, firstValue, secondIndex, secondValue){
+function createLifecycleState(){
   const board = Array(9).fill(null);
-  board[firstIndex] = {id: 1, value: firstValue, foodType: "land"};
-  board[secondIndex] = {id: 2, value: secondValue, foodType: "vegetable"};
-  return {board, gameOver: false, daySettlement: null};
+  board[0] = {id: 1, value: 31, foodType: "land", purity: "pure"};
+  board[1] = {id: 2, value: 14, foodType: "aquatic", purity: "pure"};
+  board[3] = {id: 3, value: 22, foodType: "vegetable", purity: "pure"};
+  board[4] = {id: 4, value: 11, foodType: "seasoning", purity: "pure"};
+  return {board, gameOver: false, daySettlement: null, score: 0, money: 0, steps: 0};
 }
 
-assert.equal(getCompoundType(0, 1), "A");
-assert.equal(getCompoundType(0, 3), "G");
-assert.equal(getCompoundType(0, 4), null);
-assert.deepEqual(COMPOUND_EDGES, {
-  "0-1": "A", "1-2": "B", "3-4": "C", "4-5": "D", "6-7": "E", "7-8": "F",
-  "0-3": "G", "3-6": "H", "1-4": "I", "4-7": "J", "2-5": "K", "5-8": "L"
+const initial = createLifecycleState();
+const initialSum = getNonDrinkBoardSum(initial.board);
+const firstBound = compoundCells(initial, 0, 1);
+assert.equal(firstBound.board[0].value, 31);
+assert.equal(firstBound.board[1].value, 14);
+assert.equal(isCompoundPiece(firstBound.board[0]), true);
+assert.equal(isCompoundPiece(firstBound.board[1]), false);
+assert.deepEqual(firstBound.board[0].compoundPartner, {
+  id: 2, index: 1, value: 14, foodType: "aquatic", purity: "pure"
+});
+assert.equal(getBoardCount(firstBound.board), 4);
+assert.equal(getNonDrinkBoardSum(firstBound.board), initialSum);
+
+const twoGroups = compoundCells(firstBound, 3, 4);
+assert.equal(isCompoundPiece(twoGroups.board[0]), true);
+assert.equal(isCompoundPiece(twoGroups.board[3]), true);
+assert.equal(twoGroups.board[1].value, 14);
+assert.equal(twoGroups.board[4].value, 11);
+assert.equal(getNonDrinkBoardSum(twoGroups.board), 78);
+
+const preview = getCompoundRecombination(twoGroups, 0, 3);
+assert.deepEqual(preview, {
+  kind: "recombine",
+  firstValue: 42,
+  secondValue: 36,
+  firstFoodType: getNativeFoodType(0),
+  secondFoodType: getNativeFoodType(3),
+  consumedIndexes: [1, 4],
+  targetIndexes: [0, 3]
 });
 
-const horizontal = compoundCells(stateWith(0, 7, 1, 11), 0, 1);
-assert.deepEqual(horizontal.board[0], {
-  id: 1,
-  isCompound: true,
-  compoundType: "A",
-  value: 4,
-  parentNames: ["羊肉", "香菇"],
-  parentValues: [7, 11],
-  parentSourceNames: [[], []]
-});
-assert.equal(horizontal.board[1], null);
-assert.equal(getCompoundDisplayName(horizontal.board[0]), "羊肉炒香菇");
-assert.equal(getCompoundParentSignature(horizontal.board[0]), "由羊肉与香菇复合");
-assert.deepEqual(COMPOUND_COOKING_LABELS, {
-  A: "炒", B: "煎", C: "蒸", D: "烧", E: "烤", F: "焖",
-  G: "炖", H: "烩", I: "拌", J: "煮", K: "卤", L: "炸"
-});
+const recombined = compoundCells(twoGroups, 0, 3);
+assert.equal(recombined.board[0].value, 42);
+assert.equal(recombined.board[3].value, 36);
+assert.equal(recombined.board[0].foodType, getNativeFoodType(0));
+assert.equal(recombined.board[3].foodType, getNativeFoodType(3));
+assert.notEqual(recombined.board[0].foodType, recombined.board[3].foodType);
+assert.equal(isCompoundPiece(recombined.board[0]), false);
+assert.equal(isCompoundPiece(recombined.board[3]), false);
+assert.equal(recombined.board[1], null);
+assert.equal(recombined.board[4], null);
+assert.equal(getBoardCount(recombined.board), 2);
+assert.equal(getNonDrinkBoardSum(recombined.board), 78);
+assert.equal(recombined.board[0].value + recombined.board[3].value, 31 + 14 + 22 + 11);
 
-const vertical = compoundCells(stateWith(0, 7, 3, 11), 0, 3);
-assert.equal(vertical.board[0].compoundType, "G");
-assert.equal(vertical.board[0].value, 4);
-assert.equal(vertical.board[3], null);
+const alternate = createLifecycleState();
+alternate.board[0] = {id: 3, value: 22, foodType: "land", purity: "pure"};
+alternate.board[1] = {id: 4, value: 11, foodType: "aquatic", purity: "pure"};
+alternate.board[3] = {id: 1, value: 31, foodType: "vegetable", purity: "pure"};
+alternate.board[4] = {id: 2, value: 14, foodType: "seasoning", purity: "pure"};
+const alternateGroups = compoundCells(compoundCells(alternate, 3, 4), 0, 1);
+const alternateResult = compoundCells(alternateGroups, 3, 0);
+assert.equal(alternateResult.board[3].value, 42);
+assert.equal(alternateResult.board[3].foodType, getNativeFoodType(3));
+assert.notEqual(alternateResult.board[3].foodType, recombined.board[0].foodType);
 
-const sourcedState = stateWith(0, 7, 1, 11);
-sourcedState.board[0].origin = {
-  type: "combine",
-  parents: [
-    {value: 2, foodType: "aquatic"},
-    {value: 3, foodType: "land"}
-  ]
+const stalePartner = {
+  ...twoGroups,
+  board: twoGroups.board.map(piece => piece ? {...piece} : null)
 };
-const sourced = compoundCells(sourcedState, 0, 1).board[0];
-assert.deepEqual(sourced.parentSourceNames, [["白虾", "猪肉"], []]);
-assert.equal(
-  getCompoundParentSignature(sourced),
-  "羊肉源自白虾与猪肉，再与香菇复合"
-);
-assert.equal(getCompoundParentSignature({
-  parentNames: ["土豆", "鳗鱼"],
-  parentSourceNames: [[], ["蟹肉棒", "鸭蛋"]]
-}), "鳗鱼源自蟹肉棒与鸭蛋，再与土豆复合");
-assert.equal(getCompoundParentSignature({
-  parentNames: ["鳗鱼", "蟹肉棒"],
-  parentSourceNames: [["蟹肉棒", "鸭蛋"], ["鲈鱼", "土豆"]]
-}), "鳗鱼源自蟹肉棒与鸭蛋，蟹肉棒源自鲈鱼与土豆，两者复合");
+stalePartner.board[1].value = 15;
+assert.equal(getCompoundRecombination(stalePartner, 0, 3), null);
+assert.equal(canCompoundCells(stalePartner, 0, 3), false);
+assert.equal(compoundCells(stalePartner, 0, 3), stalePartner);
 
-const diagonal = stateWith(0, 7, 4, 11);
-assert.equal(canCompoundCells(diagonal, 0, 4), false);
-assert.equal(compoundCells(diagonal, 0, 4), diagonal);
+assert.equal(firstBound.board[0].value, 31);
+assert.equal(firstBound.board[1].value, 14);
+assert.equal(firstBound.board.filter(Boolean).length, 4);
+assert.equal(canCombineCells(twoGroups, 0, 3), false);
+assert.equal(canReduceCells(twoGroups, 0, 3), false);
+assert.equal(getLegalActions(twoGroups).some(action => action.type === "compound" || action.type === "recombine"), false);
+assert.deepEqual(getNextSelectionIndexes(getNextSelectionIndexes([], 0), 3), [0, 3]);
 
-const equal = stateWith(0, 7, 1, 7);
-assert.equal(canCompoundCells(equal, 0, 1), false);
-
-horizontal.board[1] = {id: 3, value: 9, foodType: "land"};
-assert.equal(canCompoundCells(horizontal, 0, 1), false);
-assert.equal(canCombineCells(horizontal, 0, 1), false);
-assert.equal(canReduceCells(horizontal, 0, 1), false);
-assert.equal(getLegalActions(horizontal).some(action => action.type === "compound"), false);
-assert.equal(isHeaterTarget(horizontal.board[0]), false);
-assert.equal(getRestoreOutcome(horizontal.board[0], 0), null);
-assert.equal(applyMazeTurn(horizontal).board[0].value, 4);
-
-const disabledButtons = renderToStaticMarkup(React.createElement(ActionButtons, {
-  selected: [], preview: null, gameOver: false
-}));
-assert.match(disabledButtons, /disabled=""[^>]*>[\s\S]*复合/);
-
-const activeButtons = renderToStaticMarkup(React.createElement(ActionButtons, {
-  selected: [1, 2], preview: {compound: {compoundType: "A", value: 4}},
-  onCompound: () => {}, gameOver: false
-}));
-const compoundButton = activeButtons.match(/<button[^>]*action-toolbar-button--compound-active[^>]*>[\s\S]*?复合[\s\S]*?<\/button>/)?.[0];
-assert.ok(compoundButton);
-assert.doesNotMatch(compoundButton, /disabled/);
-
+assert.equal(getCompoundParentSignature(firstBound.board[0]), "与14复合");
+assert.ok(getCompoundDisplayName(firstBound.board[0]));
 const compoundCard = renderToStaticMarkup(React.createElement(BoardCell, {
   index: 0,
-  piece: horizontal.board[0]
+  piece: firstBound.board[0],
+  selected: true,
+  onClick: () => {}
 }));
 assert.match(compoundCard, /复合系/);
-assert.match(compoundCard, /A4/);
-assert.match(compoundCard, /羊肉炒香菇/);
-assert.match(compoundCard, /由羊肉与香菇复合/);
-assert.doesNotMatch(compoundCard, /羊肉7|香菇11/);
-assert.doesNotMatch(compoundCard, /原 · 陆产/);
+assert.match(compoundCard, />31</);
+assert.match(compoundCard, /与14复合/);
+assert.match(compoundCard, /board-piece--selected/);
 
-console.log("compound V0 tests passed");
+const recombinationButton = renderToStaticMarkup(React.createElement(ActionButtons, {
+  selected: [1, 3],
+  preview: {compound: preview},
+  onCompound: () => {},
+  gameOver: false
+}));
+assert.match(recombinationButton, /重组 陆产42 \/ 谷物36/);
+assert.doesNotMatch(recombinationButton, /disabled=""[^>]*title="重组后/);
+
+console.log("compound binding and recombination tests passed");
