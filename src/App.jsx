@@ -62,6 +62,7 @@ function App(){
 
   const [keyNotice,setKeyNotice] = useState(null);
   const [showCombineHistory,setShowCombineHistory] = useState(false);
+  const [showCollection,setShowCollection] = useState(false);
   const [actionToast,setActionToast] = useState(null);
   const [collectionRewardQueue,setCollectionRewardQueue] = useState([]);
   const [heaterSelectMode,setHeaterSelectMode] = useState(false);
@@ -758,6 +759,10 @@ function App(){
         item.id
     );
 
+  const collectionCount = ["eightPalace", "simpleEightPalace"].includes(game.gameMode)
+    ? game.collectionCards.length
+    : game.collection.length;
+
 
   return (
 
@@ -878,14 +883,24 @@ function App(){
               onRestoreClick={toggleRestoreMode}
             />
 
-            <button
-              type="button"
-              className="combine-history-trigger"
-              onClick={() => setShowCombineHistory(true)}
-            >
-              历史合成
-              <span>{game.combineHistory.length}</span>
-            </button>
+            <div className="game-meta-buttons">
+              <button
+                type="button"
+                className="combine-history-trigger"
+                onClick={() => setShowCombineHistory(true)}
+              >
+                历史合成
+                <span>{game.combineHistory.length}</span>
+              </button>
+              <button
+                type="button"
+                className="combine-history-trigger"
+                onClick={() => setShowCollection(true)}
+              >
+                收藏
+                <span>{collectionCount}</span>
+              </button>
+            </div>
           </div>
 
         </section>
@@ -986,53 +1001,27 @@ function App(){
         </section>
 
 
-        <div className="game-collection-divider" />
-
-
-        {
-          [
-            "eightPalace",
-            "simpleEightPalace"
-          ].includes(
-            game.gameMode
-          )
-
-            ? (
-
-                <EightPalaceCollectionPanel
-                  cards={game.collectionCards}
-                  score={game.score}
-                />
-
-              )
-
-            : (
-
-                <CollectionPanel
-                  collection={
-                    game.collection
-                  }
-                  collectionTimeline={
-                    game.collectionTimeline
-                  }
-                  collectionPaths={
-                    game.collectionPaths
-                  }
-                  collectionOrigins={
-                    game.collectionOrigins
-                  }
-                  collectionParents={
-                    game.collectionParents
-                  }
-                  latestCollection={
-                    game.latestCollection
-                  }
-                />
-
-              )
-        }
-
       </div>
+
+      {showCollection && (
+        <div className="collection-panel-overlay" onClick={() => setShowCollection(false)}>
+          <div className="collection-panel-dialog" onClick={event => event.stopPropagation()}>
+            <button type="button" className="collection-panel-close" aria-label="关闭收藏" onClick={() => setShowCollection(false)}>×</button>
+            {["eightPalace", "simpleEightPalace"].includes(game.gameMode) ? (
+              <EightPalaceCollectionPanel cards={game.collectionCards} score={game.score} />
+            ) : (
+              <CollectionPanel
+                collection={game.collection}
+                collectionTimeline={game.collectionTimeline}
+                collectionPaths={game.collectionPaths}
+                collectionOrigins={game.collectionOrigins}
+                collectionParents={game.collectionParents}
+                latestCollection={game.latestCollection}
+              />
+            )}
+          </div>
+        </div>
+      )}
 
 
       {

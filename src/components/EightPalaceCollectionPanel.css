@@ -26,6 +26,7 @@
 .eight-collection-card-heading em { color: #66766b; font-size: 11px; font-style: normal; font-weight: 800; }
 .eight-collection-card small { color: #89938c; font-size: 12px; line-height: 1.4; }
 .eight-collection-card span { color: #66766b; font-size: 12px; font-weight: 700; }
+.eight-collection-card-meta { display: flex; justify-content: space-between; gap: 8px; }
 
 @media (max-width: 520px) {
   .eight-collection-panel { padding: 16px; }

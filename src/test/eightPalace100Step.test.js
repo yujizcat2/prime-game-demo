@@ -158,7 +158,10 @@ function collectible(value, leftParent, rightParent){
 }
 
 let collectionState = createGameState(actionOpening);
+collectionState = {...collectionState, day: 2, dayStartStep: 20, steps: 20};
 collectionState = applyEightPalaceCollection(collectionState, collectible(24, 7, 17));
+assert.equal(collectionState.collectionCards[0].collectedAt, "第2天 10:30");
+collectionState = {...collectionState, steps: 27};
 collectionState = applyEightPalaceCollection(collectionState, collectible(24, 11, 13));
 collectionState = applyEightPalaceCollection(collectionState, {
   value: 1,
@@ -168,6 +171,7 @@ collectionState = applyEightPalaceCollection(collectionState, {
 collectionState = applyEightPalaceCollection(collectionState, collectible(83, 41, 42));
 assert.equal(collectionState.collectionCards.length, 2);
 assert.equal(collectionState.collectionCards[0].value, 24);
+assert.equal(collectionState.collectionCards[0].collectedAt, "第2天 10:30", "collection time remains fixed after later steps");
 assert.equal(typeof collectionState.collectionCards[0].name, "string");
 assert.deepEqual(collectionState.collectionCards[0].parents.map(parent => parent.value), [7, 17]);
 assert.ok(collectionState.collectionCards[0].parents.every(parent => typeof parent.name === "string"));
@@ -199,6 +203,7 @@ assert.match(collectionPanelSource, /\+\{card\.scoreGain/);
 assert.match(collectionPanelSource, /\{name\} \{card\.value\}/);
 assert.match(collectionPanelSource, /getFoodCardTypeLabel/);
 assert.match(collectionPanelSource, /getFoodOriginDescription/);
+assert.match(collectionPanelSource, /card\.collectedAt/);
 
 const hudSource = readFileSync("src/components/StepPanel.jsx", "utf8");
 assert.match(hudSource, />\s*积分\s*</);

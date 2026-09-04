@@ -32,7 +32,10 @@ export default function EightPalaceCollectionPanel({cards = [], score = 0}){
                 <em>{getFoodCardTypeLabel(displayCard)}</em>
               </div>
               <small>{getFoodOriginDescription(displayCard, name)}</small>
-              <span>+{card.scoreGain ?? card.value}</span>
+              <div className="eight-collection-card-meta">
+                <span>{card.collectedAt}</span>
+                <span>+{card.scoreGain ?? card.value}</span>
+              </div>
             </article>;
           })}
         </div>

@@ -9,6 +9,7 @@ import {
 import { getFoodName } from "../data/food/foodRegistry";
 import { getNonDrinkBoardSum } from "./scoreValue";
 import { createCollectionRewardSettlement, getBoardAverageValue } from "./collectionReward";
+import { getDayTime } from "./dayCycle";
 
 
 // ============================================================
@@ -1592,6 +1593,7 @@ export function applyEightPalaceCollection(
   });
 
   const parentFoods = createConcreteParentSnapshots(record);
+  const collectionStep = (state.steps ?? 0) + 1;
   const snapshot = {
     id: (state.collectionEventId ?? 0) + 1,
     collectionKey,
@@ -1617,7 +1619,8 @@ export function applyEightPalaceCollection(
     rewardLevel: rewardSettlement.rewardLevel,
     collectedPieceSingleFlavorPenalty: record.singleFlavorPenalty === true,
     isNewCollection,
-    step: (state.steps ?? 0) + 1
+    step: collectionStep,
+    collectedAt: `第${state.day ?? 1}天 ${getDayTime({...state, steps: collectionStep})}`
   };
 
   return {
