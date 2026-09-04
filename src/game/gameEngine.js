@@ -427,7 +427,7 @@ export function resolveGameOver(
     ? {...state, gameOver: false, gameOverReason: null}
     : state;
 
-  if((state.gameOverReason === "checkpoint_failed" && !state.dayCycleEnabled) || state.gameOverReason === "day_target_failed") return state;
+  if((state.gameOverReason === "checkpoint_failed" && !state.dayCycleEnabled) || ["day_target_failed", "day_collection_failed"].includes(state.gameOverReason)) return state;
 
   const dayState = settleDayIfNeeded(activeState);
   if(dayState !== activeState) return dayState;

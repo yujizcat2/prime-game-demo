@@ -42,6 +42,7 @@ export default function GameOver({
 }) {
 
   const isEightPalace = gameMode === "eightPalace" || gameMode === "simpleEightPalace";
+  const isDayFailure = reason === "day_target_failed" || reason === "day_collection_failed";
   const [showRecap, setShowRecap] = useState(false);
   const safeCollection = Array.isArray(collection) ? collection : [];
   const primeCollectionCount = safeCollection.filter(card => isPrime(card?.value)).length;
@@ -143,7 +144,7 @@ export default function GameOver({
 
         >
 
-          {reason === "day_target_failed"
+          {isDayFailure
             ? "今日营业未完成"
             : isEightPalace ? "本局结束" : "探索结束"}
 
@@ -163,7 +164,7 @@ export default function GameOver({
         >
 
           {isEightPalace
-            ? reason === "day_target_failed"
+            ? isDayFailure
               ? `第 ${daySettlement?.day ?? "—"} 营业日未达标`
               : reason === "checkpoint_failed"
               ? `第 ${checkpointResult?.index ?? "—"} 检查站失败`
@@ -180,11 +181,12 @@ export default function GameOver({
             : `Step ${checkpointResult.step} · 最终积分 ${checkpointResult.currentScore} · 目标积分 ${checkpointResult.requiredScore} · 还差 ${Math.max(0, checkpointResult.requiredScore - checkpointResult.currentScore)} 分`}
         </p>}
 
-        {reason === "day_target_failed" && daySettlement && <div className="mt-5 rounded-2xl bg-amber-50/70 px-5 py-4 text-left text-sm font-bold text-gray-600">
+        {isDayFailure && daySettlement && <div className="mt-5 rounded-2xl bg-amber-50/70 px-5 py-4 text-left text-sm font-bold text-gray-600">
           <div className="mb-3 text-center text-xs tracking-[.14em] text-amber-700">DAY {daySettlement.day} · 打烊</div>
           <div className="flex justify-between py-1"><span>最终积分</span><strong>{daySettlement.finalScore}</strong></div>
           <div className="flex justify-between py-1"><span>营业目标</span><strong>{daySettlement.targetScore}</strong></div>
           <div className="flex justify-between py-1 text-amber-800"><span>还差</span><strong>{Math.max(0, daySettlement.targetScore - daySettlement.finalScore)}</strong></div>
+          <div className="flex justify-between py-1"><span>今日新增收藏</span><strong>{daySettlement.collectionGainToday} / {daySettlement.minimumCollectionCount}</strong></div>
         </div>}
 
 

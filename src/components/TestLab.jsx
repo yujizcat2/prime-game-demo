@@ -1634,7 +1634,7 @@ function RandomSummaryGrid({result}){
 
 function getScoreGameEndReason(game){
   if(game.reachedTestProtectionLimit) return "测试保护上限";
-  if(game.gameOverReason === "day_target_failed") return `Day ${game.finalDay} 营业目标未完成`;
+  if(["day_target_failed", "day_collection_failed"].includes(game.gameOverReason)) return `Day ${game.finalDay} 营业目标未完成`;
   if(game.gameOverReason === "no_legal_actions") return "无合法动作";
   if(game.gameOverReason === "checkpoint_failed") return "检查站失败";
   return game.gameOverReason ?? "—";
@@ -1653,6 +1653,7 @@ function DayHistory({game}){
         {` · ${day.finalScore - day.targetScore >= 0 ? "领先 +" : "还差 "}${Math.abs(day.finalScore - day.targetScore)}`}
         {` · 新增积分 +${day.scoreGainToday} · 新增收藏 +${day.collectionGainToday}`}
         {` · 盘面总和 ${day.boardSum} · ${day.passed ? "通过" : "未通过"}`}
+        {day.nextDayCards?.length > 0 && <div>明日备料：{day.nextDayCards.map(card => `${card.value}${FOOD_TYPE_LABELS[card.foodType] ?? card.foodType}`).join(" / ")}</div>}
       </div>)}
   </div>;
 }

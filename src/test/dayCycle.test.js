@@ -5,6 +5,7 @@ import { resolveGameOver } from "../game/gameEngine";
 import {
   ACTIONS_PER_DAY,
   advanceToNextDay,
+  createNextDayCards,
   getDayScoreTarget,
   getDayTime
 } from "../game/dayCycle";
@@ -23,10 +24,44 @@ const at19 = resolveGameOver({...initial, steps: 19, score: 499});
 assert.equal(at19.daySettlement, null, "19 actions do not close the day");
 assert.equal(at19.gameOver, false);
 
-const passed = resolveGameOver({...initial, steps: ACTIONS_PER_DAY, score: 500});
+const fourCollections = [
+  {value: 5, foodType: "aquatic"},
+  {value: 8, foodType: "aquatic"},
+  {value: 3, foodType: "aquatic"},
+  {value: 12, foodType: "grainBean"}
+];
+assert.deepEqual(createNextDayCards(fourCollections), [
+  {value: 5, foodType: "aquatic", source: "round_crystal", round: "A"},
+  {value: 8, foodType: "aquatic", source: "round_crystal", round: "B"},
+  {value: 3, foodType: "aquatic", source: "round_crystal", round: "C"},
+  {value: 12, foodType: "grainBean", source: "round_crystal", round: "D"},
+  {value: 12, foodType: "grainBean", source: "daily_maximum"}
+], "four collections create one card in every round");
+
+const exampleCollections = [
+  {value: 5, foodType: "aquatic"}, {value: 8, foodType: "aquatic"},
+  {value: 3, foodType: "aquatic"}, {value: 12, foodType: "grainBean"},
+  {value: 7, foodType: "aquatic"}, {value: 14, foodType: "grainBean"},
+  {value: 11, foodType: "aquatic"}, {value: 20, foodType: "grainBean"},
+  {value: 17, foodType: "spice"}
+];
+const compressed = createNextDayCards(exampleCollections);
+assert.deepEqual(compressed.map(card => [card.value, card.foodType]), [
+  [10, "spice"], [11, "grainBean"], [7, "aquatic"], [16, "grainBean"], [20, "grainBean"]
+], "5–10 collections are assigned by index modulo four, rounded, and use each round's last food type");
+assert.deepEqual(createNextDayCards(exampleCollections), compressed, "compression is deterministic");
+assert.deepEqual(createNextDayCards([
+  {value: 20, foodType: "aquatic"}, {value: 4, foodType: "land"},
+  {value: 6, foodType: "spice"}, {value: 8, foodType: "fruit"},
+  {value: 20, foodType: "grainBean"}
+]).at(-1), {value: 20, foodType: "grainBean", source: "daily_maximum"}, "a tied maximum uses the later collection");
+
+const passed = resolveGameOver({...initial, steps: ACTIONS_PER_DAY, score: 500, collectionCards: fourCollections});
 assert.equal(passed.daySettlement.passed, true);
 assert.equal(passed.daySettlement.targetScore, 500);
 assert.equal(passed.daySettlement.finalScore, 500);
+assert.equal(passed.daySettlement.collectionTargetMet, true);
+assert.equal(passed.daySettlement.nextDayCards.length, 5);
 assert.equal(passed.dayHistory.length, 1);
 assert.equal(passed.day, 1, "passing does not automatically advance the day");
 assert.equal(getDayTime(passed), "20:00");
@@ -36,19 +71,25 @@ assert.equal(failed.daySettlement.passed, false);
 assert.equal(failed.gameOver, true);
 assert.equal(failed.gameOverReason, "day_target_failed");
 
-const persistentBoard = passed.board;
-const persistentCollection = [{value: 17, foodType: "land"}];
-const dayTwo = advanceToNextDay({...passed, collectionCards: persistentCollection});
+const collectionFailed = resolveGameOver({...initial, steps: ACTIONS_PER_DAY, score: 500, collectionCards: fourCollections.slice(0, 3)});
+assert.equal(collectionFailed.daySettlement.collectionTargetMet, false);
+assert.equal(collectionFailed.daySettlement.nextDayCards.length, 0);
+assert.equal(collectionFailed.gameOverReason, "day_collection_failed");
+assert.equal(advanceToNextDay(collectionFailed), collectionFailed, "fewer than four collections cannot advance");
+
+const dayTwo = advanceToNextDay(passed);
 assert.equal(dayTwo.day, 2);
 assert.equal(dayTwo.dayStartStep, ACTIONS_PER_DAY);
 assert.equal(getDayTime(dayTwo), "10:00");
 assert.equal(getDayScoreTarget(dayTwo.day), 1200);
-assert.equal(dayTwo.board, persistentBoard, "the board is preserved exactly across days");
+assert.equal(dayTwo.board.filter(Boolean).length, 5, "the next-day board contains exactly five cards");
+assert.deepEqual(dayTwo.board.filter(Boolean).map(card => [card.value, card.foodType]), passed.daySettlement.nextDayCards.map(card => [card.value, card.foodType]));
 assert.equal(dayTwo.score, 500);
-assert.equal(dayTwo.collectionCards, persistentCollection);
+assert.equal(dayTwo.collectionCards, passed.collectionCards);
 assert.equal(dayTwo.daySettlement, null);
 
-const dayTwoPassed = resolveGameOver({...dayTwo, steps: ACTIONS_PER_DAY * 2, score: 1200});
+const dayTwoCollections = [...fourCollections, ...exampleCollections.slice(0, 4)];
+const dayTwoPassed = resolveGameOver({...dayTwo, steps: ACTIONS_PER_DAY * 2, score: 1200, collectionCards: dayTwoCollections});
 assert.equal(dayTwoPassed.daySettlement.day, 2);
 assert.equal(dayTwoPassed.daySettlement.passed, true);
 assert.equal(dayTwoPassed.dayHistory.length, 2);

@@ -8,3 +8,11 @@
 .day-settlement-metric strong { color: #31483b; font-size: 17px; font-weight: 950; font-variant-numeric: tabular-nums; }
 .day-settlement-card p { margin: 19px 0 12px; color: #6a776f; font-size: 12px; font-weight: 800; text-align: center; }
 .day-settlement-card button { width: 100%; min-height: 48px; border: 0; border-radius: 15px; background: linear-gradient(135deg, #6f927e, #526f60); color: white; font: inherit; font-size: 14px; font-weight: 900; box-shadow: 0 8px 20px rgba(66, 96, 78, .2); cursor: pointer; }
+.day-settlement-prep { margin-top: 18px; padding-top: 14px; border-top: 1px solid rgba(83, 109, 94, .12); }
+.day-settlement-prep > strong { display: block; margin-bottom: 9px; color: #526f60; font-size: 12px; letter-spacing: .08em; text-align: center; }
+.day-settlement-prep > div { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 5px; }
+.day-settlement-prep span { display: flex; min-width: 0; flex-direction: column; align-items: center; padding: 7px 2px; border-radius: 10px; background: #eef3ef; }
+.day-settlement-prep small { overflow: hidden; width: 100%; color: #839087; font-size: 8px; font-weight: 800; text-align: center; text-overflow: ellipsis; white-space: nowrap; }
+.day-settlement-prep b { margin-top: 3px; color: #30463a; font-size: 18px; font-weight: 950; }
+.day-settlement-prep em { overflow: hidden; width: 100%; color: #64746b; font-size: 9px; font-style: normal; font-weight: 800; text-align: center; text-overflow: ellipsis; white-space: nowrap; }
+.day-settlement-card .day-settlement-summary-button { background: #68746d; }

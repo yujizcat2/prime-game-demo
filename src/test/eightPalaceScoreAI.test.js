@@ -384,6 +384,12 @@ const dayCycleScoreGame = await runScoreGame({depth: 1, beamWidth: 2, maxActions
 assert.equal(dayCycleScoreGame.checkpointHistory.length, 0, "day-cycle Score AI does not use checkpoints");
 assert.equal(dayCycleScoreGame.dayHistory[0]?.passed, true, "Score AI passes the first day in the regression opening");
 assert.equal(dayCycleScoreGame.finalDay, 2, "a passed closing automatically advances Score AI to Day 2");
+assert.equal(dayCycleScoreGame.dayHistory[0].nextDayCards.length, 5);
+const firstDayTwoAction = dayCycleScoreGame.actionPath.find(action => action.stepBefore >= 20 && action.inputs.length > 0);
+assert.ok(firstDayTwoAction, "Score AI continues searching from the Day 2 board");
+assert.ok(firstDayTwoAction.inputs.every(input => dayCycleScoreGame.dayHistory[0].nextDayCards.some(card =>
+  card.value === input.value && card.foodType === input.foodType
+)), "the first Day 2 action uses the five compressed cards");
 
 const failedDayOne = resolveGameOver({
   ...createGameState(opening, {dayCycleEnabled: true}),
