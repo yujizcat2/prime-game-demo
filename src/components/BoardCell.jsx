@@ -15,7 +15,7 @@ import {
 import { getSpecialOneName } from "../data/specialOneRegistry";
 import { getFoodCardDisplayName, getFoodOriginDescription } from "./foodCardDisplay";
 import { getNativeFoodType } from "../game/nativeFoodTypes";
-import { getCompoundDisplayName } from "./compoundDisplay";
+import { getCompoundDisplayName, getCompoundParentSignature } from "./compoundDisplay";
 
 import "./Board.css";
 
@@ -161,12 +161,17 @@ export default function BoardCell({
   }
 
   if(piece.isCompound === true){
+    const compoundName = getCompoundDisplayName(piece);
+    const compoundNameSizeClass = compoundName.length >= 9
+      ? "board-piece-compound-name--very-long"
+      : compoundName.length >= 7
+        ? "board-piece-compound-name--long"
+        : "";
     return (
       <div
         className={`board-cell board-cell--occupied ${nativeCellClass}`}
         data-index={index}
       >
-        <span className="board-native-label">{nativePositionLabel}</span>
         <div className="board-piece-wrapper board-piece-wrapper--enter">
           <button
             type="button"
@@ -174,11 +179,17 @@ export default function BoardCell({
             className="board-piece board-piece--compound"
             aria-label={`复合卡 ${piece.compoundType}${piece.value}`}
           >
-            <div className="board-piece-main board-piece-compound-main">
-              <span className="board-piece-name">{getCompoundDisplayName(piece)}</span>
-            </div>
+            <div className="board-piece-cuisine-type board-piece-compound-type">复合系</div>
             <div className="board-piece-number board-piece-compound-number">
               {piece.compoundType}{piece.value}
+            </div>
+            <div className="board-piece-main board-piece-compound-main">
+              <span className={`board-piece-name board-piece-compound-name ${compoundNameSizeClass}`}>
+                {compoundName}
+              </span>
+            </div>
+            <div className="board-piece-origin board-piece-compound-signature">
+              <span>{getCompoundParentSignature(piece)}</span>
             </div>
           </button>
         </div>

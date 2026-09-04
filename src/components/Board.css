@@ -6138,19 +6138,66 @@
   white-space: nowrap;
 }
 .board-piece--compound {
-  border-color: rgba(91, 92, 145, .28);
-  background: linear-gradient(145deg, #f2f1fb, #deddf0);
-  color: #575989;
+  --cuisine-primary: #57558f;
+  --cuisine-secondary: #8580bd;
+  --cuisine-border: #817bae;
+  --cuisine-surface: #f1f0fa;
+  border-color: rgba(87, 85, 143, .34);
+  background: linear-gradient(145deg, #f7f6fc 0%, #e7e5f4 100%);
+  color: #504d83;
   cursor: default;
   opacity: 1;
+  overflow: hidden;
 }
 
 .board-piece-compound-number {
-  font-size: clamp(26px, 7vw, 42px);
+  color: #514e89;
+  font-size: clamp(25px, 7vw, 40px);
   letter-spacing: .04em;
 }
 
 .board-piece-compound-main {
-  padding: 0 8px;
+  left: 8px;
+  right: 8px;
+  padding: 0;
   text-align: center;
+}
+
+.board-piece-compound-name {
+  display: -webkit-box;
+  max-width: 100%;
+  overflow: hidden;
+  color: #454273;
+  font-size: 20px;
+  line-height: 1.08;
+  letter-spacing: -.04em;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.board-piece-compound-name--long { font-size: 17px; }
+.board-piece-compound-name--very-long { font-size: 14px; }
+
+.board-piece-compound-type {
+  color: #625e98;
+  font-weight: 800;
+  opacity: .9;
+}
+
+.board-piece-compound-signature {
+  left: 7px;
+  right: 7px;
+  color: #625e87;
+  font-size: 9px;
+  line-height: 1.1;
+  white-space: nowrap;
+  opacity: .8;
+}
+
+.board-piece-compound-signature span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

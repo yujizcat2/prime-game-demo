@@ -37,7 +37,8 @@ export function compoundCells(state, indexA, indexB){
     parentNames: [
       getFoodName(first.value, first.foodType),
       getFoodName(second.value, second.foodType)
-    ]
+    ],
+    parentValues: [first.value, second.value]
   };
   board[indexB] = null;
   return {...state, board};

@@ -10,3 +10,11 @@ export function getCompoundDisplayName(piece){
     ? `${firstName}${cookingLabel}${secondName}`
     : "复合料理";
 }
+
+export function getCompoundParentSignature(piece){
+  const [firstName, secondName] = piece?.parentNames ?? [];
+  const [firstValue, secondValue] = piece?.parentValues ?? [];
+  return firstName && secondName && firstValue != null && secondValue != null
+    ? `${firstName}${firstValue} ◇ ${secondName}${secondValue}`
+    : "";
+}
