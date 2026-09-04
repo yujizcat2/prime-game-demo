@@ -51,8 +51,6 @@ export default function Board({
 
   collectionCards = [],
 
-  prices = [],
-
   scoreMode = false,
 
   removingIndex = null,
@@ -1123,10 +1121,6 @@ export default function Board({
                 }
 
                 combinePreviewRole={combinePreviewRole}
-
-                price={
-                  prices[index] ?? 0
-                }
 
                 scoreMode={scoreMode}
 

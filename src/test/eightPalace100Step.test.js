@@ -127,6 +127,9 @@ assert.equal(afterStep150.checkpoint.growthRate, .30);
 const deadEarly = resolveGameOver({
   ...createGameState(actionOpening),
   board: [{id: 1, value: 17, foodType: BASE_FOOD_TYPES[0]}, ...Array(8).fill(null)],
+  heaterCount: 0,
+  restoreCount: 0,
+  superHeaterCount: 0,
   steps: 73,
   checkpoint: {index: 5, step: 80, type: "score", requiredScore: 1}
 });
@@ -173,7 +176,6 @@ assert.equal(
   collectionState.score,
   collectionState.collectionTimeline.reduce((sum, event) => sum + event.totalScore, 0)
 );
-assert.equal(collectionState.money, 20);
 
 const nativeCollection = applyEightPalaceCollection(createGameState(actionOpening), {
   value: 1,
@@ -199,9 +201,8 @@ assert.match(collectionPanelSource, /getFoodCardTypeLabel/);
 assert.match(collectionPanelSource, /getFoodOriginDescription/);
 
 const hudSource = readFileSync("src/components/StepPanel.jsx", "utf8");
-assert.match(hudSource, /isEightPalace \? "积分" : "金钱"/);
+assert.match(hudSource, />\s*积分\s*</);
 assert.match(hudSource, /isEightPalace \? "步数" : "时间"/);
-assert.match(hudSource, /!isEightPalace && <span/);
 assert.match(hudSource, /第 \{checkpoint\.index\} 检查站/);
 assert.match(hudSource, /CHECKPOINT/);
 assert.match(hudSource, /目标/);

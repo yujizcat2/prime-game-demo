@@ -231,9 +231,12 @@ const liveThreePieceGame = resolveGameOver(
 assert.equal(liveThreePieceGame.gameOver, false);
 
 
-const depletedStart = resolveGameOver(
-  createGameState([2, 4])
-);
+const depletedStart = resolveGameOver({
+  ...createGameState([2, 4]),
+  heaterCount: 0,
+  restoreCount: 0,
+  superHeaterCount: 0
+});
 
 assert.equal(depletedStart.gameOver, true);
 assert.equal(depletedStart.gameOverReason, "board_depleted");
@@ -258,6 +261,9 @@ const noLegalState = createGameState(
 noLegalState.board = pieces(
   [2, 3, 5, 7, 11, 13, 17, 19, 23]
 );
+noLegalState.heaterCount = 0;
+noLegalState.restoreCount = 0;
+noLegalState.superHeaterCount = 0;
 
 const noLegalGameOver = resolveGameOver(noLegalState);
 
@@ -270,6 +276,9 @@ for(const count of [0, 1, 2]){
   state.board = state.board.map((piece, index) =>
     index < count ? piece : null
   );
+  state.heaterCount = 0;
+  state.restoreCount = 0;
+  state.superHeaterCount = 0;
   const ended = resolveGameOver(state);
   assert.equal(ended.gameOver, true);
   assert.equal(ended.gameOverReason, "board_depleted");

@@ -17,7 +17,7 @@ const baseState = pieces => ({
     {value: 4, boardIndex: 0, gameMode: "simpleEightPalace"},
     {value: 6, boardIndex: 1, gameMode: "simpleEightPalace"}
   ]),
-  board: board(...pieces), gameOver: false, gameOverReason: null, money: 1_000
+  board: board(...pieces), gameOver: false, gameOverReason: null
 });
 
 for(const count of [1, 2, 4]){
@@ -114,7 +114,6 @@ const collectible = (value, foodType, singleFlavorPenalty) => ({
   assert.equal(penalized.latestCollection.collectionScore, Math.round(rawBaseScore * 0.5));
   assert.equal(penalized.latestCollection.newFoodTypeBonus, normal.latestCollection.newFoodTypeBonus);
   assert.equal(penalized.latestCollection.totalScore, penalized.latestCollection.collectionScore + penalized.latestCollection.newFoodTypeBonus);
-  assert.equal(normal.money, penalized.money);
 }
 
 {

@@ -44,8 +44,8 @@ assert.equal(samePair.combineHistory[0].key,"8:vegetable|8:vegetable");
 
 const lockedAll=placed([piece(2,T.LAND),piece(3,T.VEGETABLE),piece(5,T.FRUIT)]);
 for(const [i,j] of [[0,1],[0,2],[1,2]])lockedAll.combineHistoryKeys[createCombinePairKey(lockedAll.board[i],lockedAll.board[j])]=true;
-assert.equal(getLegalActions(lockedAll).length,0,"history-locked routes are not legal actions");
-assert.equal(resolveGameOver(lockedAll).gameOverReason,"no_legal_actions","game over uses locked legality");
+assert.equal(getLegalActions(lockedAll).filter(action=>action.type==="combine").length,0,"history-locked routes are not legal combine actions");
+assert.equal(resolveGameOver(lockedAll).gameOver,false,"daily items can rescue a board with no legal combinations");
 const activity=getActivityStatus(lockedAll.board.filter(Boolean),0,0,lockedAll.combineHistoryKeys);
 assert.equal(activity.combineLegal,0);
 assert.equal(activity.combinePotential,3,"locked routes remain potential relations");

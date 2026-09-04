@@ -130,7 +130,6 @@ assert.ok(result.collections.every(card =>
   Number.isInteger(card.bonusScore) &&
   Number.isInteger(card.totalScore)
 ), "AI collection settlements use integer scores");
-assert.equal(result.finalMoney, result.actionPath.reduce((sum, action) => sum + action.moneyGain, 0));
 assert.equal(result.score, result.finalScore);
 assert.equal(result.scoreEfficiency, getScoreEfficiency(result.score, result.steps));
 assert.equal(result.foodTypeBoardTimeline[0].step, 0);
@@ -317,7 +316,6 @@ for(const entry of result.actionPath){
   replay = nextState;
 }
 assert.equal(replay.score, result.finalScore, "AI simulation score matches formal collection score");
-assert.equal(replay.money, result.finalMoney, "AI simulation money matches formal game money");
 
 const atStep99 = {...createGameState(opening), steps: 99, checkpoint: {index: 8, step: 110, type: "score", requiredScore: 1}};
 const finalAction = chooseScoreAction(atStep99, {depth: 1, beamWidth: 8});
@@ -349,7 +347,7 @@ assert.notEqual(
   }),
   "transposition key preserves per-instance single-flavor value"
 );
-const candidateState = {...base, money: 1_000};
+const candidateState = base;
 const candidateTelemetry = createSearchTelemetry();
 const allCandidates = getLegalActions(candidateState);
 const strategicCandidates = getStrategicCandidateActions(candidateState, allCandidates, {telemetry: candidateTelemetry});

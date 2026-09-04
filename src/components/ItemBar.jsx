@@ -2,14 +2,14 @@ import { useEffect, useRef, useState } from "react";
 import "./ItemBar.css";
 
 export default function ItemBar({
-  heaterCost = 10,
+  heaterCount = 0,
   heaterAvailable = false,
   heaterActive = false,
   onHeaterClick,
-  superHeaterCost = 100,
+  superHeaterCount = 0,
   superHeaterAvailable = false,
   onSuperHeaterClick,
-  restoreCost = 50,
+  restoreCount = 0,
   restoreAvailable = false,
   restoreActive = false,
   onRestoreClick
@@ -50,7 +50,7 @@ export default function ItemBar({
     id: "heater",
     name: "加热器",
     effect: "+1",
-    costLabel: `¥${heaterCost}`,
+    count: heaterCount,
     active: heaterActive,
     disabled: !heaterActive && !heaterAvailable,
     onClick: handleHeaterClick
@@ -58,7 +58,7 @@ export default function ItemBar({
     id: "super-heater",
     name: "超级加热器",
     effect: "全盘数字 +1",
-    costLabel: `¥${superHeaterCost}`,
+    count: superHeaterCount,
     active: false,
     disabled: !superHeaterAvailable,
     onClick: handleSuperHeaterClick
@@ -66,7 +66,7 @@ export default function ItemBar({
     id: "restore",
     name: "归味",
     effect: "恢复原生系",
-    costLabel: `¥${restoreCost}`,
+    count: restoreCount,
     active: restoreActive,
     disabled: !restoreActive && !restoreAvailable,
     onClick: handleRestoreClick
@@ -96,7 +96,7 @@ export default function ItemBar({
         >
           <span className="item-bar-name">{item.active ? `取消${item.name}` : item.name}</span>
           <span className="item-bar-effect">{item.active ? "选择中" : item.effect}</span>
-          <span className="item-bar-cost">{item.costLabel}</span>
+          <span className="item-bar-count">×{item.count}</span>
         </button>)}
         <div className={`item-bar-status${heaterAvailable || superHeaterAvailable || restoreAvailable || heaterActive || restoreActive ? " item-bar-status--ready" : ""}`}>
           {restoreActive
@@ -105,7 +105,7 @@ export default function ItemBar({
             ? "选择一道料理进行加热"
             : heaterAvailable || superHeaterAvailable || restoreAvailable
               ? "可使用"
-              : "金钱不足或没有可加热料理"}
+              : "今日已使用或没有适用料理"}
         </div>
       </div>}
     </div>

@@ -31,8 +31,6 @@ import {
   getActivityStatus
 } from "./game/activityStatus";
 
-import { getCollectionMoneyGain } from "./game/money";
-
 import { FOOD_TYPE_LABELS } from "./data/specialOneRegistry";
 import { getActionStatus } from "./game/actionStatus";
 import { getNonDrinkBoardSum } from "./game/scoreValue";
@@ -95,8 +93,7 @@ function App(){
       return;
     }
     if(!game.heaterAvailable){
-      const shortage = Math.max(0, game.heaterCost - game.money);
-      showActionToast("金钱不足", shortage ? `还需要 ¥${shortage}` : "没有可加热的料理");
+      showActionToast("无法使用加热器", game.heaterCount === 0 ? "今日已使用" : "没有可加热的料理");
       return;
     }
     game.clearSelection();
@@ -107,8 +104,7 @@ function App(){
   function toggleRestoreMode(){
     if(restoreSelectMode){ setRestoreSelectMode(false); return; }
     if(!game.restoreAvailable){
-      const shortage = Math.max(0, game.restoreCost - game.money);
-      showActionToast("无法归味", shortage ? `还需要 ¥${shortage}` : "没有可归味的料理");
+      showActionToast("无法归味", game.restoreCount === 0 ? "今日已使用" : "没有可归味的料理");
       return;
     }
     game.clearSelection();
@@ -118,8 +114,7 @@ function App(){
 
   function handleSuperHeater(){
     if(!game.superHeaterAvailable){
-      const shortage = Math.max(0, game.superHeaterCost - game.money);
-      showActionToast("无法超级加热", shortage ? `还需要 ¥${shortage}` : "没有可加热的料理");
+      showActionToast("无法超级加热", game.superHeaterCount === 0 ? "今日已使用" : "没有可加热的料理");
       return;
     }
     setHeaterSelectMode(false);
@@ -133,7 +128,7 @@ function App(){
         beforeValues: game.board.filter(Boolean).map(piece=>piece.value),
         afterValues: game.board.filter(Boolean).map(piece=>piece.value+1)
       },620);
-      showActionToast("超级加热", `全盘 +1 · -¥${result.cost}`);
+      showActionToast("超级加热", "全盘 +1");
     }
   }
 
@@ -148,7 +143,7 @@ function App(){
       beforeValues: [result.fromValue],
       afterValues: [result.toValue]
     },430);
-    showActionToast(`${result.fromValue} → ${result.toValue}`, `加热完成 · -¥${result.cost}`);
+    showActionToast(`${result.fromValue} → ${result.toValue}`, "加热完成");
   }
 
   function handleRestoreTarget(index){
@@ -164,7 +159,7 @@ function App(){
     },480);
     showActionToast(
       "归味",
-      `${FOOD_TYPE_LABELS[result.foodTypeBefore] ?? "饮品"} ${result.valueBefore} → ${FOOD_TYPE_LABELS[result.foodTypeAfter] ?? "饮品"} ${result.valueAfter} · -¥${result.cost}`
+      `${FOOD_TYPE_LABELS[result.foodTypeBefore] ?? "饮品"} ${result.valueBefore} → ${FOOD_TYPE_LABELS[result.foodTypeAfter] ?? "饮品"} ${result.valueAfter}`
     );
   }
 
@@ -488,10 +483,6 @@ function App(){
           result.collectValue;
 
 
-        let reward =
-          null;
-
-
         if(
           collectible
         ){
@@ -503,9 +494,6 @@ function App(){
 
 
           const isFirstSlot = !collectedSlots.has(slotKey);
-
-
-          reward = getCollectionMoneyGain(isFirstSlot);
 
 
           if(
@@ -523,7 +511,6 @@ function App(){
           {
             index,
             foodType,
-            reward,
             sameSourceRepeat:
               sameSourceTwins &&
               index === autoCollectIndexes[1]
@@ -825,12 +812,7 @@ function App(){
             steps={
               game.steps
             }
-            score={
-              ["eightPalace", "simpleEightPalace"].includes(game.gameMode)
-                ? game.score
-                : game.money
-            }
-            money={game.money}
+            score={game.score}
             stepLimit={game.stepLimit}
             gameMode={game.gameMode}
             checkpoint={game.checkpoint}
@@ -883,14 +865,14 @@ function App(){
             />
 
             <ItemBar
-              heaterCost={game.heaterCost}
+              heaterCount={game.heaterCount}
               heaterAvailable={game.heaterAvailable && !game.daySettlement}
               heaterActive={heaterSelectMode}
               onHeaterClick={toggleHeaterMode}
-              superHeaterCost={game.superHeaterCost}
+              superHeaterCount={game.superHeaterCount}
               superHeaterAvailable={game.superHeaterAvailable && !game.daySettlement}
               onSuperHeaterClick={handleSuperHeater}
-              restoreCost={game.restoreCost}
+              restoreCount={game.restoreCount}
               restoreAvailable={game.restoreAvailable && !game.daySettlement}
               restoreActive={restoreSelectMode}
               onRestoreClick={toggleRestoreMode}
@@ -961,9 +943,6 @@ function App(){
                 }
                 collectionCards={
                   game.collectionCards
-                }
-                prices={
-                  game.boardPrices
                 }
                 scoreMode={
                   ["eightPalace", "simpleEightPalace"].includes(game.gameMode)
@@ -1085,14 +1064,9 @@ function App(){
           }
           checkpointResult={game.latestCheckpointResult}
           daySettlement={game.daySettlement}
-          money={game.money}
           passedCheckpointCount={game.passedCheckpointCount}
-          heaterUseCount={game.heaterUseCount}
-          restoreUseCount={game.restoreUseCount}
-          superHeaterUseCount={game.superHeaterUseCount}
           recapSnapshots={game.gameRecapSnapshots}
           recapActionCounts={game.recapActionCounts}
-          recapItemSpending={game.recapItemSpending}
           gameMode={
             game.gameMode
           }

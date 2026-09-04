@@ -44,7 +44,6 @@ export const STRATEGIC_CANDIDATE_LIMITS = Object.freeze({
   total: 24
 });
 
-export const PAID_ACTION_OPTION_VALUE_WEIGHT = 100;
 export const CHECKPOINT_SCORE_WEIGHT = 250_000_000;
 export const CHECKPOINT_PASS_BONUS = 750_000_000;
 
@@ -108,7 +107,6 @@ function createOpeningSnapshot(state){
     day: state.day,
     time: getDayTime(state),
     score: state.score ?? 0,
-    money: state.money ?? 0,
     collectionCount: state.collectionCards?.length ?? 0,
     board: snapshotBoard(state.board),
     boardCount: getBoardCount(state.board),
@@ -133,7 +131,6 @@ function createTimedActionSnapshot(state, nextState, describedAction, toolsUsedS
     scoreBefore: state.score ?? 0,
     score: nextState.score ?? 0,
     scoreGain: (nextState.score ?? 0) - (state.score ?? 0),
-    money: nextState.money ?? 0,
     collectionCount: nextState.collectionCards?.length ?? 0,
     collectionGain: (nextState.collectionCards?.length ?? 0) - (state.collectionCards?.length ?? 0),
     newCollection: collections.find(event => event.isNewCollection) ?? null,
@@ -202,11 +199,10 @@ function getStateKey(state){
   return JSON.stringify({
     board,
     score: state.score,
-    money: state.money ?? 0,
     steps: state.steps,
-    heaterUseCount: state.heaterUseCount ?? 0,
-    superHeaterUseCount: state.superHeaterUseCount ?? 0,
-    restoreUseCount: state.restoreUseCount ?? 0,
+    heaterCount: state.heaterCount ?? 0,
+    restoreCount: state.restoreCount ?? 0,
+    superHeaterCount: state.superHeaterCount ?? 0,
     collectionCards: (state.collectionCards ?? []).map(card => [card.value, card.foodType]).sort(),
     combineHistoryKeys: Object.keys(state.combineHistoryKeys ?? {}).sort(),
     recentActionSignatures: [...(state.recentActionSignatures ?? [])],
@@ -308,7 +304,6 @@ export function evaluateScoreState(state, legalActions = state.gameOver ? [] : g
     + boardNovelty * 5_000
     + reduceActions * 1_000
     + legalActions.length * 10
-    + Math.min(state.money ?? 0, 200) * PAID_ACTION_OPTION_VALUE_WEIGHT
     - (terminalDeadlock ? 100_000_000 : 0);
 }
 
@@ -697,20 +692,13 @@ function describeAction(state, action, nextState, number){
     scoreAfter: nextState.score,
     scoreEfficiencyAfter: getScoreEfficiency(nextState.score, nextState.steps),
     scoreGain: nextState.score - state.score,
-    moneyBefore: state.money ?? 0,
-    moneyAfter: nextState.money ?? 0,
-    moneyGain: (nextState.money ?? 0) - (state.money ?? 0),
     heaterUse: action.type === "heater" ? {
       step: state.steps,
       day: state.day,
       time: getDayTime(state),
       fromValue: state.board[indexes[0]]?.value ?? null,
       toValue: nextState.board[indexes[0]]?.value ?? null,
-      foodType: state.board[indexes[0]]?.foodType ?? null,
-      cost: nextState.latestHeaterUse.cost,
-      price: nextState.latestHeaterUse.price,
-      moneyBefore: state.money ?? 0,
-      moneyAfter: nextState.money ?? 0
+      foodType: state.board[indexes[0]]?.foodType ?? null
     } : null,
     superHeaterUse: action.type === "super_heater" ? {
       ...structuredClone(nextState.latestSuperHeaterUse),
@@ -791,9 +779,7 @@ export async function runScoreGame({
     }else{
       toolsUsedSincePreviousAction.push({
         type: describedAction.type,
-        indexes: describedAction.indexes,
-        moneyBefore: describedAction.moneyBefore,
-        moneyAfter: describedAction.moneyAfter
+        indexes: describedAction.indexes
       });
     }
     if(nextState.steps > foodTypeBoardTimeline.at(-1).step){
@@ -853,11 +839,8 @@ export async function runScoreGame({
       } : null
     }];
   });
-  const heaterSpending = heaterTimeline.reduce((sum, event) => sum + event.cost, 0);
   const superHeaterTimeline = actionPath.flatMap(action => action.superHeaterUse ? [action.superHeaterUse] : []);
-  const superHeaterSpending = superHeaterTimeline.reduce((sum, event) => sum + event.cost, 0);
   const restoreTimeline = actionPath.flatMap(action => action.restoreUse ? [action.restoreUse] : []);
-  const restoreSpending = restoreTimeline.reduce((sum, event) => sum + event.cost, 0);
   const elapsedMs = performance.now() - gameStartedAt;
   const dayHistory = structuredClone(state.dayHistory ?? []);
   const finalDay = state.day ?? 1;
@@ -871,16 +854,8 @@ export async function runScoreGame({
     initialBoard,
     score: state.score,
     finalScore: state.score,
-    finalMoney: state.money ?? 0,
-    heaterUseCount: heaterTimeline.length,
-    heaterSpending,
-    averageHeaterCost: heaterTimeline.length ? heaterSpending / heaterTimeline.length : 0,
     heaterTimeline,
-    superHeaterUseCount: superHeaterTimeline.length,
-    superHeaterSpending,
     superHeaterTimeline,
-    restoreUseCount: restoreTimeline.length,
-    restoreSpending,
     restoreTimeline,
     searchTelemetry: {
       ...searchTelemetry,
@@ -1043,15 +1018,8 @@ export function summarizeScoreResults(results){
   const totalPrimeCollectionCount = results.reduce((sum, result) => sum + result.primeCollectionCount, 0);
   const totalCompositeCollectionCount = results.reduce((sum, result) => sum + result.compositeCollectionCount, 0);
   const classifiedCollectionCount = totalPrimeCollectionCount + totalCompositeCollectionCount;
-  const totalHeaterUseCount = results.reduce((sum, result) => sum + (result.heaterUseCount ?? 0), 0);
-  const totalHeaterSpending = results.reduce((sum, result) => sum + (result.heaterSpending ?? 0), 0);
-  const totalSuperHeaterUseCount = results.reduce((sum, result) => sum + (result.superHeaterUseCount ?? 0), 0);
-  const totalSuperHeaterSpending = results.reduce((sum, result) => sum + (result.superHeaterSpending ?? 0), 0);
-  const totalRestoreUseCount = results.reduce((sum, result) => sum + (result.restoreUseCount ?? 0), 0);
-  const totalRestoreSpending = results.reduce((sum, result) => sum + (result.restoreSpending ?? 0), 0);
   const singleFlavorResults = results.filter(result => result.singleFlavorTriggered);
   const foodTypeTelemetry = summarizeFoodTypeTelemetry(results);
-  const heaterEvents = results.flatMap(result => result.heaterTimeline ?? []);
   const collectedTypeTargets = [5, 6, 7, 8];
   const collectedNormalFoodTypeReachCounts = Object.fromEntries(collectedTypeTargets.map(target => [
     target,
@@ -1074,15 +1042,6 @@ export function summarizeScoreResults(results){
       averageBoardValue: totalCount ? boardValueTotal / totalCount : null
     }];
   }));
-  const heaterPrices = heaterEvents.map(event => event.price ?? event.cost);
-  const priceDistribution = {
-    "10": 0, "20": 0, "25": 0, "30": 0, "35": 0,
-    "40": 0, "45": 0, "50": 0, "55": 0, "60+": 0
-  };
-  for(const event of heaterEvents){
-    const price = event.price ?? event.cost;
-    priceDistribution[price >= 60 ? "60+" : String(price)]++;
-  }
   const scores = results.map(result => result.finalScore);
   const times = results.map(result => result.elapsedMs ?? 0);
   const meanScore = average(results, result => result.finalScore);
@@ -1129,23 +1088,6 @@ export function summarizeScoreResults(results){
     newFoodTypeBonusScoreRatio: totalFinalScore ? totalNewFoodTypeBonus / totalFinalScore : 0,
     combinedAuxiliaryBonusScoreRatio: totalFinalScore ? totalNewFoodTypeBonus / totalFinalScore : 0,
     largeCollectionSummary,
-    averageFinalMoney: average(results, result => result.finalMoney ?? 0),
-    averageHeaterUseCount: average(results, result => result.heaterUseCount ?? 0),
-    averageHeaterSpending: average(results, result => result.heaterSpending ?? 0),
-    averageHeaterCost: totalHeaterUseCount ? totalHeaterSpending / totalHeaterUseCount : 0,
-    minimumHeaterCost: heaterPrices.length ? Math.min(...heaterPrices) : 0,
-    maximumHeaterCost: heaterPrices.length ? Math.max(...heaterPrices) : 0,
-    heaterPriceDistribution: priceDistribution,
-    totalHeaterUseCount,
-    totalHeaterSpending,
-    averageSuperHeaterUseCount: average(results, result => result.superHeaterUseCount ?? 0),
-    averageSuperHeaterSpending: average(results, result => result.superHeaterSpending ?? 0),
-    totalSuperHeaterUseCount,
-    totalSuperHeaterSpending,
-    averageRestoreUseCount: average(results, result => result.restoreUseCount ?? 0),
-    averageRestoreSpending: average(results, result => result.restoreSpending ?? 0),
-    totalRestoreUseCount,
-    totalRestoreSpending,
     singleFlavorTriggeredGameCount: singleFlavorResults.length,
     singleFlavorTriggerRate: results.length ? singleFlavorResults.length / results.length : 0,
     averageSingleFlavorFirstTriggeredStep: average(
@@ -1193,8 +1135,6 @@ export function summarizeScoreResults(results){
     averageScoreEfficiency: average(results, result => result.scoreEfficiency),
     highestScore: results.length ? Math.max(...results.map(result => result.finalScore)) : 0,
     lowestScore: results.length ? Math.min(...results.map(result => result.finalScore)) : 0,
-    highestFinalMoney: results.length ? Math.max(...results.map(result => result.finalMoney ?? 0)) : 0,
-    lowestFinalMoney: results.length ? Math.min(...results.map(result => result.finalMoney ?? 0)) : 0,
     averageCollectionCount: average(results, result => result.collectionCount),
     averagePrimeCollectionCount: average(results, result => result.primeCollectionCount),
     averageCompositeCollectionCount: average(results, result => result.compositeCollectionCount),
@@ -1272,7 +1212,6 @@ export async function runScoreGames({
       total: games,
       currentGame: result,
       currentScore: result.finalScore,
-      currentMoney: result.finalMoney,
       currentCollection: result.collectionCount,
       currentSteps: result.steps,
       currentDeadlocked: result.deadlocked,
@@ -1356,7 +1295,7 @@ export async function runFixedScoreAttempts({
     result.attemptIndex = attemptIndex;
     result.routeSignature = scoreRouteSignature(result);
     results.push(result);
-    onProgress?.({completed: attemptIndex, total: attempts, currentGame: result, currentScore: result.finalScore, currentMoney: result.finalMoney, currentCollection: result.collectionCount, currentSteps: result.steps, currentDeadlocked: result.deadlocked});
+    onProgress?.({completed: attemptIndex, total: attempts, currentGame: result, currentScore: result.finalScore, currentCollection: result.collectionCount, currentSteps: result.steps, currentDeadlocked: result.deadlocked});
     await new Promise(resolve => setTimeout(resolve, 0));
   }
 

@@ -27,7 +27,6 @@ export default function CollectionRewardModal({reward, onClose}){
         {typeLabel && <p className="collection-reward-meta">{typeLabel}</p>}
         <div className="collection-reward-total">
           {reward.totalScore != null && <strong>+{reward.totalScore}分</strong>}
-          {reward.moneyGain != null && <strong>{reward.moneyGain > 0 ? "+" : ""}¥{reward.moneyGain}</strong>}
         </div>
         {reward.totalScore > 0 && (
           <p className="collection-reward-breakdown">

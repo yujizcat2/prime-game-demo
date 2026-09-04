@@ -39,10 +39,7 @@ export const SMART_AI_MODES = {
     "survival",
 
   COLLECTION:
-    "collection",
-
-  MONEY:
-    "money"
+    "collection"
 
 };
 
@@ -237,46 +234,6 @@ function gcdSimple(
 // ============================================================
 // 收藏槽辅助
 // ============================================================
-
-function hasCollectionSlot(
-  state,
-  value,
-  foodType
-){
-
-
-  const key =
-
-    getSimulationCollectionKey(
-
-      value,
-
-      foodType
-
-    );
-
-
-
-  if(
-    !key
-  ){
-
-
-    return false;
-
-  }
-
-
-
-  return state.collection.has(
-    key
-  );
-
-}
-
-
-
-
 
 function parseCollectionKey(
   key
@@ -1852,22 +1809,6 @@ function createCollectionRank(state, rootState){
 }
 
 
-function createMoneyRank(state){
-  const info = analyzeState(state);
-  const potential = analyzeCollectionPotential(state, info);
-
-  return [
-    state.money ?? 0,
-    potential.directNewCollection,
-    potential.unseenReducibleValues,
-    info.legalCount > 0 ? 1 : 0,
-    info.reduceCount,
-    info.empty
-  ];
-}
-
-
-
 function compareRanks(left, right){
 
   const length = Math.max(left.length, right.length);
@@ -1886,10 +1827,6 @@ function compareRanks(left, right){
 
 
 function createNodeScore(state, mode, rootState){
-
-  if(mode === SMART_AI_MODES.MONEY){
-    return createMoneyRank(state);
-  }
 
   return mode === SMART_AI_MODES.COLLECTION
     ? createCollectionRank(state, rootState)
@@ -1920,10 +1857,6 @@ function createSearchKey(
     getSimulationHistorySignature(
       state
     )
-
-    +
-
-    `#${state.money ?? 0}:${state.previousCollection ?? ""}:${state.trend ?? 1}`
 
   );
 
@@ -2279,8 +2212,7 @@ export const collectionAITestUtils = {
   analyzeReduceAutoCollections,
   createCollectionRank,
   compareRanks,
-  chooseSmartAction,
-  createMoneyRank
+  chooseSmartAction
 };
 
 
@@ -2711,10 +2643,6 @@ export async function runSmartGame({
       getBoardMetrics(state.board).boardMean;
 
 
-    const moneyBefore =
-      state.money ?? 0;
-
-
     const actionIndexes=action.indexes??(action.type==="apply_one"?[action.oneIndex,action.targetIndex]:[action.index]);
     const inputValues = actionIndexes.map(index => state.board[index]?.value ?? null);
 
@@ -2803,9 +2731,6 @@ export async function runSmartGame({
       recent20BoardMean: getRecentBoardMean(boardMeanHistory),
       resultValues,
       boardAfter: afterBoard.filter(piece => !piece.empty).map(piece => piece.value),
-      moneyBefore,
-      money: state.money ?? 0,
-      moneyGain: (state.money ?? 0) - moneyBefore,
       collections:
         action.type === "reduce"
           ? (state.lastCollectionEvents ?? []).map(event => ({...event, boardMeanBefore}))
@@ -3265,9 +3190,6 @@ export async function runSmartGame({
         collectionCount:
           state.collection.size,
 
-        money:
-          state.money ?? 0,
-
         firstCollectionCount:
           state.collectionNumbers?.size ?? 0,
 
@@ -3403,9 +3325,6 @@ export async function runSmartGame({
       state.steps,
 
     actions,
-
-    money:
-      state.money ?? 0,
 
     firstCollectionCount:
       state.collectionNumbers?.size ?? 0,
@@ -3641,10 +3560,7 @@ export async function runSmartExplorer({
     0;
 
 
-  let totalMoney = 0;
   let totalFirstCollection = 0;
-  let maxMoney = 0;
-  let minMoney = Infinity;
   let maxFirstCollection = 0;
   let deadGameCount = 0;
   let totalFatigueTriggerCount = 0;
@@ -3712,10 +3628,6 @@ export async function runSmartExplorer({
     null;
 
 
-  let bestMoneyGame =
-    null;
-
-
   let mostMazeTurnGame =
     null;
 
@@ -3768,9 +3680,6 @@ export async function runSmartExplorer({
 
               currentCollection:
                 current.collectionCount,
-
-              currentMoney:
-                current.money,
 
               currentFirstCollection:
                 current.firstCollectionCount,
@@ -3856,9 +3765,7 @@ export async function runSmartExplorer({
       result.steps;
 
 
-    totalMoney += result.money ?? 0;
     totalFirstCollection += result.firstCollectionCount ?? 0;
-    minMoney = Math.min(minMoney, result.money ?? 0);
     maxFirstCollection = Math.max(maxFirstCollection, result.firstCollectionCount ?? 0);
     totalFatigueTriggerCount += result.fatigueTriggerCount ?? 0;
     totalFatigueExtraLoss += result.fatigueExtraLoss ?? 0;
@@ -3873,11 +3780,6 @@ export async function runSmartExplorer({
     maxLongestLowStepCount = Math.max(maxLongestLowStepCount, result.longestLowStepCount ?? 0);
     if(result.firstHighStep != null) highEntryGameCount++;
     totalHighestBoardMax += result.highestBoardMax ?? 0;
-
-    if((result.money ?? 0) > maxMoney || !bestMoneyGame){
-      maxMoney = result.money ?? 0;
-      bestMoneyGame = game;
-    }
 
     if(result.endedNaturally){
       deadGameCount++;
@@ -4025,9 +3927,6 @@ export async function runSmartExplorer({
       currentCollection:
         0,
 
-      currentMoney:
-        0,
-
       currentFirstCollection:
         0,
 
@@ -4109,14 +4008,6 @@ export async function runSmartExplorer({
 
       totalSteps /
       safeGames,
-
-    averageMoney:
-      totalMoney / safeGames,
-
-    maxMoney,
-
-    minMoney:
-      Number.isFinite(minMoney) ? minMoney : 0,
 
     averageFirstCollection:
       totalFirstCollection / safeGames,
@@ -4264,9 +4155,7 @@ export async function runSmartExplorer({
 
     bestStepGame,
 
-    bestCollectionGame,
-
-    bestMoneyGame
+    bestCollectionGame
 
   };
 

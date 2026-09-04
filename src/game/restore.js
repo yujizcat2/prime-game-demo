@@ -1,7 +1,5 @@
-import { consumeStep } from "./gameState";
 import { FOOD_TYPES } from "./rules";
 import { getNativeFoodType } from "./nativeFoodTypes";
-import { getCurrentRestorePrice } from "./restorePricing";
 import { GAME_MODES } from "./eightPalaceKeys";
 
 function isAtStepLimit(state){
@@ -30,8 +28,8 @@ export function canRestorePiece(state, index){
   if(!state || state.gameOver || isAtStepLimit(state)) return false;
   return Boolean(
     Number.isInteger(index)
+    && (state.restoreCount ?? 0) > 0
     && getRestoreOutcome(state.board?.[index], index)
-    && (state.money ?? 0) >= getCurrentRestorePrice(state)
   );
 }
 
@@ -44,30 +42,24 @@ export function getLegalRestoreActions(state){
 
 export function applyRestore(state, index){
   if(!canRestorePiece(state, index)) return state;
-  const price = getCurrentRestorePrice(state);
   const outcome = getRestoreOutcome(state.board[index], index);
   const board = [...state.board];
   board[index] = outcome.piece;
-  const stepped = consumeStep({
+  const nextState = {
     ...state,
     board,
-    money: (state.money ?? 0) - price,
-    restoreUseCount: (state.restoreUseCount ?? 0) + 1,
+    restoreCount: 0,
     gameOver: false,
     gameOverReason: null
-  });
+  };
   return {
-    ...stepped,
+    ...nextState,
     latestRestoreUse: {
       targetIndex: index,
-      price,
-      cost: price,
-      moneyBefore: state.money ?? 0,
-      moneyAfter: (state.money ?? 0) - price,
       stepBefore: state.steps,
-      stepAfter: stepped.steps,
+      stepAfter: state.steps,
       scoreBefore: state.score,
-      scoreAfter: stepped.score,
+      scoreAfter: state.score,
       ...outcome
     }
   };

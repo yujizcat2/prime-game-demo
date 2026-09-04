@@ -1,7 +1,4 @@
-import {
-  useEffect,
-  useState
-} from "react";
+import { useState } from "react";
 
 import {
   getFoodDisplayName,
@@ -40,18 +37,6 @@ export default function CollectionPanel({
   latestCollection = null
 
 }) {
-
-  const [showMoneyFeedback, setShowMoneyFeedback] = useState(false);
-
-  useEffect(() => {
-    if(latestCollection?.eventId == null){
-      return undefined;
-    }
-
-    setShowMoneyFeedback(true);
-    const timer = window.setTimeout(() => setShowMoneyFeedback(false), 850);
-    return () => window.clearTimeout(timer);
-  }, [latestCollection?.eventId]);
 
 
   // ==========================================================
@@ -586,28 +571,6 @@ export default function CollectionPanel({
         px-1
       "
     >
-
-
-      {showMoneyFeedback && (
-        <div className="mb-3 flex flex-wrap items-center gap-2" aria-live="polite">
-          <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-[10px] font-bold text-emerald-700">
-            {latestCollection?.reward > 0
-              ? `+¥${latestCollection.reward}`
-              : latestCollection?.reward < 0
-                ? `-¥${Math.abs(latestCollection.reward)}`
-                : "¥0"}
-            {latestCollection?.sameSourceRepeat ? " · 同源重复" : ""}
-          </span>
-          {latestCollection?.trendFrom != null && (
-            <span className="text-[10px] font-bold text-amber-600">
-              收藏趋势 ↓ {latestCollection.trendFrom} → {latestCollection.value}
-            </span>
-          )}
-        </div>
-      )}
-
-
-
 
 
       {collectionTimeline.length > 0 && (

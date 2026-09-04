@@ -35,14 +35,3 @@ export function getActionFatigue(history, signature){
 export function appendRecentActionSignature(history, signature){
   return [...(history ?? []), signature].slice(-ACTION_FATIGUE_WINDOW);
 }
-
-
-export function getFatiguedFirstReward(price, fatigueRate){
-  return Math.round(price * (1 - Math.min(Math.max(fatigueRate, 0), 0.5)));
-}
-
-
-export function getFatiguedRepeatPenalty(price, fatigueRate){
-  const rate = Math.min(1, 0.5 + Math.min(Math.max(fatigueRate, 0), 0.5));
-  return Math.round(price * rate);
-}

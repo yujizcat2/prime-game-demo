@@ -18,16 +18,10 @@ import {
   getPrimeState
 } from "../game/primeStatus";
 
-import {
-  getBoardPrices
-} from "../game/price";
 import { getNextSelectionIndexes } from "../game/selection";
-import { getHeaterCost } from "../game/heater";
-import { getHeaterAvailability } from "../game/heaterPricing";
+import { canUseHeater } from "../game/heater";
 import { canRestorePiece } from "../game/restore";
-import { getCurrentRestorePrice } from "../game/restorePricing";
 import { canUseSuperHeater } from "../game/superHeater";
-import { getCurrentSuperHeaterPrice } from "../game/superHeaterPricing";
 
 import {
   createGameState,
@@ -230,43 +224,12 @@ export default function useGame(){
     null;
 
 
-  const money =
-
-    gameState?.money
-
-    ??
-
-    0;
-
-  const heaterUseCount = gameState?.heaterUseCount ?? 0;
-  const heaterCost = getHeaterCost(gameState);
-  const heaterAvailability = getHeaterAvailability(gameState);
-  const heaterAvailable = heaterAvailability.canEnter;
-  const superHeaterUseCount = gameState?.superHeaterUseCount ?? 0;
-  const superHeaterCost = getCurrentSuperHeaterPrice(gameState);
+  const heaterCount = gameState?.heaterCount ?? 0;
+  const heaterAvailable = canUseHeater(gameState);
+  const superHeaterCount = gameState?.superHeaterCount ?? 0;
   const superHeaterAvailable = canUseSuperHeater(gameState);
-  const restoreUseCount = gameState?.restoreUseCount ?? 0;
-  const restoreCost = getCurrentRestorePrice(gameState);
+  const restoreCount = gameState?.restoreCount ?? 0;
   const restoreAvailable = Boolean(gameState?.board?.some((_, index) => canRestorePiece(gameState, index)));
-
-
-  const trend =
-
-    gameState?.trend
-
-    ??
-
-    1;
-
-
-  const boardPrices =
-    ["eightPalace", "simpleEightPalace"].includes(gameState?.gameMode)
-      ? []
-      : getBoardPrices(
-          board,
-          trend,
-          collectionPaths
-        );
 
 
   // ==========================================================
@@ -307,7 +270,6 @@ export default function useGame(){
   const dayHistory = gameState?.dayHistory ?? [];
   const gameRecapSnapshots = gameState?.gameRecapSnapshots ?? [];
   const recapActionCounts = gameState?.recapActionCounts ?? null;
-  const recapItemSpending = gameState?.recapItemSpending ?? null;
 
 
   const gameOver =
@@ -1216,8 +1178,7 @@ export default function useGame(){
     return {
       collectionRewards: rewards.map((reward,index)=>({
         ...reward,
-        isNewCollection:collectionEvents[index]?.isNewCollection,
-        moneyGain:collectionEvents[index]?.moneyGain
+        isNewCollection:collectionEvents[index]?.isNewCollection
       }))
     };
 
@@ -1421,24 +1382,13 @@ export default function useGame(){
 
     latestCollection,
 
-    money,
-
-    heaterUseCount,
-
-    heaterCost,
+    heaterCount,
 
     heaterAvailable,
-    superHeaterUseCount,
-    superHeaterCost,
+    superHeaterCount,
     superHeaterAvailable,
-    restoreUseCount,
-    restoreCost,
+    restoreCount,
     restoreAvailable,
-
-    trend,
-
-    boardPrices,
-
 
     // 分数 / 时间
     score,
@@ -1460,7 +1410,6 @@ export default function useGame(){
     dayHistory,
     gameRecapSnapshots,
     recapActionCounts,
-    recapItemSpending,
     combineHistoryKeys,
 
     combineHistory,

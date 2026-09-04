@@ -372,11 +372,7 @@ export function applyAction(
     recapActionCounts: {
       combine: recapActionCounts.combine + (action.type === "combine" || action.type === "combine_ordered" ? 1 : 0),
       reduce: recapActionCounts.reduce + (action.type === "reduce" ? 1 : 0)
-    },
-    recapItemSpending: (state.recapItemSpending ?? 0)
-      + (["heater", "restore", "super_heater"].includes(action.type)
-        ? Math.max(0, (state.money ?? 0) - (actionState.money ?? 0))
-        : 0)
+    }
   };
   const settledState = recordGameRecapSnapshot(
     resolveMazeHistoryAfterAction(markSingleFlavorBoardPieces(countedState))

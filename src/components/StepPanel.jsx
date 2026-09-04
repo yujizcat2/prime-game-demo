@@ -7,7 +7,6 @@ const numberFormatter = new Intl.NumberFormat("zh-CN");
 export default function StepPanel({
   steps = 0,
   score = 0,
-  money = 0,
   stepLimit = 100,
   gameMode = null,
   checkpoint = null,
@@ -44,25 +43,14 @@ export default function StepPanel({
       <div className="step-panel-stats">
         <div className="step-panel-stat step-panel-stat--primary">
           <strong className="step-panel-value">
-            {!isEightPalace && <span className="step-panel-currency">¥</span>}
             {numberFormatter.format(score)}
           </strong>
           <span className="step-panel-label">
-            {isEightPalace ? "积分" : "金钱"}
+            积分
           </span>
         </div>
 
         {isEightPalace && <>
-          <div className="step-panel-divider" />
-
-          <div className="step-panel-stat step-panel-stat--money">
-            <strong className="step-panel-value step-panel-money">
-              <span className="step-panel-currency">¥</span>
-              {numberFormatter.format(money)}
-            </strong>
-            <span className="step-panel-label">金钱</span>
-          </div>
-
           <div className="step-panel-divider" />
 
           <div className="step-panel-stat step-panel-stat--efficiency">

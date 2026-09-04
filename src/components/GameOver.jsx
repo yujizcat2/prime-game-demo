@@ -21,21 +21,11 @@ export default function GameOver({
 
   daySettlement,
 
-  money,
-
   passedCheckpointCount,
-
-  heaterUseCount,
-
-  restoreUseCount,
-
-  superHeaterUseCount,
 
   recapSnapshots,
 
   recapActionCounts,
-
-  recapItemSpending,
 
   onRestart
 
@@ -281,7 +271,6 @@ export default function GameOver({
             <span>最终 Step <strong>{recapValue(steps)}</strong></span>
             <span>最终效率 <strong>{steps > 0 ? getScoreEfficiency(score, steps).toFixed(2) : "—"}</strong></span>
             <span>收藏数 <strong>{safeCollection.length}</strong></span>
-            <span>最终金钱 <strong>{money == null ? "—" : `¥${money}`}</strong></span>
             <span>通过检查站 <strong>{recapValue(passedCheckpointCount)}</strong></span>
             <span>失败检查站 <strong>{reason === "checkpoint_failed" ? `第 ${recapValue(checkpointResult?.index)} 站` : "—"}</strong></span>
             <span>实际分 / 目标分 <strong>{checkpointResult?.type === "score" ? `${checkpointResult.currentScore} / ${checkpointResult.requiredScore}` : "—"}</strong></span>
@@ -291,10 +280,6 @@ export default function GameOver({
             <span>最终处理数量 <strong>{recapValue(recapActionCounts?.reduce)}</strong></span>
             <span>质数 / 合数收藏 <strong>{primeCollectionCount} / {compositeCollectionCount}</strong></span>
             <span>普通料理系数量 <strong>{normalFoodTypeCount}</strong></span>
-            <span>Heater 使用 <strong>{recapValue(heaterUseCount)}</strong></span>
-            <span>Restore 使用 <strong>{recapValue(restoreUseCount)}</strong></span>
-            <span>Super Heater 使用 <strong>{recapValue(superHeaterUseCount)}</strong></span>
-            <span>道具总花费 <strong>{recapItemSpending == null ? "—" : `¥${recapItemSpending}`}</strong></span>
           </div>
           <div className="mt-3 border-t border-gray-200 pt-3 leading-5">
             {snapshots.length === 0 ? <div>阶段快照：—</div> : <>

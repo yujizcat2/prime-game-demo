@@ -1,31 +1,20 @@
 import { createOriginSnapshot } from "./numberOrigin";
-import {
-  getHeaterAvailability,
-  getCurrentHeaterPrice,
-  isHeaterTarget
-} from "./heaterPricing";
-
-export const HEATER_COST_STEP = 10;
-
-export function getHeaterCost(state){
-  return getCurrentHeaterPrice(state);
+export function isHeaterTarget(piece){
+  return Boolean(piece && Number.isInteger(piece.value) && piece.value >= 2 && piece.value <= 100);
 }
 
-export { isHeaterTarget };
-
 export function canUseHeaterOnPiece(state, targetIndex){
-  const price = getCurrentHeaterPrice(state);
   return Boolean(
     state
-    && price
-    && (state.money ?? 0) >= price
+    && !state.gameOver
+    && (state.heaterCount ?? 0) > 0
     && Number.isInteger(targetIndex)
     && isHeaterTarget(state.board?.[targetIndex])
   );
 }
 
 export function canUseHeater(state){
-  return getHeaterAvailability(state).canEnter;
+  return Boolean((state?.heaterCount ?? 0) > 0 && state?.board?.some(isHeaterTarget));
 }
 
 export function applyHeaterIncrement(piece){
@@ -43,7 +32,6 @@ export function applyHeaterIncrement(piece){
 export function applyHeater(state, targetIndex){
   if(!canUseHeaterOnPiece(state, targetIndex)) return state;
 
-  const cost = getCurrentHeaterPrice(state);
   const previousPiece = state.board[targetIndex];
   const board = [...state.board];
   board[targetIndex] = applyHeaterIncrement(previousPiece);
@@ -51,16 +39,13 @@ export function applyHeater(state, targetIndex){
   return {
     ...state,
     board,
-    money: (state.money ?? 0) - cost,
-    heaterUseCount: (state.heaterUseCount ?? 0) + 1,
+    heaterCount: 0,
     gameOver: false,
     gameOverReason: null,
     latestHeaterUse: {
       targetIndex,
       fromValue: previousPiece.value,
-      toValue: previousPiece.value + 1,
-      cost,
-      price: cost
+      toValue: previousPiece.value + 1
     }
   };
 }

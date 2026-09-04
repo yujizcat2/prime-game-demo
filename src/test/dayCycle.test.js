@@ -2,6 +2,10 @@ import assert from "node:assert/strict";
 import { createEightPalaceInitialValues } from "../game/initialValues";
 import { createGameState } from "../game/gameState";
 import { resolveGameOver } from "../game/gameEngine";
+import { applyHeater } from "../game/heater";
+import { applyRestore } from "../game/restore";
+import { applySuperHeater } from "../game/superHeater";
+import { FOOD_TYPES } from "../game/rules";
 import {
   ACTIONS_PER_DAY,
   advanceToNextDay,
@@ -19,6 +23,11 @@ assert.equal(initial.day, 1);
 assert.equal(getDayTime(initial), "10:00");
 assert.equal(getDayScoreTarget(initial.day), 500);
 assert.equal(initial.checkpoint, null, "human day-cycle state does not expose a legacy checkpoint");
+assert.deepEqual(
+  [initial.heaterCount, initial.restoreCount, initial.superHeaterCount],
+  [1, 1, 1],
+  "a new game starts with one use of every item"
+);
 
 const at19 = resolveGameOver({...initial, steps: 19, score: 499});
 assert.equal(at19.daySettlement, null, "19 actions do not close the day");
@@ -87,6 +96,43 @@ assert.deepEqual(dayTwo.board.filter(Boolean).map(card => [card.value, card.food
 assert.equal(dayTwo.score, 500);
 assert.equal(dayTwo.collectionCards, passed.collectionCards);
 assert.equal(dayTwo.daySettlement, null);
+assert.deepEqual(
+  [dayTwo.heaterCount, dayTwo.restoreCount, dayTwo.superHeaterCount],
+  [1, 1, 1],
+  "unused items reset to one instead of accumulating"
+);
+
+const itemDay = structuredClone(initial);
+itemDay.board[0].foodType = FOOD_TYPES.DRINK;
+const afterHeater = applyHeater(itemDay, 0);
+const afterRestore = applyRestore(afterHeater, 0);
+const afterAllItems = applySuperHeater(afterRestore);
+assert.deepEqual(
+  [afterAllItems.heaterCount, afterAllItems.restoreCount, afterAllItems.superHeaterCount],
+  [0, 0, 0],
+  "using every item exhausts the daily 1/1/1 allowance"
+);
+assert.equal(afterAllItems.steps, initial.steps, "items do not consume normal operating actions");
+const resetAfterUse = advanceToNextDay({...afterAllItems, daySettlement: passed.daySettlement});
+assert.deepEqual(
+  [resetAfterUse.heaterCount, resetAfterUse.restoreCount, resetAfterUse.superHeaterCount],
+  [1, 1, 1],
+  "all exhausted items reset at the next day boundary"
+);
+
+for(const previousCounts of [[0, 0, 0], [1, 0, 1]]){
+  const reset = advanceToNextDay({
+    ...passed,
+    heaterCount: previousCounts[0],
+    restoreCount: previousCounts[1],
+    superHeaterCount: previousCounts[2]
+  });
+  assert.deepEqual(
+    [reset.heaterCount, reset.restoreCount, reset.superHeaterCount],
+    [1, 1, 1],
+    `next day resets ${previousCounts.join("/")} to 1/1/1`
+  );
+}
 
 const dayTwoCollections = [...fourCollections, ...exampleCollections.slice(0, 4)];
 const dayTwoPassed = resolveGameOver({...dayTwo, steps: ACTIONS_PER_DAY * 2, score: 1200, collectionCards: dayTwoCollections});

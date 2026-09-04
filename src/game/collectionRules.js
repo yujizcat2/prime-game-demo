@@ -9,7 +9,6 @@ import {
 import { getFoodName } from "../data/food/foodRegistry";
 import { getNonDrinkBoardSum } from "./scoreValue";
 import { createCollectionRewardSettlement, getBoardAverageValue } from "./collectionReward";
-import { getCollectionMoneyGain } from "./money";
 
 
 // ============================================================
@@ -843,16 +842,10 @@ function applySimulationCollection(
   }
 
   const isNewCollection = !state.collection.has(key);
-  const moneyGain = getCollectionMoneyGain(isNewCollection);
-  state.money = (state.money ?? 0) + moneyGain;
-  state.latestCollectionReward = moneyGain;
   state.lastCollectionEvents?.push({
     value,
     foodType,
-    isNewCollection,
-    reward: moneyGain,
-    moneyGain,
-    cumulativeMoney: state.money
+    isNewCollection
   });
 
   if(isNewCollection){
@@ -1106,9 +1099,6 @@ function applyGameCollection(
       latestCollection: {
         value: discoveredValue,
         foodType,
-        reward: getCollectionMoneyGain(false),
-        moneyGain: getCollectionMoneyGain(false),
-        cumulativeMoney: state.money ?? 0,
         isNewCollection: false,
         isFirstNumber: false,
         trendFrom: null,
@@ -1116,9 +1106,7 @@ function applyGameCollection(
       },
 
       collectionEventId:
-        (state.collectionEventId ?? 0) + 1,
-
-      money: state.money ?? 0
+        (state.collectionEventId ?? 0) + 1
 
     };
 
@@ -1320,12 +1308,6 @@ function applyGameCollection(
 
     foodType,
 
-    reward: getCollectionMoneyGain(true),
-
-    moneyGain: getCollectionMoneyGain(true),
-
-    cumulativeMoney: (state.money ?? 0) + getCollectionMoneyGain(true),
-
     isNewCollection: true,
 
     isFirstNumber,
@@ -1462,9 +1444,7 @@ function applyGameCollection(
       nextLatestCollection.eventId,
 
     score:
-      nextScore,
-
-    money: (state.money ?? 0) + nextLatestCollection.moneyGain
+      nextScore
 
   };
 
@@ -1610,8 +1590,6 @@ export function applyEightPalaceCollection(
     boardAverageValue: getBoardAverageValue(settlementBoard),
     singleFlavorPenalty: record.singleFlavorPenalty === true
   });
-  const moneyGain = getCollectionMoneyGain(isNewCollection);
-  const cumulativeMoney = (state.money ?? 0) + moneyGain;
 
   const parentFoods = createConcreteParentSnapshots(record);
   const snapshot = {
@@ -1639,8 +1617,6 @@ export function applyEightPalaceCollection(
     rewardLevel: rewardSettlement.rewardLevel,
     collectedPieceSingleFlavorPenalty: record.singleFlavorPenalty === true,
     isNewCollection,
-    moneyGain,
-    cumulativeMoney,
     step: (state.steps ?? 0) + 1
   };
 
@@ -1656,8 +1632,7 @@ export function applyEightPalaceCollection(
       ...(state.latestCollectionRewards ?? []),
       rewardSettlement
     ],
-    score: (state.score ?? 0) + rewardSettlement.totalScore,
-    money: cumulativeMoney
+    score: (state.score ?? 0) + rewardSettlement.totalScore
   };
 }
 

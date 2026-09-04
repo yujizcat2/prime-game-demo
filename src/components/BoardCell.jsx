@@ -3,12 +3,6 @@ import {
 } from "../game/prime";
 
 import {
-  useEffect,
-  useRef,
-  useState
-} from "react";
-
-import {
   getFoodTypeShortName,
   getFoodName
 } from "../data/food/foodRegistry";
@@ -27,8 +21,6 @@ export default function BoardCell({
   index,
 
   piece,
-
-  price = 0,
 
   scoreMode = false,
   availableScore = null,
@@ -54,8 +46,6 @@ export default function BoardCell({
 
   scorePreview = null,
 
-  discovered = false,
-
   removing = false,
 
   animationState = null,
@@ -71,22 +61,6 @@ export default function BoardCell({
   const nativeCellClass = nativeFoodType
     ? `board-cell--native-${nativeFoodType}`
     : "board-cell--native-neutral";
-
-  const previousPriceRef = useRef(price);
-  const [priceDelta, setPriceDelta] = useState(null);
-
-  useEffect(() => {
-    const previousPrice = previousPriceRef.current;
-    previousPriceRef.current = price;
-
-    if(scoreMode || previousPrice === price){
-      return undefined;
-    }
-
-    setPriceDelta(price - previousPrice);
-    const timer = window.setTimeout(() => setPriceDelta(null), 750);
-    return () => window.clearTimeout(timer);
-  }, [price, scoreMode]);
 
   // ==========================================================
   // 空格
@@ -139,16 +113,8 @@ export default function BoardCell({
 
         {
           clearFeedback?.reward != null &&
-          <div className="board-cell-money-reward">
-            {scoreMode
-              ? clearFeedback.reward > 0
-                ? `+${clearFeedback.reward}分`
-                : "+0分"
-              : clearFeedback.reward > 0
-                ? `+¥${clearFeedback.reward}`
-                : clearFeedback.reward < 0
-                  ? `-¥${Math.abs(clearFeedback.reward)}`
-                  : "¥0"}
+          <div className="board-cell-score-reward">
+            {clearFeedback.reward > 0 ? `+${clearFeedback.reward}分` : "+0分"}
           </div>
         }
 
@@ -197,10 +163,6 @@ export default function BoardCell({
 
   const isSeasoning =
     displayedFoodType === "seasoning";
-
-
-  const isDessert =
-    foodType === "dessert";
 
 
   const isOne =
@@ -1105,17 +1067,8 @@ export default function BoardCell({
 
           {
             !isOne &&
-            <div className={`board-piece-price${scoreMode ? " board-piece-locked-score" : ""}`}>
-              {scoreMode
-                ? `+${availableScore}`
-                : price < 0
-                  ? `-¥${Math.abs(price)}`
-                  : `¥${price}`}
-              {!scoreMode && price > 0 && priceDelta !== null && (
-                <span className={priceDelta > 0 ? "board-piece-price-delta--up" : "board-piece-price-delta--down"}>
-                  {priceDelta > 0 ? "↑" : "↓"}{Math.abs(priceDelta)}
-                </span>
-              )}
+            <div className="board-piece-score">
+              {scoreMode ? `+${availableScore}` : null}
               {scoreMode && piece.singleFlavorPenalty === true && (
                 <span className="board-piece-single-flavor">风味单一</span>
               )}

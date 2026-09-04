@@ -58,8 +58,6 @@
 
 .step-panel-stat--primary .step-panel-value { font-size: 25px; }
 
-.step-panel-stat--money .step-panel-value,
-.step-panel-stat--money .step-panel-label { color: #8a7046; }
 
 .step-panel-stat--efficiency .step-panel-value,
 .step-panel-stat--efficiency .step-panel-label { color: #557b70; }

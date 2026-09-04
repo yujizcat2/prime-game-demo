@@ -72,7 +72,6 @@ export function createDaySettlement(state){
     minimumCollectionCount: MIN_COLLECTIONS_PER_DAY,
     scoreTargetMet,
     collectionTargetMet,
-    money: state.money ?? 0,
     boardCount: getBoardCount(state.board),
     boardSum: getNonDrinkBoardSum(state.board),
     passed,
@@ -119,6 +118,9 @@ export function advanceToNextDay(state){
     dayStartStep: state.steps,
     dayStartScore: state.score ?? 0,
     dayStartCollectionCount: state.collectionCards?.length ?? state.collection?.length ?? 0,
+    heaterCount: 1,
+    restoreCount: 1,
+    superHeaterCount: 1,
     daySettlement: null,
     gameOver: false,
     gameOverReason: null

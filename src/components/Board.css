@@ -371,7 +371,7 @@
 .board-cell--cleared-dessert { color: #ad83b7; }
 .board-cell--cleared-default { color: #8ba3b8; }
 
-.board-cell-money-reward {
+.board-cell-score-reward {
   position: absolute;
   left: 50%;
   top: 50%;
@@ -383,10 +383,10 @@
   color: #4f7e60;
   white-space: nowrap;
   pointer-events: none;
-  animation: boardCellMoneyReward 1s ease-out both;
+  animation: boardCellScoreReward 1s ease-out both;
 }
 
-@keyframes boardCellMoneyReward {
+@keyframes boardCellScoreReward {
   0% {
     opacity: 0;
     transform: translate(-50%,4px) scale(.85);
@@ -494,7 +494,7 @@
   .board-cell--operation-pulse::after,
   .board-cell--cleared::before,
   .board-cell--cleared::after,
-  .board-cell-money-reward {
+  .board-cell-score-reward {
     animation-duration: .01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: .01ms !important;
@@ -5644,7 +5644,7 @@
   }
 
 }
-.board-piece-price {
+.board-piece-available-score {
   position: absolute;
   top: 14px;
   right: 38px;
@@ -5680,20 +5680,20 @@
   right: 12px;
 }
 
-.board-piece-price span {
+.board-piece-available-score span {
   margin-left: 3px;
 }
 
-.board-piece-price-delta--up {
+.board-piece-available-score-delta--up {
   color: #3f8b5d;
 }
 
-.board-piece-price-delta--down {
+.board-piece-available-score-delta--down {
   color: #b66555;
 }
 
 @media (max-width: 720px) {
-  .board-piece-price {
+  .board-piece-available-score {
     top: 12px;
     right: 28px;
   }
@@ -5715,7 +5715,7 @@
    Nine-cuisine selected themes
 
    Each pair shares a color family. These late overrides keep the
-   selected card fully inverted, including price and small metadata.
+   selected card fully inverted, including score and small metadata.
    ============================================================ */
 
 .board-piece--land.board-piece--selected {
@@ -5761,8 +5761,8 @@
 
 .board-piece--selected .board-piece-number,
 .board-piece--selected .board-piece-name,
-.board-piece--selected .board-piece-price,
-.board-piece--selected .board-piece-price span,
+.board-piece--selected .board-piece-available-score,
+.board-piece--selected .board-piece-available-score span,
 .board-piece--selected .board-piece-origin,
 .board-piece--selected .board-piece-pure {
   color: #ffffff;
@@ -5771,7 +5771,7 @@
 
 .board-piece--selected .board-piece-origin,
 .board-piece--selected .board-piece-pure,
-.board-piece--selected .board-piece-price {
+.board-piece--selected .board-piece-available-score {
   color: rgba(255,255,255,.86);
 }
 
@@ -6025,7 +6025,7 @@
   color: #fff !important;
   text-shadow: none;
 }
-.board-piece--selected :is(.board-piece-price, .board-piece-price span, .board-piece-origin, .board-piece-pure, .board-piece-cuisine-type) {
+.board-piece--selected :is(.board-piece-available-score, .board-piece-available-score span, .board-piece-origin, .board-piece-pure, .board-piece-cuisine-type) {
   color: rgba(255,255,255,.84) !important;
 }
 .board-piece--selected .board-piece-prime { background: #fff; opacity: .68; }
@@ -6067,7 +6067,7 @@
 }
 
 /* Keep locked score accents legible after the selected-theme overrides. */
-.board-piece--selected .board-piece-price.board-piece-locked-score {
+.board-piece--selected .board-piece-available-score.board-piece-locked-score {
   color: #fde68a !important;
   text-shadow: 0 1px 2px rgba(15, 23, 42, .34) !important;
 }

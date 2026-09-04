@@ -110,6 +110,9 @@ threePieceBoard[2] = {...base.board[0], id: 3, value: 5};
 const clearedWithoutKeys = resolveGameOver({
   ...base,
   board: onePieceBoard,
+  heaterCount: 0,
+  restoreCount: 0,
+  superHeaterCount: 0,
   eightPalaceKeys: sevenKeys,
   gameOver: false,
   gameOverReason: null

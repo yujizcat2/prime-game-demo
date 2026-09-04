@@ -7,8 +7,6 @@ const appSource = readFileSync("src/App.jsx", "utf8");
 assert.doesNotMatch(source, />\s*已获得的料理包\s*</);
 assert.doesNotMatch(source, /OBTAINED DISH PACKS/);
 assert.doesNotMatch(source, /完成 \{completedCount\}/);
-assert.match(source, /aria-live="polite"/);
-assert.match(source, /latestCollection\?\.reward/);
 assert.match(source, /value,[\s\S]*foodType: type\.key/);
 assert.match(source, /\{display\.name\} \{value\}/);
 assert.match(source, /\{display\.typeLabel\}/);

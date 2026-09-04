@@ -305,22 +305,13 @@ export function createGameState(
     score:
       0,
 
-    money:
-      0,
+    heaterCount:
+      1,
 
-    heaterUseCount:
-      0,
+    restoreCount:
+      1,
 
-    superHeaterUseCount:
-      0,
-
-    restoreUseCount:
-      0,
-
-    previousCollection:
-      null,
-
-    trend:
+    superHeaterCount:
       1,
 
     recentActionSignatures:
@@ -371,7 +362,6 @@ export function createGameState(
 
     gameRecapSnapshots: [],
     recapActionCounts: {combine: 0, reduce: 0},
-    recapItemSpending: 0,
 
 
 

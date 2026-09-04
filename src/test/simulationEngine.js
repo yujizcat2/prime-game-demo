@@ -23,8 +23,7 @@ import {
   appendRecentActionSignature,
   createCombinationPairKey,
   createCombineActionSignature,
-  createReduceActionSignature,
-  getActionFatigue
+  createReduceActionSignature
 } from "../game/actionFatigue";
 
 import {
@@ -33,9 +32,7 @@ import {
 } from "../game/combineHistory";
 import { getNativeFoodType, getReductionFoodTypes } from "../game/nativeFoodTypes";
 import { getRestoreOutcome } from "../game/restore";
-import { getCurrentRestorePrice } from "../game/restorePricing";
 import { applyHeaterIncrement, isHeaterTarget } from "../game/heater";
-import { getCurrentSuperHeaterPrice } from "../game/superHeaterPricing";
 
 
 
@@ -402,22 +399,13 @@ export function createSimulationState(
     collectionNumbers:
       new Set(),
 
-    money:
-      0,
+    heaterCount:
+      1,
 
-    heaterUseCount:
-      0,
+    restoreCount:
+      1,
 
-    superHeaterUseCount:
-      0,
-
-    restoreUseCount:
-      0,
-
-    previousCollection:
-      null,
-
-    trend:
+    superHeaterCount:
       1,
 
     recentActionSignatures:
@@ -899,8 +887,7 @@ export function getSimulationLegalActions(
 
   }
 
-  const restorePrice = getCurrentRestorePrice(state);
-  if((state.money ?? 0) >= restorePrice){
+  if((state.restoreCount ?? 0) > 0){
     for(let index = 0; index < SIM_BOARD_SIZE; index++){
       if(getRestoreOutcome(board[index], index)) actions.push({type: "restore", indexes: [index]});
     }
@@ -910,7 +897,7 @@ export function getSimulationLegalActions(
   if(
     pieces.length > 0
     && pieces.every(isHeaterTarget)
-    && (state.money ?? 0) >= getCurrentSuperHeaterPrice(state)
+    && (state.superHeaterCount ?? 0) > 0
   ) actions.push({type: "super_heater"});
 
   return actions;
@@ -1191,9 +1178,6 @@ function applyReduce(
   indexB
 ){
 
-  const collectionPricingBoard =
-    state.board.map(clonePiece);
-
   state.lastCollectionEvents = [];
 
 
@@ -1275,8 +1259,6 @@ function applyReduce(
     divisor;
 
   const actionSignature = createReduceActionSignature(oldA, oldB, firstResult, secondResult);
-  const actionFatigue = getActionFatigue(state.recentActionSignatures, actionSignature);
-
   if(oldA===oldB){
     state.board[indexA]=null;
     state.board[indexB]=null;
@@ -1853,30 +1835,25 @@ export function applySimulationAction(
 
     case "restore": {
       const index = action.indexes?.[0];
-      const price = getCurrentRestorePrice(state);
       const outcome = getRestoreOutcome(state.board?.[index], index);
-      if(!outcome || (state.money ?? 0) < price) break;
+      if(!outcome || (state.restoreCount ?? 0) <= 0) break;
       state.board[index] = outcome.piece;
-      state.money -= price;
-      state.restoreUseCount = (state.restoreUseCount ?? 0) + 1;
-      state.steps++;
-      state.latestRestoreUse = {...outcome, targetIndex: index, price, cost: price};
+      state.restoreCount = 0;
+      state.latestRestoreUse = {...outcome, targetIndex: index};
       applied = true;
       break;
     }
 
     case "super_heater": {
-      const price = getCurrentSuperHeaterPrice(state);
       const pieces = state.board.filter(Boolean);
       if(
         pieces.length === 0
         || !pieces.every(isHeaterTarget)
-        || (state.money ?? 0) < price
+        || (state.superHeaterCount ?? 0) <= 0
       ) break;
       state.board = state.board.map(piece => piece ? applyHeaterIncrement(piece) : null);
-      state.money -= price;
-      state.superHeaterUseCount = (state.superHeaterUseCount ?? 0) + 1;
-      state.latestSuperHeaterUse = {price, cost: price, affectedCount: pieces.length};
+      state.superHeaterCount = 0;
+      state.latestSuperHeaterUse = {affectedCount: pieces.length};
       applied = true;
       break;
     }
@@ -2055,17 +2032,14 @@ export function cloneSimulationState(
         state.collectionNumbers ?? []
       ),
 
-    money:
-      state.money ?? 0,
+    heaterCount:
+      state.heaterCount ?? 0,
 
-    heaterUseCount:
-      state.heaterUseCount ?? 0,
+    restoreCount:
+      state.restoreCount ?? 0,
 
-    superHeaterUseCount:
-      state.superHeaterUseCount ?? 0,
-
-    restoreUseCount:
-      state.restoreUseCount ?? 0,
+    superHeaterCount:
+      state.superHeaterCount ?? 0,
 
     singleFlavorTriggered:
       state.singleFlavorTriggered === true,
@@ -2081,12 +2055,6 @@ export function cloneSimulationState(
 
     firstSingleFlavorNormalPieceCount:
       state.firstSingleFlavorNormalPieceCount ?? null,
-
-    previousCollection:
-      state.previousCollection ?? null,
-
-    trend:
-      state.trend ?? 1,
 
     recentActionSignatures:
       [...(state.recentActionSignatures ?? [])],

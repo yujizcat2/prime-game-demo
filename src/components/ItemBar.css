@@ -60,7 +60,7 @@
 .item-bar-card--active { border-color: rgba(169, 101, 59, .34); background: rgba(247, 226, 207, .92); }
 .item-bar-name { text-align: left; font-size: 11px; font-weight: 900; }
 .item-bar-effect,
-.item-bar-cost { font-size: 10px; font-weight: 800; }
+.item-bar-count { font-size: 10px; font-weight: 800; }
 .item-bar-status { padding: 7px 3px 1px; color: #9aa39e; font-size: 8px; font-weight: 700; }
 .item-bar-status--ready { color: #718779; }
 

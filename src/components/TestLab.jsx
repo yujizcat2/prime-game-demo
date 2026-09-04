@@ -42,9 +42,6 @@ const TEST_MODES = {
   COLLECTION:
     "collection",
 
-  MONEY:
-    "money",
-
   EIGHT_PALACE:
     "eight-palace",
 
@@ -85,13 +82,6 @@ const SMART_GAME_OPTIONS = [
 ];
 
 
-const MONEY_GAME_OPTIONS = [
-  1,
-  10,
-  100
-];
-
-
 const EIGHT_PALACE_GAME_OPTIONS = [
   1,
   10,
@@ -124,12 +114,6 @@ const COLLECTION_MAX_ACTIONS =
 
 const SURVIVAL_MAX_ACTIONS =
   10000;
-
-
-const MONEY_MAX_STEPS =
-  500;
-
-
 
 
 
@@ -202,12 +186,6 @@ export default function TestLab({
     TEST_MODES.COLLECTION;
 
 
-  const isMoneyMode =
-
-    mode ===
-    TEST_MODES.MONEY;
-
-
   const isEightPalaceMode =
 
     mode === TEST_MODES.EIGHT_PALACE
@@ -240,10 +218,6 @@ export default function TestLab({
       : isEightPalaceMode
 
       ? EIGHT_PALACE_GAME_OPTIONS
-
-      : isMoneyMode
-
-      ? MONEY_GAME_OPTIONS
 
       : isSmartMode
 
@@ -497,18 +471,7 @@ export default function TestLab({
       }
 
 
-      else{
-
-        nextResult = await runSmartExplorer({
-          mode: SMART_AI_MODES.MONEY,
-          games,
-          depth: SMART_DEPTH,
-          beamWidth: SMART_BEAM_WIDTH,
-          maxActionsPerGame: MONEY_MAX_STEPS,
-          onProgress: setProgress
-        });
-
-      }
+      else throw new Error("未知测试模式");
 
 
 
@@ -731,27 +694,6 @@ export default function TestLab({
             <ModeButton
 
               active={
-                mode === TEST_MODES.MONEY
-              }
-
-              disabled={
-                running
-              }
-
-              onClick={() =>
-                changeMode(TEST_MODES.MONEY)
-              }
-
-            >
-
-              最高金钱 AI
-
-            </ModeButton>
-
-
-            <ModeButton
-
-              active={
                 mode === TEST_MODES.EIGHT_PALACE
               }
 
@@ -879,10 +821,6 @@ export default function TestLab({
 
                   ? EIGHT_PALACE_SOLVER_DEFAULTS.maxActions
 
-                  : isMoneyMode
-
-                  ? formatNumber(MONEY_MAX_STEPS)
-
                   : isCollectionMode
 
                   ? formatNumber(
@@ -893,7 +831,7 @@ export default function TestLab({
                       SURVIVAL_MAX_ACTIONS
                     )
 
-              } {isMoneyMode ? "Step" : "操作"}
+              } 操作
 
             </>
 
@@ -1028,10 +966,6 @@ export default function TestLab({
                 isCollectionMode
               }
 
-              moneyMode={
-                isMoneyMode
-              }
-
               eightPalaceMode={
                 isEightPalaceMode
               }
@@ -1101,10 +1035,6 @@ export default function TestLab({
 
             collectionMode={
               isCollectionMode
-            }
-
-            moneyMode={
-              isMoneyMode
             }
 
           />)
@@ -1183,8 +1113,6 @@ function ProgressPanel({
   smart,
 
   collectionMode,
-
-  moneyMode,
 
   eightPalaceMode,
 
@@ -1332,17 +1260,6 @@ function ProgressPanel({
 
 
           {
-            moneyMode &&
-            <div>
-              当前 money <strong>¥{formatNumber(progress.currentMoney ?? 0)}</strong>
-              {" · "}
-              首次收藏 <strong>{progress.currentFirstCollection ?? 0}</strong>
-            </div>
-          }
-
-
-
-          {
 
             collectionMode &&
 
@@ -1434,7 +1351,6 @@ function ScoreSummaryGrid({result}){
     <div className="test-lab-result-grid">
       <ResultItem label="测试局数" value={result.games ?? result.attempts} />
       <ResultItem label="平均最终积分" value={result.averageFinalScore.toFixed(2)} highlight />
-      <ResultItem label="平均最终金钱" value={`¥${result.averageFinalMoney.toFixed(2)}`} />
       <ResultItem label="平均得分效率" value={result.averageScoreEfficiency.toFixed(2)} highlight />
       <ResultItem label="最高积分" value={result.highestScore} highlight />
       <ResultItem label="最低积分" value={result.lowestScore} />
@@ -1451,13 +1367,6 @@ function ScoreSummaryGrid({result}){
         label={`≥${threshold} 收藏 / 当时盘面均值`}
         value={`${(result.largeCollectionSummary?.[threshold]?.averageCount ?? 0).toFixed(2)} · ${result.largeCollectionSummary?.[threshold]?.averageBoardValue?.toFixed(1) ?? "—"}`}
       />)}
-      <ResultItem label="平均加热次数" value={result.averageHeaterUseCount.toFixed(2)} />
-      <ResultItem label="平均加热支出" value={`¥${result.averageHeaterSpending.toFixed(2)}`} />
-      <ResultItem label="平均超级加热器次数" value={(result.averageSuperHeaterUseCount ?? 0).toFixed(2)} />
-      <ResultItem label="平均超级加热器支出" value={`¥${(result.averageSuperHeaterSpending ?? 0).toFixed(2)}`} />
-      <ResultItem label="平均归味次数" value={(result.averageRestoreUseCount ?? 0).toFixed(2)} />
-      <ResultItem label="平均归味支出" value={`¥${(result.averageRestoreSpending ?? 0).toFixed(2)}`} />
-      <ResultItem label="平均单次成本" value={`¥${result.averageHeaterCost.toFixed(2)}`} />
       <ResultItem label="质数收藏" value={result.averagePrimeCollectionCount.toFixed(2)} />
       <ResultItem label="合数收藏" value={result.averageCompositeCollectionCount.toFixed(2)} />
       <ResultItem label="质数占比" value={`${(result.primeCollectionShare * 100).toFixed(1)}%`} />
@@ -1582,9 +1491,6 @@ function RandomSummaryGrid({result}){
   return (
     <div className="test-lab-result-grid">
       <ResultItem label="平均最终积分" value={result.averageFinalScore.toFixed(2)} />
-      <ResultItem label="平均最终金钱" value={`¥${result.averageFinalMoney.toFixed(2)}`} />
-      <ResultItem label="最高最终金钱" value={`¥${result.highestFinalMoney}`} />
-      <ResultItem label="最低最终金钱" value={`¥${result.lowestFinalMoney}`} />
       <ResultItem label="平均得分效率" value={result.averageScoreEfficiency.toFixed(2)} />
       <ResultItem label="平均收藏数量" value={result.averageCollectionCount.toFixed(2)} />
       <ResultItem label="质数收藏" value={result.averagePrimeCollectionCount.toFixed(2)} />
@@ -1631,14 +1537,14 @@ function DayHistory({game}){
         Day {record.day} · {record.settlement ? `${record.settlement.passed ? "通过" : "未通过"} · 打烊 ${record.settlement.finalScore}分` : `营业中 · ${record.actions.length}/20 次行动`}
       </summary>
       {record.opening && <div className="test-lab-day-section">
-        <strong>开店 · 10:00</strong> · 积分 {record.opening.score} · 金钱 ¥{record.opening.money} · 收藏 {record.opening.collectionCount}
+        <strong>开店 · 10:00</strong> · 积分 {record.opening.score} · 收藏 {record.opening.collectionCount}
         <CompactBoard board={record.opening.board} />
       </div>}
       <div className="test-lab-day-section">
         <strong>行动状态（{record.actions.length}）</strong>
         {record.actions.map(snapshot => <details key={snapshot.actionIndex} className="test-lab-action-snapshot">
           <summary>{snapshot.time} · {formatScoreAction(snapshot.action)} · 积分 {snapshot.scoreBefore} → {snapshot.score}{snapshot.scoreGain ? `（+${snapshot.scoreGain}）` : ""}</summary>
-          <div>金钱 ¥{snapshot.money} · 收藏 {snapshot.collectionCount}{snapshot.collectionGain ? `（+${snapshot.collectionGain}）` : ""} · 盘面 {snapshot.boardCount} 张 / 总和 {snapshot.boardSum}</div>
+          <div>收藏 {snapshot.collectionCount}{snapshot.collectionGain ? `（+${snapshot.collectionGain}）` : ""} · 盘面 {snapshot.boardCount} 张 / 总和 {snapshot.boardSum}</div>
           <div>合法动作 {snapshot.legalActionCount} · 合并 {snapshot.combineCount} · 处理 {snapshot.reduceCount} · 料理系 {formatFoodTypeCounts(snapshot.foodTypeCounts)}</div>
           {snapshot.collections.length > 0 && <div>本次收藏：{snapshot.collections.map(formatCard).join(" / ")}</div>}
           {snapshot.toolsUsedSincePreviousAction.length > 0 && <div>此前道具：{snapshot.toolsUsedSincePreviousAction.map(tool => formatScoreAction(tool)).join(" / ")}</div>}
@@ -1675,13 +1581,9 @@ function ScoreRecord({title, game}){
       <div>
         积分 <strong>{game.finalScore}</strong>
         {" · "}
-        金钱 <strong>¥{game.finalMoney}</strong>
-        {" · "}
         得分效率 <strong>{game.scoreEfficiency.toFixed(2)}</strong>
         {" · "}
         收藏 <strong>{game.collectionCount}</strong>
-        {" · "}归味 <strong>{game.restoreUseCount ?? 0}</strong> 次 / ¥{game.restoreSpending ?? 0}
-        {" · "}超级加热器 <strong>{game.superHeaterUseCount ?? 0}</strong> 次 / ¥{game.superHeaterSpending ?? 0}
         {" · "}<strong>{formatDayClock(game.steps)}</strong>
       </div>
       <div className="test-lab-record-collection">
@@ -1703,15 +1605,13 @@ function ScoreRecord({title, game}){
         {game.heaterTimeline.map((event, index) => <div key={`${event.step}-${index}`}>
           Heater #{index + 1} · {formatEventClock(event)} · {event.fromValue} → {event.toValue}
           {event.foodType ? ` · ${FOOD_TYPE_LABELS[event.foodType] ?? event.foodType}` : ""}
-          {` · Cost ¥${event.cost} · Money ¥${event.moneyBefore} → ¥${event.moneyAfter}`}
           {event.nextAction ? ` · Next: ${formatScoreAction(event.nextAction)}` : ""}
         </div>)}
       </div>}
       {game.superHeaterTimeline?.length > 0 && <div className="test-lab-record-collection">
         <strong>Super Heater 时间线</strong>
         {game.superHeaterTimeline.map((event, index) => <div key={`${event.step}-${index}`}>
-          Super Heater #{index + 1} · {formatEventClock(event)} · Cost ¥{event.cost}
-          {` · Money ¥${event.moneyBefore} → ¥${event.moneyAfter}`}
+          Super Heater #{index + 1} · {formatEventClock(event)}
           {` · 合法动作 ${event.legalActionsBefore} → ${event.legalActionsAfter}`}
           {` · Reduce ${event.reduceActionsBefore} → ${event.reduceActionsAfter}`}
         </div>)}
@@ -1719,8 +1619,7 @@ function ScoreRecord({title, game}){
       {game.restoreTimeline?.length > 0 && <div className="test-lab-record-collection">
         <strong>Restore 时间线</strong>
         {game.restoreTimeline.map((event, index) => <div key={`${event.step}-${index}`}>
-          Restore #{index + 1} · {formatEventClock(event)} · Cost ¥{event.cost}
-          {` · Money ¥${event.moneyBefore} → ¥${event.moneyAfter}`}
+          Restore #{index + 1} · {formatEventClock(event)}
         </div>)}
       </div>}
       <CollectionEfficiencyTimeline timeline={game.collectionEfficiencyTimeline} />
@@ -1737,13 +1636,10 @@ function ScoreRecord({title, game}){
               {" · "}
               积分 {action.scoreBefore} → {action.scoreAfter}
               {action.scoreGain > 0 && <>（+{action.scoreGain}）</>}
-              {" · "}
-              金钱 ¥{action.moneyBefore} → ¥{action.moneyAfter}
               {action.collectionEvents.map(event => (
                 <span key={event.id}>
                   {" · 收藏 "}{event.value}{FOOD_TYPE_LABELS[event.foodType] ?? event.foodType}
                   {event.isNewCollection ? " · 新收藏" : " · 重复"}
-                  {` · +¥${event.moneyGain} · 累计 ¥${event.cumulativeMoney}`}
                 </span>
               ))}
               {" · "}
@@ -1800,7 +1696,7 @@ function AllScoreRecords({title = "全部测试记录", games = []}){
             onToggle={event => setGameExpanded(gameKey, event.currentTarget.open)}
           >
             <summary>
-              开局 #{gameKey} · {game.finalScore}分 · ¥{game.finalMoney} · 收藏{game.collectionCount} · {formatDayClock(game.steps)}
+              开局 #{gameKey} · {game.finalScore}分 · 收藏{game.collectionCount} · {formatDayClock(game.steps)}
               {` · 经营至 Day ${game.finalDay} · 完成 ${game.completedDayCount} 天`}
               {status ? ` · ${status}` : ""}
             </summary>
@@ -1824,13 +1720,10 @@ function AllScoreRecords({title = "全部测试记录", games = []}){
                     {" · "}
                     积分 {action.scoreBefore} → {action.scoreAfter}
                     {action.scoreGain > 0 && <>（+{action.scoreGain}）</>}
-                    {" · "}
-                    金钱 ¥{action.moneyBefore} → ¥{action.moneyAfter}
                     {action.collectionEvents.map(event => (
                       <span key={event.id}>
                         {" · 收藏 "}{event.value}{FOOD_TYPE_LABELS[event.foodType] ?? event.foodType}
                         {event.isNewCollection ? " · 新收藏" : " · 重复"}
-                        {` · +¥${event.moneyGain} · 累计 ¥${event.cumulativeMoney}`}
                       </span>
                     ))}
                     {" · "}
@@ -1866,9 +1759,6 @@ function ScoreResults({result}){
           <ScoreSummaryGrid result={heater} />
           <div className="test-lab-record">
             平均积分差（Heater - Score）：<strong>{result.heaterAverageScoreDifference.toFixed(2)}</strong>
-            <br />价格范围：<strong>¥{heater.minimumHeaterCost}–¥{heater.maximumHeaterCost}</strong>
-            {" · "}平均 ¥{heater.averageHeaterCost.toFixed(2)}
-            <br />价格分布：{Object.entries(heater.heaterPriceDistribution).map(([key, value]) => `¥${key}: ${value}`).join(" · ")}
           </div>
           <AverageCollectionEfficiency timeline={heater.averageCollectionEfficiencyTimeline} />
         </div>
@@ -2165,24 +2055,12 @@ function TestResults({
 
   smart,
 
-  collectionMode,
-
-  moneyMode
+  collectionMode
 
 }){
 
 
-  const bestGame =
-
-    moneyMode
-
-      ? result.bestMoneyGame
-
-      : result.bestCollectionGame
-
-        ??
-
-        result.bestStepGame;
+  const bestGame = result.bestCollectionGame ?? result.bestStepGame;
 
 
 
@@ -2221,15 +2099,7 @@ function TestResults({
           collectionMode
         }
 
-        moneyMode={
-          moneyMode
-        }
-
       />
-
-      {moneyMode && <BoardMeanSummary result={result} />}
-
-
 
       {
 
@@ -2245,21 +2115,9 @@ function TestResults({
             collectionMode
           }
 
-          moneyMode={
-            moneyMode
-          }
-
         />
 
       }
-
-
-      {
-        moneyMode &&
-        result.bestMoneyGame &&
-        <MoneyActionHistory game={result.bestMoneyGame} />
-      }
-
 
 
       {
@@ -2311,9 +2169,7 @@ function ResultGrid({
 
   smart,
 
-  collectionMode,
-
-  moneyMode
+  collectionMode
 
 }){
 
@@ -2377,23 +2233,6 @@ function ResultGrid({
           )
         }
       />
-
-
-      {
-        moneyMode &&
-        <>
-          <ResultItem label="平均总金钱" value={`¥${Number(result.averageMoney ?? 0).toFixed(2)}`} />
-          <ResultItem label="最大总金钱" value={`¥${formatNumber(result.maxMoney ?? 0)}`} highlight />
-          <ResultItem label="最小总金钱" value={`¥${formatNumber(result.minMoney ?? 0)}`} />
-          <ResultItem label="平均首次收藏" value={Number(result.averageFirstCollection ?? 0).toFixed(2)} />
-          <ResultItem label="最大首次收藏" value={result.maxFirstCollection ?? 0} />
-          <ResultItem label="达到 500 Step" value={result.reachedStepLimitCount ?? 0} />
-          <ResultItem label="提前死局" value={result.deadGameCount ?? 0} />
-          <ResultItem label="产业疲劳触发" value={result.totalFatigueTriggerCount ?? 0} />
-          <ResultItem label="疲劳额外损失" value={`¥${formatNumber(result.totalFatigueExtraLoss ?? 0)}`} />
-          <ResultItem label="单一动作最高重复" value={result.maxActionSignatureRepeatCount ?? 0} />
-        </>
-      }
 
 
       <ResultItem
@@ -2607,9 +2446,7 @@ function BestGameCard({
 
   game,
 
-  collectionMode,
-
-  moneyMode
+  collectionMode
 
 }){
 
@@ -2667,31 +2504,10 @@ function BestGameCard({
       >
 
         {
-          collectionMode
-            ? "最多收藏槽纪录"
-            : moneyMode
-              ? "最高金钱纪录"
-              : "最长步数纪录"
+          collectionMode ? "最多收藏槽纪录" : "最长步数纪录"
         }
 
       </div>
-
-
-      {
-        moneyMode &&
-        <div>
-          金钱 <strong>¥{formatNumber(game.money ?? 0)}</strong>
-          {" · "}
-          首次收藏 <strong>{game.firstCollectionCount ?? 0}</strong>
-          {" · "}
-          最后首次收藏 <strong>{game.lastFirstCollection ?? "无"}</strong>
-          <br />
-          最终 Trend <strong>{Number(game.finalTrend ?? 1).toFixed(3)}</strong>
-          {" · "}
-          {game.hitLimit ? "已达到 500 Step" : "提前结束"}
-        </div>
-      }
-
 
 
       <div>
@@ -2927,137 +2743,6 @@ function BestGameCard({
 
 
 
-
-
-function BoardMeanSummary({result}){
-  const game = result.bestMoneyGame ?? {};
-  const stepText = step => step == null ? "未进入" : `Step ${step}`;
-  const rangeLabels = ["1–100", "101–200", "201–300", "301–400", "401–500"];
-
-  return (
-    <div className="test-lab-record" style={{marginTop: "12px"}}>
-      <div className="test-lab-record-title">盘面指数</div>
-      <div className="test-lab-result-grid">
-        <ResultItem label="最终平均值" value={Number(game.finalBoardMean ?? 0).toFixed(1)} />
-        <ResultItem label="历史最高" value={`${Number(game.highestBoardMean ?? 0).toFixed(1)} · ${stepText(game.highestBoardMeanStep)}`} />
-        <ResultItem label="全局平均" value={Number(game.averageBoardMean ?? 0).toFixed(1)} />
-        <ResultItem label="低位占比" value={`${((game.lowStepRate ?? 0) * 100).toFixed(1)}%`} />
-        <ResultItem label="最长连续低位" value={`${game.longestLowStepCount ?? 0} Step`} />
-        <ResultItem label="低位区间" value={game.longestLowStartStep == null ? "无" : `Step ${game.longestLowStartStep}–${game.longestLowEndStep}`} />
-        <ResultItem label="首次进入中位" value={stepText(game.firstMiddleStep)} />
-        <ResultItem label="首次进入高位" value={stepText(game.firstHighStep)} />
-        <ResultItem label="历史最大数字" value={`${game.highestBoardMax ?? 0} · ${stepText(game.highestBoardMaxStep)}`} />
-        <ResultItem label="首次收藏平均" value={Number(game.firstCollectionAverageBoardMean ?? 0).toFixed(1)} />
-        <ResultItem label="前10次首次收藏" value={Number(game.first10CollectionAverageBoardMean ?? 0).toFixed(1)} />
-        <ResultItem label="后10次首次收藏" value={Number(game.last10CollectionAverageBoardMean ?? 0).toFixed(1)} />
-        {(game.boardMeanRanges ?? []).map((value, index) => value == null ? null : (
-          <ResultItem key={rangeLabels[index]} label={`Step ${rangeLabels[index]}`} value={Number(value).toFixed(1)} />
-        ))}
-      </div>
-
-      {result.games > 1 && (
-        <div style={{marginTop: "10px"}}>
-          多局汇总：平均最终 {Number(result.averageFinalBoardMean ?? 0).toFixed(1)}
-          {" · "}平均历史最高 {Number(result.averageHighestBoardMean ?? 0).toFixed(1)}
-          {" · "}平均全局 {Number(result.averageGlobalBoardMean ?? 0).toFixed(1)}
-          {" · "}平均低位占比 {((result.averageLowStepRate ?? 0) * 100).toFixed(1)}%
-          {" · "}最大连续低位 {result.maxLongestLowStepCount ?? 0} Step
-          {" · "}进入高位 {result.highEntryGameCount ?? 0}/{result.games}（{((result.highEntryGameRate ?? 0) * 100).toFixed(1)}%）
-          {" · "}平均历史最大数字 {Number(result.averageHighestBoardMax ?? 0).toFixed(1)}
-        </div>
-      )}
-    </div>
-  );
-}
-
-
-function MoneyActionHistory({game}){
-
-  const history = game.actionHistory ?? [];
-  const earningSteps = history.flatMap(action =>
-    (action.collections ?? [])
-      .filter(collection => collection.first && collection.reward > 0)
-      .map(collection => ({action, collection}))
-  );
-
-  return (
-    <div className="test-lab-record">
-      <div className="test-lab-record-title">赚钱步骤</div>
-
-      {
-        earningSteps.length === 0
-          ? <div>本局没有付费收藏</div>
-          : earningSteps.map(({action, collection}, index) => (
-              <div key={`${action.actionNumber}-${collection.value}-${collection.foodType}`}>
-                #{index + 1} · Step {action.step} · {collection.value} {formatFoodType(collection.foodType)}
-                {" · "+`+¥${collection.reward}`}
-                {" · "}总计 ¥{action.money}
-              </div>
-            ))
-      }
-
-      <details style={{marginTop: "12px"}}>
-        <summary style={{cursor: "pointer", fontWeight: 800}}>
-          查看完整路径（{history.length} Step）
-        </summary>
-
-        <div style={{display: "grid", gap: "10px", marginTop: "12px"}}>
-          {history.map(action => (
-            <div key={action.actionNumber} className="test-lab-record-collection">
-              <strong>
-                Step {action.step} · {action.type === "combine" ? "合成" : action.type === "reduce" ? "约分" : "处理1"}
-                {" "}{action.inputValues.join(action.type === "combine" ? " + " : " / ")}
-                {" → "}{action.resultValues.join(" / ")}
-                {" · "}BoardMean {Number(action.boardMean ?? 0).toFixed(1)}
-                {action.moneyGain > 0
-                  ? ` · +¥${action.moneyGain}`
-                  : action.moneyGain < 0
-                    ? ` · -¥${Math.abs(action.moneyGain)}`
-                    : ""}
-                {" · "}总计 ¥{action.money}
-              </strong>
-
-              <div>盘面：{action.boardAfter.length > 0 ? action.boardAfter.join(" / ") : "空"}</div>
-
-              {action.type === "reduce" && action.inputValues[0] === action.inputValues[1] && (
-                <div>
-                  来源：{action.inputSourceKeys?.map(source => source ?? "无").join(" / ")}
-                  {" · "}{action.sameSource ? "同源" : "多源"}
-                </div>
-              )}
-
-              {(action.collections ?? []).map((collection, index) => (
-                <div key={`${collection.value}-${collection.foodType}-${index}`}>
-                  收藏：{collection.value} {formatFoodType(collection.foodType)}
-                  {" · "}{collection.reward > 0
-                    ? `+¥${collection.reward}`
-                    : collection.reward < 0
-                      ? `-¥${Math.abs(collection.reward)}`
-                      : "¥0"}
-                  {" · "}{collection.sameSourceRepeat ? "同源重复" : collection.first ? "首次" : "重复"}
-                  <br />
-                  Trend：{Number(collection.trendBefore ?? 1).toFixed(2)} → {Number(collection.trendAfter ?? 1).toFixed(2)}
-                  {collection.first && collection.reward > 0 && (
-                    <>
-                      <br />
-                      价格：Base {collection.base} × Liquidity {Number(collection.liquidity).toFixed(2)} × Trend {Number(collection.trendBefore).toFixed(2)} = ¥{collection.price}
-                    </>
-                  )}
-                  {(collection.fatigueCount ?? 0) > 0 && (
-                    <>
-                      <br />
-                      产业疲劳：{collection.fatigueCount}次 · {Math.round(collection.fatigueRate * 100)}%
-                    </>
-                  )}
-                </div>
-              ))}
-            </div>
-          ))}
-        </div>
-      </details>
-    </div>
-  );
-}
 
 
 function CollectionTimeline({
