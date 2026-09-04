@@ -67,8 +67,8 @@ assert.equal(getNonDrinkBoardSum(twoGroups.board), 78);
 const preview = getCompoundRecombination(twoGroups, 0, 3);
 assert.deepEqual(preview, {
   kind: "recombine",
-  firstValue: 42,
-  secondValue: 36,
+  firstValue: 6,
+  secondValue: 72,
   firstFoodType: getNativeFoodType(0),
   secondFoodType: getNativeFoodType(3),
   consumedIndexes: [1, 4],
@@ -76,8 +76,9 @@ assert.deepEqual(preview, {
 });
 
 const recombined = compoundCells(twoGroups, 0, 3);
-assert.equal(recombined.board[0].value, 42);
-assert.equal(recombined.board[3].value, 36);
+assert.equal(recombined.board[0].value, 6);
+assert.equal(recombined.board[3].value, 72);
+assert.notDeepEqual([recombined.board[0].value, recombined.board[3].value], [42, 36]);
 assert.equal(recombined.board[0].foodType, getNativeFoodType(0));
 assert.equal(recombined.board[3].foodType, getNativeFoodType(3));
 assert.notEqual(recombined.board[0].foodType, recombined.board[3].foodType);
@@ -96,7 +97,7 @@ alternate.board[3] = {id: 1, value: 31, foodType: "vegetable", purity: "pure"};
 alternate.board[4] = {id: 2, value: 14, foodType: "seasoning", purity: "pure"};
 const alternateGroups = compoundCells(compoundCells(alternate, 3, 4), 0, 1);
 const alternateResult = compoundCells(alternateGroups, 3, 0);
-assert.equal(alternateResult.board[3].value, 42);
+assert.equal(alternateResult.board[3].value, 6);
 assert.equal(alternateResult.board[3].foodType, getNativeFoodType(3));
 assert.notEqual(alternateResult.board[3].foodType, recombined.board[0].foodType);
 
@@ -108,17 +109,33 @@ smallBoard[4] = {id: 23, value: 5, foodType: "seasoning", purity: "pure"};
 const smallGroups = compoundCells(compoundCells({board: smallBoard, gameOver: false}, 0, 1), 3, 4);
 assert.equal(canCompoundCells(smallGroups, 0, 3), true);
 const smallResult = compoundCells(smallGroups, 0, 3);
-assert.equal(smallResult.board[0].value, 8);
-assert.equal(smallResult.board[3].value, 23);
+assert.equal(smallResult.board[0].value, 15);
+assert.equal(smallResult.board[3].value, 16);
 assert.equal(smallResult.board[1], null);
 assert.equal(smallResult.board[4], null);
 assert.equal(getNonDrinkBoardSum(smallResult.board), 31);
 for(const piece of [smallResult.board[0], smallResult.board[3]]){
   assert.equal(piece.isCompound, undefined);
   assert.equal(piece.compoundPartner, undefined);
+  assert.equal(piece.compoundType, undefined);
   assert.equal(piece.compoundCookingMethod, undefined);
   assert.equal(piece.compoundDishName, undefined);
 }
+
+const zeroDifferenceBoard = Array(9).fill(null);
+zeroDifferenceBoard[0] = {id: 30, value: 10, foodType: "land", purity: "pure"};
+zeroDifferenceBoard[1] = {id: 31, value: 5, foodType: "aquatic", purity: "pure"};
+zeroDifferenceBoard[3] = {id: 32, value: 8, foodType: "vegetable", purity: "pure"};
+zeroDifferenceBoard[4] = {id: 33, value: 3, foodType: "seasoning", purity: "pure"};
+const zeroDifferenceGroups = compoundCells(
+  compoundCells({board: zeroDifferenceBoard, gameOver: false}, 0, 1),
+  3,
+  4
+);
+assert.equal(getCompoundRecombination(zeroDifferenceGroups, 0, 3), null);
+assert.equal(canCompoundCells(zeroDifferenceGroups, 0, 3), false);
+assert.equal(compoundCells(zeroDifferenceGroups, 0, 3), zeroDifferenceGroups);
+assert.equal(zeroDifferenceGroups.board.some(piece => piece?.value === 0), false);
 
 const stalePartner = {
   ...twoGroups,
@@ -156,7 +173,7 @@ const recombinationButton = renderToStaticMarkup(React.createElement(ActionButto
   onCompound: () => {},
   gameOver: false
 }));
-assert.match(recombinationButton, /重组 陆产42 \/ 谷物36/);
+assert.match(recombinationButton, /重组 陆产6 \/ 谷物72/);
 assert.doesNotMatch(recombinationButton, /disabled=""[^>]*title="重组后/);
 
 console.log("compound binding and recombination tests passed");

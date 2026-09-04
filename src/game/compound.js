@@ -51,10 +51,15 @@ export function getCompoundRecombination(state, indexA, indexB){
   if(!firstPartner || !secondPartner) return null;
   const consumedIndexes = [first.compoundPartner.index, second.compoundPartner.index];
   if(new Set([indexA, indexB, ...consumedIndexes]).size !== 4) return null;
+  const exchangedFirst = first.value + secondPartner.value;
+  const exchangedSecond = second.value + firstPartner.value;
+  const difference = Math.abs(exchangedFirst - exchangedSecond);
+  if(difference === 0) return null;
+  const total = first.value + firstPartner.value + second.value + secondPartner.value;
   return {
     kind: "recombine",
-    firstValue: first.value + secondPartner.value,
-    secondValue: second.value + firstPartner.value,
+    firstValue: difference,
+    secondValue: total - difference,
     firstFoodType: getNativeFoodType(indexA),
     secondFoodType: getNativeFoodType(indexB),
     consumedIndexes,
