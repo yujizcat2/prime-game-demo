@@ -1,3 +1,5 @@
+import { getFoodName } from "../data/food/foodRegistry";
+
 export const COMPOUND_EDGES = Object.freeze({
   "0-1": "A", "1-2": "B", "3-4": "C", "4-5": "D", "6-7": "E", "7-8": "F",
   "0-3": "G", "3-6": "H", "1-4": "I", "4-7": "J", "2-5": "K", "5-8": "L"
@@ -31,7 +33,11 @@ export function compoundCells(state, indexA, indexB){
     id: first.id,
     isCompound: true,
     compoundType: getCompoundType(indexA, indexB),
-    value: Math.abs(first.value - second.value)
+    value: Math.abs(first.value - second.value),
+    parentNames: [
+      getFoodName(first.value, first.foodType),
+      getFoodName(second.value, second.foodType)
+    ]
   };
   board[indexB] = null;
   return {...state, board};

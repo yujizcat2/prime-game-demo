@@ -199,16 +199,17 @@ export default function ActionButtons({
 
       </button>
 
-      {canCompound && (
-        <button
-          type="button"
-          onClick={onCompound}
-          className="action-toolbar-button action-toolbar-button--compound-active"
-        >
-          <span className="action-toolbar-icon">◇</span>
-          <span className="action-toolbar-label">复合</span>
-        </button>
-      )}
+      <button
+        type="button"
+        onClick={canCompound ? onCompound : undefined}
+        disabled={!canCompound}
+        className={`action-toolbar-button ${canCompound
+          ? "action-toolbar-button--compound-active"
+          : "action-toolbar-button--disabled"}`}
+      >
+        <span className="action-toolbar-icon">◇</span>
+        <span className="action-toolbar-label">复合</span>
+      </button>
 
 
     </div>

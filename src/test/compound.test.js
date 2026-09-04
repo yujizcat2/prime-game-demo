@@ -4,6 +4,10 @@ import { canCombineCells, canReduceCells, getLegalActions } from "../game/gameEn
 import { isHeaterTarget } from "../game/heaterPricing";
 import { applyMazeTurn } from "../game/mazeEngine";
 import { getRestoreOutcome } from "../game/restore";
+import React from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import ActionButtons from "../components/ActionButtons";
+import { COMPOUND_COOKING_LABELS, getCompoundDisplayName } from "../components/compoundDisplay";
 
 function stateWith(firstIndex, firstValue, secondIndex, secondValue){
   const board = Array(9).fill(null);
@@ -25,9 +29,15 @@ assert.deepEqual(horizontal.board[0], {
   id: 1,
   isCompound: true,
   compoundType: "A",
-  value: 4
+  value: 4,
+  parentNames: ["羊肉", "香菇"]
 });
 assert.equal(horizontal.board[1], null);
+assert.equal(getCompoundDisplayName(horizontal.board[0]), "羊肉炒香菇");
+assert.deepEqual(COMPOUND_COOKING_LABELS, {
+  A: "炒", B: "煎", C: "蒸", D: "烧", E: "烤", F: "焖",
+  G: "炖", H: "烩", I: "拌", J: "煮", K: "卤", L: "炸"
+});
 
 const vertical = compoundCells(stateWith(0, 7, 3, 11), 0, 3);
 assert.equal(vertical.board[0].compoundType, "G");
@@ -49,5 +59,18 @@ assert.equal(getLegalActions(horizontal).some(action => action.type === "compoun
 assert.equal(isHeaterTarget(horizontal.board[0]), false);
 assert.equal(getRestoreOutcome(horizontal.board[0], 0), null);
 assert.equal(applyMazeTurn(horizontal).board[0].value, 4);
+
+const disabledButtons = renderToStaticMarkup(React.createElement(ActionButtons, {
+  selected: [], preview: null, gameOver: false
+}));
+assert.match(disabledButtons, /disabled=""[^>]*>[\s\S]*复合/);
+
+const activeButtons = renderToStaticMarkup(React.createElement(ActionButtons, {
+  selected: [1, 2], preview: {compound: {compoundType: "A", value: 4}},
+  onCompound: () => {}, gameOver: false
+}));
+const compoundButton = activeButtons.match(/<button[^>]*action-toolbar-button--compound-active[^>]*>[\s\S]*?复合[\s\S]*?<\/button>/)?.[0];
+assert.ok(compoundButton);
+assert.doesNotMatch(compoundButton, /disabled/);
 
 console.log("compound V0 tests passed");

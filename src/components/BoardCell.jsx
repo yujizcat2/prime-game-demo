@@ -15,6 +15,7 @@ import {
 import { getSpecialOneName } from "../data/specialOneRegistry";
 import { getFoodCardDisplayName, getFoodOriginDescription } from "./foodCardDisplay";
 import { getNativeFoodType } from "../game/nativeFoodTypes";
+import { getCompoundDisplayName } from "./compoundDisplay";
 
 import "./Board.css";
 
@@ -173,6 +174,9 @@ export default function BoardCell({
             className="board-piece board-piece--compound"
             aria-label={`复合卡 ${piece.compoundType}${piece.value}`}
           >
+            <div className="board-piece-main board-piece-compound-main">
+              <span className="board-piece-name">{getCompoundDisplayName(piece)}</span>
+            </div>
             <div className="board-piece-number board-piece-compound-number">
               {piece.compoundType}{piece.value}
             </div>

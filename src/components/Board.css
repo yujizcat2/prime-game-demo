@@ -6149,3 +6149,8 @@
   font-size: clamp(26px, 7vw, 42px);
   letter-spacing: .04em;
 }
+
+.board-piece-compound-main {
+  padding: 0 8px;
+  text-align: center;
+}
