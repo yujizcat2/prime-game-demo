@@ -1,8 +1,14 @@
 import { getNativeFoodType } from "./nativeFoodTypes";
+import { getFoodName } from "../data/food/foodRegistry";
 
 export const COMPOUND_EDGES = Object.freeze({
   "0-1": "A", "1-2": "B", "3-4": "C", "4-5": "D", "6-7": "E", "7-8": "F",
   "0-3": "G", "3-6": "H", "1-4": "I", "4-7": "J", "2-5": "K", "5-8": "L"
+});
+
+export const COMPOUND_COOKING_METHODS = Object.freeze({
+  A: "炒", B: "煎", C: "蒸", D: "烧", E: "烤", F: "焖",
+  G: "炖", H: "烩", I: "拌", J: "煮", K: "卤", L: "炸"
 });
 
 export function isCompoundPiece(piece){
@@ -16,6 +22,10 @@ export function getCompoundType(indexA, indexB){
 
 function isOrdinaryPiece(piece){
   return Boolean(piece && !isCompoundPiece(piece) && Number.isFinite(piece.value) && piece.value !== 1);
+}
+
+function getPieceName(piece){
+  return piece?.displayName ?? piece?.name ?? getFoodName(piece?.value, piece?.foodType);
 }
 
 function getValidPartner(state, compound){
@@ -89,15 +99,23 @@ export function compoundCells(state, indexA, indexB){
 
   const first = state.board[indexA];
   const partner = state.board[indexB];
+  const compoundType = getCompoundType(indexA, indexB);
+  const compoundCookingMethod = COMPOUND_COOKING_METHODS[compoundType];
+  const firstName = getPieceName(first);
+  const partnerName = getPieceName(partner);
   board[indexA] = {
     ...first,
     isCompound: true,
+    compoundType,
+    compoundCookingMethod,
+    compoundDishName: `${firstName}${compoundCookingMethod}${partnerName}`,
     compoundPartner: {
       id: partner.id,
       index: indexB,
       value: partner.value,
       foodType: partner.foodType,
-      purity: partner.purity ?? null
+      purity: partner.purity ?? null,
+      name: partnerName
     }
   };
   return {...state, board};
