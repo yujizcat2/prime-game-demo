@@ -6138,26 +6138,26 @@
   white-space: nowrap;
 }
 .board-piece--compound {
-  --cuisine-primary: #eeeaf8;
-  --cuisine-secondary: #b8afd5;
-  --cuisine-border: #a99bc9;
-  --cuisine-surface: #6a608f;
-  border-color: rgba(176, 160, 211, .72);
+  --cuisine-primary: #f0f1f2;
+  --cuisine-secondary: #c1c4c8;
+  --cuisine-border: #d5d7da;
+  --cuisine-surface: #4b4f56;
+  border-color: rgba(225, 228, 232, .55);
   background:
-    radial-gradient(circle at 76% 18%, rgba(210, 198, 235, .22), transparent 40%),
-    linear-gradient(145deg, #756b9b 0%, #655b8b 50%, #574f7c 100%);
-  color: #eeeaf7;
+    radial-gradient(circle at 76% 18%, rgba(255, 255, 255, .1), transparent 40%),
+    linear-gradient(145deg, #5b5f66 0%, #494d54 52%, #3c4047 100%);
+  color: #eceeef;
   cursor: default;
   opacity: 1;
   overflow: hidden;
-  box-shadow: inset 0 1px 0 rgba(242, 237, 251, .2), 0 4px 9px rgba(62, 54, 91, .12);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .16), 0 3px 8px rgba(38, 40, 44, .1);
 }
 
 .board-piece-compound-number {
-  color: #f5f2fb;
+  color: #f4f5f5;
   font-size: clamp(25px, 7vw, 40px);
   letter-spacing: .04em;
-  text-shadow: 0 1px 2px rgba(46, 39, 72, .28);
+  text-shadow: 0 1px 2px rgba(24, 26, 29, .24);
 }
 
 .board-piece-compound-main {
@@ -6171,7 +6171,7 @@
   display: -webkit-box;
   max-width: 100%;
   overflow: hidden;
-  color: #f2eff8;
+  color: #eff0ef;
   font-size: 20px;
   line-height: 1.08;
   letter-spacing: -.04em;
@@ -6185,7 +6185,7 @@
 .board-piece-compound-name--very-long { font-size: 14px; }
 
 .board-piece-compound-type {
-  color: #ddd5ef;
+  color: #d7d9dc;
   font-weight: 800;
   opacity: .9;
 }
@@ -6194,7 +6194,7 @@
   left: 7px;
   right: 7px;
   bottom: 5px;
-  color: #d4cee3;
+  color: #c8cbd0;
   font-size: 8px;
   line-height: 1.12;
   white-space: normal;
