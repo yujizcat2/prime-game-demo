@@ -7,7 +7,7 @@ export const MINUTES_PER_ACTION = 30;
 export const MIN_COLLECTIONS_PER_DAY = 4;
 export const NEXT_DAY_BOARD_INDEXES = Object.freeze([0, 1, 2, 3, 4]);
 
-const DAY_SCORE_TARGETS = [500, 1500, 3000, 4500, 6500, 9000, 12000];
+const DAY_SCORE_TARGETS = [600, 1400, 2300, 3300, 4400, 5600, 7000];
 
 export function getDayScoreTarget(day = 1){
   const normalizedDay = Math.max(1, Math.floor(day));
