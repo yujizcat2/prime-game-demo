@@ -1,5 +1,3 @@
-import { isCompoundPiece } from "./compound";
-
 export const BASE_HEATER_PRICE_STEP = 10;
 
 export function getCurrentHeaterPrice(state){
@@ -7,7 +5,7 @@ export function getCurrentHeaterPrice(state){
 }
 
 export function isHeaterTarget(piece){
-  return !isCompoundPiece(piece) && Number.isInteger(piece?.value) && piece.value >= 2 && piece.value <= 100;
+  return Number.isInteger(piece?.value) && piece.value >= 2 && piece.value <= 100;
 }
 
 export function hasHeaterTarget(state){

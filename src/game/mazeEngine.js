@@ -5,7 +5,6 @@ import {
   incrementMazeTurnCount,
   getMazeTurnCount
 } from "./mazeHistory";
-import { isCompoundPiece } from "./compound";
 
 
 
@@ -119,12 +118,11 @@ export function applyMazeTurn(
 
 
         if(
-          !piece ||
-          isCompoundPiece(piece)
+          !piece
         ){
 
 
-          return piece;
+          return null;
 
         }
 

@@ -1156,14 +1156,14 @@ export default function Board({
 
                 heaterTargetState={
                   heaterSelectMode
-                    ? !piece?.isCompound && piece?.value >= 2 && piece?.value <= 100
+                    ? piece?.value >= 2 && piece?.value <= 100
                       ? "available"
                       : "unavailable"
                     : null
                 }
                 restoreTargetState={
                   restoreSelectMode
-                    ? piece && !piece.isCompound && piece.foodType !== BOARD_NATIVE_FOOD_TYPES[index]
+                    ? piece && piece.foodType !== BOARD_NATIVE_FOOD_TYPES[index]
                       ? "available"
                       : "unavailable"
                     : null

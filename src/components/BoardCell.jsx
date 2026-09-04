@@ -15,11 +15,6 @@ import {
 import { getSpecialOneName } from "../data/specialOneRegistry";
 import { getFoodCardDisplayName, getFoodOriginDescription } from "./foodCardDisplay";
 import { getNativeFoodType } from "../game/nativeFoodTypes";
-import {
-  getCompoundDisplayName,
-  getCompoundDisplayValue,
-  getCompoundParentSignature
-} from "./compoundDisplay";
 
 import "./Board.css";
 
@@ -163,51 +158,6 @@ export default function BoardCell({
     );
 
   }
-
-  if(piece.isCompound === true){
-    const compoundName = getCompoundDisplayName(piece);
-    const compoundDisplayValue = getCompoundDisplayValue(piece);
-    const compoundNameSizeClass = compoundName.length >= 9
-      ? "board-piece-compound-name--very-long"
-      : compoundName.length >= 7
-        ? "board-piece-compound-name--long"
-        : "";
-    return (
-      <div
-        className={`board-cell board-cell--occupied ${selected ? "board-cell--selected" : ""} ${nativeCellClass}`}
-        data-index={index}
-      >
-        <div className="board-piece-wrapper board-piece-wrapper--enter">
-          <button
-            type="button"
-            disabled={removing}
-            onClick={removing ? undefined : onClick}
-            className={`board-piece board-piece--compound ${selected ? "board-piece--selected" : ""}`}
-            aria-label={`复合料理 ${compoundDisplayValue}`}
-          >
-            {selected && <div className="board-piece-selected-ring" />}
-            <div className="board-piece-cuisine-type board-piece-compound-type">复合系</div>
-            <div className="board-piece-number board-piece-compound-number">
-              <span className="board-piece-compound-letter">{piece.compoundType}</span>
-              <span>{compoundDisplayValue}</span>
-            </div>
-            <div className="board-piece-main board-piece-compound-main">
-              <span className={`board-piece-name board-piece-compound-name ${compoundNameSizeClass}`}>
-                {compoundName}
-              </span>
-            </div>
-            <div className="board-piece-origin board-piece-compound-signature">
-              <span>{getCompoundParentSignature(piece)}</span>
-            </div>
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-
-
-
 
   // ==========================================================
   // 基础数据

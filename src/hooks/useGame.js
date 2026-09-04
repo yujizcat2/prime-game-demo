@@ -45,7 +45,6 @@ import {
 
 } from "../game/gameEngine";
 import { advanceToNextDay, getDayPeriod, getDayScoreTarget, getDayStep, getDayTime } from "../game/dayCycle";
-import { canCompoundCells, compoundCells, getCompoundRecombination, isCompoundPiece } from "../game/compound";
 
 
 export default function useGame(){
@@ -166,7 +165,7 @@ export default function useGame(){
 
     getBoardPieces(
       board
-    ).filter(piece => !isCompoundPiece(piece));
+    );
 
 
   // ==========================================================
@@ -554,8 +553,6 @@ export default function useGame(){
       functionOneIndex !== null
     ){
 
-      if(isCompoundPiece(target)) return;
-
       const nextState =
 
         applyAction(
@@ -828,13 +825,7 @@ export default function useGame(){
 
           :
 
-            null,
-
-      compound: (() => {
-        if(!canCompoundCells(gameState, first.index, second.index)) return null;
-        return getCompoundRecombination(gameState, first.index, second.index)
-          ?? {kind: "bind", value: first.piece.value};
-      })()
+            null
 
     };
 
@@ -1139,15 +1130,6 @@ export default function useGame(){
 
     return true;
 
-  }
-
-  function compoundNumbers(){
-    if(!gameState || gameOver || selectedIndexes.length !== 2) return false;
-    const nextState = compoundCells(gameState, selectedIndexes[0], selectedIndexes[1]);
-    if(nextState === gameState) return false;
-    setGameState(nextState);
-    setSelectedIndexes([]);
-    return true;
   }
 
 
@@ -1513,8 +1495,6 @@ export default function useGame(){
     startNextDay,
 
     combineNumbers,
-
-    compoundNumbers,
 
     reduceNumbers,
 

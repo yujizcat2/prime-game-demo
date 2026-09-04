@@ -3,7 +3,6 @@ import { FOOD_TYPES } from "./rules";
 import { getNativeFoodType } from "./nativeFoodTypes";
 import { getCurrentRestorePrice } from "./restorePricing";
 import { GAME_MODES } from "./eightPalaceKeys";
-import { isCompoundPiece } from "./compound";
 
 function isAtStepLimit(state){
   return ![GAME_MODES.EIGHT_PALACE, GAME_MODES.SIMPLE_EIGHT_PALACE].includes(state?.gameMode)
@@ -13,7 +12,7 @@ function isAtStepLimit(state){
 export function getRestoreOutcome(piece, index){
   const nativeFoodType = getNativeFoodType(index);
   const restoredFoodType = index === 4 ? FOOD_TYPES.DRINK : nativeFoodType;
-  if(!piece || isCompoundPiece(piece) || !restoredFoodType || piece.foodType === restoredFoodType) return null;
+  if(!piece || !restoredFoodType || piece.foodType === restoredFoodType) return null;
   return {
     piece: {
       ...piece,
