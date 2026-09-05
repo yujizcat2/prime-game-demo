@@ -34,6 +34,7 @@ import {
 import { FOOD_TYPE_LABELS } from "./data/specialOneRegistry";
 import { getActionStatus } from "./game/actionStatus";
 import { getNonDrinkBoardSum } from "./game/scoreValue";
+import { playSound } from "./audio/sound";
 
 const numberFormatter = new Intl.NumberFormat("zh-CN");
 
@@ -321,7 +322,10 @@ function App(){
       () => {
 
         const succeeded=game.combineNumbers(indexes);
-        if(succeeded)showActionToast(combineToast.title,combineToast.message);
+        if(succeeded){
+          playSound("combine");
+          showActionToast(combineToast.title,combineToast.message);
+        }
 
 
         setActiveAnimation(
@@ -560,6 +564,7 @@ function App(){
         const result=game.reduceNumbers();
         if(result){
           const rewards = result.collectionRewards ?? [];
+          playSound(rewards.length > 0 || removedIndexes.length > 0 ? "collect" : "process");
           if(rewards.length > 0){
             setCollectionRewardQueue(queue => [...queue, ...rewards]);
           }else{
@@ -640,9 +645,11 @@ function App(){
       piece?.specialOne?.kind === "function"
     ){
 
-      game.activateOne(
+      const activated = game.activateOne(
         index
       );
+
+      if(activated) playSound("click");
 
       return;
 
@@ -678,9 +685,11 @@ function App(){
     scheduleAnimation(
       () => {
 
-        game.activateOne(
+        const removed = game.activateOne(
           index
         );
+
+        if(removed) playSound("collect");
 
 
         setClearedCells([
@@ -705,6 +714,10 @@ function App(){
       300
     );
 
+  }
+
+  function handleSelectCell(index){
+    if(game.selectCell(index)) playSound("click");
   }
 
 
@@ -945,7 +958,7 @@ function App(){
                       ? handleRestoreTarget
                     : heaterSelectMode
                       ? handleHeaterTarget
-                      : game.selectCell
+                      : handleSelectCell
                 }
                 onRemoveOne={
                   handleSpecialOne

@@ -21,7 +21,7 @@ function createDayState(){
 const initial = createDayState();
 assert.equal(initial.day, 1);
 assert.equal(getDayTime(initial), "10:00");
-assert.equal(getDayScoreTarget(initial.day), 500);
+assert.equal(getDayScoreTarget(initial.day), 600);
 assert.equal(initial.checkpoint, null, "human day-cycle state does not expose a legacy checkpoint");
 assert.deepEqual(
   [initial.heaterCount, initial.restoreCount, initial.superHeaterCount],
@@ -29,7 +29,7 @@ assert.deepEqual(
   "a new game starts with one use of every item"
 );
 
-const at19 = resolveGameOver({...initial, steps: 19, score: 499});
+const at19 = resolveGameOver({...initial, steps: 19, score: 599});
 assert.equal(at19.daySettlement, null, "19 actions do not close the day");
 assert.equal(at19.gameOver, false);
 
@@ -65,22 +65,22 @@ assert.deepEqual(createNextDayCards([
   {value: 20, foodType: "grainBean"}
 ]).at(-1), {value: 20, foodType: "grainBean", source: "daily_maximum"}, "a tied maximum uses the later collection");
 
-const passed = resolveGameOver({...initial, steps: ACTIONS_PER_DAY, score: 500, collectionCards: fourCollections});
+const passed = resolveGameOver({...initial, steps: ACTIONS_PER_DAY, score: 600, collectionCards: fourCollections});
 assert.equal(passed.daySettlement.passed, true);
-assert.equal(passed.daySettlement.targetScore, 500);
-assert.equal(passed.daySettlement.finalScore, 500);
+assert.equal(passed.daySettlement.targetScore, 600);
+assert.equal(passed.daySettlement.finalScore, 600);
 assert.equal(passed.daySettlement.collectionTargetMet, true);
 assert.equal(passed.daySettlement.nextDayCards.length, 5);
 assert.equal(passed.dayHistory.length, 1);
 assert.equal(passed.day, 1, "passing does not automatically advance the day");
 assert.equal(getDayTime(passed), "20:00");
 
-const failed = resolveGameOver({...initial, steps: ACTIONS_PER_DAY, score: 499});
+const failed = resolveGameOver({...initial, steps: ACTIONS_PER_DAY, score: 599});
 assert.equal(failed.daySettlement.passed, false);
 assert.equal(failed.gameOver, true);
 assert.equal(failed.gameOverReason, "day_target_failed");
 
-const collectionFailed = resolveGameOver({...initial, steps: ACTIONS_PER_DAY, score: 500, collectionCards: fourCollections.slice(0, 3)});
+const collectionFailed = resolveGameOver({...initial, steps: ACTIONS_PER_DAY, score: 600, collectionCards: fourCollections.slice(0, 3)});
 assert.equal(collectionFailed.daySettlement.collectionTargetMet, false);
 assert.equal(collectionFailed.daySettlement.nextDayCards.length, 0);
 assert.equal(collectionFailed.gameOverReason, "day_collection_failed");
@@ -90,10 +90,10 @@ const dayTwo = advanceToNextDay(passed);
 assert.equal(dayTwo.day, 2);
 assert.equal(dayTwo.dayStartStep, ACTIONS_PER_DAY);
 assert.equal(getDayTime(dayTwo), "10:00");
-assert.equal(getDayScoreTarget(dayTwo.day), 1200);
+assert.equal(getDayScoreTarget(dayTwo.day), 1400);
 assert.equal(dayTwo.board.filter(Boolean).length, 5, "the next-day board contains exactly five cards");
 assert.deepEqual(dayTwo.board.filter(Boolean).map(card => [card.value, card.foodType]), passed.daySettlement.nextDayCards.map(card => [card.value, card.foodType]));
-assert.equal(dayTwo.score, 500);
+assert.equal(dayTwo.score, 600);
 assert.equal(dayTwo.collectionCards, passed.collectionCards);
 assert.equal(dayTwo.daySettlement, null);
 assert.deepEqual(
@@ -135,7 +135,7 @@ for(const previousCounts of [[0, 0, 0], [1, 0, 1]]){
 }
 
 const dayTwoCollections = [...fourCollections, ...exampleCollections.slice(0, 4)];
-const dayTwoPassed = resolveGameOver({...dayTwo, steps: ACTIONS_PER_DAY * 2, score: 1200, collectionCards: dayTwoCollections});
+const dayTwoPassed = resolveGameOver({...dayTwo, steps: ACTIONS_PER_DAY * 2, score: 1400, collectionCards: dayTwoCollections});
 assert.equal(dayTwoPassed.daySettlement.day, 2);
 assert.equal(dayTwoPassed.daySettlement.passed, true);
 assert.equal(dayTwoPassed.dayHistory.length, 2);

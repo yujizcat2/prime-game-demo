@@ -488,7 +488,7 @@ export default function useGame(){
     ){
 
 
-      return;
+      return false;
 
     }
 
@@ -507,7 +507,7 @@ export default function useGame(){
     ){
 
 
-      return;
+      return false;
 
     }
 
@@ -551,10 +551,12 @@ export default function useGame(){
           []
         );
 
+        return true;
+
       }
 
 
-      return;
+      return false;
 
     }
 
@@ -566,12 +568,13 @@ export default function useGame(){
     ){
 
 
-      return;
+      return false;
 
     }
 
 
     setSelectedIndexes(getNextSelectionIndexes(selectedIndexes,index));
+    return true;
 
   }
 
@@ -1200,7 +1203,7 @@ export default function useGame(){
     ){
 
 
-      return;
+      return false;
 
     }
 
@@ -1229,7 +1232,7 @@ export default function useGame(){
     ){
 
 
-      return;
+      return false;
 
     }
 
@@ -1252,6 +1255,8 @@ export default function useGame(){
 
     );
 
+    return true;
+
   }
 
 
@@ -1263,7 +1268,7 @@ export default function useGame(){
       gameState?.gameMode === "eightPalace" ||
       gameState?.gameMode === "simpleEightPalace"
     ){
-      return;
+      return false;
     }
 
 
@@ -1292,12 +1297,12 @@ export default function useGame(){
       );
 
 
-      return;
+      return true;
 
     }
 
 
-    removeOne(
+    return removeOne(
       index
     );
 
