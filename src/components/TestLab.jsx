@@ -1355,6 +1355,10 @@ function ScoreSummaryGrid({result}){
       <ResultItem label="最高积分" value={result.highestScore} highlight />
       <ResultItem label="最低积分" value={result.lowestScore} />
       <ResultItem label="平均收藏数量" value={result.averageCollectionCount.toFixed(2)} />
+      <ResultItem label="平均最高连击" value={(result.averageMaxCombo ?? 0).toFixed(2)} />
+      <ResultItem label="最大最高连击" value={result.maximumMaxCombo ?? 0} />
+      <ResultItem label="平均连击奖励" value={(result.averageComboBonusTotal ?? 0).toFixed(2)} />
+      <ResultItem label="连击奖励占最终积分" value={`${((result.comboBonusScoreRatio ?? 0) * 100).toFixed(2)}%`} />
       <ResultItem label="平均累计收藏普通系" value={(result.averageCollectedNormalFoodTypeCount ?? 0).toFixed(2)} />
       {[5, 6, 7, 8].map(target => <ResultItem
         key={`collected-type-${target}`}
@@ -1390,6 +1394,7 @@ function ScoreSummaryGrid({result}){
           Day {day.day} · 到达 {day.reachedCount}/{result.games ?? result.attempts} · 通过 {day.passedCount}/{day.reachedCount} ({(day.passRate * 100).toFixed(1)}%)
           {` · 当日目标 ${day.targetScore} · 平均打烊积分 ${day.averageClosingScore.toFixed(1)}`}
           {` · 平均当日新增积分 +${day.averageScoreGainToday.toFixed(1)} · 平均新增收藏 ${day.averageCollectionCount.toFixed(1)} · 平均盘面总和 ${day.averageBoardSum.toFixed(1)}`}
+          {` · 平均最高连击 ${day.averageMaxCombo.toFixed(1)} · 平均连击奖励 +${day.averageComboBonus.toFixed(1)}`}
           {` · 明日备料均值 ${day.averagePreparationValues.map(value => value.toFixed(1)).join(" / ")} · 最大 ${day.averagePreparationMaximum.toFixed(1)} · 总和 ${day.averagePreparationSum.toFixed(1)}`}
       </div>)}
     </div>
@@ -1597,6 +1602,13 @@ function ScoreRecord({title, game}){
         累计收藏普通系：{game.collectedNormalFoodTypeCount ?? 0}
       </div>
       <div className="test-lab-record-collection">最终盘面：{formatScoreBoard(game.finalBoard) || "空"}</div>
+      <div className="test-lab-record-collection">全局最高连击：{game.maxCombo ?? 0} · 连击奖励总分：+{game.comboBonusTotal ?? 0}</div>
+      {(game.dayHistory ?? []).map(day => <div key={`combo-day-${day.day}`} className="test-lab-record-collection">
+        Day {day.day} · 最高连击 {day.maxComboToday ?? 0} · 连击奖励 +{day.comboBonusToday ?? 0}
+      </div>)}
+      {(game.comboTimeline ?? []).length > 0 && <div className="test-lab-record-collection">
+        重要连击：{game.comboTimeline.map(event => `Day ${event.day} ${event.step}步 ${event.type === "broken" ? "中断" : `${event.comboCount}连 +${event.comboBonus}`}`).join(" / ")}
+      </div>}
       {game.heaterTimeline?.length > 0 && <div className="test-lab-record-collection">
         <strong>Heater 时间线</strong>
         {game.heaterTimeline.map((event, index) => <div key={`${event.step}-${index}`}>

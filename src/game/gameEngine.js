@@ -47,6 +47,7 @@ import { applySuperHeater } from "./superHeater";
 import { markSingleFlavorBoardPieces } from "./singleFlavorPenalty";
 import { resolveCheckpoint } from "./checkpoints";
 import { settleDayIfNeeded } from "./dayCycle";
+import { applyScoreCombo } from "./scoreCombo";
 
 
 
@@ -366,9 +367,10 @@ export function applyAction(
   // 统一进入迷宫历史系统。
   // ==========================================================
 
+  const comboState = applyScoreCombo(state, actionState);
   const recapActionCounts = state.recapActionCounts ?? {combine: 0, reduce: 0};
   const countedState = {
-    ...actionState,
+    ...comboState,
     recapActionCounts: {
       combine: recapActionCounts.combine + (action.type === "combine" || action.type === "combine_ordered" ? 1 : 0),
       reduce: recapActionCounts.reduce + (action.type === "reduce" ? 1 : 0)

@@ -305,6 +305,14 @@ export function createGameState(
     score:
       0,
 
+    comboCount: 0,
+    maxCombo: 0,
+    comboBonusTotal: 0,
+    dayMaxCombo: 0,
+    dayComboBonusTotal: 0,
+    latestComboEvent: null,
+    comboTimeline: [],
+
     heaterCount:
       1,
 

@@ -131,6 +131,10 @@ assert.ok(result.collections.every(card =>
 ), "AI collection settlements use integer scores");
 assert.equal(result.score, result.finalScore);
 assert.equal(result.scoreEfficiency, getScoreEfficiency(result.score, result.steps));
+assert.equal(typeof result.maxCombo, "number");
+assert.equal(typeof result.comboBonusTotal, "number");
+assert.ok(Array.isArray(result.comboTimeline));
+assert.ok(result.comboTimeline.every(event => event.step <= result.steps));
 assert.equal(result.foodTypeBoardTimeline[0].step, 0);
 assert.ok(result.foodTypeBoardTimeline.every((snapshot, index, timeline) =>
   index === 0 || snapshot.step > timeline[index - 1].step
@@ -217,6 +221,18 @@ for(let index = 0; index < 10; index++){
 }
 for(const summary of [tenGames, tenGames.randomComparison]){
   const results = summary.results;
+  assert.equal(summary.averageMaxCombo, results.reduce((sum, game) => sum + game.maxCombo, 0) / results.length);
+  assert.equal(summary.maximumMaxCombo, Math.max(...results.map(game => game.maxCombo)));
+  assert.equal(summary.averageComboBonusTotal, results.reduce((sum, game) => sum + game.comboBonusTotal, 0) / results.length);
+  assert.equal(
+    summary.comboBonusScoreRatio,
+    results.reduce((sum, game) => sum + game.finalScore, 0)
+      ? results.reduce((sum, game) => sum + game.comboBonusTotal, 0) / results.reduce((sum, game) => sum + game.finalScore, 0)
+      : 0
+  );
+  assert.ok(summary.daySummaries.every(day =>
+    Number.isFinite(day.averageMaxCombo) && Number.isFinite(day.averageComboBonus)
+  ));
   const totalPrime = results.reduce((sum, game) => sum + game.primeCollectionCount, 0);
   const totalComposite = results.reduce((sum, game) => sum + game.compositeCollectionCount, 0);
   assert.equal(summary.averagePrimeCollectionCount, totalPrime / results.length);

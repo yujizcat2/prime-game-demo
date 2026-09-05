@@ -4,7 +4,7 @@ import { getScoreEfficiency } from "../game/scoreEfficiency";
 
 const numberFormatter = new Intl.NumberFormat("zh-CN");
 
-export default function DayPanel({day, weekday, time, period, dayStep, score, scoreGainToday, steps}){
+export default function DayPanel({day, weekday, time, period, dayStep, score, scoreGainToday, steps, comboCount}){
   const remaining = Math.max(0, ACTIONS_PER_DAY - dayStep);
   const urgency = remaining <= 2 ? " day-panel--urgent" : remaining <= 5 ? " day-panel--near" : "";
   const efficiency = getScoreEfficiency(score, steps);
@@ -14,6 +14,7 @@ export default function DayPanel({day, weekday, time, period, dayStep, score, sc
       <div><strong>DAY {day}</strong><span>{weekday}</span></div>
       <div className="day-panel-clock"><strong>{time}</strong><span>{period}</span></div>
     </div>
+    {comboCount >= 2 && <div className="day-panel-combo" role="status">{comboCount} 连击 · +{Math.min(12, (comboCount - 1) * 3)}</div>}
     <div className="day-panel-business">
       <div><span>今日营业额</span><strong>{numberFormatter.format(scoreGainToday)} <small>/ {DAY_SCORE_TARGET}</small></strong></div>
       <span className="day-panel-complete">效率 {efficiency.toFixed(2)}</span>

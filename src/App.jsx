@@ -321,10 +321,10 @@ function App(){
     scheduleAnimation(
       () => {
 
-        const succeeded=game.combineNumbers(indexes);
-        if(succeeded){
+        const result=game.combineNumbers(indexes);
+        if(result){
           playSound("combine");
-          showActionToast(combineToast.title,combineToast.message);
+          showActionToast(combineToast.title,result.comboEvent?.message ?? combineToast.message);
         }
 
 
@@ -570,6 +570,7 @@ function App(){
           }else{
             showActionToast(reduceToast.title,reduceToast.message);
           }
+          if(result.comboEvent?.message) showActionToast("连击中断", "下一次得分将从第 1 连重新开始");
         }
 
         if(game.preview.reduce.keyOutcome?.status==="used")setKeyNotice(`${game.preview.reduce.keyOutcome.triggerValue} 已经触发过钥匙，本次没有获得新钥匙`);
@@ -828,6 +829,7 @@ function App(){
             score={game.score}
             scoreGainToday={game.scoreGainToday}
             steps={game.steps}
+            comboCount={game.comboCount}
           /> : <StepPanel
             steps={
               game.steps
@@ -1071,6 +1073,8 @@ function App(){
           passedCheckpointCount={game.passedCheckpointCount}
           recapSnapshots={game.gameRecapSnapshots}
           recapActionCounts={game.recapActionCounts}
+          maxCombo={game.maxCombo}
+          comboBonusTotal={game.comboBonusTotal}
           gameMode={
             game.gameMode
           }

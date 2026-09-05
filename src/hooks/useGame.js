@@ -267,6 +267,9 @@ export default function useGame(){
   const dayPeriod = getDayPeriod(gameState);
   const weekday = getWeekday(day);
   const scoreGainToday = score - (gameState?.dayStartScore ?? 0);
+  const comboCount = gameState?.comboCount ?? 0;
+  const maxCombo = gameState?.maxCombo ?? 0;
+  const comboBonusTotal = gameState?.comboBonusTotal ?? 0;
   const daySettlement = gameState?.daySettlement ?? null;
   const dayHistory = gameState?.dayHistory ?? [];
   const gameRecapSnapshots = gameState?.gameRecapSnapshots ?? [];
@@ -1094,7 +1097,7 @@ export default function useGame(){
     );
 
 
-    return true;
+    return {comboEvent: nextState.latestComboEvent};
 
   }
 
@@ -1180,6 +1183,7 @@ export default function useGame(){
     const rewards=nextState.latestCollectionRewards ?? [];
     const collectionEvents=(nextState.collectionTimeline ?? []).slice(-rewards.length);
     return {
+      comboEvent: nextState.latestComboEvent,
       collectionRewards: rewards.map((reward,index)=>({
         ...reward,
         isNewCollection:collectionEvents[index]?.isNewCollection
@@ -1413,6 +1417,9 @@ export default function useGame(){
     dayPeriod,
     weekday,
     scoreGainToday,
+    comboCount,
+    maxCombo,
+    comboBonusTotal,
     daySettlement,
     dayHistory,
     gameRecapSnapshots,

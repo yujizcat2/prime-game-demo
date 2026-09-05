@@ -31,6 +31,7 @@ export default function CollectionRewardModal({reward, onClose}){
         {reward.totalScore > 0 && (
           <p className="collection-reward-breakdown">
             收藏{reward.collectionScore}
+            {reward.comboBonus > 0 ? ` · 连击 +${reward.comboBonus}` : ""}
           </p>
         )}
       </section>

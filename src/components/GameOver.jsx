@@ -27,6 +27,10 @@ export default function GameOver({
 
   recapActionCounts,
 
+  maxCombo,
+
+  comboBonusTotal,
+
   onRestart
 
 }) {
@@ -281,6 +285,8 @@ export default function GameOver({
             <span>最终处理数量 <strong>{recapValue(recapActionCounts?.reduce)}</strong></span>
             <span>质数 / 合数收藏 <strong>{primeCollectionCount} / {compositeCollectionCount}</strong></span>
             <span>普通料理系数量 <strong>{normalFoodTypeCount}</strong></span>
+            <span>全局最高连击 <strong>{maxCombo ?? 0}</strong></span>
+            <span>累计连击奖励 <strong>+{comboBonusTotal ?? 0}</strong></span>
           </div>
           <div className="mt-3 border-t border-gray-200 pt-3 leading-5">
             {snapshots.length === 0 ? <div>阶段快照：—</div> : <>
