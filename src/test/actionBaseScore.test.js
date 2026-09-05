@@ -9,6 +9,7 @@ const createState = (cards, overrides = {}) => ({
   superHeaterCount: 0,
   ...overrides
 });
+const dailyCollections = Array.from({length: 8}, (_, index) => ({value: index + 2, foodType: BASE_FOOD_TYPES[index % 2]}));
 
 const combineState = createState([
   {value: 2, foodType: BASE_FOOD_TYPES[0], boardIndex: 0},
@@ -47,12 +48,12 @@ assert.equal(collected.score, collected.collectionCards[0].scoreGain);
 assert.equal(applyAction(combineState, {type: "combine", indexes: [0, 8]}), combineState);
 assert.equal(applyAction(reduceState, {type: "reduce", indexes: [0, 8]}), reduceState);
 
-const closingCombine = applyAction({...combineState, score: 990, steps: 23, dayMinutesElapsed: 1410}, {type: "combine", indexes: [0, 1]});
+const closingCombine = applyAction({...combineState, score: 990, steps: 23, dayMinutesElapsed: 1410, collectionCards: dailyCollections}, {type: "combine", indexes: [0, 1]});
 assert.equal(closingCombine.score, 1000);
 assert.equal(closingCombine.daySettlement.scoreGainToday, 1000);
 assert.equal(closingCombine.daySettlement.passed, true);
 
-const closingReduce = applyAction({...reduceState, score: 980, steps: 23, dayMinutesElapsed: 1395}, {type: "reduce", indexes: [0, 1]});
+const closingReduce = applyAction({...reduceState, score: 980, steps: 23, dayMinutesElapsed: 1395, collectionCards: dailyCollections}, {type: "reduce", indexes: [0, 1]});
 assert.equal(closingReduce.score, 1000);
 assert.equal(closingReduce.daySettlement.scoreGainToday, 1000);
 assert.equal(closingReduce.daySettlement.passed, true);

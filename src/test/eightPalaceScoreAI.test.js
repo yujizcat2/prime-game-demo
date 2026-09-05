@@ -500,7 +500,7 @@ const failedDayOne = resolveGameOver({
   score: 99,
   collectionCards: Array.from({length: 20}, (_, index) => ({value: index + 2, foodType: "aquatic"}))
 });
-assert.equal(failedDayOne.gameOverReason, "daily_score_target_not_met", "fewer than 100 daily points ends the day-cycle run");
+assert.equal(failedDayOne.gameOverReason, "daily_targets_not_met", "missing a daily target ends the day-cycle run");
 assert.equal(Object.hasOwn(failedDayOne.daySettlement, "nextDayCards"), false, "settlement no longer creates next-day preparation");
 
 const daySummary = summarizeScoreResults([

@@ -23,6 +23,7 @@ const collectingReduceCards = [
   {value: 2, foodType: BASE_FOOD_TYPES[0], boardIndex: 0},
   {value: 4, foodType: BASE_FOOD_TYPES[1], boardIndex: 1}
 ];
+const dailyCollections = Array.from({length: 8}, (_, index) => ({value: index + 10, foodType: BASE_FOOD_TYPES[index % 2]}));
 
 const ordinary = applyAction(createState(normalReduceCards), {type: "reduce", indexes: [0, 1]});
 assert.equal(ordinary.latestActionDurationMinutes, 45);
@@ -57,7 +58,8 @@ const overtime45Base = createState(normalReduceCards, {
   steps: 23,
   score: 980,
   dayMinutesElapsed: 1420,
-  totalActionMinutes: 1420
+  totalActionMinutes: 1420,
+  collectionCards: dailyCollections
 });
 const overtime45 = applyAction(overtime45Base, {type: "reduce", indexes: [0, 1]});
 assert.equal(getDayTime(overtime45), "24:25");
@@ -70,7 +72,8 @@ const overtime60Base = createState(collectingReduceCards, {
   score: 1000,
   comboCount: 1,
   dayMinutesElapsed: 1430,
-  totalActionMinutes: 1430
+  totalActionMinutes: 1430,
+  collectionCards: dailyCollections
 });
 const overtime60 = applyAction(overtime60Base, {type: "reduce", indexes: [0, 1]});
 assert.equal(getDayTime(overtime60), "24:50");

@@ -22,6 +22,7 @@
 .day-panel-business > div { display: flex; flex-direction: column; }
 .day-panel-business > div > span { color: #7d8982; font-size: 10px; font-weight: 800; letter-spacing: .08em; }
 .day-panel-business > div > strong { margin-top: 2px; font-size: 20px; font-weight: 950; line-height: 1; }
+.day-panel-target--met > strong { color: #337158; }
 .day-panel-business small { color: #718078; font-size: 12px; font-weight: 800; }
 .day-panel-gap, .day-panel-complete { font-size: 12px; font-weight: 900; }
 .day-panel-gap { color: #936d3f; }
@@ -29,6 +30,7 @@
 
 .day-panel-progress { height: 6px; margin-top: 8px; overflow: hidden; border-radius: 999px; background: rgba(82, 111, 96, .12); }
 .day-panel-progress > span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #789b88, #a4b37e); transition: width 260ms ease-out; }
+.day-panel-goals-complete { margin-top: 6px; color: #337158; font-size: 11px; font-weight: 900; text-align: right; }
 .day-panel-remaining { margin-top: 7px; color: #697970; font-size: 11px; font-weight: 800; text-align: right; }
 .day-panel-remaining strong { color: #456455; font-size: 15px; font-weight: 950; }
 .day-panel--near { border-color: rgba(158, 125, 68, .3); }
@@ -39,5 +41,7 @@
   .day-panel { padding: 11px 14px 9px; border-radius: 16px; }
   .day-panel-clock > strong { font-size: 26px; }
   .day-panel-business { margin-top: 8px; }
+  .day-panel-business { align-items: flex-start; flex-wrap: wrap; gap: 8px 14px; }
+  .day-panel-business .day-panel-complete { margin-left: auto; }
   .day-panel-business > div > strong { font-size: 18px; }
 }

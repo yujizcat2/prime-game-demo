@@ -830,6 +830,7 @@ function App(){
             period={game.dayPeriod}
             dayMinutesElapsed={game.dayMinutesElapsed}
             score={game.score}
+            collectionsToday={game.collectionsToday}
             steps={game.steps}
             totalActionMinutes={game.totalActionMinutes}
             comboCount={game.comboCount}

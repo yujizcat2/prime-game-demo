@@ -1510,7 +1510,7 @@ function RandomSummaryGrid({result}){
 
 function getScoreGameEndReason(game){
   if(game.reachedTestProtectionLimit) return "测试保护上限";
-  if(game.gameOverReason === "daily_score_target_not_met") return `Day ${game.finalDay} 营业额目标未完成`;
+  if(game.gameOverReason === "daily_targets_not_met") return `Day ${game.finalDay} 每日目标未完成`;
   if(game.gameOverReason === "week_complete") return "星期日营业完成";
   if(game.gameOverReason === "no_legal_actions") return "无合法动作";
   return game.gameOverReason ?? "—";

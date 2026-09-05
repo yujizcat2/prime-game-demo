@@ -14,11 +14,11 @@ export default function DaySettlement({settlement, onContinue}){
   return <div className="day-settlement-backdrop" role="dialog" aria-modal="true" aria-labelledby="day-settlement-title">
     <section className="day-settlement-card">
       <div className="day-settlement-kicker">DAY {settlement.day} · {settlement.weekday} · 打烊</div>
-      <h2 id="day-settlement-title">{settlement.passed ? "今日营业完成" : "今日营业额不足"}</h2>
+      <h2 id="day-settlement-title">{settlement.passed ? "今日营业完成" : "今日目标未完成"}</h2>
       <div className="day-settlement-rule" />
       <Metric label="今日获得积分" value={`+${numberFormatter.format(settlement.scoreGainToday)}`} />
-      <Metric label={`累计营业额 · ${settlement.scoreTargetMet ? "已达成" : "未达成"}`} value={`${numberFormatter.format(settlement.finalScore)} / ${settlement.targetScore}`} />
-      <Metric label="今日新增收藏" value={numberFormatter.format(settlement.collectionGainToday)} />
+      <Metric label="营业额" value={`${numberFormatter.format(settlement.finalScore)} / ${settlement.targetScore} ${settlement.scoreTargetMet ? "✓" : "✕"}`} />
+      <Metric label="今日收藏" value={`${numberFormatter.format(settlement.collectionGainToday)} / ${settlement.collectionTarget} ${settlement.collectionTargetMet ? "✓" : "✕"}`} />
       <Metric label="今日效率" value={settlement.efficiency.toFixed(2)} />
       <Metric label="当日最高连击" value={settlement.maxComboToday} />
       <Metric label="当日连击奖励" value={`+${numberFormatter.format(settlement.comboBonusToday)}`} />
