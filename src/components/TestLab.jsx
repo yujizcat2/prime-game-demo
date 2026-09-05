@@ -1394,7 +1394,7 @@ function ScoreSummaryGrid({result}){
     <div className="test-lab-timeline">
       {(result.daySummaries ?? []).map(day => <div key={day.day}>
           Day {day.day} · 到达 {day.reachedCount}/{result.games ?? result.attempts} · 通过 {day.passedCount}/{day.reachedCount} ({(day.passRate * 100).toFixed(1)}%)
-          {` · 当日目标 ${day.targetScore} · 平均打烊积分 ${day.averageClosingScore.toFixed(1)}`}
+          {` · 累计目标 ${day.targetScore} · 平均打烊累计积分 ${day.averageClosingScore.toFixed(1)}`}
           {` · 平均当日新增积分 +${day.averageScoreGainToday.toFixed(1)} · 平均新增收藏 ${day.averageCollectionCount.toFixed(1)} · 平均盘面总和 ${day.averageBoardSum.toFixed(1)}`}
           {` · 平均最高连击 ${day.averageMaxCombo.toFixed(1)} · 平均连击奖励 +${day.averageComboBonus.toFixed(1)}`}
       </div>)}
@@ -1558,7 +1558,7 @@ function DayHistory({game}){
       </div>
       {record.settlement && <div className="test-lab-day-section">
         <strong>打烊 · 24:00</strong>
-        {` · 最终 ${record.settlement.finalScore} · 当日 +${record.settlement.scoreGainToday} · 效率 ${record.settlement.efficiency.toFixed(2)}`}
+        {` · 累计 ${record.settlement.finalScore} / ${record.settlement.targetScore} · 当日 +${record.settlement.scoreGainToday} · 效率 ${record.settlement.efficiency.toFixed(2)}`}
         {` · 收藏 +${record.settlement.collectionGainToday} · 盘面总和 ${record.settlement.boardSum} · ${record.settlement.passed ? "通过" : "未通过"}`}
       </div>}
       {record.collectionSequence.length > 0 && <div className="test-lab-day-section">

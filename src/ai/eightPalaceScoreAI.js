@@ -20,7 +20,7 @@ import {
   createFoodTypeBoardSnapshot,
   summarizeFoodTypeTelemetry
 } from "./foodTypeTelemetry";
-import { DAY_SCORE_TARGET, advanceToNextDay, getDayTime } from "../game/dayCycle";
+import { advanceToNextDay, getDayTargetScore, getDayTime } from "../game/dayCycle";
 
 export const SCORE_AI_DEFAULTS = Object.freeze({
   depth: 3,
@@ -1040,7 +1040,7 @@ export function summarizeScoreResults(results){
     const passedCount = settlements.filter(settlement => settlement.passed).length;
     return {
       day,
-      targetScore: DAY_SCORE_TARGET,
+      targetScore: getDayTargetScore(day),
       reachedCount: reached.length,
       passedCount,
       passRate: reached.length ? passedCount / reached.length : 0,

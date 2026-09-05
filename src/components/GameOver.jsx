@@ -181,7 +181,7 @@ export default function GameOver({
           <div className="mb-3 text-center text-xs tracking-[.14em] text-amber-700">DAY {daySettlement.day} · 打烊</div>
           <div className="flex justify-between py-1"><span>最终积分</span><strong>{daySettlement.finalScore}</strong></div>
           <div className="flex justify-between py-1"><span>今日获得积分</span><strong>+{daySettlement.scoreGainToday}</strong></div>
-          <div className="flex justify-between py-1"><span>今日营业额</span><strong>{daySettlement.scoreGainToday} / {daySettlement.targetScore}</strong></div>
+          <div className="flex justify-between py-1"><span>累计营业额</span><strong>{daySettlement.finalScore} / {daySettlement.targetScore}</strong></div>
           <div className="flex justify-between py-1"><span>今日效率</span><strong>{daySettlement.efficiency.toFixed(2)}</strong></div>
           <div className="flex justify-between py-1"><span>今日新增收藏</span><strong>{daySettlement.collectionGainToday}</strong></div>
         </div>}

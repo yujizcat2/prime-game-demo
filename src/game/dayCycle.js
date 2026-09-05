@@ -5,8 +5,11 @@ import { getScoreEfficiency } from "./scoreEfficiency";
 export const DAY_DURATION_MINUTES = 1440;
 export const MAX_DAYS = 7;
 export const OPENING_HOUR = 0;
-export const DAY_SCORE_TARGET = 100;
 export const WEEKDAYS = Object.freeze(["星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"]);
+
+export function getDayTargetScore(day = 1){
+  return Math.max(1, Math.floor(day)) * 100;
+}
 
 export function getWeekday(day = 1){
   return WEEKDAYS[Math.min(MAX_DAYS, Math.max(1, Math.floor(day))) - 1];
@@ -41,13 +44,14 @@ export function createDaySettlement(state){
   const finalScore = state.score ?? 0;
   const todayActions = getDayStep(state);
   const scoreGainToday = finalScore - (state.dayStartScore ?? 0);
-  const scoreTargetMet = scoreGainToday >= DAY_SCORE_TARGET;
+  const targetScore = getDayTargetScore(state.day);
+  const scoreTargetMet = finalScore >= targetScore;
   const passed = scoreTargetMet;
   return {
     day: state.day,
     weekday: getWeekday(state.day),
     finalScore,
-    targetScore: DAY_SCORE_TARGET,
+    targetScore,
     scoreGainToday,
     collectionGainToday: todayCollections.length,
     scoreTargetMet,

@@ -5,10 +5,10 @@ import { resolveGameOver } from "../game/gameEngine";
 import { getScoreEfficiency } from "../game/scoreEfficiency";
 import {
   DAY_DURATION_MINUTES,
-  DAY_SCORE_TARGET,
   MAX_DAYS,
   WEEKDAYS,
   advanceToNextDay,
+  getDayTargetScore,
   getDayTime,
   getWeekday
 } from "../game/dayCycle";
@@ -21,7 +21,10 @@ const makeCollections = (count, offset = 0) => Array.from({length: count}, (_, i
 
 const initial = createDayState();
 assert.equal(DAY_DURATION_MINUTES, 1440);
-assert.equal(DAY_SCORE_TARGET, 100);
+assert.deepEqual(
+  Array.from({length: MAX_DAYS}, (_, index) => getDayTargetScore(index + 1)),
+  [100, 200, 300, 400, 500, 600, 700]
+);
 assert.equal(initial.day, 1);
 assert.equal(getWeekday(initial.day), "星期一");
 assert.equal(getDayTime(initial), "00:00");
@@ -96,9 +99,19 @@ const dayTwoFailed = resolveGameOver({
   score: 199,
   collectionCards: [...dayTwoOpening.collectionCards, ...makeCollections(10, 10)]
 });
-assert.equal(dayTwoFailed.daySettlement.scoreGainToday, 99, "Day 2 uses daily gain instead of cumulative score");
+assert.equal(dayTwoFailed.daySettlement.scoreGainToday, 99, "Day 2 retains daily gain as a statistic");
 assert.equal(dayTwoFailed.daySettlement.passed, false);
 assert.equal(dayTwoFailed.daySettlement.efficiency, 99 / 1440 * 60, "Day 2 efficiency uses only Day 2 action minutes");
+
+const bufferedDayOne = resolveGameOver({...initial, steps: 24, dayMinutesElapsed: 1440, score: 155, collectionCards: tenCollections});
+const bufferedDayTwo = advanceToNextDay(bufferedDayOne);
+assert.equal(bufferedDayTwo.score, 155, "Day 1 excess revenue carries into Day 2");
+const alreadyAtDayTwoTarget = resolveGameOver({...bufferedDayTwo, score: 205});
+assert.equal(alreadyAtDayTwoTarget.daySettlement, null, "meeting Day 2's target before closing never settles the day early");
+const bufferedDayTwoPassed = resolveGameOver({...bufferedDayTwo, steps: 48, dayMinutesElapsed: 1440, score: 200});
+assert.equal(bufferedDayTwoPassed.daySettlement.scoreGainToday, 45);
+assert.equal(bufferedDayTwoPassed.daySettlement.targetScore, 200);
+assert.equal(bufferedDayTwoPassed.daySettlement.passed, true, "Day 2 passes on cumulative revenue");
 
 for(let day = 1; day <= MAX_DAYS; day++){
   assert.equal(state.day, day);
@@ -129,5 +142,10 @@ assert.equal(state.gameOver, true);
 assert.equal(state.gameOverReason, "week_complete");
 assert.equal(advanceToNextDay(state), state, "the eighth day is never created");
 assert.equal(state.dayHistory.length, 7);
+
+const daySevenFailed = resolveGameOver({...initial, day: 7, dayMinutesElapsed: 1440, score: 699});
+assert.equal(daySevenFailed.gameOverReason, "daily_score_target_not_met");
+const daySevenPassed = resolveGameOver({...initial, day: 7, dayMinutesElapsed: 1440, score: 700});
+assert.equal(daySevenPassed.gameOverReason, "week_complete");
 
 console.log("dayCycle.test.js passed");

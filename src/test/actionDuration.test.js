@@ -87,7 +87,7 @@ assert.equal(dayTwo.dayMinutesElapsed, 0);
 assert.equal(getDayTime(dayTwo), "00:00");
 assert.equal(dayTwo.totalActionMinutes, 1465, "cross-day clock reset does not reset total action minutes");
 
-const weekEnd = applyAction({...overtime60Base, day: 7}, {type: "reduce", indexes: [0, 1]});
+const weekEnd = applyAction({...overtime60Base, day: 7, score: 700}, {type: "reduce", indexes: [0, 1]});
 assert.equal(weekEnd.gameOverReason, "week_complete");
 assert.equal(weekEnd.day, 7);
 assert.equal(advanceToNextDay(weekEnd), weekEnd);
