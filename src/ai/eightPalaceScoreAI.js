@@ -20,7 +20,7 @@ import {
   createFoodTypeBoardSnapshot,
   summarizeFoodTypeTelemetry
 } from "./foodTypeTelemetry";
-import { ACTIONS_PER_DAY, advanceToNextDay, getDayScoreTarget, getDayTime } from "../game/dayCycle";
+import { ACTIONS_PER_DAY, advanceToNextDay, getDayTime } from "../game/dayCycle";
 
 export const SCORE_AI_DEFAULTS = Object.freeze({
   depth: 3,
@@ -809,7 +809,6 @@ export async function runScoreGame({
     state.steps
   );
   const collectedNormalFoodTypeStats = getCollectedNormalFoodTypeStats(state.collectionCards);
-  const newFoodTypeBonusTotal = state.collectionCards.reduce((sum, card) => sum + (card.newFoodTypeBonus ?? 0), 0);
   const largeCollectionStats = Object.fromEntries([50, 70, 90].map(threshold => {
     const cards = state.collectionCards.filter(card => card.value >= threshold);
     return [threshold, {
@@ -886,7 +885,6 @@ export async function runScoreGame({
     collectionFoodTypeTimeline,
     collectedNormalFoodTypeCount: collectedNormalFoodTypeStats.count,
     firstCollectedNormalFoodTypeSteps: collectedNormalFoodTypeStats.firstSteps,
-    newFoodTypeBonusTotal,
     largeCollectionStats,
     dominantCollectionFoodType: dominantCollectionEntry?.[0] ?? null,
     dominantCollectionFoodTypeCount: dominantCollectionEntry?.[1] ?? 0,
@@ -995,12 +993,10 @@ export function summarizeScoreResults(results){
     const preparations = settlements.filter(settlement => settlement.nextDayCards?.length > 0);
     return {
       day,
-      targetScore: getDayScoreTarget(day),
       reachedCount: reached.length,
       passedCount,
       passRate: reached.length ? passedCount / reached.length : 0,
       averageClosingScore: average(settlements, settlement => settlement.finalScore),
-      averageLeadOrDeficit: average(settlements, settlement => settlement.finalScore - settlement.targetScore),
       averageScoreGainToday: average(settlements, settlement => settlement.scoreGainToday),
       averageCollectionCount: average(settlements, settlement => settlement.collectionGainToday),
       averageBoardSum: average(settlements, settlement => settlement.boardSum),
@@ -1029,8 +1025,6 @@ export function summarizeScoreResults(results){
     const reached = results.filter(result => result.firstCollectedNormalFoodTypeSteps?.[target] != null);
     return [target, reached.length ? average(reached, result => result.firstCollectedNormalFoodTypeSteps[target]) : null];
   }));
-  const totalFinalScore = results.reduce((sum, result) => sum + result.finalScore, 0);
-  const totalNewFoodTypeBonus = results.reduce((sum, result) => sum + (result.newFoodTypeBonusTotal ?? 0), 0);
   const largeCollectionSummary = Object.fromEntries([50, 70, 90].map(threshold => {
     const totalCount = results.reduce((sum, result) => sum + (result.largeCollectionStats?.[threshold]?.count ?? 0), 0);
     const boardValueTotal = results.reduce((sum, result) => {
@@ -1084,9 +1078,6 @@ export function summarizeScoreResults(results){
       results.length ? collectedNormalFoodTypeReachCounts[target] / results.length : 0
     ])),
     averageFirstCollectedNormalFoodTypeSteps,
-    averageNewFoodTypeBonus: average(results, result => result.newFoodTypeBonusTotal ?? 0),
-    newFoodTypeBonusScoreRatio: totalFinalScore ? totalNewFoodTypeBonus / totalFinalScore : 0,
-    combinedAuxiliaryBonusScoreRatio: totalFinalScore ? totalNewFoodTypeBonus / totalFinalScore : 0,
     largeCollectionSummary,
     singleFlavorTriggeredGameCount: singleFlavorResults.length,
     singleFlavorTriggerRate: results.length ? singleFlavorResults.length / results.length : 0,

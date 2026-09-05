@@ -821,11 +821,12 @@ function App(){
 
           {game.dayCycleEnabled ? <DayPanel
             day={game.day}
+            weekday={game.weekday}
             time={game.dayTime}
             period={game.dayPeriod}
             dayStep={game.dayStep}
             score={game.score}
-            target={game.dayTarget}
+            steps={game.steps}
           /> : <StepPanel
             steps={
               game.steps

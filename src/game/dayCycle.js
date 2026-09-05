@@ -1,18 +1,17 @@
 import { createEmptyBoard, getBoardCount } from "./boardRules";
 import { getBaseScore, getNonDrinkBoardSum } from "./scoreValue";
+import { getScoreEfficiency } from "./scoreEfficiency";
 
-export const ACTIONS_PER_DAY = 20;
-export const OPENING_HOUR = 10;
-export const MINUTES_PER_ACTION = 30;
-export const MIN_COLLECTIONS_PER_DAY = 4;
+export const ACTIONS_PER_DAY = 24;
+export const MAX_DAYS = 7;
+export const OPENING_HOUR = 0;
+export const MINUTES_PER_ACTION = 60;
+export const MIN_COLLECTIONS_PER_DAY = 10;
 export const NEXT_DAY_BOARD_INDEXES = Object.freeze([0, 1, 2, 3, 4]);
+export const WEEKDAYS = Object.freeze(["星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"]);
 
-const DAY_SCORE_TARGETS = [600, 1400, 2300, 3300, 4400, 5600, 7000];
-
-export function getDayScoreTarget(day = 1){
-  const normalizedDay = Math.max(1, Math.floor(day));
-  return DAY_SCORE_TARGETS[normalizedDay - 1]
-    ?? DAY_SCORE_TARGETS.at(-1) + (normalizedDay - DAY_SCORE_TARGETS.length) * 2200;
+export function getWeekday(day = 1){
+  return WEEKDAYS[Math.min(MAX_DAYS, Math.max(1, Math.floor(day))) - 1];
 }
 
 export function getDayStep(state){
@@ -30,10 +29,11 @@ export function getDayPeriod(state){
   const dayStep = getDayStep(state);
   if(dayStep >= ACTIONS_PER_DAY) return "打烊";
   const hour = OPENING_HOUR + Math.floor(dayStep * MINUTES_PER_ACTION / 60);
+  if(hour < 6) return "凌晨";
   if(hour < 12) return "上午";
   if(hour < 14) return "午间";
-  if(hour < 17) return "下午";
-  return "傍晚";
+  if(hour < 18) return "下午";
+  return "晚上";
 }
 
 export function createNextDayCards(collections = []){
@@ -58,24 +58,25 @@ export function createDaySettlement(state){
   const todayCollections = (state?.collectionCards ?? state?.collection ?? [])
     .slice(state?.dayStartCollectionCount ?? 0)
     .map(card => ({value: card.value, foodType: card.foodType}));
-  const targetScore = getDayScoreTarget(state.day);
   const finalScore = state.score ?? 0;
-  const scoreTargetMet = finalScore >= targetScore;
+  const todayActions = getDayStep(state);
+  const scoreGainToday = finalScore - (state.dayStartScore ?? 0);
   const collectionTargetMet = todayCollections.length >= MIN_COLLECTIONS_PER_DAY;
-  const passed = scoreTargetMet && collectionTargetMet;
+  const passed = collectionTargetMet;
   return {
     day: state.day,
-    targetScore,
+    weekday: getWeekday(state.day),
     finalScore,
-    scoreGainToday: finalScore - (state.dayStartScore ?? 0),
+    scoreGainToday,
     collectionGainToday: todayCollections.length,
     minimumCollectionCount: MIN_COLLECTIONS_PER_DAY,
-    scoreTargetMet,
     collectionTargetMet,
+    todayActions,
+    efficiency: getScoreEfficiency(scoreGainToday, todayActions),
     boardCount: getBoardCount(state.board),
     boardSum: getNonDrinkBoardSum(state.board),
     passed,
-    nextDayCards: passed ? createNextDayCards(todayCollections) : []
+    nextDayCards: passed && state.day < MAX_DAYS ? createNextDayCards(todayCollections) : []
   };
 }
 
@@ -86,15 +87,15 @@ export function settleDayIfNeeded(state){
     ...state,
     daySettlement,
     dayHistory: [...(state.dayHistory ?? []), daySettlement],
-    gameOver: !daySettlement.passed,
-    gameOverReason: daySettlement.passed
-      ? null
-      : daySettlement.scoreTargetMet ? "day_collection_failed" : "day_target_failed"
+    gameOver: !daySettlement.passed || state.day >= MAX_DAYS,
+    gameOverReason: !daySettlement.passed
+      ? "daily_collection_target_not_met"
+      : state.day >= MAX_DAYS ? "week_complete" : null
   };
 }
 
 export function advanceToNextDay(state){
-  if(!state?.dayCycleEnabled || !state.daySettlement?.passed) return state;
+  if(!state?.dayCycleEnabled || !state.daySettlement?.passed || state.day >= MAX_DAYS) return state;
   const board = createEmptyBoard();
   state.daySettlement.nextDayCards.forEach((card, index) => {
     board[NEXT_DAY_BOARD_INDEXES[index]] = {

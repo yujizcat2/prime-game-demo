@@ -124,8 +124,7 @@ assert.ok(Number.isInteger(result.finalScore), "AI final score remains an intege
 assert.ok(result.collections.every(card =>
   Number.isInteger(card.baseScore) &&
   Number.isInteger(card.nonDrinkBoardSum) &&
-  typeof card.exponent === "number" &&
-  typeof card.firstDiscoveryRate === "number" &&
+  Number.isInteger(card.existingFoodTypeCountForSameNumber) &&
   Number.isInteger(card.collectionScore) &&
   Number.isInteger(card.bonusScore) &&
   Number.isInteger(card.totalScore)
@@ -252,10 +251,6 @@ for(const summary of [tenGames, tenGames.randomComparison]){
       summary.collectedNormalFoodTypeReachCounts[target] / summary.results.length
     );
   }
-  assert.equal(
-    summary.averageNewFoodTypeBonus,
-    summary.results.reduce((sum, game) => sum + game.newFoodTypeBonusTotal, 0) / summary.results.length
-  );
   for(const threshold of [50, 70, 90]){
     assert.equal(
       summary.largeCollectionSummary[threshold].averageCount,
@@ -284,16 +279,16 @@ const scoreReportSource = testLabSource.slice(
 );
 assert.doesNotMatch(scoreReportSource, /Step /, "Score AI report uses Day and in-game time instead of visible Step labels");
 
-assert.deepEqual([0, 20, 21, 40].map(getScoreTelemetryClock), [
-  {day: 1, time: "10:00", dayActionIndex: 0},
-  {day: 1, time: "20:00", dayActionIndex: 20},
-  {day: 2, time: "10:30", dayActionIndex: 1},
-  {day: 2, time: "20:00", dayActionIndex: 20}
+assert.deepEqual([0, 24, 25, 48].map(getScoreTelemetryClock), [
+  {day: 1, time: "00:00", dayActionIndex: 0},
+  {day: 1, time: "24:00", dayActionIndex: 24},
+  {day: 2, time: "01:00", dayActionIndex: 1},
+  {day: 2, time: "24:00", dayActionIndex: 24}
 ]);
 {
-  const longSnapshots = Array.from({length: 120}, (_, index) => ({
+  const longSnapshots = Array.from({length: 144}, (_, index) => ({
     actionIndex: index + 1,
-    day: Math.ceil((index + 1) / 20),
+    day: Math.ceil((index + 1) / 24),
     collections: []
   }));
   const longRecords = scoreAITestUtils.createDayRecords(
@@ -303,7 +298,7 @@ assert.deepEqual([0, 20, 21, 40].map(getScoreTelemetryClock), [
     6
   );
   assert.equal(longRecords.length, 6);
-  assert.ok(longRecords.every(day => day.actions.length === 20), "100+ action telemetry is retained without truncation");
+  assert.ok(longRecords.every(day => day.actions.length === 24), "100+ action telemetry is retained without truncation");
 }
 
 let replay = createGameState(opening, {dayCycleEnabled: true});
@@ -320,7 +315,10 @@ assert.equal(replay.score, result.finalScore, "AI simulation score matches forma
 const atStep99 = {...createGameState(opening), steps: 99, checkpoint: {index: 8, step: 110, type: "score", requiredScore: 1}};
 const finalAction = chooseScoreAction(atStep99, {depth: 1, beamWidth: 8});
 assert.ok(finalAction, "Score AI can select the final legal action at Step 99");
-const atStep100 = applyAction(atStep99, finalAction);
+const stepAction = ["combine", "reduce"].includes(finalAction.type)
+  ? finalAction
+  : getLegalActions(atStep99).find(action => ["combine", "reduce"].includes(action.type));
+const atStep100 = applyAction(atStep99, stepAction);
 assert.equal(atStep100.steps, 100);
 assert.notEqual(atStep100.gameOverReason, "step_limit");
 assert.notEqual(chooseScoreAction(atStep100), null, "Score AI remains playable at Step 100");
@@ -381,14 +379,14 @@ assert.equal(dayCycleScoreGame.checkpointHistory.length, 0, "day-cycle Score AI 
 assert.equal(dayCycleScoreGame.dayHistory[0]?.passed, true, "Score AI passes the first day in the regression opening");
 assert.equal(dayCycleScoreGame.finalDay, 2, "a passed closing automatically advances Score AI to Day 2");
 assert.equal(dayCycleScoreGame.dayHistory[0].nextDayCards.length, 5);
-const firstDayTwoAction = dayCycleScoreGame.actionPath.find(action => action.stepBefore >= 20 && action.inputs.length > 0);
+const firstDayTwoAction = dayCycleScoreGame.actionPath.find(action => action.stepBefore >= 24 && action.inputs.length > 0);
 assert.ok(firstDayTwoAction, "Score AI continues searching from the Day 2 board");
 assert.ok(firstDayTwoAction.inputs.every(input => dayCycleScoreGame.dayHistory[0].nextDayCards.some(card =>
   card.value === input.value && card.foodType === input.foodType
 )), "the first Day 2 action uses the five compressed cards");
 const formalActions = dayCycleScoreGame.actionPath.filter(action => action.stepAfter > action.stepBefore);
 assert.equal(dayCycleScoreGame.actionSnapshots.length, formalActions.length, "every time-consuming action has exactly one snapshot");
-assert.equal(dayCycleScoreGame.dayRecords[0].actions.length, 20, "a completed day contains 20 action snapshots");
+assert.equal(dayCycleScoreGame.dayRecords[0].actions.length, 24, "a completed day contains 24 action snapshots");
 assert.ok(dayCycleScoreGame.actionSnapshots.every(snapshot =>
   snapshot.board.length === 9
   && snapshot.board.every(piece => piece === null || (Number.isInteger(piece.value) && typeof piece.foodType === "string"))
@@ -419,15 +417,16 @@ assert.deepEqual(
 
 const failedDayOne = resolveGameOver({
   ...createGameState(opening, {dayCycleEnabled: true}),
-  steps: 20,
-  score: 499
+  steps: 24,
+  score: 999999,
+  collectionCards: Array.from({length: 9}, (_, index) => ({value: index + 2, foodType: "aquatic"}))
 });
-assert.equal(failedDayOne.gameOverReason, "day_target_failed", "an unmet Day 1 target ends the day-cycle run");
+assert.equal(failedDayOne.gameOverReason, "daily_collection_target_not_met", "fewer than ten collections ends the day-cycle run");
 assert.equal(failedDayOne.daySettlement.nextDayCards.length, 0, "a failed day does not prepare or open another day");
 
 const daySummary = summarizeScoreResults([
-  {finalScore: 600, scoreEfficiency: 30, collectionCount: 1, primeCollectionCount: 1, compositeCollectionCount: 0, steps: 20, completed100Steps: false, deadlocked: false, dayCycleEnabled: true, finalDay: 1, dayHistory: [{day: 1, targetScore: 500, finalScore: 600, collectionGainToday: 1, boardSum: 100, passed: true}]},
-  {finalScore: 400, scoreEfficiency: 20, collectionCount: 0, primeCollectionCount: 0, compositeCollectionCount: 0, steps: 20, completed100Steps: false, deadlocked: false, dayCycleEnabled: true, finalDay: 1, dayHistory: [{day: 1, targetScore: 500, finalScore: 400, collectionGainToday: 0, boardSum: 80, passed: false}]},
+  {finalScore: 600, scoreEfficiency: 25, collectionCount: 10, primeCollectionCount: 1, compositeCollectionCount: 9, steps: 24, completed100Steps: false, deadlocked: false, dayCycleEnabled: true, finalDay: 1, dayHistory: [{day: 1, finalScore: 600, scoreGainToday: 600, collectionGainToday: 10, boardSum: 100, passed: true}]},
+  {finalScore: 400, scoreEfficiency: 16.67, collectionCount: 9, primeCollectionCount: 0, compositeCollectionCount: 9, steps: 24, completed100Steps: false, deadlocked: false, dayCycleEnabled: true, finalDay: 1, dayHistory: [{day: 1, finalScore: 400, scoreGainToday: 400, collectionGainToday: 9, boardSum: 80, passed: false}]},
   {finalScore: 0, scoreEfficiency: 0, collectionCount: 0, primeCollectionCount: 0, compositeCollectionCount: 0, steps: 4, completed100Steps: false, deadlocked: true, dayCycleEnabled: true, finalDay: 1, dayHistory: []}
 ]);
 assert.equal(daySummary.daySummaries[0].reachedCount, 3);

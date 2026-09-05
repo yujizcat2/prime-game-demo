@@ -39,10 +39,7 @@ console.log(JSON.stringify({
   averageCollectedNormalFoodTypeCount: average(collectedTypeCounts),
   collectedNormalFoodTypeReachCounts: reachCounts,
   averageFirstCollectedNormalFoodTypeSteps: firstSteps,
-  averageNewFoodTypeBonus: report.averageNewFoodTypeBonus,
   averageBoardPowerBonus: report.averageBoardPowerBonus,
-  newFoodTypeBonusScoreRatio: report.newFoodTypeBonusScoreRatio,
-  combinedAuxiliaryBonusScoreRatio: report.combinedAuxiliaryBonusScoreRatio,
   largeCollectionSummary: report.largeCollectionSummary,
   lowestScore: report.lowestScore
 }, null, 2));

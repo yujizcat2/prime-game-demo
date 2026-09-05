@@ -107,13 +107,12 @@ const collectible = (value, foodType, singleFlavorPenalty) => ({
   ]);
   const normal = applyAction(normalState, {type: "reduce", indexes: [0, 1]});
   const penalized = applyAction(penalizedState, {type: "reduce", indexes: [0, 1]});
-  const rawBaseScore = getRawBaseScore(2, 16);
-  assert.equal(normal.latestCollection.baseScore, Math.round(rawBaseScore));
-  assert.equal(normal.latestCollection.collectionScore, Math.round(rawBaseScore * (1 + normal.latestCollection.firstDiscoveryRate)));
-  assert.equal(penalized.latestCollection.baseScore, Math.round(rawBaseScore));
-  assert.equal(penalized.latestCollection.collectionScore, Math.round(rawBaseScore * 0.5));
-  assert.equal(penalized.latestCollection.newFoodTypeBonus, normal.latestCollection.newFoodTypeBonus);
-  assert.equal(penalized.latestCollection.totalScore, penalized.latestCollection.collectionScore + penalized.latestCollection.newFoodTypeBonus);
+  const rawBaseScore = getRawBaseScore(2);
+  assert.equal(normal.latestCollection.baseScore, rawBaseScore);
+  assert.equal(normal.latestCollection.collectionScore, rawBaseScore);
+  assert.equal(penalized.latestCollection.baseScore, rawBaseScore);
+  assert.equal(penalized.latestCollection.collectionScore, rawBaseScore);
+  assert.equal(penalized.latestCollection.totalScore, rawBaseScore);
 }
 
 {
@@ -128,12 +127,11 @@ const collectible = (value, foodType, singleFlavorPenalty) => ({
 {
   const state = baseState([]);
   const card = collectible(11, vegetable, true);
-  const expectedCollectionScore = Math.round(getRawBaseScore(11, 0) * 0.5);
-  const expectedTotal = expectedCollectionScore + 10;
-  assert.equal(getEightPalaceCollectionScoreGain(state, card), expectedTotal);
+  const expectedCollectionScore = getRawBaseScore(11);
+  assert.equal(getEightPalaceCollectionScoreGain(state, card), expectedCollectionScore);
   const settled = applyEightPalaceCollection(state, card);
   assert.equal(settled.latestCollection.collectionScore, expectedCollectionScore);
-  assert.equal(settled.latestCollection.totalScore, expectedTotal);
+  assert.equal(settled.latestCollection.totalScore, expectedCollectionScore);
 }
 
 {

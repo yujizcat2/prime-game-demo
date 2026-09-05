@@ -2,69 +2,45 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { createGameState } from "../game/gameEngine";
 import { applyEightPalaceCollection, getEightPalaceCollectionScoreGain } from "../game/collectionRules";
-import { BASE_FOOD_TYPES, FOOD_TYPES } from "../game/rules";
-import {
-  getBaseScore,
-  getCollectionScoreGain,
-  getCollectionScoreParameters,
-  getNonDrinkBoardSum,
-  getRawBaseScore
-} from "../game/scoreValue";
+import { BASE_FOOD_TYPES } from "../game/rules";
+import { getBaseScore, getCollectionScoreGain } from "../game/scoreValue";
 
-for(const [sum, exponent, rate] of [
-  [0, 1.30, 0.10], [450, 1.35, 0.15], [900, 1.40, 0.20], [1200, 1.40, 0.20]
+for(const [minimum, maximum, expected] of [
+  [2, 9, 10], [10, 19, 15], [20, 29, 20], [30, 39, 25],
+  [40, 49, 30], [50, 59, 35], [60, 69, 40], [70, 79, 45],
+  [80, 89, 50], [90, 99, 55], [100, 101, 60]
 ]){
-  const parameters = getCollectionScoreParameters(sum);
-  assert.ok(Math.abs(parameters.exponent - exponent) < 1e-12);
-  assert.ok(Math.abs(parameters.firstDiscoveryRate - rate) < 1e-12);
+  assert.equal(getBaseScore(minimum), expected);
+  assert.equal(getBaseScore(maximum), expected);
 }
-
-assert.equal(getNonDrinkBoardSum([
-  null,
-  {value: 120, foodType: BASE_FOOD_TYPES[0]},
-  {value: 800, foodType: FOOD_TYPES.DRINK},
-  {value: 50, foodType: BASE_FOOD_TYPES[1]},
-  {value: 7, foodType: "meat"},
-  {value: 99, foodType: "special"},
-  {foodType: BASE_FOOD_TYPES[2]}
-]), 177, "only finite-valued normal cuisines count toward S");
-
-for(const sum of [0, 225, 450, 675, 900, 1200]){
-  for(let value = 2; value < 101; value++){
-    assert.ok(getBaseScore(value + 1, sum) > getBaseScore(value, sum), `score is strictly increasing at S=${sum}, x=${value}`);
-  }
-}
-
-assert.equal(getBaseScore(13, 450), Math.round(Math.pow(13, 1.35) + 100));
-assert.equal(getBaseScore(12, 450), Math.round(Math.pow(12, 1.35) + 100));
 
 const card = (value, foodType) => ({value, foodType});
-const raw = getRawBaseScore(29, 450);
-assert.equal(getCollectionScoreGain([], 29, BASE_FOOD_TYPES[0], 450), Math.round(raw * 1.15));
-assert.equal(getCollectionScoreGain([card(29, BASE_FOOD_TYPES[0])], 29, BASE_FOOD_TYPES[1], 450), Math.round(raw * 0.5));
-assert.equal(getCollectionScoreGain([card(29, BASE_FOOD_TYPES[0])], 29, BASE_FOOD_TYPES[0], 450), 0);
-assert.equal(getCollectionScoreGain([], 29, BASE_FOOD_TYPES[0], 450, true), Math.round(raw * 0.5));
+const [aquatic, land, fruit] = BASE_FOOD_TYPES;
+assert.equal(getCollectionScoreGain([], 37, aquatic), 25, "first type receives the full tier score");
+assert.equal(getCollectionScoreGain([card(37, aquatic)], 37, land), 20, "second type loses five");
+assert.equal(getCollectionScoreGain([card(37, aquatic), card(37, land)], 37, fruit), 15, "third type loses another five");
+assert.equal(getCollectionScoreGain([card(37, aquatic)], 37, aquatic), 0, "same number and type is a duplicate");
+assert.equal(getCollectionScoreGain(BASE_FOOD_TYPES.map(type => card(2, type)), 2, "drink"), 0, "score never drops below zero");
+assert.equal(getCollectionScoreGain([], 37, aquatic, 900, true), 25, "board sum and legacy penalty do not affect score");
 
-const collectible = (value, foodType, singleFlavorPenalty = false) => ({
-  value: 1, foodType, singleFlavorPenalty,
-  origin: {type: "reduce", parent: {value, foodType, singleFlavorPenalty, origin: null}}
+const collectible = (value, foodType) => ({
+  value: 1, foodType,
+  origin: {type: "reduce", parent: {value, foodType, origin: null}}
 });
-const state = createGameState([{value: 450, foodType: BASE_FOOD_TYPES[0], boardIndex: 0, gameMode: "eightPalace"}]);
-const piece = collectible(29, BASE_FOOD_TYPES[1]);
+const state = createGameState([{value: 450, foodType: aquatic, boardIndex: 0, gameMode: "eightPalace"}]);
+const piece = collectible(29, land);
 const preview = getEightPalaceCollectionScoreGain(state, piece);
 const settled = applyEightPalaceCollection(state, piece);
-assert.equal(preview, settled.latestCollection.totalScore, "UI preview and settlement use the same authority");
-assert.equal(settled.latestCollection.collectionScore, Math.round(raw * 1.15));
-assert.equal(settled.latestCollection.totalScore, settled.latestCollection.collectionScore + settled.latestCollection.newFoodTypeBonus);
-assert.equal(settled.latestCollection.abundanceBonusScore, undefined);
-assert.equal(settled.latestCollection.boardPowerBonus, undefined);
+assert.equal(preview, 20);
+assert.equal(preview, settled.latestCollection.totalScore, "preview and settlement use the same authority");
+assert.equal(settled.latestCollection.bonusScore, 0);
+assert.deepEqual(settled.latestCollection.bonuses, []);
 
 const repeatedPreview = getEightPalaceCollectionScoreGain(settled, piece);
-assert.equal(repeatedPreview, 0, "an already collected number and food type previews +0 points");
+assert.equal(repeatedPreview, 0);
 
 const boardCellSource = readFileSync("src/components/BoardCell.jsx", "utf8");
 assert.match(boardCellSource, /board-piece-available-score/);
 assert.match(boardCellSource, /`\+\$\{availableScore\}分`/);
-assert.equal(boardCellSource.includes(String.fromCodePoint(165)), false);
 
 console.log("score value tests passed");

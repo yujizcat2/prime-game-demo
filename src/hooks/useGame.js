@@ -38,7 +38,7 @@ import {
   resolveGameOver
 
 } from "../game/gameEngine";
-import { advanceToNextDay, getDayPeriod, getDayScoreTarget, getDayStep, getDayTime } from "../game/dayCycle";
+import { advanceToNextDay, getDayPeriod, getDayStep, getDayTime, getWeekday } from "../game/dayCycle";
 
 
 export default function useGame(){
@@ -265,7 +265,7 @@ export default function useGame(){
   const dayStep = getDayStep(gameState);
   const dayTime = getDayTime(gameState);
   const dayPeriod = getDayPeriod(gameState);
-  const dayTarget = getDayScoreTarget(day);
+  const weekday = getWeekday(day);
   const daySettlement = gameState?.daySettlement ?? null;
   const dayHistory = gameState?.dayHistory ?? [];
   const gameRecapSnapshots = gameState?.gameRecapSnapshots ?? [];
@@ -1410,7 +1410,7 @@ export default function useGame(){
     dayStep,
     dayTime,
     dayPeriod,
-    dayTarget,
+    weekday,
     daySettlement,
     dayHistory,
     gameRecapSnapshots,

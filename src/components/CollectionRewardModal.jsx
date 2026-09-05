@@ -31,10 +31,6 @@ export default function CollectionRewardModal({reward, onClose}){
         {reward.totalScore > 0 && (
           <p className="collection-reward-breakdown">
             收藏{reward.collectionScore}
-            {reward.isFirstNumber && !reward.collectedPieceSingleFlavorPenalty
-              ? ` · 首次发现 +${Math.round(reward.firstDiscoveryRate * 100)}%`
-              : ""}
-            {reward.newFoodTypeBonus > 0 ? ` · 新料理系 +${reward.newFoodTypeBonus}` : ""}
           </p>
         )}
       </section>

@@ -1361,7 +1361,6 @@ function ScoreSummaryGrid({result}){
         label={`${target}系达成`}
         value={`${result.collectedNormalFoodTypeReachCounts?.[target] ?? 0} / ${result.games ?? result.attempts}`}
       />)}
-      <ResultItem label="平均新系奖励 / 占总分" value={`${(result.averageNewFoodTypeBonus ?? 0).toFixed(1)} · ${((result.newFoodTypeBonusScoreRatio ?? 0) * 100).toFixed(2)}%`} />
       {[50, 70, 90].map(threshold => <ResultItem
         key={`large-collection-${threshold}`}
         label={`≥${threshold} 收藏 / 当时盘面均值`}
@@ -1389,7 +1388,7 @@ function ScoreSummaryGrid({result}){
     <div className="test-lab-timeline">
       {(result.daySummaries ?? []).map(day => <div key={day.day}>
           Day {day.day} · 到达 {day.reachedCount}/{result.games ?? result.attempts} · 通过 {day.passedCount}/{day.reachedCount} ({(day.passRate * 100).toFixed(1)}%)
-          {` · 目标 ${day.targetScore} · 平均打烊积分 ${day.averageClosingScore.toFixed(1)} · 平均${day.averageLeadOrDeficit >= 0 ? "领先" : "落后"} ${day.averageLeadOrDeficit >= 0 ? "+" : ""}${day.averageLeadOrDeficit.toFixed(1)}`}
+          {` · 平均打烊积分 ${day.averageClosingScore.toFixed(1)}`}
           {` · 平均当日新增积分 +${day.averageScoreGainToday.toFixed(1)} · 平均新增收藏 ${day.averageCollectionCount.toFixed(1)} · 平均盘面总和 ${day.averageBoardSum.toFixed(1)}`}
           {` · 明日备料均值 ${day.averagePreparationValues.map(value => value.toFixed(1)).join(" / ")} · 最大 ${day.averagePreparationMaximum.toFixed(1)} · 总和 ${day.averagePreparationSum.toFixed(1)}`}
       </div>)}
@@ -1505,7 +1504,8 @@ function RandomSummaryGrid({result}){
 
 function getScoreGameEndReason(game){
   if(game.reachedTestProtectionLimit) return "测试保护上限";
-  if(["day_target_failed", "day_collection_failed"].includes(game.gameOverReason)) return `Day ${game.finalDay} 营业目标未完成`;
+  if(game.gameOverReason === "daily_collection_target_not_met") return `Day ${game.finalDay} 收藏目标未完成`;
+  if(game.gameOverReason === "week_complete") return "星期日营业完成";
   if(game.gameOverReason === "no_legal_actions") return "无合法动作";
   return game.gameOverReason ?? "—";
 }
@@ -1534,10 +1534,10 @@ function DayHistory({game}){
     <strong>每日营业记录</strong>
     {(game.dayRecords ?? []).map(record => <details key={record.day} className="test-lab-day-record">
       <summary>
-        Day {record.day} · {record.settlement ? `${record.settlement.passed ? "通过" : "未通过"} · 打烊 ${record.settlement.finalScore}分` : `营业中 · ${record.actions.length}/20 次行动`}
+        Day {record.day} · {record.settlement ? `${record.settlement.passed ? "通过" : "未通过"} · 打烊 ${record.settlement.finalScore}分` : `营业中 · ${record.actions.length}/${ACTIONS_PER_DAY} 次行动`}
       </summary>
       {record.opening && <div className="test-lab-day-section">
-        <strong>开店 · 10:00</strong> · 积分 {record.opening.score} · 收藏 {record.opening.collectionCount}
+        <strong>开店 · 00:00</strong> · 积分 {record.opening.score} · 收藏 {record.opening.collectionCount}
         <CompactBoard board={record.opening.board} />
       </div>}
       <div className="test-lab-day-section">
@@ -1552,8 +1552,8 @@ function DayHistory({game}){
         </details>)}
       </div>
       {record.settlement && <div className="test-lab-day-section">
-        <strong>打烊 · 20:00</strong>
-        {` · 目标 ${record.settlement.targetScore} · 最终 ${record.settlement.finalScore} · 当日 +${record.settlement.scoreGainToday}`}
+        <strong>打烊 · 24:00</strong>
+        {` · 最终 ${record.settlement.finalScore} · 当日 +${record.settlement.scoreGainToday} · 效率 ${record.settlement.efficiency.toFixed(2)}`}
         {` · 收藏 +${record.settlement.collectionGainToday} · 盘面总和 ${record.settlement.boardSum} · ${record.settlement.passed ? "通过" : "未通过"}`}
       </div>}
       {record.collectionSequence.length > 0 && <div className="test-lab-day-section">
@@ -1595,9 +1595,6 @@ function ScoreRecord({title, game}){
       </div>
       <div className="test-lab-record-collection">
         累计收藏普通系：{game.collectedNormalFoodTypeCount ?? 0}
-      </div>
-      <div className="test-lab-record-collection">
-        新系奖励：{game.newFoodTypeBonusTotal ?? 0}
       </div>
       <div className="test-lab-record-collection">最终盘面：{formatScoreBoard(game.finalBoard) || "空"}</div>
       {game.heaterTimeline?.length > 0 && <div className="test-lab-record-collection">
