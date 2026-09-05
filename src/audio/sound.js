@@ -14,7 +14,7 @@ function getAudioContext(){
   if(!audioContext){
     audioContext = new AudioContext();
     masterGain = audioContext.createGain();
-    masterGain.gain.value = 0.45;
+    masterGain.gain.value = 0.6;
     masterGain.connect(audioContext.destination);
   }
 
