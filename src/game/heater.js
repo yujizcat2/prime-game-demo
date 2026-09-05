@@ -1,6 +1,7 @@
 import { createOriginSnapshot } from "./numberOrigin";
+import { GAME_VALUE_MAX, GAME_VALUE_MIN, GAME_VALUE_SCALE } from "./valueScale";
 export function isHeaterTarget(piece){
-  return Boolean(piece && Number.isInteger(piece.value) && piece.value >= 2 && piece.value <= 100);
+  return Boolean(piece && Number.isInteger(piece.value) && piece.value >= GAME_VALUE_MIN && piece.value < GAME_VALUE_MAX);
 }
 
 export function canUseHeaterOnPiece(state, targetIndex){
@@ -21,7 +22,7 @@ export function applyHeaterIncrement(piece){
   if(!isHeaterTarget(piece)) return null;
   return {
     ...piece,
-    value: piece.value + 1,
+    value: piece.value + GAME_VALUE_SCALE,
     origin: {
       type: "heater",
       from: createOriginSnapshot(piece)
@@ -45,7 +46,7 @@ export function applyHeater(state, targetIndex){
     latestHeaterUse: {
       targetIndex,
       fromValue: previousPiece.value,
-      toValue: previousPiece.value + 1
+      toValue: previousPiece.value + GAME_VALUE_SCALE
     }
   };
 }

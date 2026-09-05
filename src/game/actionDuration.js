@@ -1,4 +1,5 @@
 import { getBoardCount } from "./boardRules";
+import { GAME_VALUE_SCALE } from "./valueScale";
 
 export const TOOL_DURATION_MINUTES = 30;
 export const REDUCE_DURATION_MINUTES = 45;
@@ -6,12 +7,12 @@ export const REDUCE_WITH_REMOVAL_DURATION_MINUTES = 60;
 
 export function getCombineDurationMinutes(a, b){
   const sum = (a ?? 0) + (b ?? 0);
-  if(sum <= 20) return 30;
-  if(sum <= 35) return 35;
-  if(sum <= 50) return 40;
-  if(sum <= 65) return 45;
-  if(sum <= 80) return 50;
-  if(sum <= 100) return 55;
+  if(sum <= 20 * GAME_VALUE_SCALE) return 30;
+  if(sum <= 35 * GAME_VALUE_SCALE) return 35;
+  if(sum <= 50 * GAME_VALUE_SCALE) return 40;
+  if(sum <= 65 * GAME_VALUE_SCALE) return 45;
+  if(sum <= 80 * GAME_VALUE_SCALE) return 50;
+  if(sum <= 100 * GAME_VALUE_SCALE) return 55;
   return 60;
 }
 

@@ -3,6 +3,7 @@
 import {
   BASE_FOOD_TYPES
 } from "./rules";
+import { GAME_VALUE_MAX, GAME_VALUE_MIN, GAME_VALUE_SCALE, scaleGameValue } from "./valueScale";
 
 
 // ============================================================
@@ -11,16 +12,9 @@ import {
 
 export const INITIAL_VALUE_POOL = [
 
-  2,
-  3,
-  4,
-  5,
-  6,
-  7,
-  8,
-  9
+  2, 3, 4, 5, 6, 7, 8, 9
 
-];
+].map(scaleGameValue);
 
 const STANDARD_OPENING_COUNT = 4;
 
@@ -50,7 +44,7 @@ export function createStandardInitialValues(random = Math.random){
 // ============================================================
 // 创建随机开局
 //
-// 返回三个不同的 2～9。
+// 返回三个不同的 20～90。
 //
 // gameEngine 会自动解释为：
 //
@@ -167,20 +161,20 @@ export function createEightPalaceInitialValues(){
 
   // Start from an exact, valid total and randomize it with sum-preserving
   // pair transfers. Every intermediate opening remains eight distinct values
-  // in the inclusive 2-101 range and totals exactly 300.
-  const values = [2, 7, 13, 24, 38, 51, 73, 92];
+  // in the inclusive 20-1010 range and totals exactly 3000.
+  const values = [2, 7, 13, 24, 38, 51, 73, 92].map(scaleGameValue);
 
   for(let attempt = 0; attempt < 100; attempt++){
     const left = Math.floor(Math.random() * values.length);
     let right = Math.floor(Math.random() * values.length);
     if(left === right) right = (right + 1) % values.length;
 
-    const maxDown = values[left] - 2;
-    const maxUp = 101 - values[right];
-    const maxTransfer = Math.min(maxDown, maxUp, 12);
-    if(maxTransfer < 1) continue;
+    const maxDown = values[left] - GAME_VALUE_MIN;
+    const maxUp = GAME_VALUE_MAX - values[right];
+    const maxTransfer = Math.min(maxDown, maxUp, 12 * GAME_VALUE_SCALE);
+    if(maxTransfer < GAME_VALUE_SCALE) continue;
 
-    const amount = Math.floor(Math.random() * maxTransfer) + 1;
+    const amount = (Math.floor(Math.random() * (maxTransfer / GAME_VALUE_SCALE)) + 1) * GAME_VALUE_SCALE;
     const nextLeft = values[left] - amount;
     const nextRight = values[right] + amount;
     const unchanged = values.filter((_, index) => index !== left && index !== right);

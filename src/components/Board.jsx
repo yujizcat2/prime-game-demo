@@ -20,6 +20,7 @@ import {
 import BoardCell from "./BoardCell";
 import { getCombinePreviewPlacement } from "../game/combinePreview";
 import { getEightPalaceCollectionScoreGain } from "../game/collectionRules";
+import { GAME_VALUE_MAX, GAME_VALUE_MIN } from "../game/valueScale";
 import { BOARD_NATIVE_FOOD_TYPES } from "../game/nativeFoodTypes";
 
 import "./Board.css";
@@ -1150,7 +1151,7 @@ export default function Board({
 
                 heaterTargetState={
                   heaterSelectMode
-                    ? piece?.value >= 2 && piece?.value <= 100
+                    ? piece?.value >= GAME_VALUE_MIN && piece?.value < GAME_VALUE_MAX
                       ? "available"
                       : "unavailable"
                     : null

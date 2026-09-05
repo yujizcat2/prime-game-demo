@@ -5,7 +5,7 @@ import { applyAction, createGameState } from "../game/gameEngine";
 import { BASE_FOOD_TYPES } from "../game/rules";
 
 assert.deepEqual(
-  [[2, 18], [10, 11], [18, 18], [25, 26], [33, 33], [40, 41], [50, 51]].map(pair => getCombineDurationMinutes(...pair)),
+  [[20, 180], [100, 110], [180, 180], [250, 260], [330, 330], [400, 410], [500, 510]].map(pair => getCombineDurationMinutes(...pair)),
   [30, 35, 40, 45, 50, 55, 60]
 );
 assert.equal(getReduceDurationMinutes(0), 45);
@@ -16,12 +16,12 @@ const createState = (cards, overrides = {}) => ({
   ...overrides
 });
 const normalReduceCards = [
-  {value: 6, foodType: BASE_FOOD_TYPES[0], boardIndex: 0},
-  {value: 9, foodType: BASE_FOOD_TYPES[1], boardIndex: 1}
+  {value: 60, foodType: BASE_FOOD_TYPES[0], boardIndex: 0},
+  {value: 90, foodType: BASE_FOOD_TYPES[1], boardIndex: 1}
 ];
 const collectingReduceCards = [
-  {value: 2, foodType: BASE_FOOD_TYPES[0], boardIndex: 0},
-  {value: 4, foodType: BASE_FOOD_TYPES[1], boardIndex: 1}
+  {value: 20, foodType: BASE_FOOD_TYPES[0], boardIndex: 0},
+  {value: 40, foodType: BASE_FOOD_TYPES[1], boardIndex: 1}
 ];
 
 const ordinary = applyAction(createState(normalReduceCards), {type: "reduce", indexes: [0, 1]});
@@ -41,7 +41,7 @@ const repeated = applyAction(repeatedBase, {type: "reduce", indexes: [0, 1]});
 assert.equal(repeated.score, 0);
 assert.equal(repeated.latestActionDurationMinutes, 60, "a zero-point repeated collection still uses removal time");
 
-const heaterBase = createState([{value: 6, foodType: BASE_FOOD_TYPES[0], boardIndex: 0}], {comboCount: 2});
+const heaterBase = createState([{value: 60, foodType: BASE_FOOD_TYPES[0], boardIndex: 0}], {comboCount: 2});
 const heated = applyAction(heaterBase, {type: "heater", indexes: [0]});
 assert.equal(heated.latestActionDurationMinutes, 30);
 assert.equal(heated.dayMinutesElapsed, 30);

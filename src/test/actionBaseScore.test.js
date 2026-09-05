@@ -11,8 +11,8 @@ const createState = (cards, overrides = {}) => ({
 });
 
 const combineState = createState([
-  {value: 2, foodType: BASE_FOOD_TYPES[0], boardIndex: 0},
-  {value: 3, foodType: BASE_FOOD_TYPES[1], boardIndex: 1}
+  {value: 20, foodType: BASE_FOOD_TYPES[0], boardIndex: 0},
+  {value: 30, foodType: BASE_FOOD_TYPES[1], boardIndex: 1}
 ]);
 const combined = applyAction(combineState, {type: "combine", indexes: [0, 1]});
 assert.equal(combined.score, 1);
@@ -22,8 +22,8 @@ assert.equal(combined.comboCount, 0);
 assert.equal(combined.comboBonusTotal, 0);
 
 const reduceState = createState([
-  {value: 6, foodType: BASE_FOOD_TYPES[0], boardIndex: 0},
-  {value: 9, foodType: BASE_FOOD_TYPES[1], boardIndex: 1}
+  {value: 60, foodType: BASE_FOOD_TYPES[0], boardIndex: 0},
+  {value: 90, foodType: BASE_FOOD_TYPES[1], boardIndex: 1}
 ]);
 const reduced = applyAction(reduceState, {type: "reduce", indexes: [0, 1]});
 assert.equal(reduced.score, 2);
@@ -34,8 +34,8 @@ assert.equal(reduced.comboCount, 0);
 assert.equal(reduced.comboBonusTotal, 0);
 
 const collectionState = createState([
-  {value: 2, foodType: BASE_FOOD_TYPES[0], boardIndex: 0},
-  {value: 4, foodType: BASE_FOOD_TYPES[1], boardIndex: 1}
+  {value: 20, foodType: BASE_FOOD_TYPES[0], boardIndex: 0},
+  {value: 40, foodType: BASE_FOOD_TYPES[1], boardIndex: 1}
 ], {comboCount: 1});
 const collected = applyAction(collectionState, {type: "reduce", indexes: [0, 1]});
 assert.equal(collected.collectionCards.length, 1);

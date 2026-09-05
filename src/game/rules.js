@@ -1,4 +1,5 @@
 import { gcd } from "../utils/math";
+import { DRINK_THRESHOLD, DRINK_WRAP_VALUE, GAME_VALUE_MAX, GAME_VALUE_MIN } from "./valueScale";
 
 export const FOOD_TYPES = Object.freeze({ LAND:"land", AQUATIC:"aquatic", VEGETABLE:"vegetable", GRAIN_BEAN:"grainBean", DAIRY_EGG:"dairyEgg", FRUIT:"fruit", SEASONING:"seasoning", SPICE:"spice", DRINK:"drink", MEAT:"land" });
 export const BASE_FOOD_TYPES = Object.freeze([FOOD_TYPES.LAND,FOOD_TYPES.AQUATIC,FOOD_TYPES.VEGETABLE,FOOD_TYPES.GRAIN_BEAN,FOOD_TYPES.DAIRY_EGG,FOOD_TYPES.FRUIT,FOOD_TYPES.SEASONING,FOOD_TYPES.SPICE]);
@@ -11,7 +12,7 @@ export const FOOD_TYPE_META = Object.freeze({
 export const FOOD_PURITY=Object.freeze({PURE:"pure",MIXED:"mixed"});
 export const SPECIAL_ONE_KINDS=Object.freeze({KEY:"key",FUNCTION:"function"});
 export function canReduce(a,b){return gcd(a.value,b.value)>1;}
-export function isCrossing101(a,b){return a+b>=102;}
+export function isCrossing101(a,b){return a+b>DRINK_THRESHOLD;}
 export function combineValue(a,b){return a+b;}
 export function isNormalFoodType(type){return BASE_FOOD_TYPES.includes(type);}
 export function flipFoodType(){return null;}
@@ -35,9 +36,9 @@ export function createSpecialOne(sourceTypeA,sourceTypeB){
   const sourceTypes=[sourceTypeA,sourceTypeB].sort();
   return {kind:SPECIAL_ONE_KINDS.FUNCTION,sourceTypes,identity:`function:${sourceTypes.join("+")}`};
 }
-export function canApplyFunctionOne(piece){return Boolean(piece&&piece.value>=2&&piece.value<101&&isNormalFoodType(piece.foodType)&&!piece.specialOne);}
+export function canApplyFunctionOne(piece){return Boolean(piece&&piece.value>=GAME_VALUE_MIN&&piece.value<GAME_VALUE_MAX&&isNormalFoodType(piece.foodType)&&!piece.specialOne);}
 export function isSameFoodIdentity(a,b){return Boolean(a&&b&&a.value===b.value&&a.foodType===b.foodType);}
 export function hasParentFood(child,candidate){if(!child||!candidate)return false;if(Array.isArray(child.parentFoods))return child.parentFoods.some(parent=>isSameFoodIdentity(parent,candidate));return Array.isArray(child.parents)&&child.parents.includes(candidate.value);}
 export function hasSameParents(numbers,a,b){return Array.isArray(numbers)&&numbers.some(item=>{if(Array.isArray(item.parentFoods)&&item.parentFoods.length>=2){const [p1,p2]=item.parentFoods;return isSameFoodIdentity(p1,a)&&isSameFoodIdentity(p2,b)||isSameFoodIdentity(p1,b)&&isSameFoodIdentity(p2,a);}if(!Array.isArray(item.parents)||item.parents.length<2)return false;const [p1,p2]=item.parents;return p1===a.value&&p2===b.value||p1===b.value&&p2===a.value;});}
 export function canCombineRelation(a,b,numbers=[]){return Boolean(a&&b&&!hasParentFood(a,b)&&!hasParentFood(b,a)&&!hasSameParents(numbers,a,b));}
-export function canCombine(a,b,numbers=[]){const aType=a?.foodType==="meat"?FOOD_TYPES.LAND:a?.foodType,bType=b?.foodType==="meat"?FOOD_TYPES.LAND:b?.foodType;const hasDrink=aType===FOOD_TYPES.DRINK||bType===FOOD_TYPES.DRINK,isWrap=hasDrink&&(a?.value??0)+(b?.value??0)>202;return Boolean(!(aType===FOOD_TYPES.DRINK&&bType===FOOD_TYPES.DRINK)&&(numbers.length<9||isWrap)&&canCombineRelation(a,b,numbers)&&(isNormalFoodType(aType)||aType===FOOD_TYPES.DRINK)&&(isNormalFoodType(bType)||bType===FOOD_TYPES.DRINK));}
+export function canCombine(a,b,numbers=[]){const aType=a?.foodType==="meat"?FOOD_TYPES.LAND:a?.foodType,bType=b?.foodType==="meat"?FOOD_TYPES.LAND:b?.foodType;const hasDrink=aType===FOOD_TYPES.DRINK||bType===FOOD_TYPES.DRINK,isWrap=hasDrink&&(a?.value??0)+(b?.value??0)>DRINK_WRAP_VALUE;return Boolean(!(aType===FOOD_TYPES.DRINK&&bType===FOOD_TYPES.DRINK)&&(numbers.length<9||isWrap)&&canCombineRelation(a,b,numbers)&&(isNormalFoodType(aType)||aType===FOOD_TYPES.DRINK)&&(isNormalFoodType(bType)||bType===FOOD_TYPES.DRINK));}

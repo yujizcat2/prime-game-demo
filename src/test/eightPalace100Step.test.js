@@ -19,8 +19,8 @@ for(let attempt = 0; attempt < 200; attempt++){
   const opening = createEightPalaceInitialValues();
   const values = opening.map(card => card.value);
   assert.equal(opening.length, 8);
-  assert.equal(values.reduce((sum, value) => sum + value, 0), 300);
-  assert.ok(values.every(value => value >= 2 && value <= 101));
+  assert.equal(values.reduce((sum, value) => sum + value, 0), 3000);
+  assert.ok(values.every(value => value >= 20 && value <= 1010));
   assert.equal(new Set(values).size, 8);
 }
 

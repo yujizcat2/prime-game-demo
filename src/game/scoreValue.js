@@ -1,9 +1,10 @@
 import { BASE_FOOD_TYPES } from "./rules";
+import { GAME_VALUE_MAX, GAME_VALUE_MIN, GAME_VALUE_SCALE } from "./valueScale";
 
 export const COLLECTION_SCORE_TIERS = Object.freeze([
   [9, 10], [19, 15], [29, 20], [39, 25], [49, 30],
   [59, 35], [69, 40], [79, 45], [89, 50], [99, 55], [101, 60]
-]);
+].map(([maximum, score]) => [maximum * GAME_VALUE_SCALE, score]));
 
 export function getBoardSum(board = []){
   if(!Array.isArray(board)) return 0;
@@ -23,7 +24,7 @@ export function getNonDrinkBoardSum(board = []){
 }
 
 export function getRawBaseScore(value){
-  if(!Number.isFinite(value) || value < 2 || value > 101) return 0;
+  if(!Number.isFinite(value) || value < GAME_VALUE_MIN || value > GAME_VALUE_MAX) return 0;
   return COLLECTION_SCORE_TIERS.find(([maximum]) => value <= maximum)?.[1] ?? 0;
 }
 

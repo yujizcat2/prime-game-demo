@@ -13,22 +13,22 @@ import { createGameState } from "../game/gameState";
 import { createEightPalaceInitialValues, createRandomInitialValues } from "../game/initialValues";
 import { applyCollection } from "../game/collectionRules";
 
-const p=(foodType,value=10)=>({foodType,value});
+const p=(foodType,value=100)=>({foodType,value});
 for(const a of BASE_FOOD_TYPES)for(const b of BASE_FOOD_TYPES){assert.equal(combineFoodType(p(a),p(b)),a);}
-assert.equal(combineFoodType(p(T.LAND,58),p(T.VEGETABLE,67)),T.DRINK);
-assert.equal(combineValue(58,67),125);
-assert.equal(combineFoodType(p(T.LAND,50),p(T.VEGETABLE,51)),T.LAND);
-assert.equal(combineFoodType(p(T.LAND,50),p(T.VEGETABLE,52)),T.DRINK);
-assert.equal(combineFoodType(p(T.DRINK,120),p(T.LAND)),T.DRINK);
-assert.equal(combineFoodType(p(T.LAND),p(T.DRINK,120)),T.DRINK);
-assert.equal(combineFoodType(p(T.DRINK,120),p(T.DAIRY_EGG)),T.DRINK);
-assert.equal(combineFoodType(p(T.DRINK,70),p(T.FRUIT,40)),T.DRINK);
-assert.equal(combineFoodType(p(T.FRUIT,40),p(T.DRINK,70)),T.DRINK);
-assert.equal(combineFoodType(p(T.DRINK,120),p(T.DRINK,180)),null);
+assert.equal(combineFoodType(p(T.LAND,580),p(T.VEGETABLE,670)),T.DRINK);
+assert.equal(combineValue(580,670),1250);
+assert.equal(combineFoodType(p(T.LAND,500),p(T.VEGETABLE,510)),T.LAND);
+assert.equal(combineFoodType(p(T.LAND,500),p(T.VEGETABLE,520)),T.DRINK);
+assert.equal(combineFoodType(p(T.DRINK,1200),p(T.LAND)),T.DRINK);
+assert.equal(combineFoodType(p(T.LAND),p(T.DRINK,1200)),T.DRINK);
+assert.equal(combineFoodType(p(T.DRINK,1200),p(T.DAIRY_EGG)),T.DRINK);
+assert.equal(combineFoodType(p(T.DRINK,700),p(T.FRUIT,400)),T.DRINK);
+assert.equal(combineFoodType(p(T.FRUIT,400),p(T.DRINK,700)),T.DRINK);
+assert.equal(combineFoodType(p(T.DRINK,1200),p(T.DRINK,1800)),null);
 assert.equal(Object.keys(DRINK_DATA).length,100);
 const baseNames=new Set([LAND_DATA,AQUATIC_DATA,VEGETABLE_DATA,GRAIN_BEAN_DATA,DAIRY_EGG_DATA,FRUIT_DATA,SEASONING_DATA,SPICE_DATA].flatMap(data=>Object.values(data)));
 assert.deepEqual(Object.entries(DRINK_DATA).filter(([,name])=>baseNames.has(name)),[],"drink names must not duplicate frozen base names");
-for(let i=0;i<100;i++){const state=createGameState([2,3,4]);const types=state.board.filter(Boolean).map(x=>x.foodType);assert.equal(new Set(types).size,3);assert.ok(types.every(type=>BASE_FOOD_TYPES.includes(type)));}
+for(let i=0;i<100;i++){const state=createGameState([20,30,40]);const types=state.board.filter(Boolean).map(x=>x.foodType);assert.equal(new Set(types).size,3);assert.ok(types.every(type=>BASE_FOOD_TYPES.includes(type)));}
 for(let i=0;i<1000;i++){
   const state=createGameState(createEightPalaceInitialValues());
   assert.equal(state.board.length,9);
@@ -37,7 +37,7 @@ for(let i=0;i<1000;i++){
   assert.equal(pieces.length,8);
   assert.deepEqual([...pieces.map(piece=>piece.foodType)].sort(),[...BASE_FOOD_TYPES].sort());
   assert.ok(pieces.every(piece=>piece.foodType!==T.DRINK));
-  assert.ok(pieces.every(piece=>piece.value>=2&&piece.value<=101));
+  assert.ok(pieces.every(piece=>piece.value>=20&&piece.value<=1010));
   assert.ok(pieces.every(piece=>piece.purity==="pure"&&piece.parents===null&&piece.parentFoods===null&&piece.sourceKey===null&&piece.origin===null));
   assert.equal(state.nextId,9);
   assert.equal(state.mazeHistory.entries.length,1);
@@ -52,15 +52,15 @@ Math.random=()=>0;
 const duplicateValues=createEightPalaceInitialValues().map(item=>item.value);
 Math.random=originalRandom;
 assert.equal(new Set(duplicateValues).size,8,"eight-palace values are distinct");
-assert.equal(duplicateValues.reduce((sum,value)=>sum+value,0),300,"eight-palace total is exact");
+assert.equal(duplicateValues.reduce((sum,value)=>sum+value,0),3000,"eight-palace total is exact");
 const classicState=createGameState(createRandomInitialValues());
 assert.equal(classicState.board.filter(Boolean).length,3);
 assert.equal(classicState.nextId,4);
-const collectionState=createGameState([2,3,4]);
-const collected={value:1,foodType:T.DRINK,origin:{type:"reduce",parent:{value:7,foodType:T.DRINK,parents:[3,4],parentFoods:[p(T.LAND,3),p(T.VEGETABLE,4)],origin:null,crossed101:false}}};
+const collectionState=createGameState([20,30,40]);
+const collected={value:1,foodType:T.DRINK,origin:{type:"reduce",parent:{value:70,foodType:T.DRINK,parents:[30,40],parentFoods:[p(T.LAND,30),p(T.VEGETABLE,40)],origin:null,crossed101:false}}};
 const once=applyCollection(collectionState,collected);
 const twice=applyCollection(once,collected);
 assert.equal(twice.collectionTimeline.length,2);
-assert.equal(twice.collectionTimeline[0].value,7);
+assert.equal(twice.collectionTimeline[0].value,70);
 assert.equal(twice.collectionTimeline[0].name,DRINK_DATA[7]);
 console.log("nine cuisine tests passed");

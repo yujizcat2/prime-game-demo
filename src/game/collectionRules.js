@@ -10,6 +10,7 @@ import { getFoodName } from "../data/food/foodRegistry";
 import { getNonDrinkBoardSum } from "./scoreValue";
 import { createCollectionRewardSettlement, getBoardAverageValue } from "./collectionReward";
 import { getDayTime } from "./dayCycle";
+import { applyCuisineSequenceMultiplier, getCuisineSequenceIndex } from "./valueScale";
 
 
 // ============================================================
@@ -1552,12 +1553,20 @@ function getEightPalaceCollectionKey(record){
 export function getEightPalaceCollectionScoreGain(state, piece){
   const record = getCollectionRecord(piece);
   if(!record) return 0;
+  const collectionKey = getEightPalaceCollectionKey(record);
+  const existing = (state.collectionCards ?? []).find(card =>
+    (card.collectionKey ?? getEightPalaceCollectionKey(card)) === collectionKey
+  );
+  const sequenceIndex = existing?.cuisineSequenceIndex
+    ?? getCuisineSequenceIndex(state.collectionCards, record.foodType);
+  const value = existing?.value
+    ?? applyCuisineSequenceMultiplier(record.value, sequenceIndex);
 
   return createCollectionRewardSettlement({
     collectionCards: state.collectionCards,
-    value: record.value,
+    value,
     foodType: record.foodType,
-    name: getFoodName(record.value, record.foodType),
+    name: getFoodName(value, record.foodType),
     nonDrinkBoardSum: getNonDrinkBoardSum(state?.board),
     boardAverageValue: getBoardAverageValue(state?.board),
     singleFlavorPenalty: record.singleFlavorPenalty === true
@@ -1575,11 +1584,15 @@ export function applyEightPalaceCollection(
   const record = getCollectionRecord(piece);
   if(!record) return state;
 
-  const value = record.value;
   const collectionKey = getEightPalaceCollectionKey(record);
-  const alreadyCollected = (state.collectionCards ?? []).some(card =>
+  const existing = (state.collectionCards ?? []).find(card =>
     (card.collectionKey ?? getEightPalaceCollectionKey(card)) === collectionKey
   );
+  const alreadyCollected = Boolean(existing);
+  const sequenceIndex = existing?.cuisineSequenceIndex
+    ?? getCuisineSequenceIndex(state.collectionCards, record.foodType);
+  const value = existing?.value
+    ?? applyCuisineSequenceMultiplier(record.value, sequenceIndex);
   const isNewCollection = !alreadyCollected;
   const name = getFoodName(value, record.foodType);
   const rewardSettlement = createCollectionRewardSettlement({
@@ -1598,6 +1611,7 @@ export function applyEightPalaceCollection(
     id: (state.collectionEventId ?? 0) + 1,
     collectionKey,
     value,
+    cuisineSequenceIndex: sequenceIndex,
     name,
     foodType: record.foodType ?? null,
     parents: parentFoods,

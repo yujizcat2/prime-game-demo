@@ -7,19 +7,19 @@ const card = (value, foodType) => ({value, foodType});
 const settle = (collectionCards, value, foodType, nonDrinkBoardSum = 0, singleFlavorPenalty = false) =>
   createCollectionRewardSettlement({
     collectionCards, value, foodType, name: `${value}号料理`, nonDrinkBoardSum,
-    boardAverageValue: 100, singleFlavorPenalty
+    boardAverageValue: 1000, singleFlavorPenalty
   });
 
-const first = settle([], 17, BASE_FOOD_TYPES[0], 900, true);
+const first = settle([], 170, BASE_FOOD_TYPES[0], 9000, true);
 assert.equal(first.totalScore, 15);
 assert.equal(first.bonusScore, 0);
 assert.deepEqual(first.bonuses, []);
 
-const second = settle([card(17, BASE_FOOD_TYPES[0])], 17, BASE_FOOD_TYPES[1], 0);
+const second = settle([card(170, BASE_FOOD_TYPES[0])], 170, BASE_FOOD_TYPES[1], 0);
 assert.equal(second.totalScore, 10);
 assert.equal(second.existingFoodTypeCountForSameNumber, 1);
 
-const duplicate = settle([card(17, BASE_FOOD_TYPES[0])], 17, BASE_FOOD_TYPES[0], 900);
+const duplicate = settle([card(170, BASE_FOOD_TYPES[0])], 170, BASE_FOOD_TYPES[0], 9000);
 assert.equal(duplicate.duplicate, true);
 assert.equal(duplicate.totalScore, 0);
 
