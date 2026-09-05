@@ -30,7 +30,8 @@ export default function CollectionRewardModal({reward, onClose}){
         </div>
         {reward.totalScore > 0 && (
           <p className="collection-reward-breakdown">
-            收藏{reward.collectionScore}
+            基础 {reward.baseSaleScore ?? reward.collectionScore} × {Math.round((reward.timeSaleMultiplier ?? 1) * 100)}% = {reward.totalScore - (reward.comboBonus ?? 0)}
+            {reward.timeSaleLabel ? ` · ${reward.timeSaleLabel}` : ""}
             {reward.comboBonus > 0 ? ` · 连击 +${reward.comboBonus}` : ""}
           </p>
         )}

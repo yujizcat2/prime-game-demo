@@ -1563,7 +1563,8 @@ export function getEightPalaceCollectionScoreGain(state, piece){
     cuisineSequenceIndex: sequenceIndex,
     nonDrinkBoardSum: getNonDrinkBoardSum(state?.board),
     boardAverageValue: getBoardAverageValue(state?.board),
-    singleFlavorPenalty: record.singleFlavorPenalty === true
+    singleFlavorPenalty: record.singleFlavorPenalty === true,
+    gameTime: state.dayCycleEnabled ? getDayTime(state) : undefined
   }).totalScore;
 }
 
@@ -1594,7 +1595,8 @@ export function applyEightPalaceCollection(
     cuisineSequenceIndex: sequenceIndex,
     nonDrinkBoardSum: getNonDrinkBoardSum(settlementBoard),
     boardAverageValue: getBoardAverageValue(settlementBoard),
-    singleFlavorPenalty: record.singleFlavorPenalty === true
+    singleFlavorPenalty: record.singleFlavorPenalty === true,
+    gameTime: state.dayCycleEnabled ? getDayTime(state) : undefined
   });
 
   const parentFoods = createConcreteParentSnapshots(record);

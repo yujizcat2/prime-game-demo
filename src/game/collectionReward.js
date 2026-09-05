@@ -1,5 +1,6 @@
 import { getCollectionScoreBreakdown } from "./scoreValue";
 import { applyCuisineScoreMultiplier, getCuisineScoreMultiplier } from "./scoreScale";
+import { getTimeSalePeriod } from "./timeSaleMultiplier";
 
 export function getBoardAverageValue(board = []){
   const values = board.filter(piece => Number.isFinite(piece?.value)).map(piece => piece.value);
@@ -7,7 +8,8 @@ export function getBoardAverageValue(board = []){
 }
 
 export function createCollectionRewardSettlement({
-  collectionCards = [], value, foodType, name, nonDrinkBoardSum = 0, cuisineSequenceIndex = 1
+  collectionCards = [], value, foodType, name, nonDrinkBoardSum = 0, cuisineSequenceIndex = 1,
+  gameTime = "04:00"
 }){
   const score = getCollectionScoreBreakdown(collectionCards, value, foodType);
   if(score.duplicate || score.baseScore <= 0){
@@ -20,16 +22,22 @@ export function createCollectionRewardSettlement({
   }
 
   const collectionScore = applyCuisineScoreMultiplier(score.collectionScore, cuisineSequenceIndex);
+  const timeSalePeriod = getTimeSalePeriod(gameTime);
+  const totalScore = Math.round(collectionScore * timeSalePeriod.multiplier);
   return {
     collected: true, duplicate: false, value, foodType, name,
     baseScore: score.baseScore, collectionScore,
     cuisineSequenceIndex,
     cuisineScoreMultiplier: getCuisineScoreMultiplier(cuisineSequenceIndex),
     preMultiplierScore: score.collectionScore,
+    baseSaleScore: collectionScore,
+    timeSaleMultiplier: timeSalePeriod.multiplier,
+    timeSaleLabel: timeSalePeriod.label,
+    gameTime,
     nonDrinkBoardSum,
     isFirstNumber: score.isFirstNumber,
     existingFoodTypeCountForSameNumber: score.existingFoodTypeCountForSameNumber,
-    bonuses: [], bonusScore: 0, totalScore: collectionScore,
+    bonuses: [], bonusScore: 0, totalScore,
     rewardLevel: "minor"
   };
 }
