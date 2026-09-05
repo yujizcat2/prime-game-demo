@@ -32,8 +32,8 @@ import { getScoreEfficiency } from "../game/scoreEfficiency";
 import { isPrime } from "../game/prime";
 import { createFoodTypeBoardSnapshot } from "../ai/foodTypeTelemetry";
 
-assert.equal(getScoreEfficiency(2834, 100), 28.34);
-assert.equal(getScoreEfficiency(2400, 60), 40);
+assert.equal(getScoreEfficiency(60, 600), 6);
+assert.equal(getScoreEfficiency(100, 600), 10);
 assert.equal(getScoreEfficiency(2400, 0), 0);
 assert.equal(getScoreEfficiency(0, 0).toFixed(2), "0.00");
 assert.deepEqual([2, 3, 5, 7].map(isPrime), [true, true, true, true]);
@@ -132,7 +132,7 @@ assert.ok(result.collections.every(card =>
   Number.isInteger(card.totalScore)
 ), "AI collection settlements use integer scores");
 assert.equal(result.score, result.finalScore);
-assert.equal(result.scoreEfficiency, getScoreEfficiency(result.score, result.steps));
+assert.equal(result.scoreEfficiency, getScoreEfficiency(result.score, result.totalActionMinutes));
 assert.equal(typeof result.maxCombo, "number");
 assert.equal(typeof result.comboBonusTotal, "number");
 assert.ok(Array.isArray(result.comboTimeline));
@@ -165,15 +165,15 @@ assert.equal(JSON.stringify({
   collectionCount: result.collectionCount
 }), behaviorBeforeObservation, "collection observation does not alter AI results");
 assert.ok(result.actionPath.every(action =>
-  action.scoreEfficiencyAfter === getScoreEfficiency(action.scoreAfter, action.stepAfter)
+  action.scoreEfficiencyAfter === getScoreEfficiency(action.scoreAfter, action.totalActionMinutes)
 ));
 for(const field of ["searchedNodes", "evaluatedNodes", "generatedActions", "prunedActions", "restoreCandidatesGenerated", "restoreCandidatesKept", "heaterCandidatesGenerated", "heaterCandidatesKept", "elapsedMs"]){
   assert.equal(typeof result[field], "number", `${field} telemetry is reported`);
 }
-assert.equal(getScoreEfficiency(0, 1).toFixed(2), "0.00");
-assert.equal(getScoreEfficiency(64, 2).toFixed(2), "32.00");
-assert.equal(getScoreEfficiency(160, 3).toFixed(2), "53.33");
-assert.ok(getScoreEfficiency(160, 4) < getScoreEfficiency(160, 3));
+assert.equal(getScoreEfficiency(0, 60).toFixed(2), "0.00");
+assert.equal(getScoreEfficiency(100, 720).toFixed(2), "8.33");
+assert.equal(getScoreEfficiency(150, 900).toFixed(2), "10.00");
+assert.ok(getScoreEfficiency(160, 180) > getScoreEfficiency(160, 240));
 
 {
   const budgetTelemetry = createSearchTelemetry();
@@ -299,9 +299,9 @@ const scoreReportSource = testLabSource.slice(
   testLabSource.indexOf("function ScoreSummaryGrid"),
   testLabSource.indexOf("function EightPalaceResults")
 );
-assert.doesNotMatch(scoreReportSource, /Step /, "Score AI report uses Day and in-game time instead of visible Step labels");
+assert.match(scoreReportSource, /平均实际动作耗时/);
 
-assert.deepEqual([0, 24, 25, 48].map(getScoreTelemetryClock), [
+assert.deepEqual([[0, 1, 0], [1440, 1, 24], [60, 2, 1], [1440, 2, 24]].map(args => getScoreTelemetryClock(...args)), [
   {day: 1, time: "00:00", dayActionIndex: 0},
   {day: 1, time: "24:00", dayActionIndex: 24},
   {day: 2, time: "01:00", dayActionIndex: 1},
@@ -451,15 +451,19 @@ assert.equal(
 );
 
 const dayCycleOpening = createSeededScoreOpenings([35])[0];
-const dayCycleScoreGame = await runScoreGame({depth: 1, beamWidth: 2, maxActions: 30, initialOpening: dayCycleOpening, dayCycleEnabled: true});
+const dayCycleScoreGame = await runScoreGame({depth: 1, beamWidth: 2, maxActions: 80, initialOpening: dayCycleOpening, dayCycleEnabled: true});
 assert.equal(dayCycleScoreGame.checkpointHistory.length, 0, "day-cycle Score AI does not use checkpoints");
 assert.equal(dayCycleScoreGame.dayHistory[0]?.passed, true, "Score AI passes the first day in the regression opening");
 assert.equal(dayCycleScoreGame.finalDay, 2, "a passed closing automatically advances Score AI to Day 2");
-const firstDayTwoAction = dayCycleScoreGame.actionPath.find(action => action.stepBefore >= 24 && action.inputs.length > 0);
+const firstDayTwoAction = dayCycleScoreGame.actionPath.find(action => action.dayBefore === 2 && action.inputs.length > 0);
 assert.ok(firstDayTwoAction, "Score AI continues searching from the Day 2 board");
 const formalActions = dayCycleScoreGame.actionPath.filter(action => action.stepAfter > action.stepBefore);
 assert.equal(dayCycleScoreGame.actionSnapshots.length, formalActions.length, "every time-consuming action has exactly one snapshot");
-assert.equal(dayCycleScoreGame.dayRecords[0].actions.length, 24, "a completed day contains 24 action snapshots");
+assert.ok(dayCycleScoreGame.dayRecords[0].actions.length > 0, "a completed day contains its action snapshots");
+assert.ok(
+  dayCycleScoreGame.dayRecords[0].actions.reduce((sum, action) => sum + action.durationMinutes, 0) >= 1440,
+  "a completed day contains at least 1440 minutes of actions"
+);
 assert.ok(dayCycleScoreGame.actionSnapshots.every(snapshot =>
   snapshot.board.length === 9
   && snapshot.board.every(piece => piece === null || (Number.isInteger(piece.value) && typeof piece.foodType === "string"))
@@ -479,6 +483,7 @@ assert.ok(firstDayCollections.length > 0, "daily collection telemetry remains av
 const failedDayOne = resolveGameOver({
   ...createGameState(opening, {dayCycleEnabled: true}),
   steps: 24,
+  dayMinutesElapsed: 1440,
   score: 99,
   collectionCards: Array.from({length: 20}, (_, index) => ({value: index + 2, foodType: "aquatic"}))
 });

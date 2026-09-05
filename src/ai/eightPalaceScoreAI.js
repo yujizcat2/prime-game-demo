@@ -20,7 +20,7 @@ import {
   createFoodTypeBoardSnapshot,
   summarizeFoodTypeTelemetry
 } from "./foodTypeTelemetry";
-import { ACTIONS_PER_DAY, DAY_SCORE_TARGET, advanceToNextDay, getDayTime } from "../game/dayCycle";
+import { DAY_SCORE_TARGET, advanceToNextDay, getDayTime } from "../game/dayCycle";
 
 export const SCORE_AI_DEFAULTS = Object.freeze({
   depth: 3,
@@ -92,14 +92,11 @@ function snapshotBoard(board){
   } : null);
 }
 
-export function getScoreTelemetryClock(step = 0){
-  const normalizedStep = Math.max(0, step);
-  const day = normalizedStep === 0 ? 1 : Math.ceil(normalizedStep / ACTIONS_PER_DAY);
-  const dayStartStep = (day - 1) * ACTIONS_PER_DAY;
+export function getScoreTelemetryClock(dayMinutesElapsed = 0, day = 1, dayActionIndex = 0){
   return {
     day,
-    time: getDayTime({steps: normalizedStep, dayStartStep}),
-    dayActionIndex: normalizedStep - dayStartStep
+    time: getDayTime({dayMinutesElapsed}),
+    dayActionIndex
   };
 }
 
@@ -132,6 +129,8 @@ function createTimedActionSnapshot(state, nextState, describedAction, toolsUsedS
     scoreBefore: state.score ?? 0,
     score: nextState.score ?? 0,
     scoreGain: (nextState.score ?? 0) - (state.score ?? 0),
+    durationMinutes: nextState.latestActionDurationMinutes ?? 0,
+    totalActionMinutes: nextState.totalActionMinutes ?? 0,
     collectionCount: nextState.collectionCards?.length ?? 0,
     collectionGain: (nextState.collectionCards?.length ?? 0) - (state.collectionCards?.length ?? 0),
     newCollection: collections.find(event => event.isNewCollection) ?? null,
@@ -196,6 +195,8 @@ function getStateKey(state){
     board,
     score: state.score,
     steps: state.steps,
+    dayMinutesElapsed: state.dayMinutesElapsed ?? 0,
+    totalActionMinutes: state.totalActionMinutes ?? 0,
     comboCount: state.comboCount ?? 0,
     maxCombo: state.maxCombo ?? 0,
     comboBonusTotal: state.comboBonusTotal ?? 0,
@@ -710,9 +711,15 @@ function describeAction(state, action, nextState, number){
     })),
     stepBefore: state.steps,
     stepAfter: nextState.steps,
+    dayBefore: state.day,
+    dayAfter: nextState.day,
+    timeBefore: getDayTime(state),
+    timeAfter: getDayTime(nextState),
+    durationMinutes: nextState.latestActionDurationMinutes ?? 0,
+    totalActionMinutes: nextState.totalActionMinutes ?? 0,
     scoreBefore: state.score,
     scoreAfter: nextState.score,
-    scoreEfficiencyAfter: getScoreEfficiency(nextState.score, nextState.steps),
+    scoreEfficiencyAfter: getScoreEfficiency(nextState.score, nextState.totalActionMinutes),
     scoreGain: nextState.score - state.score,
     comboCountAfter: nextState.comboCount ?? 0,
     comboBonus: nextState.latestComboEvent?.type === "scored" ? nextState.latestComboEvent.comboBonus : 0,
@@ -908,7 +915,8 @@ export async function runScoreGame({
     evaluationCacheMisses: searchTelemetry.evaluationCacheMisses,
     transpositionHits: searchTelemetry.transpositionHits,
     elapsedMs,
-    scoreEfficiency: getScoreEfficiency(state.score, state.steps),
+    scoreEfficiency: getScoreEfficiency(state.score, state.totalActionMinutes),
+    totalActionMinutes: state.totalActionMinutes ?? 0,
     collectionCount: state.collectionCards.length,
     maxCombo: state.maxCombo ?? 0,
     comboBonusTotal: state.comboBonusTotal ?? 0,
@@ -937,6 +945,7 @@ export async function runScoreGame({
     actionSnapshots,
     dayRecords: createDayRecords(dayOpenings, actionSnapshots, dayHistory, finalDay),
     finalDay,
+    finalDayMinutesElapsed: state.dayMinutesElapsed ?? 0,
     completedDayCount: (state.dayHistory ?? []).filter(day => day.passed).length,
     deadlocked,
     avoidableImmediateDeathCount,
@@ -1175,6 +1184,7 @@ export function summarizeScoreResults(results){
     compositeCollectionShare: classifiedCollectionCount ? totalCompositeCollectionCount / classifiedCollectionCount : 0,
     maxCollectionCount: results.length ? Math.max(...results.map(result => result.collectionCount)) : 0,
     averageSteps: average(results, result => result.steps),
+    averageTotalActionMinutes: average(results, result => result.totalActionMinutes ?? 0),
     averageFinalStep: average(results, result => result.steps),
     dayCycleEnabled: results.some(result => result.dayCycleEnabled),
     averageOperatingDays: average(results, result => result.finalDay ?? 0),

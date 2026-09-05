@@ -14,7 +14,7 @@ const heated = applyHeater(initial, 0);
 assert.equal(heated.board[0].value, 18);
 assert.equal(heated.board[0].foodType, initial.board[0].foodType);
 assert.equal(heated.heaterCount, 0);
-assert.equal(heated.steps, initial.steps, "heater does not consume a normal action");
+assert.equal(heated.steps, initial.steps, "direct heater effect does not consume an action");
 assert.equal(applyHeater(heated, 0), heated, "heater cannot be used twice in one day");
 
 const hundred = applyHeater(createGameState(opening([100])), 0);

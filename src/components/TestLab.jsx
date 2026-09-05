@@ -23,7 +23,7 @@ import {
   runScoreGames
 } from "../ai/eightPalaceScoreAI";
 import { FOOD_TYPE_LABELS } from "../data/specialOneRegistry";
-import { ACTIONS_PER_DAY, getDayTime } from "../game/dayCycle";
+import { getDayTime } from "../game/dayCycle";
 
 import "./TestLab.css";
 
@@ -1352,6 +1352,7 @@ function ScoreSummaryGrid({result}){
       <ResultItem label="测试局数" value={result.games ?? result.attempts} />
       <ResultItem label="平均最终积分" value={result.averageFinalScore.toFixed(2)} highlight />
       <ResultItem label="平均得分效率" value={result.averageScoreEfficiency.toFixed(2)} highlight />
+      <ResultItem label="平均实际动作耗时" value={`${(result.averageTotalActionMinutes ?? 0).toFixed(1)} 分钟`} />
       <ResultItem label="最高积分" value={result.highestScore} highlight />
       <ResultItem label="最低积分" value={result.lowestScore} />
       <ResultItem label="平均收藏数量" value={result.averageCollectionCount.toFixed(2)} />
@@ -1516,8 +1517,7 @@ function getScoreGameEndReason(game){
 }
 
 function formatDayClock(step){
-  const day = step === 0 ? 1 : Math.ceil(step / ACTIONS_PER_DAY);
-  return `Day ${day} · ${getDayTime({steps: step, dayStartStep: (day - 1) * ACTIONS_PER_DAY})}`;
+  return `Step ${step}`;
 }
 
 function formatEventClock(event){
@@ -1539,7 +1539,7 @@ function DayHistory({game}){
     <strong>每日营业记录</strong>
     {(game.dayRecords ?? []).map(record => <details key={record.day} className="test-lab-day-record">
       <summary>
-        Day {record.day} · {record.settlement ? `${record.settlement.passed ? "通过" : "未通过"} · 打烊 ${record.settlement.finalScore}分` : `营业中 · ${record.actions.length}/${ACTIONS_PER_DAY} 次行动`}
+        Day {record.day} · {record.settlement ? `${record.settlement.passed ? "通过" : "未通过"} · 打烊 ${record.settlement.finalScore}分` : `营业中 · ${record.actions.length} 次行动`}
       </summary>
       {record.opening && <div className="test-lab-day-section">
         <strong>开店 · 00:00</strong> · 积分 {record.opening.score} · 收藏 {record.opening.collectionCount}
@@ -1577,7 +1577,7 @@ function ScoreRecord({title, game}){
       <div>开局 #{game.gameIndex ?? game.attemptIndex ?? 1}</div>
       <div className="test-lab-record-collection">
         最终积分 <strong>{game.finalScore}</strong>
-        {` · 经营至 Day ${game.finalDay} · 完成 ${game.completedDayCount} 天 · ${formatDayClock(game.steps)}`}
+        {` · 经营至 Day ${game.finalDay} · 完成 ${game.completedDayCount} 天 · ${getDayTime({dayMinutesElapsed:game.finalDayMinutesElapsed})}`}
         <br />结束原因：<strong>{getScoreGameEndReason(game)}</strong>
       </div>
       <div className="test-lab-record-collection">开局：{formatScoreBoard(game.initialBoard)}</div>
@@ -1587,7 +1587,7 @@ function ScoreRecord({title, game}){
         得分效率 <strong>{game.scoreEfficiency.toFixed(2)}</strong>
         {" · "}
         收藏 <strong>{game.collectionCount}</strong>
-        {" · "}<strong>{formatDayClock(game.steps)}</strong>
+        {" · "}<strong>Day {game.finalDay} · {getDayTime({dayMinutesElapsed:game.finalDayMinutesElapsed})}</strong>
       </div>
       <div className="test-lab-record-collection">
         收藏构成：质数 {game.primeCollectionCount} · 合数 {game.compositeCollectionCount}
@@ -1639,7 +1639,7 @@ function ScoreRecord({title, game}){
             <li key={action.number}>
               <strong>{formatScoreAction(action)}</strong>
               {" · "}
-              {formatDayClock(action.stepBefore)} → {formatDayClock(action.stepAfter)}
+              Day {action.dayBefore} · {action.timeBefore} → {action.timeAfter}
               {" · "}
               积分 {action.scoreBefore} → {action.scoreAfter}
               {action.scoreGain > 0 && <>（+{action.scoreGain}）</>}
@@ -1703,7 +1703,7 @@ function AllScoreRecords({title = "全部测试记录", games = []}){
             onToggle={event => setGameExpanded(gameKey, event.currentTarget.open)}
           >
             <summary>
-              开局 #{gameKey} · {game.finalScore}分 · 收藏{game.collectionCount} · {formatDayClock(game.steps)}
+              开局 #{gameKey} · {game.finalScore}分 · 收藏{game.collectionCount} · Day {game.finalDay} · {getDayTime({dayMinutesElapsed:game.finalDayMinutesElapsed})}
               {` · 经营至 Day ${game.finalDay} · 完成 ${game.completedDayCount} 天`}
               {status ? ` · ${status}` : ""}
             </summary>
@@ -1723,7 +1723,7 @@ function AllScoreRecords({title = "全部测试记录", games = []}){
                   <li key={action.number}>
                     <strong>{formatScoreAction(action)}</strong>
                     {" · "}
-                    {formatDayClock(action.stepBefore)} → {formatDayClock(action.stepAfter)}
+                    Day {action.dayBefore} · {action.timeBefore} → {action.timeAfter}
                     {" · "}
                     积分 {action.scoreBefore} → {action.scoreAfter}
                     {action.scoreGain > 0 && <>（+{action.scoreGain}）</>}

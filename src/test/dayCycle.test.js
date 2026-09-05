@@ -4,7 +4,7 @@ import { createGameState } from "../game/gameState";
 import { resolveGameOver } from "../game/gameEngine";
 import { getScoreEfficiency } from "../game/scoreEfficiency";
 import {
-  ACTIONS_PER_DAY,
+  DAY_DURATION_MINUTES,
   DAY_SCORE_TARGET,
   MAX_DAYS,
   WEEKDAYS,
@@ -20,19 +20,19 @@ const makeCollections = (count, offset = 0) => Array.from({length: count}, (_, i
 }));
 
 const initial = createDayState();
-assert.equal(ACTIONS_PER_DAY, 24);
+assert.equal(DAY_DURATION_MINUTES, 1440);
 assert.equal(DAY_SCORE_TARGET, 100);
 assert.equal(initial.day, 1);
 assert.equal(getWeekday(initial.day), "星期一");
 assert.equal(getDayTime(initial), "00:00");
-assert.equal(getDayTime({...initial, steps: 1}), "01:00");
+assert.equal(getDayTime({...initial, dayMinutesElapsed: 65}), "01:05");
 
-const at23 = resolveGameOver({...initial, steps: 23, score: 0, collectionCards: makeCollections(10)});
-assert.equal(at23.daySettlement, null, "23 steps do not settle the day");
+const at23 = resolveGameOver({...initial, steps: 23, dayMinutesElapsed: 1439, score: 0, collectionCards: makeCollections(10)});
+assert.equal(at23.daySettlement, null, "time before 24:00 does not settle the day");
 assert.equal(at23.gameOver, false);
 
 const tenCollections = makeCollections(10);
-const failedAt99 = resolveGameOver({...initial, steps: 24, score: 99, collectionCards: tenCollections});
+const failedAt99 = resolveGameOver({...initial, steps: 24, dayMinutesElapsed: 1440, score: 99, collectionCards: tenCollections});
 assert.equal(failedAt99.daySettlement.passed, false);
 assert.equal(failedAt99.gameOverReason, "daily_score_target_not_met");
 
@@ -41,33 +41,40 @@ const closingBoard = initial.board.map((piece, index) => piece && index === 0 ? 
   parents: [{value: 2, foodType: "aquatic"}],
   origin: {kind: "test-origin", sourceId: 77}
 } : piece);
-const passed = resolveGameOver({...initial, board: closingBoard, steps: 24, score: 100, collectionCards: tenCollections});
+const passed = resolveGameOver({...initial, board: closingBoard, steps: 24, dayMinutesElapsed: 1440, score: 100, collectionCards: tenCollections});
 assert.equal(passed.daySettlement.passed, true);
 assert.equal(passed.daySettlement.scoreTargetMet, true);
 assert.equal(passed.daySettlement.targetScore, 100);
 assert.equal(passed.daySettlement.collectionGainToday, 10);
 assert.equal(passed.daySettlement.weekday, "星期一");
 assert.equal(passed.daySettlement.scoreGainToday, 100);
-assert.equal(passed.daySettlement.efficiency, 100 / 24);
+assert.equal(passed.daySettlement.efficiency, 100 / 1440 * 60);
 assert.equal(passed.daySettlement.boardCount, passed.board.filter(Boolean).length);
 assert.equal(Object.hasOwn(passed.daySettlement, "nextDayCards"), false);
 assert.equal(passed.dayHistory.length, 1);
 assert.equal(getDayTime(passed), "24:00");
 
-const overTarget = resolveGameOver({...initial, steps: 24, score: 101, collectionCards: tenCollections});
+const overTarget = resolveGameOver({...initial, steps: 24, dayMinutesElapsed: 1440, score: 101, collectionCards: tenCollections});
 assert.equal(overTarget.daySettlement.passed, true);
 
-const fewCollections = resolveGameOver({...initial, steps: 24, score: 100, collectionCards: makeCollections(9)});
+const fewCollections = resolveGameOver({...initial, steps: 24, dayMinutesElapsed: 1440, score: 100, collectionCards: makeCollections(9)});
 assert.equal(fewCollections.daySettlement.passed, true, "fewer than ten collections still pass at 100 points");
 
-const manyCollectionsLowScore = resolveGameOver({...initial, steps: 24, score: 99, collectionCards: makeCollections(20)});
+const manyCollectionsLowScore = resolveGameOver({...initial, steps: 24, dayMinutesElapsed: 1440, score: 99, collectionCards: makeCollections(20)});
 assert.equal(manyCollectionsLowScore.daySettlement.passed, false, "many collections cannot replace the score target");
 
-assert.equal(getScoreEfficiency(125, 25), 5, "live efficiency remains score divided by steps");
+assert.equal(getScoreEfficiency(100, 600), 10, "live efficiency is hourly score from actual minutes");
+assert.equal(getScoreEfficiency(60, 600), 6);
+assert.ok(getScoreEfficiency(100, 300) > getScoreEfficiency(100, 600));
+assert.notEqual(
+  getScoreEfficiency(100, 300),
+  getScoreEfficiency(100, 600),
+  "equal scores and Step counts can have different efficiency when action minutes differ"
+);
 const efficiencyState = resolveGameOver({
-  ...initial, steps: 24, score: 148, dayStartScore: 0, collectionCards: tenCollections
+  ...initial, steps: 24, dayMinutesElapsed: 1440, score: 148, dayStartScore: 0, collectionCards: tenCollections
 });
-assert.equal(efficiencyState.daySettlement.efficiency, 148 / 24, "daily efficiency is daily score gain divided by daily actions");
+assert.equal(efficiencyState.daySettlement.efficiency, 148 / 1440 * 60, "daily efficiency uses the day's complete action minutes");
 
 let state = passed;
 const dayTwoOpening = advanceToNextDay(state);
@@ -75,6 +82,7 @@ assert.equal(dayTwoOpening.board, state.board, "Day 2 keeps the exact closing bo
 assert.deepEqual(dayTwoOpening.board, closingBoard, "values, food types, positions, parents, and origin are unchanged");
 assert.equal(dayTwoOpening.nextId, state.nextId, "day rollover creates no replacement cards");
 assert.equal(dayTwoOpening.comboCount, 0);
+assert.equal(dayTwoOpening.dayMinutesElapsed, 0);
 assert.equal(dayTwoOpening.score - dayTwoOpening.dayStartScore, 0, "Day 2 daily revenue restarts at zero");
 assert.equal(dayTwoOpening.score, 100, "cumulative score is retained");
 assert.equal(dayTwoOpening.collectionCards.length, tenCollections.length, "cumulative collections are retained");
@@ -84,11 +92,13 @@ assert.equal(dayTwoOpening.superHeaterCount, 1);
 const dayTwoFailed = resolveGameOver({
   ...dayTwoOpening,
   steps: 48,
+  dayMinutesElapsed: 1440,
   score: 199,
   collectionCards: [...dayTwoOpening.collectionCards, ...makeCollections(10, 10)]
 });
 assert.equal(dayTwoFailed.daySettlement.scoreGainToday, 99, "Day 2 uses daily gain instead of cumulative score");
 assert.equal(dayTwoFailed.daySettlement.passed, false);
+assert.equal(dayTwoFailed.daySettlement.efficiency, 99 / 1440 * 60, "Day 2 efficiency uses only Day 2 action minutes");
 
 for(let day = 1; day <= MAX_DAYS; day++){
   assert.equal(state.day, day);
@@ -98,12 +108,13 @@ for(let day = 1; day <= MAX_DAYS; day++){
   const next = advanceToNextDay(state);
   assert.equal(next.board, closingBoardForDay, `Day ${day + 1} inherits Day ${day}'s closing board`);
   assert.equal(next.day, day + 1);
-  assert.equal(next.dayStartStep, day * ACTIONS_PER_DAY);
+  assert.equal(next.dayStartStep, day * 24);
   assert.equal(getDayTime(next), "00:00");
   const collections = [...next.collectionCards, ...makeCollections(10, day * 10)];
   state = resolveGameOver({
     ...next,
-    steps: (day + 1) * ACTIONS_PER_DAY,
+    steps: (day + 1) * 24,
+    dayMinutesElapsed: 1440,
     score: next.score + 100,
     collectionCards: collections
   });

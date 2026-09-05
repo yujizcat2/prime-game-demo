@@ -16,7 +16,7 @@ assert.equal(canRestorePiece(changed, 0), true);
 const restored = applyAction(changed, {type: "restore", indexes: [0]});
 assert.equal(restored.board[0].foodType, BOARD_NATIVE_FOOD_TYPES[0]);
 assert.equal(restored.restoreCount, 0);
-assert.equal(restored.steps, changed.steps, "restore does not consume a normal action");
+assert.equal(restored.steps, changed.steps + 1, "restore consumes one timed action");
 assert.equal(applyAction(restored, {type: "restore", indexes: [1]}), restored, "restore cannot be used twice in one day");
 
 const center = structuredClone(initial);

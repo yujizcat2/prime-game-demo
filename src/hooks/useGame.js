@@ -39,6 +39,7 @@ import {
 
 } from "../game/gameEngine";
 import { advanceToNextDay, getDayPeriod, getDayStep, getDayTime, getWeekday } from "../game/dayCycle";
+import { getCombineDurationMinutes, getReduceDurationMinutes } from "../game/actionDuration";
 
 
 export default function useGame(){
@@ -252,6 +253,7 @@ export default function useGame(){
     ??
 
     0;
+  const totalActionMinutes = gameState?.totalActionMinutes ?? 0;
 
   const stepLimit = gameState?.stepLimit ?? 0;
   const combineHistoryKeys = gameState?.combineHistoryKeys ?? {};
@@ -262,6 +264,7 @@ export default function useGame(){
   const latestCheckpointResult = gameState?.latestCheckpointResult ?? null;
   const dayCycleEnabled = gameState?.dayCycleEnabled ?? false;
   const day = gameState?.day ?? 1;
+  const dayMinutesElapsed = gameState?.dayMinutesElapsed ?? 0;
   const dayStep = getDayStep(gameState);
   const dayTime = getDayTime(gameState);
   const dayPeriod = getDayPeriod(gameState);
@@ -714,7 +717,7 @@ export default function useGame(){
 
           ?
 
-            {...(combineOutcome?.piece??{}),...combineOutcome}
+            {...(combineOutcome?.piece??{}),...combineOutcome,durationMinutes:getCombineDurationMinutes(first.piece.value,second.piece.value)}
 
           :
 
@@ -732,6 +735,13 @@ export default function useGame(){
               divisor,
               kind:reduceOutcome.kind,
               equalClear:reduceOutcome.kind==="equalClear",
+              durationMinutes:getReduceDurationMinutes(
+                reduceOutcome.kind==="equalClear"
+                  ? 2
+                  : ["eightPalace","simpleEightPalace"].includes(gameState?.gameMode)
+                    ? reduceOutcome.results.filter(result=>result.value===1).length
+                    : 0
+              ),
 
               keyOutcome:(()=>{
                 if(!["eightPalace","simpleEightPalace"].includes(gameState?.gameMode))return null;
@@ -1405,6 +1415,7 @@ export default function useGame(){
     score,
 
     steps,
+    totalActionMinutes,
 
     stepLimit,
     checkpoint,
@@ -1413,6 +1424,7 @@ export default function useGame(){
     latestCheckpointResult,
     dayCycleEnabled,
     day,
+    dayMinutesElapsed,
     dayStep,
     dayTime,
     dayPeriod,

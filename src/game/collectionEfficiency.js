@@ -26,14 +26,16 @@ export function recordCollectionEfficiencySnapshot(state){
   const cumulativeCollections = getEffectiveCollectionCount(state);
   const previousCollections = timeline.at(-1)?.cumulativeCollections ?? 0;
   const cumulativeScore = state.score ?? 0;
+  const cumulativeActionMinutes = state.totalActionMinutes ?? 0;
 
   return {
     ...state,
     collectionEfficiencyTimeline: [...timeline, {
       step,
       cumulativeScore,
+      cumulativeActionMinutes,
       cumulativeCollections,
-      collectionEfficiency: Number(getScoreEfficiency(cumulativeScore, step).toFixed(2)),
+      collectionEfficiency: Number(getScoreEfficiency(cumulativeScore, cumulativeActionMinutes).toFixed(2)),
       recent10Collections: cumulativeCollections - previousCollections
     }]
   };

@@ -1,7 +1,7 @@
-export function getScoreEfficiency(score, steps){
-  if(!Number.isFinite(score) || !Number.isFinite(steps) || steps <= 0){
+export function getScoreEfficiency(score, totalActionMinutes){
+  if(!Number.isFinite(score) || !Number.isFinite(totalActionMinutes) || totalActionMinutes <= 0){
     return 0;
   }
 
-  return score / steps;
+  return score / totalActionMinutes * 60;
 }

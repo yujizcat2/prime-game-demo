@@ -7,6 +7,7 @@ const numberFormatter = new Intl.NumberFormat("zh-CN");
 export default function StepPanel({
   steps = 0,
   score = 0,
+  totalActionMinutes = 0,
   stepLimit = 100,
   gameMode = null,
   checkpoint = null,
@@ -17,7 +18,7 @@ export default function StepPanel({
   const displayStep = isEightPalace ? steps : steps % 12;
   const displayStepLimit = isEightPalace ? stepLimit : 12;
   const timeLabel = isEightPalace ? "步数" : "时间";
-  const scoreEfficiency = getScoreEfficiency(score, steps);
+  const scoreEfficiency = getScoreEfficiency(score, totalActionMinutes);
   const stepProgress = displayStepLimit > 0
     ? Math.min(100, Math.max(0, (displayStep / displayStepLimit) * 100))
     : 0;

@@ -23,7 +23,6 @@ import {
 } from "./eightPalaceKeys";
 
 import { getBaseScore } from "./scoreValue";
-import { recordCollectionEfficiencySnapshot } from "./collectionEfficiency";
 import { getNativeFoodType } from "./nativeFoodTypes";
 import { createFirstCheckpoint } from "./checkpoints";
 
@@ -348,6 +347,7 @@ export function createGameState(
 
     steps:
       0,
+    totalActionMinutes: 0,
 
     stepLimit:
       usesPlacedInitialValues
@@ -363,6 +363,8 @@ export function createGameState(
 
     dayCycleEnabled: runtimeConfig.dayCycleEnabled === true,
     day: runtimeConfig.dayCycleEnabled === true ? 1 : null,
+    dayMinutesElapsed: 0,
+    latestActionDurationMinutes: 0,
     dayStartStep: 0,
     dayStartScore: 0,
     dayStartCollectionCount: 0,
@@ -453,7 +455,7 @@ export function consumeStep(
 ){
 
 
-  return recordCollectionEfficiencySnapshot({
+  return {
 
     ...state,
 
@@ -465,6 +467,6 @@ export function consumeStep(
 
       GAME_CONFIG.STEP_COST
 
-  });
+  };
 
 }

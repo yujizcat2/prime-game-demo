@@ -58,6 +58,7 @@ const settlement = createDaySettlement({
   dayStartStep: 0,
   dayStartScore: 0,
   dayStartCollectionCount: 0,
+  dayMinutesElapsed: 1440,
   board: [],
   collectionCards: Array.from({length: 10}, (_, index) => ({value: index + 2, foodType: "aquatic"})),
   steps: 24

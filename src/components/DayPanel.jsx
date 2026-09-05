@@ -1,13 +1,13 @@
 import "./DayPanel.css";
-import { ACTIONS_PER_DAY, DAY_SCORE_TARGET } from "../game/dayCycle";
+import { DAY_DURATION_MINUTES, DAY_SCORE_TARGET } from "../game/dayCycle";
 import { getScoreEfficiency } from "../game/scoreEfficiency";
 
 const numberFormatter = new Intl.NumberFormat("zh-CN");
 
-export default function DayPanel({day, weekday, time, period, dayStep, score, scoreGainToday, steps, comboCount}){
-  const remaining = Math.max(0, ACTIONS_PER_DAY - dayStep);
-  const urgency = remaining <= 2 ? " day-panel--urgent" : remaining <= 5 ? " day-panel--near" : "";
-  const efficiency = getScoreEfficiency(score, steps);
+export default function DayPanel({day, weekday, time, period, dayMinutesElapsed, score, scoreGainToday, totalActionMinutes, comboCount}){
+  const remaining = Math.max(0, DAY_DURATION_MINUTES - dayMinutesElapsed);
+  const urgency = remaining <= 120 ? " day-panel--urgent" : remaining <= 300 ? " day-panel--near" : "";
+  const efficiency = getScoreEfficiency(score, totalActionMinutes);
 
   return <section className={`day-panel${urgency}`} aria-label={`${weekday}营业日`}>
     <div className="day-panel-heading">
@@ -22,6 +22,6 @@ export default function DayPanel({day, weekday, time, period, dayStep, score, sc
     <div className="day-panel-progress" role="progressbar" aria-label="今日营业额目标进度" aria-valuemin="0" aria-valuemax={DAY_SCORE_TARGET} aria-valuenow={Math.min(scoreGainToday, DAY_SCORE_TARGET)}>
       <span style={{width: `${Math.min(100, scoreGainToday / DAY_SCORE_TARGET * 100)}%`}} />
     </div>
-    <div className="day-panel-remaining">距离打烊 <strong>{remaining}</strong> 次行动</div>
+    <div className="day-panel-remaining">距离打烊 <strong>{remaining}</strong> 分钟</div>
   </section>;
 }

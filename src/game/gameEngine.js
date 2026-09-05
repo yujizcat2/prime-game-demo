@@ -46,9 +46,11 @@ import { canUseHeater } from "./heater";
 import { applySuperHeater } from "./superHeater";
 import { markSingleFlavorBoardPieces } from "./singleFlavorPenalty";
 import { resolveCheckpoint } from "./checkpoints";
-import { settleDayIfNeeded } from "./dayCycle";
+import { DAY_DURATION_MINUTES, getDayTime, settleDayIfNeeded } from "./dayCycle";
 import { applyScoreCombo } from "./scoreCombo";
 import { applyActionBaseScore } from "./actionBaseScore";
+import { applyActionDuration } from "./actionDuration";
+import { recordCollectionEfficiencySnapshot } from "./collectionEfficiency";
 
 
 
@@ -201,7 +203,8 @@ export function applyAction(
   if(
     !state ||
     !action ||
-    state.daySettlement
+    state.daySettlement ||
+    (state.dayCycleEnabled && (state.dayMinutesElapsed ?? 0) >= DAY_DURATION_MINUTES)
   ){
 
 
@@ -370,9 +373,26 @@ export function applyAction(
 
   const comboState = applyScoreCombo(state, actionState);
   const scoredState = applyActionBaseScore(state, action, actionState, comboState);
+  const durationState = applyActionDuration(state, action, actionState, scoredState);
+  const newCollectionIds = new Set(
+    (durationState.collectionTimeline ?? [])
+      .slice((state.collectionTimeline ?? []).length)
+      .map(event => event.id)
+  );
+  const completionTime = getDayTime(durationState);
+  const stampCollection = item => newCollectionIds.has(item?.id)
+    ? {...item, collectedAt: `第${durationState.day ?? 1}天 ${completionTime}`}
+    : item;
+  const timedState = newCollectionIds.size > 0 ? {
+    ...durationState,
+    collectionTimeline: durationState.collectionTimeline.map(stampCollection),
+    collectionCards: durationState.collectionCards.map(stampCollection),
+    latestCollection: stampCollection(durationState.latestCollection)
+  } : durationState;
+  const efficiencyState = recordCollectionEfficiencySnapshot(timedState);
   const recapActionCounts = state.recapActionCounts ?? {combine: 0, reduce: 0};
   const countedState = {
-    ...scoredState,
+    ...efficiencyState,
     recapActionCounts: {
       combine: recapActionCounts.combine + (action.type === "combine" || action.type === "combine_ordered" ? 1 : 0),
       reduce: recapActionCounts.reduce + (action.type === "reduce" ? 1 : 0)

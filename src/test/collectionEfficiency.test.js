@@ -6,11 +6,12 @@ import {
 } from "../game/collectionEfficiency";
 import { applyEightPalaceCollection } from "../game/collectionRules";
 
-function stateAt(step, collectionCount, timeline = [], score = 0){
+function stateAt(step, collectionCount, timeline = [], score = 0, totalActionMinutes = step * 60){
   return {
     gameMode: "simpleEightPalace",
     steps: step,
     score,
+    totalActionMinutes,
     collectionCards: Array.from({length: collectionCount}, (_, index) => ({collectionKey: `land:${index}`})),
     collectionEfficiencyTimeline: timeline
   };
@@ -20,6 +21,7 @@ let state = recordCollectionEfficiencySnapshot(stateAt(10, 4, [], 40));
 assert.deepEqual(state.collectionEfficiencyTimeline, [{
   step: 10,
   cumulativeScore: 40,
+  cumulativeActionMinutes: 600,
   cumulativeCollections: 4,
   collectionEfficiency: 4,
   recent10Collections: 4

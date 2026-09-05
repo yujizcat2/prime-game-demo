@@ -31,6 +31,8 @@ export default function GameOver({
 
   comboBonusTotal,
 
+  totalActionMinutes,
+
   onRestart
 
 }) {
@@ -274,7 +276,8 @@ export default function GameOver({
           <div className="grid grid-cols-2 gap-x-4 gap-y-2">
             <span>最终积分 <strong>{recapValue(score)}</strong></span>
             <span>最终 Step <strong>{recapValue(steps)}</strong></span>
-            <span>最终效率 <strong>{steps > 0 ? getScoreEfficiency(score, steps).toFixed(2) : "—"}</strong></span>
+            <span>最终效率 <strong>{totalActionMinutes > 0 ? getScoreEfficiency(score, totalActionMinutes).toFixed(2) : "—"}</strong></span>
+            <span>实际动作耗时 <strong>{recapValue(totalActionMinutes)} 分钟</strong></span>
             <span>收藏数 <strong>{safeCollection.length}</strong></span>
             <span>通过检查站 <strong>{recapValue(passedCheckpointCount)}</strong></span>
             <span>失败检查站 <strong>{reason === "checkpoint_failed" ? `第 ${recapValue(checkpointResult?.index)} 站` : "—"}</strong></span>

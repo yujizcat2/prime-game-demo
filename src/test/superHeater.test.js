@@ -12,7 +12,7 @@ assert.equal(getLegalActions(initial).some(action => action.type === "super_heat
 const heated = applySuperHeater(initial);
 assert.deepEqual(heated.board.slice(0, 3).map(piece => piece.value), [3, 6, 11]);
 assert.equal(heated.superHeaterCount, 0);
-assert.equal(heated.steps, initial.steps, "super heater does not consume a normal action");
+assert.equal(heated.steps, initial.steps, "direct super heater effect does not consume an action");
 assert.equal(applySuperHeater(heated), heated, "super heater cannot be used twice in one day");
 assert.equal(applyAction(heated, {type: "super_heater"}), heated);
 

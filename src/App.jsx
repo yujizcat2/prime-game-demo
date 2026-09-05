@@ -828,16 +828,18 @@ function App(){
             weekday={game.weekday}
             time={game.dayTime}
             period={game.dayPeriod}
-            dayStep={game.dayStep}
+            dayMinutesElapsed={game.dayMinutesElapsed}
             score={game.score}
             scoreGainToday={game.scoreGainToday}
             steps={game.steps}
+            totalActionMinutes={game.totalActionMinutes}
             comboCount={game.comboCount}
           /> : <StepPanel
             steps={
               game.steps
             }
             score={game.score}
+            totalActionMinutes={game.totalActionMinutes}
             stepLimit={game.stepLimit}
             gameMode={game.gameMode}
             checkpoint={game.checkpoint}
@@ -1078,6 +1080,7 @@ function App(){
           recapActionCounts={game.recapActionCounts}
           maxCombo={game.maxCombo}
           comboBonusTotal={game.comboBonusTotal}
+          totalActionMinutes={game.totalActionMinutes}
           gameMode={
             game.gameMode
           }

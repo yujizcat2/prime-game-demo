@@ -158,7 +158,7 @@ function collectible(value, leftParent, rightParent){
 }
 
 let collectionState = createGameState(actionOpening);
-collectionState = {...collectionState, day: 2, dayStartStep: 24, steps: 24};
+collectionState = {...collectionState, day: 2, dayStartStep: 24, steps: 24, dayMinutesElapsed: 60};
 collectionState = applyEightPalaceCollection(collectionState, collectible(24, 7, 17));
 assert.equal(collectionState.collectionCards[0].collectedAt, "第2天 01:00");
 collectionState = {...collectionState, steps: 27};

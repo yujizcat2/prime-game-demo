@@ -122,7 +122,7 @@ export default function ActionButtons({
           "
         >
 
-          搭配
+          {canCombine ? `搭配 · ${preview.combine.durationMinutes}分钟` : "搭配"}
 
         </span>
 
@@ -184,7 +184,7 @@ export default function ActionButtons({
           "
         >
 
-          处理
+          {canReduce ? `处理 · ${preview.reduce.durationMinutes}分钟` : "处理"}
 
         </span>
 
