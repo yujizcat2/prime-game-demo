@@ -1,6 +1,7 @@
 import { getCollectionScoreBreakdown } from "./scoreValue";
 import { applyCuisineScoreMultiplier, getCuisineScoreMultiplier } from "./scoreScale";
 import { getTimeSalePeriod } from "./timeSaleMultiplier";
+import { getCollectionMultiplier } from "./collectionMultiplier";
 
 export function getBoardAverageValue(board = []){
   const values = board.filter(piece => Number.isFinite(piece?.value)).map(piece => piece.value);
@@ -9,13 +10,15 @@ export function getBoardAverageValue(board = []){
 
 export function createCollectionRewardSettlement({
   collectionCards = [], value, foodType, name, nonDrinkBoardSum = 0, cuisineSequenceIndex = 1,
-  gameTime = "04:00"
+  gameTime = "04:00", collectionRecord = null
 }){
   const score = getCollectionScoreBreakdown(collectionCards, value, foodType);
+  const collectionMultiplier = getCollectionMultiplier(collectionRecord);
   if(score.duplicate || score.baseScore <= 0){
     return {
       collected: false, duplicate: score.duplicate, value, foodType, name,
       baseScore: 0, collectionScore: 0, nonDrinkBoardSum,
+      ...collectionMultiplier,
       existingFoodTypeCountForSameNumber: score.existingFoodTypeCountForSameNumber,
       bonuses: [], bonusScore: 0, totalScore: 0, rewardLevel: "none"
     };
@@ -23,7 +26,9 @@ export function createCollectionRewardSettlement({
 
   const collectionScore = applyCuisineScoreMultiplier(score.collectionScore, cuisineSequenceIndex);
   const timeSalePeriod = getTimeSalePeriod(gameTime);
-  const totalScore = Math.round(collectionScore * timeSalePeriod.multiplier);
+  const totalScore = Math.round(
+    collectionScore * timeSalePeriod.multiplier * collectionMultiplier.collectionMultiplierRate
+  );
   return {
     collected: true, duplicate: false, value, foodType, name,
     baseScore: score.baseScore, collectionScore,
@@ -33,6 +38,7 @@ export function createCollectionRewardSettlement({
     baseSaleScore: collectionScore,
     timeSaleMultiplier: timeSalePeriod.multiplier,
     timeSaleLabel: timeSalePeriod.label,
+    ...collectionMultiplier,
     gameTime,
     nonDrinkBoardSum,
     isFirstNumber: score.isFirstNumber,

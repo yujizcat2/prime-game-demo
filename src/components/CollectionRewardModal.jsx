@@ -24,13 +24,17 @@ export default function CollectionRewardModal({reward, onClose}){
       >
         <p className="collection-reward-kicker">✦ {first ? "新料理收藏" : "已经收录"}</p>
         <h2 id="collection-reward-title">{reward.name} · {reward.value}</h2>
-        {typeLabel && <p className="collection-reward-meta">{typeLabel}</p>}
+        {typeLabel && (
+          <p className="collection-reward-meta">
+            {typeLabel} {reward.value} · ×{reward.collectionMultiplier ?? 1}路线 · +{reward.totalScore ?? 0}
+          </p>
+        )}
         <div className="collection-reward-total">
           {reward.totalScore != null && <strong>+{reward.totalScore}分</strong>}
         </div>
         {reward.totalScore > 0 && (
           <p className="collection-reward-breakdown">
-            基础 {reward.baseSaleScore ?? reward.collectionScore} × {Math.round((reward.timeSaleMultiplier ?? 1) * 100)}% = {reward.totalScore - (reward.comboBonus ?? 0)}
+            基础 {reward.baseSaleScore ?? reward.collectionScore} × {Math.round((reward.timeSaleMultiplier ?? 1) * 100)}% × 路线{Math.round((reward.collectionMultiplierRate ?? 1) * 100)}% = {reward.totalScore - (reward.comboBonus ?? 0)}
             {reward.timeSaleLabel ? ` · ${reward.timeSaleLabel}` : ""}
             {reward.comboBonus > 0 ? ` · 连击 +${reward.comboBonus}` : ""}
           </p>

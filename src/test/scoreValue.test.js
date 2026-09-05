@@ -39,6 +39,13 @@ assert.deepEqual(settled.latestCollection.bonuses, []);
 const repeatedPreview = getEightPalaceCollectionScoreGain(settled, piece);
 assert.equal(repeatedPreview, 0);
 
+const routePiece = collectible(5, fruit);
+routePiece.origin.parent.origin = {type: "reduce", parent: {value: 35}};
+const routeSettled = applyEightPalaceCollection(state, routePiece);
+assert.equal(routeSettled.latestCollection.totalScore, 140);
+assert.equal(routeSettled.latestCollection.collectionMultiplier, 7);
+assert.equal(routeSettled.latestCollection.collectionMultiplierRate, 1.4);
+
 const boardCellSource = readFileSync("src/components/BoardCell.jsx", "utf8");
 assert.match(boardCellSource, /board-piece-available-score/);
 assert.match(boardCellSource, /`\+\$\{availableScore\}分`/);

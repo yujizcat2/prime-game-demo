@@ -11,6 +11,7 @@ import { getNonDrinkBoardSum } from "./scoreValue";
 import { createCollectionRewardSettlement, getBoardAverageValue } from "./collectionReward";
 import { getDayTime } from "./dayCycle";
 import { getCuisineSequenceIndex } from "./scoreScale";
+import { getCollectionMultiplier } from "./collectionMultiplier";
 
 
 // ============================================================
@@ -847,7 +848,8 @@ function applySimulationCollection(
   state.lastCollectionEvents?.push({
     value,
     foodType,
-    isNewCollection
+    isNewCollection,
+    ...getCollectionMultiplier(getCollectionRecord(piece))
   });
 
   if(isNewCollection){
@@ -1017,6 +1019,8 @@ function applyGameCollection(
 
     null;
 
+  const collectionMultiplier = getCollectionMultiplier(previousRecord);
+
 
 
   if(
@@ -1104,6 +1108,7 @@ function applyGameCollection(
         isNewCollection: false,
         isFirstNumber: false,
         trendFrom: null,
+        ...collectionMultiplier,
         eventId: (state.collectionEventId ?? 0) + 1
       },
 
@@ -1321,6 +1326,8 @@ function applyGameCollection(
         ? state.previousCollection
         : null,
 
+    ...collectionMultiplier,
+
     eventId:
       (state.collectionEventId ?? 0) + 1
 
@@ -1519,7 +1526,8 @@ export function applyCollection(
           eventId,
           step: state.steps ?? null,
           name: getFoodName(snapshot.value, snapshot.foodType),
-          reducePath: getMainLineage(snapshot)
+          reducePath: getMainLineage(snapshot),
+          ...getCollectionMultiplier(snapshot)
         }
       ]
     };
@@ -1564,7 +1572,8 @@ export function getEightPalaceCollectionScoreGain(state, piece){
     nonDrinkBoardSum: getNonDrinkBoardSum(state?.board),
     boardAverageValue: getBoardAverageValue(state?.board),
     singleFlavorPenalty: record.singleFlavorPenalty === true,
-    gameTime: state.dayCycleEnabled ? getDayTime(state) : undefined
+    gameTime: state.dayCycleEnabled ? getDayTime(state) : undefined,
+    collectionRecord: record
   }).totalScore;
 }
 
@@ -1596,7 +1605,8 @@ export function applyEightPalaceCollection(
     nonDrinkBoardSum: getNonDrinkBoardSum(settlementBoard),
     boardAverageValue: getBoardAverageValue(settlementBoard),
     singleFlavorPenalty: record.singleFlavorPenalty === true,
-    gameTime: state.dayCycleEnabled ? getDayTime(state) : undefined
+    gameTime: state.dayCycleEnabled ? getDayTime(state) : undefined,
+    collectionRecord: record
   });
 
   const parentFoods = createConcreteParentSnapshots(record);
@@ -1620,6 +1630,8 @@ export function applyEightPalaceCollection(
     existingFoodTypeCountForSameNumber: rewardSettlement.existingFoodTypeCountForSameNumber,
     bonusScore: rewardSettlement.bonusScore,
     totalScore: rewardSettlement.totalScore,
+    collectionMultiplier: rewardSettlement.collectionMultiplier,
+    collectionMultiplierRate: rewardSettlement.collectionMultiplierRate,
     bonuses: rewardSettlement.bonuses,
     rewardLevel: rewardSettlement.rewardLevel,
     collectedPieceSingleFlavorPenalty: record.singleFlavorPenalty === true,
