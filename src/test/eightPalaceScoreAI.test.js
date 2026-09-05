@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import {
   ADAPTIVE_SEARCH_DEFAULTS,
+  IMMEDIATE_DEATH_PENALTY,
   chooseScoreAction,
   createSeededScoreOpenings,
   createSearchTelemetry,
@@ -15,13 +16,14 @@ import {
   getAdaptiveBeamWidth,
   getCollectionNumberCounts,
   getScoreTelemetryClock,
+  getScoreSurvivalValue,
   runFixedScoreAttempts,
   runScoreGame,
   runScoreGames,
   scoreAITestUtils,
   summarizeScoreResults
 } from "../ai/eightPalaceScoreAI";
-import { applyAction, createGameState, getLegalActions, resolveGameOver } from "../game/gameEngine";
+import { applyAction, createGameState, getBoardCount, getLegalActions, resolveGameOver } from "../game/gameEngine";
 import {
   createEightPalaceInitialValues
 } from "../game/initialValues";
@@ -225,6 +227,10 @@ for(const summary of [tenGames, tenGames.randomComparison]){
   assert.equal(summary.maximumMaxCombo, Math.max(...results.map(game => game.maxCombo)));
   assert.equal(summary.averageComboBonusTotal, results.reduce((sum, game) => sum + game.comboBonusTotal, 0) / results.length);
   assert.equal(
+    summary.avoidableImmediateDeathCount,
+    results.reduce((sum, game) => sum + game.avoidableImmediateDeathCount, 0)
+  );
+  assert.equal(
     summary.comboBonusScoreRatio,
     results.reduce((sum, game) => sum + game.finalScore, 0)
       ? results.reduce((sum, game) => sum + game.comboBonusTotal, 0) / results.reduce((sum, game) => sum + game.finalScore, 0)
@@ -374,6 +380,60 @@ const manyCardsHighScore = {...base, score: 200};
 const sparseLowScore = {...base, board: [base.board[0], base.board[1], null, null, null, null, null, null, null], score: 10};
 assert.ok(evaluateScoreState(manyCardsHighScore) > evaluateScoreState(sparseLowScore), "score beats board clearing");
 
+const oneCardState = {
+  ...base,
+  board: [base.board[0], null, null, null, null, null, null, null, null],
+  heaterCount: 0,
+  restoreCount: 0,
+  superHeaterCount: 0
+};
+const healthyState = createGameState([
+  {value: 2, foodType: BASE_FOOD_TYPES[0], boardIndex: 0},
+  {value: 3, foodType: BASE_FOOD_TYPES[1], boardIndex: 1},
+  {value: 4, foodType: BASE_FOOD_TYPES[2], boardIndex: 2},
+  {value: 5, foodType: BASE_FOOD_TYPES[3], boardIndex: 3}
+]);
+const healthyActions = getLegalActions(healthyState);
+assert.ok(getScoreSurvivalValue(oneCardState, []) < getScoreSurvivalValue(healthyState, healthyActions), "one card evaluates far below a healthy board");
+assert.ok(getBoardCount(healthyState.board) >= 3 && getBoardCount(healthyState.board) <= 7 && healthyActions.length > 1);
+const fullReducibleState = {
+  ...base,
+  board: Array.from({length: 9}, (_, index) => ({...base.board[index % base.board.filter(Boolean).length], id: 100 + index, value: (index + 1) * 6})),
+  combineHistoryKeys: {}
+};
+const fullReduceActions = getLegalActions(fullReducibleState).filter(action => action.type === "reduce");
+assert.ok(fullReduceActions.length > 1);
+assert.ok(getScoreSurvivalValue(fullReducibleState, getLegalActions(fullReducibleState)) > getScoreSurvivalValue(oneCardState, []), "a full board with reductions remains operable");
+
+const avoidableDeathState = {
+  ...createGameState([
+    {value: 2, foodType: BASE_FOOD_TYPES[0], boardIndex: 0},
+    {value: 4, foodType: BASE_FOOD_TYPES[1], boardIndex: 1},
+    {value: 3, foodType: BASE_FOOD_TYPES[2], boardIndex: 2}
+  ]),
+  board: createGameState([
+    {value: 2, foodType: BASE_FOOD_TYPES[0], boardIndex: 0},
+    {value: 4, foodType: BASE_FOOD_TYPES[1], boardIndex: 1},
+    {value: 3, foodType: BASE_FOOD_TYPES[2], boardIndex: 2}
+  ]).board.map((piece, index) => index === 2 ? {...piece, parentFoods: [{value: 2, foodType: BASE_FOOD_TYPES[1]}]} : piece),
+  heaterCount: 0,
+  restoreCount: 0,
+  superHeaterCount: 0
+};
+const suicidalReduce = getLegalActions(avoidableDeathState).find(action => action.type === "reduce" && action.indexes[0] === 0 && action.indexes[1] === 1);
+assert.ok(suicidalReduce);
+const suicidalResult = applyAction(avoidableDeathState, suicidalReduce);
+assert.equal(suicidalResult.gameOverReason, "no_legal_actions");
+const safeAction = chooseScoreAction(avoidableDeathState, {depth: 1, beamWidth: 50, searchMode: "legacy"});
+assert.notDeepEqual(safeAction, suicidalReduce, "Score AI avoids an immediately fatal scoring action when a live option exists");
+assert.notEqual(applyAction(avoidableDeathState, safeAction).gameOverReason, "no_legal_actions");
+
+const deadLowScore = {...oneCardState, score: 10, gameOver: true, gameOverReason: "no_legal_actions"};
+const deadHighScore = {...deadLowScore, score: 20};
+assert.ok(evaluateScoreState(deadHighScore, []) > evaluateScoreState(deadLowScore, []), "when every result dies, higher score still wins");
+assert.ok(evaluateScoreState(deadLowScore, []) < evaluateScoreState({...oneCardState, score: 0}, []));
+assert.ok(IMMEDIATE_DEATH_PENALTY > 10 * 1_000_000_000);
+
 const keyless = {...base, score: 50};
 const keyed = {
   ...keyless,
@@ -390,7 +450,8 @@ assert.equal(
   fixed.results.reduce((sum, game) => sum + game.scoreEfficiency, 0) / fixed.results.length
 );
 
-const dayCycleScoreGame = await runScoreGame({depth: 1, beamWidth: 2, maxActions: 30, initialOpening: opening, dayCycleEnabled: true});
+const dayCycleOpening = createSeededScoreOpenings([10])[0];
+const dayCycleScoreGame = await runScoreGame({depth: 1, beamWidth: 2, maxActions: 30, initialOpening: dayCycleOpening, dayCycleEnabled: true});
 assert.equal(dayCycleScoreGame.checkpointHistory.length, 0, "day-cycle Score AI does not use checkpoints");
 assert.equal(dayCycleScoreGame.dayHistory[0]?.passed, true, "Score AI passes the first day in the regression opening");
 assert.equal(dayCycleScoreGame.finalDay, 2, "a passed closing automatically advances Score AI to Day 2");

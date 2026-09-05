@@ -46,6 +46,7 @@ export const STRATEGIC_CANDIDATE_LIMITS = Object.freeze({
 
 export const CHECKPOINT_SCORE_WEIGHT = 250_000_000;
 export const CHECKPOINT_PASS_BONUS = 750_000_000;
+export const IMMEDIATE_DEATH_PENALTY = 1_000_000_000_000;
 
 export function getCheckpointUrgency(state){
   const checkpoint = state?.checkpoint;
@@ -282,12 +283,34 @@ function getImmediateScorePotential(state, legalActions = getLegalActions(state)
   return {total, best};
 }
 
+export function isPrematureDeadlock(state){
+  return state?.gameOver === true && state.gameOverReason === "no_legal_actions";
+}
+
+export function getScoreSurvivalValue(state, legalActions = state.gameOver ? [] : getLegalActions(state)){
+  const boardCount = getBoardCount(state.board ?? []);
+  const reduceCount = legalActions.filter(action => action.type === "reduce").length;
+  const combineCount = legalActions.filter(action => action.type === "combine" || action.type === "combine_ordered").length;
+  const boardRisk = boardCount <= 1 ? -50_000_000
+    : boardCount === 2 ? -8_000_000
+      : boardCount === 3 ? -500_000
+        : boardCount === 8 ? -100_000
+          : boardCount === 9 ? -250_000
+            : 100_000;
+  const actionSpace = Math.min(20, legalActions.length) * 20_000
+    + Math.min(8, reduceCount) * 20_000
+    + Math.min(12, combineCount) * 5_000;
+  const actionDiversity = reduceCount > 0 && combineCount > 0 ? 150_000 : 0;
+  const noActionsRisk = legalActions.length === 0 ? -25_000_000 : 0;
+  return boardRisk + actionSpace + actionDiversity + noActionsRisk;
+}
+
 export function evaluateScoreState(state, legalActions = state.gameOver ? [] : getLegalActions(state)){
   const reduceActions = legalActions.filter(action => action.type === "reduce").length;
   const remainingSteps = Math.max(0, (state.stepLimit ?? 100) - state.steps);
   const potential = getImmediateScorePotential(state, legalActions);
   const urgency = remainingSteps <= 8 ? 4 : remainingSteps <= 20 ? 2 : 1;
-  const terminalDeadlock = state.gameOver && state.gameOverReason === "no_legal_actions" && state.steps < state.stepLimit;
+  const terminalDeadlock = isPrematureDeadlock(state);
   const collected = new Set((state.collectionCards ?? []).map(card => `${card.value}:${card.foodType}`));
   let boardNovelty = 0;
   for(const piece of state.board ?? []){
@@ -302,7 +325,8 @@ export function evaluateScoreState(state, legalActions = state.gameOver ? [] : g
     + boardNovelty * 5_000
     + reduceActions * 1_000
     + legalActions.length * 10
-    - (terminalDeadlock ? 100_000_000 : 0);
+    + getScoreSurvivalValue(state, legalActions)
+    - (terminalDeadlock ? IMMEDIATE_DEATH_PENALTY : 0);
 }
 
 export function evaluateScoreSearchState(rootState, candidateState, {
@@ -747,6 +771,7 @@ export async function runScoreGame({
   let toolsUsedSincePreviousAction = [];
   const foodTypeBoardTimeline = [createFoodTypeBoardSnapshot(state.board, state.steps)];
   let heaterUsedThisStep = false;
+  let avoidableImmediateDeathCount = 0;
 
   const isWithinProtectionLimit = () => dayCycleEnabled
     ? actionPath.length < maxActions
@@ -771,6 +796,12 @@ export async function runScoreGame({
 
     const nextState = applyScoreAction(state, action);
     if(nextState === state) throw new Error("Score AI action was rejected by the formal game engine");
+    if(isPrematureDeadlock(nextState) && legalActions.some(candidate => {
+      if(getActionKey(candidate) === getActionKey(action)) return false;
+      const alternativeState = applyScoreAction(state, candidate);
+      return alternativeState !== state && !isPrematureDeadlock(alternativeState)
+        && getLegalActions(alternativeState).length > 0;
+    })) avoidableImmediateDeathCount++;
     const describedAction = describeAction(state, action, nextState, actionPath.length + 1);
     actionPath.push(describedAction);
     if(nextState.steps > state.steps){
@@ -908,6 +939,7 @@ export async function runScoreGame({
     finalDay,
     completedDayCount: (state.dayHistory ?? []).filter(day => day.passed).length,
     deadlocked,
+    avoidableImmediateDeathCount,
     gameOverReason: state.gameOverReason,
     finalBoard: snapshotBoard(state.board),
     finalBoardCount: getBoardCount(state.board),
@@ -985,6 +1017,10 @@ function thresholdCollectionSummary(results, threshold){
 export function summarizeScoreResults(results){
   const completed100StepCount = results.filter(result => result.completed100Steps).length;
   const deadlockCount = results.filter(result => result.deadlocked).length;
+  const avoidableImmediateDeathCount = results.reduce(
+    (sum, result) => sum + (result.avoidableImmediateDeathCount ?? 0),
+    0
+  );
   const maximumDay = results.length ? Math.max(0, ...results.map(result => result.finalDay ?? 0)) : 0;
   const daySummaries = Array.from({length: maximumDay}, (_, index) => index + 1).map(day => {
     const reached = results.filter(result => (result.finalDay ?? 0) >= day);
@@ -1150,6 +1186,7 @@ export function summarizeScoreResults(results){
     completed100StepRate: results.length ? completed100StepCount / results.length : 0,
     deadlockCount,
     deadlockRate: results.length ? deadlockCount / results.length : 0,
+    avoidableImmediateDeathCount,
     averageCollectionEfficiencyTimeline: summarizeCollectionEfficiencyTimelines(results),
     highScore,
     results
