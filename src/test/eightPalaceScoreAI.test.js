@@ -15,6 +15,7 @@ import {
   getAdaptiveBaseDepth,
   getAdaptiveBeamWidth,
   getCollectionNumberCounts,
+  getAverageBoardSum,
   getScoreTelemetryClock,
   getScoreSurvivalValue,
   runFixedScoreAttempts,
@@ -29,6 +30,7 @@ import {
 } from "../game/initialValues";
 import { BASE_FOOD_TYPES } from "../game/rules";
 import { getScoreEfficiency } from "../game/scoreEfficiency";
+import { getBoardSum } from "../game/scoreValue";
 import { isPrime } from "../game/prime";
 import { createFoodTypeBoardSnapshot } from "../ai/foodTypeTelemetry";
 
@@ -39,6 +41,14 @@ assert.equal(getScoreEfficiency(0, 0).toFixed(2), "0.00");
 assert.deepEqual([2, 3, 5, 7].map(isPrime), [true, true, true, true]);
 assert.deepEqual([4, 6, 8, 9].map(isPrime), [false, false, false, false]);
 assert.equal(isPrime(1), false);
+assert.equal(getBoardSum([
+  {value: 7, foodType: "land"},
+  null,
+  {value: 11, foodType: "drink"},
+  {value: 13, foodType: "aquatic"}
+]), 31, "boardSum includes every non-empty card");
+assert.equal(getAverageBoardSum([{boardSum: 30}, {boardSum: 27}, {boardSum: 27}, {boardSum: 35}]), 29.75);
+assert.equal(getAverageBoardSum([]), 0, "an empty action sample has a safe zero average");
 
 const checkpointState = (steps, score, checkpoint = {index: 2, step: 20, type: "score", requiredScore: 200}) => ({
   steps,
@@ -472,6 +482,17 @@ assert.ok(dayCycleScoreGame.actionSnapshots.every(snapshot =>
   && Number.isFinite(snapshot.boardSum)
   && Number.isInteger(snapshot.legalActionCount)
 ), "action snapshots preserve a complete minimal 3x3 board and analysis fields");
+assert.ok(dayCycleScoreGame.actionSnapshots.every(snapshot =>
+  snapshot.boardSum === getBoardSum(snapshot.board)
+), "every successful timed action records its post-action boardSum");
+const firstDayRecord = dayCycleScoreGame.dayRecords[0];
+assert.equal(
+  firstDayRecord.dayAverageBoardSum,
+  getAverageBoardSum(firstDayRecord.actions),
+  "daily board sum averages all post-action samples"
+);
+assert.ok(firstDayRecord.closing.time >= "24:00", "the final overtime action remains in the closing day");
+assert.equal(firstDayRecord.actions.at(-1), firstDayRecord.closing, "the overtime action is included in the day's average samples");
 assert.deepEqual(
   dayCycleScoreGame.dayRecords[1].opening.board,
   dayCycleScoreGame.dayRecords[0].closing.board,
@@ -491,13 +512,15 @@ assert.equal(failedDayOne.gameOverReason, "daily_score_target_not_met", "fewer t
 assert.equal(Object.hasOwn(failedDayOne.daySettlement, "nextDayCards"), false, "settlement no longer creates next-day preparation");
 
 const daySummary = summarizeScoreResults([
-  {finalScore: 600, scoreEfficiency: 25, collectionCount: 10, primeCollectionCount: 1, compositeCollectionCount: 9, steps: 24, completed100Steps: false, deadlocked: false, dayCycleEnabled: true, finalDay: 1, dayHistory: [{day: 1, targetScore: 100, finalScore: 600, scoreGainToday: 600, scoreTargetMet: true, collectionGainToday: 10, boardSum: 100, passed: true}]},
-  {finalScore: 400, scoreEfficiency: 16.67, collectionCount: 9, primeCollectionCount: 0, compositeCollectionCount: 9, steps: 24, completed100Steps: false, deadlocked: false, dayCycleEnabled: true, finalDay: 1, dayHistory: [{day: 1, targetScore: 100, finalScore: 400, scoreGainToday: 99, scoreTargetMet: false, collectionGainToday: 9, boardSum: 80, passed: false}]},
+  {finalScore: 600, scoreEfficiency: 25, collectionCount: 10, primeCollectionCount: 1, compositeCollectionCount: 9, steps: 24, completed100Steps: false, deadlocked: false, dayCycleEnabled: true, finalDay: 1, dayHistory: [{day: 1, targetScore: 100, finalScore: 600, scoreGainToday: 600, scoreTargetMet: true, collectionGainToday: 10, boardSum: 100, passed: true}], dayRecords: [{day: 1, dayAverageBoardSum: 30}]},
+  {finalScore: 400, scoreEfficiency: 16.67, collectionCount: 9, primeCollectionCount: 0, compositeCollectionCount: 9, steps: 24, completed100Steps: false, deadlocked: false, dayCycleEnabled: true, finalDay: 1, dayHistory: [{day: 1, targetScore: 100, finalScore: 400, scoreGainToday: 99, scoreTargetMet: false, collectionGainToday: 9, boardSum: 80, passed: false}], dayRecords: [{day: 1, dayAverageBoardSum: 15}]},
   {finalScore: 0, scoreEfficiency: 0, collectionCount: 0, primeCollectionCount: 0, compositeCollectionCount: 0, steps: 4, completed100Steps: false, deadlocked: true, dayCycleEnabled: true, finalDay: 1, dayHistory: []}
 ]);
 assert.equal(daySummary.daySummaries[0].reachedCount, 3);
 assert.equal(daySummary.daySummaries[0].passedCount, 1);
 assert.equal(daySummary.daySummaries[0].passRate, 1 / 3, "day pass rate uses reachedCount as its denominator");
+assert.equal(daySummary.daySummaries[0].averageBoardSum, 90, "closing board sum reporting is unchanged");
+assert.equal(daySummary.daySummaries[0].averageDayBoardSum, 15, "daily averages are averaged across every reached game, including empty samples");
 
 console.log("eight palace Score AI tests passed", {
   score: result.finalScore,

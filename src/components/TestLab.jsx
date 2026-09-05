@@ -1395,7 +1395,7 @@ function ScoreSummaryGrid({result}){
       {(result.daySummaries ?? []).map(day => <div key={day.day}>
           Day {day.day} · 到达 {day.reachedCount}/{result.games ?? result.attempts} · 通过 {day.passedCount}/{day.reachedCount} ({(day.passRate * 100).toFixed(1)}%)
           {` · 累计目标 ${day.targetScore} · 平均打烊累计积分 ${day.averageClosingScore.toFixed(1)}`}
-          {` · 平均当日新增积分 +${day.averageScoreGainToday.toFixed(1)} · 平均新增收藏 ${day.averageCollectionCount.toFixed(1)} · 平均盘面总和 ${day.averageBoardSum.toFixed(1)}`}
+          {` · 平均当日新增积分 +${day.averageScoreGainToday.toFixed(1)} · 平均新增收藏 ${day.averageCollectionCount.toFixed(1)} · 平均打烊盘面总和 ${day.averageBoardSum.toFixed(1)} · 平均日内盘面总和 ${(day.averageDayBoardSum ?? 0).toFixed(1)}`}
           {` · 平均最高连击 ${day.averageMaxCombo.toFixed(1)} · 平均连击奖励 +${day.averageComboBonus.toFixed(1)}`}
       </div>)}
     </div>
@@ -1556,10 +1556,18 @@ function DayHistory({game}){
           <CompactBoard board={snapshot.board} />
         </details>)}
       </div>
+      <div className="test-lab-day-section">
+        <strong>Day {record.day} 盘面总和时间线</strong>
+        {record.actions.length === 0
+          ? <div>无成功动作</div>
+          : record.actions.map(snapshot => <div key={`board-sum-${snapshot.actionIndex}`}>
+              Step {snapshot.actionIndex} · {snapshot.time} · 盘面总和 {snapshot.boardSum}
+            </div>)}
+      </div>
       {record.settlement && <div className="test-lab-day-section">
         <strong>打烊 · 24:00</strong>
         {` · 累计 ${record.settlement.finalScore} / ${record.settlement.targetScore} · 当日 +${record.settlement.scoreGainToday} · 效率 ${record.settlement.efficiency.toFixed(2)}`}
-        {` · 收藏 +${record.settlement.collectionGainToday} · 盘面总和 ${record.settlement.boardSum} · ${record.settlement.passed ? "通过" : "未通过"}`}
+        {` · 收藏 +${record.settlement.collectionGainToday} · 打烊盘面总和 ${record.settlement.boardSum} · 当日平均盘面总和 ${(record.dayAverageBoardSum ?? 0).toFixed(1)} · ${record.settlement.passed ? "通过" : "未通过"}`}
       </div>}
       {record.collectionSequence.length > 0 && <div className="test-lab-day-section">
         <strong>当日收藏顺序：</strong>{record.collectionSequence.map(formatCard).join(" → ")}
@@ -1601,6 +1609,9 @@ function ScoreRecord({title, game}){
       </div>
       <div className="test-lab-record-collection">最终盘面：{formatScoreBoard(game.finalBoard) || "空"}</div>
       <div className="test-lab-record-collection">全局最高连击：{game.maxCombo ?? 0} · 连击奖励总分：+{game.comboBonusTotal ?? 0}</div>
+      {(game.dayRecords ?? []).filter(record => record.settlement).map(record => <div key={`board-day-${record.day}`} className="test-lab-record-collection">
+        Day {record.day} · 当日 +{record.settlement.scoreGainToday} · 新增收藏 {record.settlement.collectionGainToday} · 打烊盘面总和 {record.settlement.boardSum} · 当日平均盘面总和 {(record.dayAverageBoardSum ?? 0).toFixed(1)}
+      </div>)}
       {(game.dayHistory ?? []).map(day => <div key={`combo-day-${day.day}`} className="test-lab-record-collection">
         Day {day.day} · 最高连击 {day.maxComboToday ?? 0} · 连击奖励 +{day.comboBonusToday ?? 0}
       </div>)}

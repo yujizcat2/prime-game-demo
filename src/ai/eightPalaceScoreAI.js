@@ -14,7 +14,7 @@ import { isPrime } from "../game/prime";
 import { summarizeCollectionEfficiencyTimelines } from "../game/collectionEfficiency";
 import { BASE_FOOD_TYPES, FOOD_TYPES } from "../game/rules";
 import { BOARD_NATIVE_FOOD_TYPES } from "../game/nativeFoodTypes";
-import { getNonDrinkBoardSum } from "../game/scoreValue";
+import { getBoardSum } from "../game/scoreValue";
 import {
   createCollectionFoodTypeTimeline,
   createFoodTypeBoardSnapshot,
@@ -108,7 +108,7 @@ function createOpeningSnapshot(state){
     collectionCount: state.collectionCards?.length ?? 0,
     board: snapshotBoard(state.board),
     boardCount: getBoardCount(state.board),
-    boardSum: getNonDrinkBoardSum(state.board)
+    boardSum: getBoardSum(state.board)
   };
 }
 
@@ -137,7 +137,7 @@ function createTimedActionSnapshot(state, nextState, describedAction, toolsUsedS
     collections,
     board: snapshotBoard(nextState.board),
     boardCount: foodTypes.boardPieceCount,
-    boardSum: getNonDrinkBoardSum(nextState.board),
+    boardSum: getBoardSum(nextState.board),
     foodTypeCounts: foodTypes.foodTypeCounts,
     distinctNormalFoodTypes: foodTypes.distinctNormalFoodTypes,
     dominantFoodType: foodTypes.dominantFoodType,
@@ -156,6 +156,13 @@ function createTimedActionSnapshot(state, nextState, describedAction, toolsUsedS
   };
 }
 
+export function getAverageBoardSum(samples = []){
+  const boardSums = samples.map(sample => sample?.boardSum).filter(Number.isFinite);
+  return boardSums.length
+    ? boardSums.reduce((sum, boardSum) => sum + boardSum, 0) / boardSums.length
+    : 0;
+}
+
 function createDayRecords(openings, actionSnapshots, dayHistory, finalDay){
   return Array.from({length: finalDay ?? 0}, (_, index) => index + 1).map(day => {
     const actions = actionSnapshots.filter(snapshot => snapshot.day === day);
@@ -165,6 +172,7 @@ function createDayRecords(openings, actionSnapshots, dayHistory, finalDay){
       day,
       opening: openings.find(item => item.day === day) ?? null,
       actions,
+      dayAverageBoardSum: getAverageBoardSum(actions),
       closing: settlement ? actions.at(-1) ?? null : null,
       settlement,
       collectionSequence
@@ -1049,7 +1057,10 @@ export function summarizeScoreResults(results){
       averageCollectionCount: average(settlements, settlement => settlement.collectionGainToday),
       averageMaxCombo: average(settlements, settlement => settlement.maxComboToday ?? 0),
       averageComboBonus: average(settlements, settlement => settlement.comboBonusToday ?? 0),
-      averageBoardSum: average(settlements, settlement => settlement.boardSum)
+      averageBoardSum: average(settlements, settlement => settlement.boardSum),
+      averageDayBoardSum: average(reached, result =>
+        (result.dayRecords ?? []).find(record => record.day === day)?.dayAverageBoardSum ?? 0
+      )
     };
   });
   const highScore = results.length

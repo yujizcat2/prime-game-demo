@@ -5,6 +5,13 @@ export const COLLECTION_SCORE_TIERS = Object.freeze([
   [59, 35], [69, 40], [79, 45], [89, 50], [99, 55], [101, 60]
 ]);
 
+export function getBoardSum(board = []){
+  if(!Array.isArray(board)) return 0;
+  return board.reduce((sum, piece) =>
+    Number.isFinite(piece?.value) ? sum + piece.value : sum
+  , 0);
+}
+
 export function getNonDrinkBoardSum(board = []){
   if(!Array.isArray(board)) return 0;
   return board.reduce((sum, piece) =>
