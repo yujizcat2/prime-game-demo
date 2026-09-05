@@ -1,5 +1,7 @@
+import { scaleScore } from "./scoreScale";
+
 export function getComboBonus(comboCount){
-  return Math.max(0, comboCount - 1);
+  return scaleScore(Math.max(0, comboCount - 1));
 }
 
 function addComboBonusToLatestCollection(state, comboBonus, comboCount){

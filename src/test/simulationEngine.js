@@ -33,7 +33,6 @@ import {
 import { getNativeFoodType, getReductionFoodTypes } from "../game/nativeFoodTypes";
 import { getRestoreOutcome } from "../game/restore";
 import { applyHeaterIncrement, isHeaterTarget } from "../game/heater";
-import { DRINK_THRESHOLD, DRINK_WRAP_VALUE, GAME_VALUE_MAX, GAME_VALUE_MIN, GAME_VALUE_SCALE, normalizeReducedValue } from "../game/valueScale";
 
 
 
@@ -683,7 +682,7 @@ function canCombineIndexes(
   }
 
   const hasDrink=a.foodType===FOOD_TYPES.DRINK||b.foodType===FOOD_TYPES.DRINK;
-  const wrapsToNormal=hasDrink&&a.value+b.value>DRINK_WRAP_VALUE;
+  const wrapsToNormal=hasDrink&&a.value+b.value>202;
   if(!wrapsToNormal&&isBoardFull(state.board))return false;
   if(hasCombinePair(state.combineHistoryKeys, a, b)){
     return false;
@@ -988,9 +987,9 @@ function applyCombine(
   }
 
   const drinkIndex=a.foodType===FOOD_TYPES.DRINK?indexA:b.foodType===FOOD_TYPES.DRINK?indexB:null;
-  if(drinkIndex!==null&&value>DRINK_WRAP_VALUE){
+  if(drinkIndex!==null&&value>202){
     const normal=drinkIndex===indexA?b:a;
-    const wrappedValue=value-DRINK_WRAP_VALUE;
+    const wrappedValue=value-200;
     state.board[drinkIndex]={
       ...state.board[drinkIndex],
       value:wrappedValue,
@@ -1021,7 +1020,7 @@ function applyCombine(
     foodType,
 
     crossed101:
-      front.value + back.value > DRINK_THRESHOLD,
+      front.value + back.value > 101,
 
     purity:
 
@@ -1248,10 +1247,16 @@ function applyReduce(
 
 
 
-  const firstResult = normalizeReducedValue(oldA / divisor);
+  const firstResult =
+
+    oldA /
+    divisor;
 
 
-  const secondResult = normalizeReducedValue(oldB / divisor);
+  const secondResult =
+
+    oldB /
+    divisor;
 
   const actionSignature = createReduceActionSignature(oldA, oldB, firstResult, secondResult);
   if(oldA===oldB){
@@ -1506,15 +1511,15 @@ function mazeTurnValue(
   return (
 
     value ===
-    GAME_VALUE_MAX
+    101
 
       ?
 
-        GAME_VALUE_MIN
+        2
 
       :
 
-        value + GAME_VALUE_SCALE
+        value + 1
 
   );
 

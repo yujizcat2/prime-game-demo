@@ -208,7 +208,7 @@ assert.ok(getScoreEfficiency(160, 180) > getScoreEfficiency(160, 240));
   const randomGame = comparison.randomComparison.results[0];
   assert.equal(scoreGame.initialOpening.length, 4);
   assert.equal(new Set(scoreGame.initialOpening.map(card => card.foodType)).size, 4);
-  assert.ok(scoreGame.initialOpening.every(card => card.value >= 20 && card.value <= 90));
+  assert.ok(scoreGame.initialOpening.every(card => card.value >= 2 && card.value <= 9));
   assert.equal(new Set(scoreGame.initialOpening.map(card => card.boardIndex)).size, 4);
   assert.deepEqual(scoreGame.initialOpening, randomGame.initialOpening, "score and random AI use one shared opening");
   assert.equal(scoreGame.gameIndex, randomGame.gameIndex);
@@ -463,7 +463,7 @@ assert.equal(
 const dayCycleOpening = createSeededScoreOpenings([35])[0];
 const dayCycleScoreGame = await runScoreGame({depth: 1, beamWidth: 2, maxActions: 80, initialOpening: dayCycleOpening, dayCycleEnabled: true});
 assert.equal(dayCycleScoreGame.checkpointHistory.length, 0, "day-cycle Score AI does not use checkpoints");
-assert.ok(dayCycleScoreGame.dayHistory.length >= 1, "Score AI completes a day on the scaled board");
+assert.ok(dayCycleScoreGame.dayHistory.length >= 1, "Score AI completes a day with scaled scoring");
 const formalActions = dayCycleScoreGame.actionPath.filter(action => action.stepAfter > action.stepBefore);
 assert.equal(dayCycleScoreGame.actionSnapshots.length, formalActions.length, "every time-consuming action has exactly one snapshot");
 assert.ok(dayCycleScoreGame.dayRecords[0].actions.length > 0, "a completed day contains its action snapshots");

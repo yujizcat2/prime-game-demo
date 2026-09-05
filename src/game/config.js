@@ -1,5 +1,3 @@
-import { GAME_VALUE_SCALE } from "./valueScale";
-
 export const GAME_CONFIG = {
 
   MAX_NUMBERS: 10,
@@ -13,12 +11,12 @@ export const GAME_CONFIG = {
 export const EIGHT_PALACE_STEP_LIMIT = 100;
 
 
-// 随机 20-990
+// 随机 2-99
 export function randomNumber() {
 
-  return (Math.floor(
+  return Math.floor(
     Math.random() * 98
-  ) + 2) * GAME_VALUE_SCALE;
+  ) + 2;
 
 }
 

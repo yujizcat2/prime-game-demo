@@ -5,7 +5,6 @@ import {
   incrementMazeTurnCount,
   getMazeTurnCount
 } from "./mazeHistory";
-import { GAME_VALUE_MAX, GAME_VALUE_MIN, GAME_VALUE_SCALE } from "./valueScale";
 
 
 
@@ -16,21 +15,21 @@ import { GAME_VALUE_MAX, GAME_VALUE_MIN, GAME_VALUE_SCALE } from "./valueScale";
 //
 // 普通：
 //
-// 1   → 20
-// 20  → 30
+// 1   → 2
+// 2   → 3
 // ...
-// 1000 → 1010
+// 100 → 101
 //
 // 特殊：
 //
-// 1010 → 20
+// 101 → 2
 //
 // ------------------------------------------------------------
 //
-// 1不是正式20～1010主数域的一部分。
+// 1不是正式2～101主数域的一部分。
 // 它是约分产生的特殊处理中间状态。
 //
-// 回转会把1变成20。
+// 回转会把1变成2。
 // ============================================================
 
 export function getMazeTurnValue(
@@ -39,17 +38,17 @@ export function getMazeTurnValue(
 
 
   if(
-    value === GAME_VALUE_MAX
+    value === 101
   ){
 
 
-    return GAME_VALUE_MIN;
+    return 2;
 
   }
 
 
 
-  return value + GAME_VALUE_SCALE;
+  return value + 1;
 
 }
 
@@ -66,9 +65,9 @@ export function getMazeTurnValue(
 //
 // 所有当前存在棋子：
 //
-// value + 10
+// value + 1
 //
-// 1010 → 20
+// 101 → 2
 //
 // ------------------------------------------------------------
 //

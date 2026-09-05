@@ -1,3 +1,5 @@
+import { scaleScore } from "./scoreScale";
+
 export const CHECKPOINT_CONFIG = {
 
 
@@ -33,7 +35,7 @@ export const CHECKPOINT_CONFIG = {
     90,    // 90步
     100     // 100步
 
-  ],
+  ].map(scaleScore),
 
 
 
@@ -46,7 +48,7 @@ export const CHECKPOINT_CONFIG = {
   // 防止玩家超过 REQUIRED_SCORES
   // 后没有检查标准
 
-  EXTRA_SCORE_GROWTH: 200
+  EXTRA_SCORE_GROWTH: scaleScore(200)
 
 };
 

@@ -1,6 +1,7 @@
 import { getBoardCount } from "./boardRules";
 import { getNonDrinkBoardSum } from "./scoreValue";
 import { getScoreEfficiency } from "./scoreEfficiency";
+import { scaleScore } from "./scoreScale";
 
 export const DAY_DURATION_MINUTES = 1440;
 export const MAX_DAYS = 7;
@@ -8,7 +9,7 @@ export const OPENING_HOUR = 0;
 export const WEEKDAYS = Object.freeze(["星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"]);
 
 export function getDayTargetScore(day = 1){
-  return Math.max(1, Math.floor(day)) * 100;
+  return scaleScore(Math.max(1, Math.floor(day)) * 100);
 }
 
 export function getWeekday(day = 1){

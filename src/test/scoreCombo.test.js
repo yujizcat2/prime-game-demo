@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { applyScoreCombo, getComboBonus } from "../game/scoreCombo";
 import { advanceToNextDay, createDaySettlement } from "../game/dayCycle";
 
-assert.deepEqual([1, 2, 3, 4, 5, 6, 20].map(getComboBonus), [0, 1, 2, 3, 4, 5, 19]);
+assert.deepEqual([1, 2, 3, 4, 5, 6, 20].map(getComboBonus), [0, 10, 20, 30, 40, 50, 190]);
 
 const initial = {
   score: 0, steps: 0, comboCount: 0, maxCombo: 0, comboBonusTotal: 0,
@@ -14,7 +14,7 @@ const scoreAction = (state, baseScore = 10) => applyScoreCombo(state, {
 });
 
 let state = initial;
-const expectedBonuses = [0, 1, 2, 3, 4, 5];
+const expectedBonuses = [0, 10, 20, 30, 40, 50];
 for(const expectedBonus of expectedBonuses){
   const before = state.score;
   state = scoreAction(state);
@@ -23,11 +23,11 @@ for(const expectedBonus of expectedBonuses){
 }
 assert.equal(state.comboCount, 6);
 assert.equal(state.maxCombo, 6);
-assert.equal(state.comboBonusTotal, 15);
+assert.equal(state.comboBonusTotal, 150);
 
 const toolState = applyScoreCombo(state, {...state, heaterCount: 0});
 assert.equal(toolState.comboCount, 6, "a no-time tool does not increase or break combo");
-assert.equal(toolState.comboBonusTotal, 15);
+assert.equal(toolState.comboBonusTotal, 150);
 
 const broken = applyScoreCombo(toolState, {...toolState, steps: toolState.steps + 1});
 assert.equal(broken.comboCount, 0);
@@ -65,7 +65,7 @@ const settlement = createDaySettlement({
 });
 assert.equal(settlement.scoreGainToday, state.score, "combo rewards are included in daily revenue");
 assert.equal(settlement.maxComboToday, 6);
-assert.equal(settlement.comboBonusToday, 15);
+assert.equal(settlement.comboBonusToday, 150);
 
 const nextDay = advanceToNextDay({
   ...state,
@@ -80,6 +80,6 @@ assert.equal(nextDay.comboCount, 0);
 assert.equal(nextDay.dayMaxCombo, 0);
 assert.equal(nextDay.dayComboBonusTotal, 0);
 assert.equal(nextDay.maxCombo, 6, "global combo record carries across days");
-assert.equal(nextDay.comboBonusTotal, 15);
+assert.equal(nextDay.comboBonusTotal, 150);
 
 console.log("score combo tests passed");

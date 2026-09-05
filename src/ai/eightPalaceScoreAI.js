@@ -9,7 +9,7 @@ import {
   resolveGameOver
 } from "../game/gameEngine";
 import { gcd } from "../utils/math";
-import { DRINK_WRAP_VALUE, GAME_VALUE_SCALE } from "../game/valueScale";
+import { unscaleScore } from "../game/scoreScale";
 import { getScoreEfficiency } from "../game/scoreEfficiency";
 import { isPrime } from "../game/prime";
 import { summarizeCollectionEfficiencyTimelines } from "../game/collectionEfficiency";
@@ -75,7 +75,7 @@ export function evaluateCheckpointAwareness(rootState, leafState){
   const gapPressure = getCheckpointGapPressure(rootState);
   const scoreGain = Math.max(0, (leafState.score ?? 0) - (rootState.score ?? 0));
   const attainableGapWeight = .5 + gapPressure;
-  const scoreValue = scoreGain * urgency * attainableGapWeight * CHECKPOINT_SCORE_WEIGHT;
+  const scoreValue = unscaleScore(scoreGain) * urgency * attainableGapWeight * CHECKPOINT_SCORE_WEIGHT;
   const reachesTarget = (leafState.steps ?? 0) <= checkpoint.step
     && (leafState.score ?? 0) >= checkpoint.requiredScore;
   return scoreValue + (reachesTarget ? CHECKPOINT_PASS_BONUS * urgency : 0);
@@ -329,7 +329,7 @@ export function evaluateScoreState(state, legalActions = state.gameOver ? [] : g
 
   // One point of banked score outweighs every auxiliary term. Board count is
   // intentionally absent: clearing or retaining cards has no value by itself.
-  return (state.score ?? 0) * 1_000_000_000
+  return unscaleScore(state.score ?? 0) * 1_000_000_000
     + potential.best * 1_000_000 * urgency
     + potential.total * 10_000
     + boardNovelty * 5_000
@@ -369,7 +369,7 @@ function scoreRestoreCandidate(state, action, facts, boardTypes){
   const index = action.indexes[0];
   const piece = state.board[index];
   const targetType = BOARD_NATIVE_FOOD_TYPES[index];
-  const targetValue = index === 4 ? piece.value + 10 * GAME_VALUE_SCALE : piece.value;
+  const targetValue = index === 4 ? piece.value + 100 : piece.value;
   const novelty = !facts.identities.has(`${targetValue}:${targetType}`);
   const progress = facts.typesByValue.get(targetValue)?.size ?? 0;
   const restoresExtinctType = targetType !== FOOD_TYPES.DRINK && !boardTypes.has(targetType);
@@ -378,7 +378,7 @@ function scoreRestoreCandidate(state, action, facts, boardTypes){
     if(!other || other === piece) continue;
     if(targetType === FOOD_TYPES.DRINK || other.foodType === FOOD_TYPES.DRINK){
       if(!(targetType === FOOD_TYPES.DRINK && other.foodType === FOOD_TYPES.DRINK)) followUp++;
-    }else if(gcd(targetValue, other.value) > 1 || targetValue + other.value <= DRINK_WRAP_VALUE){
+    }else if(gcd(targetValue, other.value) > 1 || targetValue + other.value <= 202){
       followUp++;
     }
   }
@@ -392,7 +392,7 @@ function scoreRestoreCandidate(state, action, facts, boardTypes){
 function scoreHeaterCandidate(state, action){
   const index = action.indexes[0];
   const piece = state.board[index];
-  const heatedValue = piece.value + GAME_VALUE_SCALE;
+  const heatedValue = piece.value + 1;
   let score = 0;
   for(const other of state.board){
     if(!other || other === piece) continue;
@@ -436,7 +436,7 @@ function scoreNormalCandidate(state, action, facts){
     for(const piece of state.board){
       if(piece && piece !== left && piece !== right && gcd(value, piece.value) > 1) futureDivisors++;
     }
-    return 100 + futureDivisors * 60 + Math.min(value, DRINK_WRAP_VALUE);
+    return 100 + futureDivisors * 60 + Math.min(value, 202);
   }
   return 50;
 }
@@ -532,7 +532,7 @@ export function getAdaptiveBaseDepth(legalActionCount, defaultDepth = SCORE_AI_D
 
 function tacticalExtensionType(beforeState, action, afterState, beforeActions, afterActions){
   const newCollections = (afterState.collectionCards ?? []).slice((beforeState.collectionCards ?? []).length);
-  if(newCollections.some(card => card.value >= 50 * GAME_VALUE_SCALE)) return action.type;
+  if(newCollections.some(card => card.value >= 50)) return action.type;
   const beforeReduce = beforeActions.filter(candidate => candidate.type === "reduce").length;
   const afterReduce = afterActions.filter(candidate => candidate.type === "reduce").length;
   const beforeCombine = beforeActions.filter(candidate => candidate.type.startsWith("combine")).length;
@@ -542,7 +542,7 @@ function tacticalExtensionType(beforeState, action, afterState, beforeActions, a
     && (afterReduce > beforeReduce || afterCombine > beforeCombine || recovered)) return action.type;
   if(action.type.startsWith("combine")){
     const createdLargeOrdinary = afterState.board.some((piece, index) =>
-      piece && piece.value >= 50 * GAME_VALUE_SCALE && piece.foodType !== FOOD_TYPES.DRINK
+      piece && piece.value >= 50 && piece.foodType !== FOOD_TYPES.DRINK
       && beforeState.board[index]?.value !== piece.value
     );
     if(createdLargeOrdinary) return action.type;

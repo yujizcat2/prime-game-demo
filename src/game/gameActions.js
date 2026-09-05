@@ -50,7 +50,6 @@ import { getCreatedScoreValue } from "./scoreValue";
 import { isHeaterTarget } from "./heater";
 import { getLegalRestoreActions } from "./restore";
 import { getReductionFoodTypes } from "./nativeFoodTypes";
-import { DRINK_THRESHOLD, DRINK_WRAP_VALUE, normalizeReducedValue } from "./valueScale";
 
 import {
   addCombinePair,
@@ -146,7 +145,7 @@ export function canCombineCells(
   }
 
   const hasDrink=a.foodType===FOOD_TYPES.DRINK||b.foodType===FOOD_TYPES.DRINK;
-  const wrapsToNormal=hasDrink&&a.value+b.value>DRINK_WRAP_VALUE;
+  const wrapsToNormal=hasDrink&&a.value+b.value>202;
   if(!wrapsToNormal&&isBoardFull(state.board))return false;
 
   return canCombine(
@@ -263,7 +262,7 @@ export function createReduceOutcome(state,indexA,indexB){
     results:[first,second].map(piece=>({value:1,foodType:piece.foodType,purity:piece.purity??null,clear:true,autoCollect:false}))
   };
   const template=first.foodType===FOOD_TYPES.DRINK?second:second.foodType===FOOD_TYPES.DRINK?first:null;
-  const firstResult=normalizeReducedValue(first.value/divisor),secondResult=normalizeReducedValue(second.value/divisor);
+  const firstResult=first.value/divisor,secondResult=second.value/divisor;
   let [firstFoodType,secondFoodType]=getReductionFoodTypes(first,second,firstResult,secondResult,indexA,indexB);
   if(first.foodType===FOOD_TYPES.DESSERT&&firstResult===1)secondFoodType=getDessertMutationFoodType(second.foodType)??secondFoodType;
   if(second.foodType===FOOD_TYPES.DESSERT&&secondResult===1)firstFoodType=getDessertMutationFoodType(first.foodType)??firstFoodType;
@@ -291,9 +290,9 @@ export function createCombineOutcome(state,indexA,indexB){
   const foodType=combineFoodType(main,pairing);
   if(!foodType)return null;
   const ingredientIndex=drinkIndex===null?null:drinkIndex===indexA?indexB:indexA;
-  if(drinkIndex!==null&&value>DRINK_WRAP_VALUE){
+  if(drinkIndex!==null&&value>202){
     const normal=drinkIndex===indexA?pairing:main;
-    const wrappedValue=value-DRINK_WRAP_VALUE;
+    const wrappedValue=value-200;
     const piece={
       ...getPieceAt(state,drinkIndex),
       value:wrappedValue,
@@ -318,7 +317,7 @@ export function createCombineOutcome(state,indexA,indexB){
     parents:[main.value,pairing.value],
     sourceKey:[main.value,pairing.value].sort((left,right)=>left-right).join("|"),
     parentFoods:[main,pairing].map(piece=>({value:piece.value,foodType:piece.foodType,purity:piece.purity??null})),
-    crossed101:main.value+pairing.value>DRINK_THRESHOLD,
+    crossed101:main.value+pairing.value>101,
     origin:createCombineOrigin(value,main,pairing),
     singleFlavorPenalty:false
   };

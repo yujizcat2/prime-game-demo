@@ -15,7 +15,7 @@ for(let attempt = 0; attempt < 250; attempt++){
 
     assert.equal(opening.length, 4, "standard opening card count");
     assert.equal(new Set(foodTypes).size, 4, "four distinct food types");
-    assert.ok(values.every(value => Number.isInteger(value) && value >= 20 && value <= 90), "values are independently sampled from 20-90");
+    assert.ok(values.every(value => Number.isInteger(value) && value >= 2 && value <= 9), "values are independently sampled from 2-9");
     assert.ok(foodTypes.every(foodType => BASE_FOOD_TYPES.includes(foodType)), "base food types only");
     assert.ok(!foodTypes.includes(FOOD_TYPES.DRINK), "excludes drink");
     assert.equal(new Set(opening.map(card => card.boardIndex)).size, 4, "four distinct board positions");
@@ -39,7 +39,7 @@ for(let attempt = 0; attempt < 250; attempt++){
   }
 
 const controlledOpening = createStandardInitialValues(() => 0);
-assert.deepEqual(controlledOpening.map(card => card.value), [20, 20, 20, 20], "duplicate values are supported");
+assert.deepEqual(controlledOpening.map(card => card.value), [2, 2, 2, 2], "duplicate values are supported");
 assert.ok(controlledOpening.some(card => card.boardIndex === 4), "center is an available opening position");
 assert.ok(
   controlledOpening.some(card => card.boardIndex !== getNativeBoardIndex(card.foodType)),

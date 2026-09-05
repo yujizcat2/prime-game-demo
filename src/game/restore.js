@@ -1,7 +1,6 @@
 import { FOOD_TYPES } from "./rules";
 import { getNativeFoodType } from "./nativeFoodTypes";
 import { GAME_MODES } from "./eightPalaceKeys";
-import { GAME_VALUE_SCALE } from "./valueScale";
 
 function isAtStepLimit(state){
   return ![GAME_MODES.EIGHT_PALACE, GAME_MODES.SIMPLE_EIGHT_PALACE].includes(state?.gameMode)
@@ -15,11 +14,11 @@ export function getRestoreOutcome(piece, index){
   return {
     piece: {
       ...piece,
-      value: index === 4 ? piece.value + 10 * GAME_VALUE_SCALE : piece.value,
+      value: index === 4 ? piece.value + 100 : piece.value,
       foodType: restoredFoodType
     },
     valueBefore: piece.value,
-    valueAfter: index === 4 ? piece.value + 10 * GAME_VALUE_SCALE : piece.value,
+    valueAfter: index === 4 ? piece.value + 100 : piece.value,
     foodTypeBefore: piece.foodType,
     foodTypeAfter: restoredFoodType
   };

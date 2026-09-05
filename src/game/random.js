@@ -1,8 +1,6 @@
-import { GAME_VALUE_SCALE } from "./valueScale";
-
-// 随机20-990
+// 随机2-99
 export function randomNumber() {
-  return (Math.floor(Math.random() * 98) + 2) * GAME_VALUE_SCALE;
+  return Math.floor(Math.random() * 98) + 2;
 }
 
 // 随机生成4个不重复数字

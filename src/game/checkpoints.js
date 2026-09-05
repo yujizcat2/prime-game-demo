@@ -1,7 +1,9 @@
+import { scaleScore } from "./scoreScale";
+
 // Dynamic checkpoints V2. All runtime requirements are generated from the
 // player's actual performance at the checkpoint they just reached.
 export const FIRST_CHECKPOINT_STEP = 10;
-export const FIRST_SCORE_REFERENCE = Math.round(160 * Math.sqrt(FIRST_CHECKPOINT_STEP));
+export const FIRST_SCORE_REFERENCE = scaleScore(Math.round(160 * Math.sqrt(FIRST_CHECKPOINT_STEP)));
 export const CHECKPOINT_DISTANCE_MIN = 10;
 export const CHECKPOINT_DISTANCE_MAX = 24;
 

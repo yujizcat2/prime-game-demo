@@ -5,7 +5,7 @@ import { applyAction, createGameState } from "../game/gameEngine";
 import { BASE_FOOD_TYPES } from "../game/rules";
 
 assert.deepEqual(
-  [[20, 180], [100, 110], [180, 180], [250, 260], [330, 330], [400, 410], [500, 510]].map(pair => getCombineDurationMinutes(...pair)),
+  [[2, 18], [10, 11], [18, 18], [25, 26], [33, 33], [40, 41], [50, 51]].map(pair => getCombineDurationMinutes(...pair)),
   [30, 35, 40, 45, 50, 55, 60]
 );
 assert.equal(getReduceDurationMinutes(0), 45);
@@ -16,12 +16,12 @@ const createState = (cards, overrides = {}) => ({
   ...overrides
 });
 const normalReduceCards = [
-  {value: 60, foodType: BASE_FOOD_TYPES[0], boardIndex: 0},
-  {value: 90, foodType: BASE_FOOD_TYPES[1], boardIndex: 1}
+  {value: 6, foodType: BASE_FOOD_TYPES[0], boardIndex: 0},
+  {value: 9, foodType: BASE_FOOD_TYPES[1], boardIndex: 1}
 ];
 const collectingReduceCards = [
-  {value: 20, foodType: BASE_FOOD_TYPES[0], boardIndex: 0},
-  {value: 40, foodType: BASE_FOOD_TYPES[1], boardIndex: 1}
+  {value: 2, foodType: BASE_FOOD_TYPES[0], boardIndex: 0},
+  {value: 4, foodType: BASE_FOOD_TYPES[1], boardIndex: 1}
 ];
 
 const ordinary = applyAction(createState(normalReduceCards), {type: "reduce", indexes: [0, 1]});
@@ -41,7 +41,7 @@ const repeated = applyAction(repeatedBase, {type: "reduce", indexes: [0, 1]});
 assert.equal(repeated.score, 0);
 assert.equal(repeated.latestActionDurationMinutes, 60, "a zero-point repeated collection still uses removal time");
 
-const heaterBase = createState([{value: 60, foodType: BASE_FOOD_TYPES[0], boardIndex: 0}], {comboCount: 2});
+const heaterBase = createState([{value: 6, foodType: BASE_FOOD_TYPES[0], boardIndex: 0}], {comboCount: 2});
 const heated = applyAction(heaterBase, {type: "heater", indexes: [0]});
 assert.equal(heated.latestActionDurationMinutes, 30);
 assert.equal(heated.dayMinutesElapsed, 30);
@@ -55,19 +55,19 @@ assert.equal(illegal.totalActionMinutes, 45);
 
 const overtime45Base = createState(normalReduceCards, {
   steps: 23,
-  score: 98,
+  score: 980,
   dayMinutesElapsed: 1420,
   totalActionMinutes: 1420
 });
 const overtime45 = applyAction(overtime45Base, {type: "reduce", indexes: [0, 1]});
 assert.equal(getDayTime(overtime45), "24:25");
 assert.equal(overtime45.daySettlement.minutesToday, 1465);
-assert.equal(overtime45.daySettlement.scoreGainToday, 100);
-assert.equal(overtime45.daySettlement.efficiency, 100 / 1465 * 60);
+assert.equal(overtime45.daySettlement.scoreGainToday, 1000);
+assert.equal(overtime45.daySettlement.efficiency, 1000 / 1465 * 60);
 
 const overtime60Base = createState(collectingReduceCards, {
   steps: 23,
-  score: 100,
+  score: 1000,
   comboCount: 1,
   dayMinutesElapsed: 1430,
   totalActionMinutes: 1430
@@ -76,8 +76,8 @@ const overtime60 = applyAction(overtime60Base, {type: "reduce", indexes: [0, 1]}
 assert.equal(getDayTime(overtime60), "24:50");
 assert.equal(overtime60.daySettlement.minutesToday, 1490);
 assert.equal(overtime60.comboCount, 2);
-assert.equal(overtime60.latestComboEvent.comboBonus, 1);
-assert.ok(overtime60.daySettlement.scoreGainToday > 100);
+assert.equal(overtime60.latestComboEvent.comboBonus, 10);
+assert.ok(overtime60.daySettlement.scoreGainToday > 1000);
 
 const closed = {...overtime45Base, dayMinutesElapsed: 1440};
 assert.equal(applyAction(closed, {type: "reduce", indexes: [0, 1]}), closed, "an action cannot start at 24:00");
@@ -87,7 +87,7 @@ assert.equal(dayTwo.dayMinutesElapsed, 0);
 assert.equal(getDayTime(dayTwo), "00:00");
 assert.equal(dayTwo.totalActionMinutes, 1465, "cross-day clock reset does not reset total action minutes");
 
-const weekEnd = applyAction({...overtime60Base, day: 7, score: 700}, {type: "reduce", indexes: [0, 1]});
+const weekEnd = applyAction({...overtime60Base, day: 7, score: 7000}, {type: "reduce", indexes: [0, 1]});
 assert.equal(weekEnd.gameOverReason, "week_complete");
 assert.equal(weekEnd.day, 7);
 assert.equal(advanceToNextDay(weekEnd), weekEnd);

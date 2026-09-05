@@ -4,7 +4,7 @@ import { getLegalActions } from "../game/gameEngine";
 import { getStrategicCandidateActions } from "../ai/eightPalaceScoreAI";
 import { BASE_FOOD_TYPES } from "../game/rules";
 
-const opening = [170, 50].map((value, index) => ({value, foodType: BASE_FOOD_TYPES[index], boardIndex: index, gameMode: "eightPalace"}));
+const opening = [17, 5].map((value, index) => ({value, foodType: BASE_FOOD_TYPES[index], boardIndex: index, gameMode: "eightPalace"}));
 const available = createGameState(opening);
 assert.equal(getLegalActions(available).some(action => action.type === "heater"), true);
 assert.equal(getStrategicCandidateActions(available, getLegalActions(available)).some(action => action.type === "heater"), true);

@@ -1,6 +1,7 @@
 import {
   getCheckpointRequiredScore
 } from "../game/gameEngine";
+import { unscaleScore } from "../game/scoreScale";
 
 import {
   canReduce
@@ -405,7 +406,7 @@ export function evaluateState(
   // ==========================================================
 
   value +=
-    state.score * 100;
+    unscaleScore(state.score) * 100;
 
 
 
