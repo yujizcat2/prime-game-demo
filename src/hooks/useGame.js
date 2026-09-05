@@ -1097,7 +1097,7 @@ export default function useGame(){
     );
 
 
-    return {comboEvent: nextState.latestComboEvent};
+    return {comboEvent: nextState.latestComboEvent, actionBaseScore: nextState.latestActionBaseScore};
 
   }
 
@@ -1184,6 +1184,7 @@ export default function useGame(){
     const collectionEvents=(nextState.collectionTimeline ?? []).slice(-rewards.length);
     return {
       comboEvent: nextState.latestComboEvent,
+      actionBaseScore: nextState.latestActionBaseScore,
       collectionRewards: rewards.map((reward,index)=>({
         ...reward,
         isNewCollection:collectionEvents[index]?.isNewCollection

@@ -324,7 +324,10 @@ function App(){
         const result=game.combineNumbers(indexes);
         if(result){
           playSound("combine");
-          showActionToast(combineToast.title,result.comboEvent?.message ?? combineToast.message);
+          showActionToast(
+            combineToast.title,
+            `${combineToast.message}${result.actionBaseScore?.score ? ` +${result.actionBaseScore.score}分` : ""}${result.comboEvent?.message ? ` · ${result.comboEvent.message}` : ""}`
+          );
         }
 
 
@@ -568,7 +571,7 @@ function App(){
           if(rewards.length > 0){
             setCollectionRewardQueue(queue => [...queue, ...rewards]);
           }else{
-            showActionToast(reduceToast.title,reduceToast.message);
+            showActionToast(reduceToast.title,`${reduceToast.message}${result.actionBaseScore?.score ? ` +${result.actionBaseScore.score}分` : ""}`);
           }
           if(result.comboEvent?.message) showActionToast("连击中断", "下一次得分将从第 1 连重新开始");
         }

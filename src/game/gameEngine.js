@@ -48,6 +48,7 @@ import { markSingleFlavorBoardPieces } from "./singleFlavorPenalty";
 import { resolveCheckpoint } from "./checkpoints";
 import { settleDayIfNeeded } from "./dayCycle";
 import { applyScoreCombo } from "./scoreCombo";
+import { applyActionBaseScore } from "./actionBaseScore";
 
 
 
@@ -368,9 +369,10 @@ export function applyAction(
   // ==========================================================
 
   const comboState = applyScoreCombo(state, actionState);
+  const scoredState = applyActionBaseScore(state, action, actionState, comboState);
   const recapActionCounts = state.recapActionCounts ?? {combine: 0, reduce: 0};
   const countedState = {
-    ...comboState,
+    ...scoredState,
     recapActionCounts: {
       combine: recapActionCounts.combine + (action.type === "combine" || action.type === "combine_ordered" ? 1 : 0),
       reduce: recapActionCounts.reduce + (action.type === "reduce" ? 1 : 0)

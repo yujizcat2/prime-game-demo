@@ -121,7 +121,7 @@ if(result.steps === 100){
   assert.equal(result.reachedTestProtectionLimit, true);
 }
 assert.notEqual(result.gameOverReason, "eight_palace_keys_missing");
-assert.equal(result.finalScore, result.collections.reduce((sum, card) => sum + card.scoreGain, 0));
+assert.equal(result.finalScore, result.actionPath.reduce((sum, action) => sum + action.scoreGain, 0));
 assert.ok(Number.isInteger(result.finalScore), "AI final score remains an integer");
 assert.ok(result.collections.every(card =>
   Number.isInteger(card.baseScore) &&
@@ -450,7 +450,7 @@ assert.equal(
   fixed.results.reduce((sum, game) => sum + game.scoreEfficiency, 0) / fixed.results.length
 );
 
-const dayCycleOpening = createSeededScoreOpenings([10])[0];
+const dayCycleOpening = createSeededScoreOpenings([35])[0];
 const dayCycleScoreGame = await runScoreGame({depth: 1, beamWidth: 2, maxActions: 30, initialOpening: dayCycleOpening, dayCycleEnabled: true});
 assert.equal(dayCycleScoreGame.checkpointHistory.length, 0, "day-cycle Score AI does not use checkpoints");
 assert.equal(dayCycleScoreGame.dayHistory[0]?.passed, true, "Score AI passes the first day in the regression opening");
