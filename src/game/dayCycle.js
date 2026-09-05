@@ -1,14 +1,12 @@
-import { createEmptyBoard, getBoardCount } from "./boardRules";
-import { getBaseScore, getNonDrinkBoardSum } from "./scoreValue";
+import { getBoardCount } from "./boardRules";
+import { getNonDrinkBoardSum } from "./scoreValue";
 import { getScoreEfficiency } from "./scoreEfficiency";
 
 export const ACTIONS_PER_DAY = 24;
 export const MAX_DAYS = 7;
 export const OPENING_HOUR = 0;
 export const MINUTES_PER_ACTION = 60;
-export const MIN_COLLECTIONS_FOR_NEXT_DAY = 10;
 export const DAY_SCORE_TARGET = 100;
-export const NEXT_DAY_BOARD_INDEXES = Object.freeze([0, 1, 2, 3, 4]);
 export const WEEKDAYS = Object.freeze(["星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"]);
 
 export function getWeekday(day = 1){
@@ -37,24 +35,6 @@ export function getDayPeriod(state){
   return "晚上";
 }
 
-export function createNextDayCards(collections = []){
-  if(collections.length < MIN_COLLECTIONS_FOR_NEXT_DAY) return [];
-  const rounds = Array.from({length: 4}, () => []);
-  collections.forEach((card, index) => rounds[index % 4].push(card));
-  const crystals = rounds.map((round, index) => ({
-    value: Math.round(round.reduce((sum, card) => sum + card.value, 0) / round.length),
-    foodType: round.at(-1).foodType,
-    source: "round_crystal",
-    round: ["A", "B", "C", "D"][index]
-  }));
-  const maximum = collections.reduce((best, card) => !best || card.value >= best.value ? card : best, null);
-  return [...crystals, {
-    value: maximum.value,
-    foodType: maximum.foodType,
-    source: "daily_maximum"
-  }];
-}
-
 export function createDaySettlement(state){
   const todayCollections = (state?.collectionCards ?? state?.collection ?? [])
     .slice(state?.dayStartCollectionCount ?? 0)
@@ -78,8 +58,7 @@ export function createDaySettlement(state){
     efficiency: getScoreEfficiency(scoreGainToday, todayActions),
     boardCount: getBoardCount(state.board),
     boardSum: getNonDrinkBoardSum(state.board),
-    passed,
-    nextDayCards: passed && state.day < MAX_DAYS ? createNextDayCards(todayCollections) : []
+    passed
   };
 }
 
@@ -99,25 +78,8 @@ export function settleDayIfNeeded(state){
 
 export function advanceToNextDay(state){
   if(!state?.dayCycleEnabled || !state.daySettlement?.passed || state.day >= MAX_DAYS) return state;
-  const board = createEmptyBoard();
-  state.daySettlement.nextDayCards.forEach((card, index) => {
-    board[NEXT_DAY_BOARD_INDEXES[index]] = {
-      id: state.nextId + index,
-      value: card.value,
-      scoreValue: getBaseScore(card.value),
-      foodType: card.foodType,
-      purity: "pure",
-      parents: null,
-      parentFoods: null,
-      drinkOriginValue: null,
-      sourceKey: null,
-      origin: null
-    };
-  });
   return {
     ...state,
-    board,
-    nextId: state.nextId + state.daySettlement.nextDayCards.length,
     day: state.day + 1,
     dayStartStep: state.steps,
     dayStartScore: state.score ?? 0,

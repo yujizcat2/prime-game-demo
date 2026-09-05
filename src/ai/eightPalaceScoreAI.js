@@ -167,12 +167,7 @@ function createDayRecords(openings, actionSnapshots, dayHistory, finalDay){
       actions,
       closing: settlement ? actions.at(-1) ?? null : null,
       settlement,
-      collectionSequence,
-      collectionRounds: Object.fromEntries(["A", "B", "C", "D"].map((round, roundIndex) => [
-        round,
-        collectionSequence.filter((_, collectionIndex) => collectionIndex % 4 === roundIndex)
-      ])),
-      nextDayCards: settlement?.nextDayCards ?? []
+      collectionSequence
     };
   });
 }
@@ -998,7 +993,6 @@ export function summarizeScoreResults(results){
       return settlement ? [settlement] : [];
     });
     const passedCount = settlements.filter(settlement => settlement.passed).length;
-    const preparations = settlements.filter(settlement => settlement.nextDayCards?.length > 0);
     return {
       day,
       targetScore: DAY_SCORE_TARGET,
@@ -1010,13 +1004,7 @@ export function summarizeScoreResults(results){
       averageCollectionCount: average(settlements, settlement => settlement.collectionGainToday),
       averageMaxCombo: average(settlements, settlement => settlement.maxComboToday ?? 0),
       averageComboBonus: average(settlements, settlement => settlement.comboBonusToday ?? 0),
-      averageBoardSum: average(settlements, settlement => settlement.boardSum),
-      averagePreparationValues: Array.from({length: 5}, (_, cardIndex) => average(
-        preparations.filter(settlement => settlement.nextDayCards[cardIndex]),
-        settlement => settlement.nextDayCards[cardIndex].value
-      )),
-      averagePreparationMaximum: average(preparations, settlement => Math.max(...settlement.nextDayCards.map(card => card.value))),
-      averagePreparationSum: average(preparations, settlement => settlement.nextDayCards.reduce((sum, card) => sum + card.value, 0))
+      averageBoardSum: average(settlements, settlement => settlement.boardSum)
     };
   });
   const highScore = results.length

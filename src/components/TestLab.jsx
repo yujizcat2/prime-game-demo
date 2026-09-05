@@ -1395,7 +1395,6 @@ function ScoreSummaryGrid({result}){
           {` · 当日目标 ${day.targetScore} · 平均打烊积分 ${day.averageClosingScore.toFixed(1)}`}
           {` · 平均当日新增积分 +${day.averageScoreGainToday.toFixed(1)} · 平均新增收藏 ${day.averageCollectionCount.toFixed(1)} · 平均盘面总和 ${day.averageBoardSum.toFixed(1)}`}
           {` · 平均最高连击 ${day.averageMaxCombo.toFixed(1)} · 平均连击奖励 +${day.averageComboBonus.toFixed(1)}`}
-          {` · 明日备料均值 ${day.averagePreparationValues.map(value => value.toFixed(1)).join(" / ")} · 最大 ${day.averagePreparationMaximum.toFixed(1)} · 总和 ${day.averagePreparationSum.toFixed(1)}`}
       </div>)}
     </div>
     </>
@@ -1563,10 +1562,8 @@ function DayHistory({game}){
       </div>}
       {record.collectionSequence.length > 0 && <div className="test-lab-day-section">
         <strong>当日收藏顺序：</strong>{record.collectionSequence.map(formatCard).join(" → ")}
-        {Object.entries(record.collectionRounds).map(([round, cards]) => <div key={round}>{round} 轮：{cards.map(formatCard).join(" / ")}</div>)}
         <div>当日最大：{formatCard(record.collectionSequence.reduce((best, card) => !best || card.value >= best.value ? card : best, null))}</div>
       </div>}
-      {record.nextDayCards.length > 0 && <div className="test-lab-day-section"><strong>明日备料：</strong>{record.nextDayCards.map(formatCard).join(" / ")}</div>}
     </details>)}
   </div>;
 }

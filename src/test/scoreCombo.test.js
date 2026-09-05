@@ -73,7 +73,7 @@ const nextDay = advanceToNextDay({
   nextId: 1,
   board: [],
   collectionCards: [],
-  daySettlement: {...settlement, passed: true, nextDayCards: []}
+  daySettlement: {...settlement, passed: true}
 });
 assert.equal(nextDay.comboCount, 0);
 assert.equal(nextDay.dayMaxCombo, 0);

@@ -1,6 +1,5 @@
 import { useState } from "react";
 import "./DaySettlement.css";
-import { FOOD_TYPE_LABELS } from "../data/specialOneRegistry";
 
 const numberFormatter = new Intl.NumberFormat("zh-CN");
 
@@ -24,14 +23,6 @@ export default function DaySettlement({settlement, onContinue}){
       <Metric label="当日最高连击" value={settlement.maxComboToday} />
       <Metric label="当日连击奖励" value={`+${numberFormatter.format(settlement.comboBonusToday)}`} />
       <Metric label="打烊盘面" value={`${settlement.boardCount} 张 · 总和 ${numberFormatter.format(settlement.boardSum)}`} />
-      {settlement.passed && !isWeekComplete && <div className="day-settlement-prep">
-        <strong>明日备料</strong>
-        <div>{settlement.nextDayCards.map((card, index) => <span key={`${card.source}-${index}`}>
-          <small>{index < 4 ? `${card.round}轮结晶` : "当日最大"}</small>
-          <b>{card.value}</b>
-          <em>{FOOD_TYPE_LABELS[card.foodType] ?? card.foodType}</em>
-        </span>)}</div>
-      </div>}
       {settlement.passed && !isWeekComplete
         ? <button type="button" onClick={onContinue}>进入第{settlement.day + 1}天</button>
         : <button type="button" className="day-settlement-summary-button" onClick={() => setShowClosing(false)}>查看本局总结</button>}

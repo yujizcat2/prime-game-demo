@@ -7,10 +7,8 @@ import {
   ACTIONS_PER_DAY,
   DAY_SCORE_TARGET,
   MAX_DAYS,
-  MIN_COLLECTIONS_FOR_NEXT_DAY,
   WEEKDAYS,
   advanceToNextDay,
-  createNextDayCards,
   getDayTime,
   getWeekday
 } from "../game/dayCycle";
@@ -24,7 +22,6 @@ const makeCollections = (count, offset = 0) => Array.from({length: count}, (_, i
 const initial = createDayState();
 assert.equal(ACTIONS_PER_DAY, 24);
 assert.equal(DAY_SCORE_TARGET, 100);
-assert.equal(MIN_COLLECTIONS_FOR_NEXT_DAY, 10);
 assert.equal(initial.day, 1);
 assert.equal(getWeekday(initial.day), "星期一");
 assert.equal(getDayTime(initial), "00:00");
@@ -39,7 +36,12 @@ const failedAt99 = resolveGameOver({...initial, steps: 24, score: 99, collection
 assert.equal(failedAt99.daySettlement.passed, false);
 assert.equal(failedAt99.gameOverReason, "daily_score_target_not_met");
 
-const passed = resolveGameOver({...initial, steps: 24, score: 100, collectionCards: tenCollections});
+const closingBoard = initial.board.map((piece, index) => piece && index === 0 ? {
+  ...piece,
+  parents: [{value: 2, foodType: "aquatic"}],
+  origin: {kind: "test-origin", sourceId: 77}
+} : piece);
+const passed = resolveGameOver({...initial, board: closingBoard, steps: 24, score: 100, collectionCards: tenCollections});
 assert.equal(passed.daySettlement.passed, true);
 assert.equal(passed.daySettlement.scoreTargetMet, true);
 assert.equal(passed.daySettlement.targetScore, 100);
@@ -48,7 +50,7 @@ assert.equal(passed.daySettlement.weekday, "星期一");
 assert.equal(passed.daySettlement.scoreGainToday, 100);
 assert.equal(passed.daySettlement.efficiency, 100 / 24);
 assert.equal(passed.daySettlement.boardCount, passed.board.filter(Boolean).length);
-assert.equal(passed.daySettlement.nextDayCards.length, 5);
+assert.equal(Object.hasOwn(passed.daySettlement, "nextDayCards"), false);
 assert.equal(passed.dayHistory.length, 1);
 assert.equal(getDayTime(passed), "24:00");
 
@@ -67,12 +69,18 @@ const efficiencyState = resolveGameOver({
 });
 assert.equal(efficiencyState.daySettlement.efficiency, 148 / 24, "daily efficiency is daily score gain divided by daily actions");
 
-const compressed = createNextDayCards(tenCollections);
-assert.equal(compressed.length, 5);
-assert.deepEqual(createNextDayCards(tenCollections), compressed, "next-day compression stays deterministic");
-
 let state = passed;
 const dayTwoOpening = advanceToNextDay(state);
+assert.equal(dayTwoOpening.board, state.board, "Day 2 keeps the exact closing board array");
+assert.deepEqual(dayTwoOpening.board, closingBoard, "values, food types, positions, parents, and origin are unchanged");
+assert.equal(dayTwoOpening.nextId, state.nextId, "day rollover creates no replacement cards");
+assert.equal(dayTwoOpening.comboCount, 0);
+assert.equal(dayTwoOpening.score - dayTwoOpening.dayStartScore, 0, "Day 2 daily revenue restarts at zero");
+assert.equal(dayTwoOpening.score, 100, "cumulative score is retained");
+assert.equal(dayTwoOpening.collectionCards.length, tenCollections.length, "cumulative collections are retained");
+assert.equal(dayTwoOpening.heaterCount, 1);
+assert.equal(dayTwoOpening.restoreCount, 1);
+assert.equal(dayTwoOpening.superHeaterCount, 1);
 const dayTwoFailed = resolveGameOver({
   ...dayTwoOpening,
   steps: 48,
@@ -86,7 +94,9 @@ for(let day = 1; day <= MAX_DAYS; day++){
   assert.equal(state.day, day);
   assert.equal(state.daySettlement.weekday, WEEKDAYS[day - 1]);
   if(day === MAX_DAYS) break;
+  const closingBoardForDay = state.board;
   const next = advanceToNextDay(state);
+  assert.equal(next.board, closingBoardForDay, `Day ${day + 1} inherits Day ${day}'s closing board`);
   assert.equal(next.day, day + 1);
   assert.equal(next.dayStartStep, day * ACTIONS_PER_DAY);
   assert.equal(getDayTime(next), "00:00");
@@ -103,7 +113,7 @@ assert.equal(state.steps, 168);
 assert.equal(state.day, 7);
 assert.equal(state.daySettlement.passed, true);
 assert.equal(state.daySettlement.weekday, "星期日");
-assert.equal(state.daySettlement.nextDayCards.length, 0);
+assert.equal(Object.hasOwn(state.daySettlement, "nextDayCards"), false);
 assert.equal(state.gameOver, true);
 assert.equal(state.gameOverReason, "week_complete");
 assert.equal(advanceToNextDay(state), state, "the eighth day is never created");
