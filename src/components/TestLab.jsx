@@ -1388,7 +1388,7 @@ function ScoreSummaryGrid({result}){
     <div className="test-lab-timeline">
       {(result.daySummaries ?? []).map(day => <div key={day.day}>
           Day {day.day} · 到达 {day.reachedCount}/{result.games ?? result.attempts} · 通过 {day.passedCount}/{day.reachedCount} ({(day.passRate * 100).toFixed(1)}%)
-          {` · 平均打烊积分 ${day.averageClosingScore.toFixed(1)}`}
+          {` · 当日目标 ${day.targetScore} · 平均打烊积分 ${day.averageClosingScore.toFixed(1)}`}
           {` · 平均当日新增积分 +${day.averageScoreGainToday.toFixed(1)} · 平均新增收藏 ${day.averageCollectionCount.toFixed(1)} · 平均盘面总和 ${day.averageBoardSum.toFixed(1)}`}
           {` · 明日备料均值 ${day.averagePreparationValues.map(value => value.toFixed(1)).join(" / ")} · 最大 ${day.averagePreparationMaximum.toFixed(1)} · 总和 ${day.averagePreparationSum.toFixed(1)}`}
       </div>)}
@@ -1504,7 +1504,7 @@ function RandomSummaryGrid({result}){
 
 function getScoreGameEndReason(game){
   if(game.reachedTestProtectionLimit) return "测试保护上限";
-  if(game.gameOverReason === "daily_collection_target_not_met") return `Day ${game.finalDay} 收藏目标未完成`;
+  if(game.gameOverReason === "daily_score_target_not_met") return `Day ${game.finalDay} 营业额目标未完成`;
   if(game.gameOverReason === "week_complete") return "星期日营业完成";
   if(game.gameOverReason === "no_legal_actions") return "无合法动作";
   return game.gameOverReason ?? "—";

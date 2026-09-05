@@ -5,8 +5,9 @@ import { resolveGameOver } from "../game/gameEngine";
 import { getScoreEfficiency } from "../game/scoreEfficiency";
 import {
   ACTIONS_PER_DAY,
+  DAY_SCORE_TARGET,
   MAX_DAYS,
-  MIN_COLLECTIONS_PER_DAY,
+  MIN_COLLECTIONS_FOR_NEXT_DAY,
   WEEKDAYS,
   advanceToNextDay,
   createNextDayCards,
@@ -22,7 +23,8 @@ const makeCollections = (count, offset = 0) => Array.from({length: count}, (_, i
 
 const initial = createDayState();
 assert.equal(ACTIONS_PER_DAY, 24);
-assert.equal(MIN_COLLECTIONS_PER_DAY, 10);
+assert.equal(DAY_SCORE_TARGET, 100);
+assert.equal(MIN_COLLECTIONS_FOR_NEXT_DAY, 10);
 assert.equal(initial.day, 1);
 assert.equal(getWeekday(initial.day), "星期一");
 assert.equal(getDayTime(initial), "00:00");
@@ -33,36 +35,53 @@ assert.equal(at23.daySettlement, null, "23 steps do not settle the day");
 assert.equal(at23.gameOver, false);
 
 const tenCollections = makeCollections(10);
-const passed = resolveGameOver({...initial, steps: 24, score: 1, collectionCards: tenCollections});
-assert.equal(passed.daySettlement.passed, true, "ten collections pass regardless of score");
-assert.equal(passed.daySettlement.collectionTargetMet, true);
+const failedAt99 = resolveGameOver({...initial, steps: 24, score: 99, collectionCards: tenCollections});
+assert.equal(failedAt99.daySettlement.passed, false);
+assert.equal(failedAt99.gameOverReason, "daily_score_target_not_met");
+
+const passed = resolveGameOver({...initial, steps: 24, score: 100, collectionCards: tenCollections});
+assert.equal(passed.daySettlement.passed, true);
+assert.equal(passed.daySettlement.scoreTargetMet, true);
+assert.equal(passed.daySettlement.targetScore, 100);
 assert.equal(passed.daySettlement.collectionGainToday, 10);
 assert.equal(passed.daySettlement.weekday, "星期一");
-assert.equal(passed.daySettlement.scoreGainToday, 1);
-assert.equal(passed.daySettlement.efficiency, 1 / 24);
+assert.equal(passed.daySettlement.scoreGainToday, 100);
+assert.equal(passed.daySettlement.efficiency, 100 / 24);
 assert.equal(passed.daySettlement.boardCount, passed.board.filter(Boolean).length);
 assert.equal(passed.daySettlement.nextDayCards.length, 5);
 assert.equal(passed.dayHistory.length, 1);
 assert.equal(getDayTime(passed), "24:00");
 
-const failed = resolveGameOver({...initial, steps: 24, score: 999999, collectionCards: makeCollections(9)});
-assert.equal(failed.daySettlement.passed, false, "nine collections fail even with a high score");
-assert.equal(failed.gameOver, true);
-assert.equal(failed.gameOverReason, "daily_collection_target_not_met");
-assert.equal(failed.daySettlement.nextDayCards.length, 0);
-assert.equal(advanceToNextDay(failed), failed);
+const overTarget = resolveGameOver({...initial, steps: 24, score: 101, collectionCards: tenCollections});
+assert.equal(overTarget.daySettlement.passed, true);
+
+const fewCollections = resolveGameOver({...initial, steps: 24, score: 100, collectionCards: makeCollections(9)});
+assert.equal(fewCollections.daySettlement.passed, true, "fewer than ten collections still pass at 100 points");
+
+const manyCollectionsLowScore = resolveGameOver({...initial, steps: 24, score: 99, collectionCards: makeCollections(20)});
+assert.equal(manyCollectionsLowScore.daySettlement.passed, false, "many collections cannot replace the score target");
 
 assert.equal(getScoreEfficiency(125, 25), 5, "live efficiency remains score divided by steps");
 const efficiencyState = resolveGameOver({
-  ...initial, steps: 24, score: 148, dayStartScore: 100, collectionCards: tenCollections
+  ...initial, steps: 24, score: 148, dayStartScore: 0, collectionCards: tenCollections
 });
-assert.equal(efficiencyState.daySettlement.efficiency, 2, "daily efficiency is daily score gain divided by daily actions");
+assert.equal(efficiencyState.daySettlement.efficiency, 148 / 24, "daily efficiency is daily score gain divided by daily actions");
 
 const compressed = createNextDayCards(tenCollections);
 assert.equal(compressed.length, 5);
 assert.deepEqual(createNextDayCards(tenCollections), compressed, "next-day compression stays deterministic");
 
 let state = passed;
+const dayTwoOpening = advanceToNextDay(state);
+const dayTwoFailed = resolveGameOver({
+  ...dayTwoOpening,
+  steps: 48,
+  score: 199,
+  collectionCards: [...dayTwoOpening.collectionCards, ...makeCollections(10, 10)]
+});
+assert.equal(dayTwoFailed.daySettlement.scoreGainToday, 99, "Day 2 uses daily gain instead of cumulative score");
+assert.equal(dayTwoFailed.daySettlement.passed, false);
+
 for(let day = 1; day <= MAX_DAYS; day++){
   assert.equal(state.day, day);
   assert.equal(state.daySettlement.weekday, WEEKDAYS[day - 1]);
@@ -75,7 +94,7 @@ for(let day = 1; day <= MAX_DAYS; day++){
   state = resolveGameOver({
     ...next,
     steps: (day + 1) * ACTIONS_PER_DAY,
-    score: next.score + day,
+    score: next.score + 100,
     collectionCards: collections
   });
 }

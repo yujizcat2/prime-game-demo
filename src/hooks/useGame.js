@@ -266,6 +266,7 @@ export default function useGame(){
   const dayTime = getDayTime(gameState);
   const dayPeriod = getDayPeriod(gameState);
   const weekday = getWeekday(day);
+  const scoreGainToday = score - (gameState?.dayStartScore ?? 0);
   const daySettlement = gameState?.daySettlement ?? null;
   const dayHistory = gameState?.dayHistory ?? [];
   const gameRecapSnapshots = gameState?.gameRecapSnapshots ?? [];
@@ -1411,6 +1412,7 @@ export default function useGame(){
     dayTime,
     dayPeriod,
     weekday,
+    scoreGainToday,
     daySettlement,
     dayHistory,
     gameRecapSnapshots,

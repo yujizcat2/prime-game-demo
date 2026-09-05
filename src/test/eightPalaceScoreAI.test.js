@@ -418,15 +418,15 @@ assert.deepEqual(
 const failedDayOne = resolveGameOver({
   ...createGameState(opening, {dayCycleEnabled: true}),
   steps: 24,
-  score: 999999,
-  collectionCards: Array.from({length: 9}, (_, index) => ({value: index + 2, foodType: "aquatic"}))
+  score: 99,
+  collectionCards: Array.from({length: 20}, (_, index) => ({value: index + 2, foodType: "aquatic"}))
 });
-assert.equal(failedDayOne.gameOverReason, "daily_collection_target_not_met", "fewer than ten collections ends the day-cycle run");
+assert.equal(failedDayOne.gameOverReason, "daily_score_target_not_met", "fewer than 100 daily points ends the day-cycle run");
 assert.equal(failedDayOne.daySettlement.nextDayCards.length, 0, "a failed day does not prepare or open another day");
 
 const daySummary = summarizeScoreResults([
-  {finalScore: 600, scoreEfficiency: 25, collectionCount: 10, primeCollectionCount: 1, compositeCollectionCount: 9, steps: 24, completed100Steps: false, deadlocked: false, dayCycleEnabled: true, finalDay: 1, dayHistory: [{day: 1, finalScore: 600, scoreGainToday: 600, collectionGainToday: 10, boardSum: 100, passed: true}]},
-  {finalScore: 400, scoreEfficiency: 16.67, collectionCount: 9, primeCollectionCount: 0, compositeCollectionCount: 9, steps: 24, completed100Steps: false, deadlocked: false, dayCycleEnabled: true, finalDay: 1, dayHistory: [{day: 1, finalScore: 400, scoreGainToday: 400, collectionGainToday: 9, boardSum: 80, passed: false}]},
+  {finalScore: 600, scoreEfficiency: 25, collectionCount: 10, primeCollectionCount: 1, compositeCollectionCount: 9, steps: 24, completed100Steps: false, deadlocked: false, dayCycleEnabled: true, finalDay: 1, dayHistory: [{day: 1, targetScore: 100, finalScore: 600, scoreGainToday: 600, scoreTargetMet: true, collectionGainToday: 10, boardSum: 100, passed: true}]},
+  {finalScore: 400, scoreEfficiency: 16.67, collectionCount: 9, primeCollectionCount: 0, compositeCollectionCount: 9, steps: 24, completed100Steps: false, deadlocked: false, dayCycleEnabled: true, finalDay: 1, dayHistory: [{day: 1, targetScore: 100, finalScore: 400, scoreGainToday: 99, scoreTargetMet: false, collectionGainToday: 9, boardSum: 80, passed: false}]},
   {finalScore: 0, scoreEfficiency: 0, collectionCount: 0, primeCollectionCount: 0, compositeCollectionCount: 0, steps: 4, completed100Steps: false, deadlocked: true, dayCycleEnabled: true, finalDay: 1, dayHistory: []}
 ]);
 assert.equal(daySummary.daySummaries[0].reachedCount, 3);

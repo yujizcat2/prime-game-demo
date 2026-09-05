@@ -826,6 +826,7 @@ function App(){
             period={game.dayPeriod}
             dayStep={game.dayStep}
             score={game.score}
+            scoreGainToday={game.scoreGainToday}
             steps={game.steps}
           /> : <StepPanel
             steps={

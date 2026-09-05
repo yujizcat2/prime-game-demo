@@ -6,7 +6,8 @@ export const ACTIONS_PER_DAY = 24;
 export const MAX_DAYS = 7;
 export const OPENING_HOUR = 0;
 export const MINUTES_PER_ACTION = 60;
-export const MIN_COLLECTIONS_PER_DAY = 10;
+export const MIN_COLLECTIONS_FOR_NEXT_DAY = 10;
+export const DAY_SCORE_TARGET = 100;
 export const NEXT_DAY_BOARD_INDEXES = Object.freeze([0, 1, 2, 3, 4]);
 export const WEEKDAYS = Object.freeze(["星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"]);
 
@@ -37,7 +38,7 @@ export function getDayPeriod(state){
 }
 
 export function createNextDayCards(collections = []){
-  if(collections.length < MIN_COLLECTIONS_PER_DAY) return [];
+  if(collections.length < MIN_COLLECTIONS_FOR_NEXT_DAY) return [];
   const rounds = Array.from({length: 4}, () => []);
   collections.forEach((card, index) => rounds[index % 4].push(card));
   const crystals = rounds.map((round, index) => ({
@@ -61,16 +62,16 @@ export function createDaySettlement(state){
   const finalScore = state.score ?? 0;
   const todayActions = getDayStep(state);
   const scoreGainToday = finalScore - (state.dayStartScore ?? 0);
-  const collectionTargetMet = todayCollections.length >= MIN_COLLECTIONS_PER_DAY;
-  const passed = collectionTargetMet;
+  const scoreTargetMet = scoreGainToday >= DAY_SCORE_TARGET;
+  const passed = scoreTargetMet;
   return {
     day: state.day,
     weekday: getWeekday(state.day),
     finalScore,
+    targetScore: DAY_SCORE_TARGET,
     scoreGainToday,
     collectionGainToday: todayCollections.length,
-    minimumCollectionCount: MIN_COLLECTIONS_PER_DAY,
-    collectionTargetMet,
+    scoreTargetMet,
     todayActions,
     efficiency: getScoreEfficiency(scoreGainToday, todayActions),
     boardCount: getBoardCount(state.board),
@@ -89,7 +90,7 @@ export function settleDayIfNeeded(state){
     dayHistory: [...(state.dayHistory ?? []), daySettlement],
     gameOver: !daySettlement.passed || state.day >= MAX_DAYS,
     gameOverReason: !daySettlement.passed
-      ? "daily_collection_target_not_met"
+      ? "daily_score_target_not_met"
       : state.day >= MAX_DAYS ? "week_complete" : null
   };
 }
