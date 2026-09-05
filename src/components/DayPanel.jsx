@@ -1,6 +1,7 @@
 import "./DayPanel.css";
 import { DAY_DURATION_MINUTES, DAY_SCORE_TARGET } from "../game/dayCycle";
 import { getScoreEfficiency } from "../game/scoreEfficiency";
+import { getComboBonus } from "../game/scoreCombo";
 
 const numberFormatter = new Intl.NumberFormat("zh-CN");
 
@@ -14,7 +15,7 @@ export default function DayPanel({day, weekday, time, period, dayMinutesElapsed,
       <div><strong>DAY {day}</strong><span>{weekday}</span></div>
       <div className="day-panel-clock"><strong>{time}</strong><span>{period}</span></div>
     </div>
-    {comboCount >= 2 && <div className="day-panel-combo" role="status">{comboCount} 连击 · +{Math.min(12, (comboCount - 1) * 3)}</div>}
+    {comboCount >= 2 && <div className="day-panel-combo" role="status">{comboCount} 连击 · +{getComboBonus(comboCount)}</div>}
     <div className="day-panel-business">
       <div><span>今日营业额</span><strong>{numberFormatter.format(scoreGainToday)} <small>/ {DAY_SCORE_TARGET}</small></strong></div>
       <span className="day-panel-complete">效率 {efficiency.toFixed(2)}</span>

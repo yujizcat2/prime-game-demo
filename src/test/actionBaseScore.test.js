@@ -41,7 +41,7 @@ const collected = applyAction(collectionState, {type: "reduce", indexes: [0, 1]}
 assert.equal(collected.collectionCards.length, 1);
 assert.equal(collected.latestActionBaseScore, null, "a collecting reduce does not also receive +2");
 assert.equal(collected.comboCount, 2, "collection scoring keeps the existing combo behavior");
-assert.equal(collected.latestComboEvent.comboBonus, 3);
+assert.equal(collected.latestComboEvent.comboBonus, 1);
 assert.equal(collected.score, collected.collectionCards[0].scoreGain);
 
 assert.equal(applyAction(combineState, {type: "combine", indexes: [0, 8]}), combineState);

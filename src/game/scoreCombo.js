@@ -1,5 +1,5 @@
 export function getComboBonus(comboCount){
-  return Math.min(12, Math.max(0, comboCount - 1) * 3);
+  return Math.max(0, comboCount - 1);
 }
 
 function addComboBonusToLatestCollection(state, comboBonus, comboCount){

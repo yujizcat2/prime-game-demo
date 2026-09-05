@@ -76,7 +76,7 @@ const overtime60 = applyAction(overtime60Base, {type: "reduce", indexes: [0, 1]}
 assert.equal(getDayTime(overtime60), "24:50");
 assert.equal(overtime60.daySettlement.minutesToday, 1490);
 assert.equal(overtime60.comboCount, 2);
-assert.equal(overtime60.latestComboEvent.comboBonus, 3);
+assert.equal(overtime60.latestComboEvent.comboBonus, 1);
 assert.ok(overtime60.daySettlement.scoreGainToday > 100);
 
 const closed = {...overtime45Base, dayMinutesElapsed: 1440};
