@@ -28,6 +28,7 @@ const collectible = (value, foodType) => ({
   origin: {type: "reduce", parent: {value, foodType, origin: null}}
 });
 const state = createGameState([{value: 450, foodType: aquatic, boardIndex: 0, gameMode: "eightPalace"}]);
+state.dayMinutesElapsed = 4 * 60;
 const piece = collectible(29, land);
 const preview = getEightPalaceCollectionScoreGain(state, piece);
 const settled = applyEightPalaceCollection(state, piece);

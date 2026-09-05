@@ -17,7 +17,7 @@ const baseState = pieces => ({
     {value: 4, boardIndex: 0, gameMode: "simpleEightPalace"},
     {value: 6, boardIndex: 1, gameMode: "simpleEightPalace"}
   ]),
-  board: board(...pieces), gameOver: false, gameOverReason: null
+  board: board(...pieces), dayMinutesElapsed: 4 * 60, gameOver: false, gameOverReason: null
 });
 
 for(const count of [1, 2, 4]){

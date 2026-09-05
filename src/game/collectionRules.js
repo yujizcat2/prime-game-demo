@@ -1572,7 +1572,7 @@ export function getEightPalaceCollectionScoreGain(state, piece){
     nonDrinkBoardSum: getNonDrinkBoardSum(state?.board),
     boardAverageValue: getBoardAverageValue(state?.board),
     singleFlavorPenalty: record.singleFlavorPenalty === true,
-    gameTime: state.dayCycleEnabled ? getDayTime(state) : undefined,
+    gameTime: getDayTime(state),
     collectionRecord: record
   }).totalScore;
 }
@@ -1605,7 +1605,7 @@ export function applyEightPalaceCollection(
     nonDrinkBoardSum: getNonDrinkBoardSum(settlementBoard),
     boardAverageValue: getBoardAverageValue(settlementBoard),
     singleFlavorPenalty: record.singleFlavorPenalty === true,
-    gameTime: state.dayCycleEnabled ? getDayTime(state) : undefined,
+    gameTime: getDayTime(state),
     collectionRecord: record
   });
 

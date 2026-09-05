@@ -1,5 +1,5 @@
 const TIME_SALE_PERIODS = Object.freeze([
-  {startMinutes: 0, multiplier: 0.9, label: "凌晨"},
+  {startMinutes: 0, multiplier: 0.5, label: "凌晨"},
   {startMinutes: 4 * 60, multiplier: 1, label: "正常"},
   {startMinutes: 11 * 60, multiplier: 1.1, label: "午市"},
   {startMinutes: 13 * 60, multiplier: 1, label: "正常"},
@@ -22,4 +22,3 @@ export function getTimeSalePeriod(gameTime){
 export function getTimeSaleMultiplier(gameTime){
   return getTimeSalePeriod(gameTime).multiplier;
 }
-
