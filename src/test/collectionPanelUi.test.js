@@ -8,12 +8,15 @@ const appSource = readFileSync("src/App.jsx", "utf8");
 const saleSummary = getSaleSummary([
   {value: 12, foodType: "land", salePointScore: 30},
   {value: 12, foodType: "land", salePointScore: 0},
-  {value: 8, foodType: "aquatic", salePointScore: 15}
+  {value: 8, foodType: "aquatic", salePointScore: 15},
+  {value: 20, foodType: "drink", salePointScore: 50}
 ]);
 
 assert.deepEqual(saleSummary.land, {value: 24, score: 30});
 assert.deepEqual(saleSummary.aquatic, {value: 8, score: 15});
-assert.deepEqual(saleSummary.vegetable, {value: 0, score: 0});
+assert.deepEqual(saleSummary.grainBean, {value: 0, score: 0});
+assert.equal(Object.hasOwn(saleSummary, "drink"), false);
+assert.equal(Object.keys(saleSummary).length, 4);
 
 assert.doesNotMatch(source, />\s*已获得的料理包\s*</);
 assert.doesNotMatch(source, /OBTAINED DISH PACKS/);
