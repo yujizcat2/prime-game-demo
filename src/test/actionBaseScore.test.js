@@ -1,6 +1,12 @@
 import assert from "node:assert/strict";
-import { applyAction, createGameState } from "../game/gameEngine";
+import {
+  applyAction,
+  createGameState,
+  doesReduceCreateEffectiveSale,
+  hasEffectiveSaleReward
+} from "../game/gameEngine";
 import { BASE_FOOD_TYPES } from "../game/rules";
+import { getReduceButtonLabel } from "../components/actionButtonLabel";
 
 const createState = (cards, overrides = {}) => ({
   ...createGameState(cards, {dayCycleEnabled: true}),
@@ -33,6 +39,14 @@ assert.equal(reduced.collectionCards.length, 0);
 assert.equal(reduced.latestActionBaseScore, null);
 assert.equal(reduced.comboCount, 0);
 assert.equal(reduced.comboBonusTotal, 0);
+assert.equal(getReduceButtonLabel([], null), "处理/售出");
+assert.equal(getReduceButtonLabel([0], null), "处理/售出");
+assert.equal(doesReduceCreateEffectiveSale(reduceState, [0, 1]), false);
+assert.equal(
+  getReduceButtonLabel([0, 1], {reduce: {createsEffectiveSale: false}}),
+  "处理",
+  "ordinary reduction keeps the processing label"
+);
 
 const collectionState = createState([
   {value: 2, foodType: BASE_FOOD_TYPES[0], boardIndex: 0},
@@ -44,6 +58,37 @@ assert.equal(collected.latestActionBaseScore, null, "a collecting reduce does no
 assert.equal(collected.comboCount, 2, "collection scoring keeps the existing combo behavior");
 assert.equal(collected.latestComboEvent.comboBonus, 10);
 assert.equal(collected.score, collected.collectionCards[0].scoreGain);
+assert.equal(doesReduceCreateEffectiveSale(collectionState, [0, 1]), true);
+assert.equal(
+  getReduceButtonLabel([0, 1], {reduce: {createsEffectiveSale: true}}),
+  "售出",
+  "a formal positive new sale uses the sale label"
+);
+
+const duplicateSaleState = {
+  ...collectionState,
+  collectionCards: [{value: 2, foodType: BASE_FOOD_TYPES[0]}]
+};
+assert.equal(
+  doesReduceCreateEffectiveSale(duplicateSaleState, [0, 1]),
+  false,
+  "a reduce-to-one duplicate with zero formal sale value stays processing"
+);
+
+const equalClearState = createState([
+  {value: 8, foodType: BASE_FOOD_TYPES[0], boardIndex: 0},
+  {value: 8, foodType: BASE_FOOD_TYPES[0], boardIndex: 1}
+]);
+assert.equal(doesReduceCreateEffectiveSale(equalClearState, [0, 1]), false, "equal clear is not presented as a sale");
+
+assert.equal(hasEffectiveSaleReward([
+  {duplicate: true, saleScore: 0},
+  {duplicate: false, saleScore: 100}
+]), true, "one positive formal result is enough for a multi-result sale label");
+assert.equal(hasEffectiveSaleReward([
+  {duplicate: true, saleScore: 0},
+  {duplicate: false, saleScore: 0}
+]), false, "all zero formal results keep the processing label");
 
 assert.equal(applyAction(combineState, {type: "combine", indexes: [0, 8]}), combineState);
 assert.equal(applyAction(reduceState, {type: "reduce", indexes: [0, 8]}), reduceState);

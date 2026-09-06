@@ -1,5 +1,5 @@
 import "./ActionButtons.css";
-
+import { getReduceButtonLabel } from "./actionButtonLabel";
 
 export default function ActionButtons({
 
@@ -54,6 +54,7 @@ export default function ActionButtons({
     selected.length === 2 &&
     !canCombine &&
     typeof onBlockedCombine === "function";
+  const reduceLabel = getReduceButtonLabel(selected, preview);
 
 
 
@@ -184,7 +185,7 @@ export default function ActionButtons({
           "
         >
 
-          {canReduce ? `处理 · ${preview.reduce.durationMinutes}分钟` : "处理"}
+          {canReduce ? `${reduceLabel} · ${preview.reduce.durationMinutes}分钟` : reduceLabel}
 
         </span>
 

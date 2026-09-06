@@ -33,6 +33,7 @@ import {
   createCombineOutcome,
   canReduceCells,
   createReduceOutcome,
+  doesReduceCreateEffectiveSale,
 
   applyAction,
   resolveGameOver
@@ -706,6 +707,9 @@ export default function useGame(){
       ? createCombineOutcome(gameState,first.index,second.index)
       : null;
     const reduceOutcome=reduceAllowed?createReduceOutcome(gameState,first.index,second.index):null;
+    const reduceCreatesEffectiveSale = reduceAllowed
+      ? doesReduceCreateEffectiveSale(gameState, [first.index, second.index])
+      : false;
 
 
     return {
@@ -735,6 +739,7 @@ export default function useGame(){
               divisor,
               kind:reduceOutcome.kind,
               equalClear:reduceOutcome.kind==="equalClear",
+              createsEffectiveSale: reduceCreatesEffectiveSale,
               durationMinutes:getReduceDurationMinutes(
                 reduceOutcome.kind==="equalClear"
                   ? 2

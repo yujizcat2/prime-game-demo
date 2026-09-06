@@ -408,6 +408,17 @@ export function applyAction(
 
 }
 
+export function hasEffectiveSaleReward(rewards = []){
+  return rewards.some(reward =>
+    reward?.duplicate === false && (reward.saleScore ?? reward.totalScore ?? 0) > 0
+  );
+}
+
+export function doesReduceCreateEffectiveSale(state, indexes){
+  const result = applyAction(state, {type: "reduce", indexes});
+  return result !== state && hasEffectiveSaleReward(result.latestCollectionRewards);
+}
+
 export function recordGameRecapSnapshot(state, force = false){
   if(!state || (!force && (state.steps === 0 || state.steps % 10 !== 0))) return state;
   const snapshots = state.gameRecapSnapshots ?? [];
