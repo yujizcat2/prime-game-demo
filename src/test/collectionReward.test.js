@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { createCollectionRewardSettlement } from "../game/collectionReward";
+import { createCollectionRewardSettlement, getCollectionBaseSalePrice } from "../game/collectionReward";
 import { BASE_FOOD_TYPES } from "../game/rules";
 import { getCollectionMultiplier } from "../game/collectionMultiplier";
 
@@ -66,6 +66,15 @@ assert.equal(crossFamilyWithSeries.cuisineScoreMultiplier, 1, "cross-family adju
 assert.equal(crossFamilyWithSeries.collectionScore, 50, "100 becomes 50 only once");
 assert.equal(crossFamilyWithSeries.totalScore, 58, "50 × 115% rounds to 58");
 assert.equal(crossFamilyWithSeries.saleBreakdown.at(-1).result, crossFamilyWithSeries.totalScore);
+assert.deepEqual(
+  crossFamilyWithSeries.saleBreakdown.map(step => step.label),
+  ["基础售价", "同款半价", "当前时段", "×4路线奖励", "最终结算"]
+);
+assert.equal(
+  getCollectionBaseSalePrice([card(2, BASE_FOOD_TYPES[0])], 2, BASE_FOOD_TYPES[1]),
+  crossFamilyWithSeries.saleBreakdown[1].result,
+  "card price and the formal same-item discount use the same authority"
+);
 
 const normalSeriesSale = createCollectionRewardSettlement({
   collectionCards: [], value: 2, foodType: BASE_FOOD_TYPES[0], name: "系列料理",
@@ -73,6 +82,8 @@ const normalSeriesSale = createCollectionRewardSettlement({
 });
 assert.equal(normalSeriesSale.cuisineScoreMultiplier, .5);
 assert.equal(normalSeriesSale.totalScore, 50, "series half-price still applies without a cross-family adjustment");
+assert.equal(getCollectionBaseSalePrice([], 2, BASE_FOOD_TYPES[0]), 100, "first-sale card price ignores series order");
+assert.equal(getCollectionBaseSalePrice([card(2, BASE_FOOD_TYPES[0])], 2, BASE_FOOD_TYPES[0]), 0, "same-family repeats stay zero");
 
 const timedCrossFamilySale = createCollectionRewardSettlement({
   collectionCards: [card(2, BASE_FOOD_TYPES[0])],

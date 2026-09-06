@@ -8,7 +8,11 @@ import {
 
 import { getFoodName } from "../data/food/foodRegistry";
 import { getNonDrinkBoardSum } from "./scoreValue";
-import { createCollectionRewardSettlement, getBoardAverageValue } from "./collectionReward";
+import {
+  createCollectionRewardSettlement,
+  getBoardAverageValue,
+  getCollectionBaseSalePrice
+} from "./collectionReward";
 import { getDailyCollectionBonus, getDayTime, getTodayNewCollectionCount } from "./dayCycle";
 import { getCuisineSequenceIndex } from "./scoreScale";
 import { getTimeSalePeriod } from "./timeSaleMultiplier";
@@ -1577,6 +1581,17 @@ export function getEightPalaceCollectionScoreGain(state, piece){
     timeSalePeriods: state.timeSalePeriods,
     collectionRecord: record
   }).totalScore;
+}
+
+export function getEightPalaceCollectionBaseSalePrice(state, piece){
+  const record = getCollectionRecord(piece);
+  if(!record) return 0;
+
+  return getCollectionBaseSalePrice(
+    state.collectionCards,
+    record.value,
+    record.foodType
+  );
 }
 
 // The 100 Step Eight Palace mode collects the concrete card that existed

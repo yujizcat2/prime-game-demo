@@ -1,7 +1,11 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { applyAction, createGameState } from "../game/gameEngine";
-import { applyEightPalaceCollection, getEightPalaceCollectionScoreGain } from "../game/collectionRules";
+import {
+  applyEightPalaceCollection,
+  getEightPalaceCollectionBaseSalePrice,
+  getEightPalaceCollectionScoreGain
+} from "../game/collectionRules";
 import { BASE_FOOD_TYPES } from "../game/rules";
 import { getBaseScore, getCollectionScoreGain } from "../game/scoreValue";
 import { getFoodCardDisplayValue } from "../components/foodCardDisplay";
@@ -63,6 +67,12 @@ const porkCollected = applyEightPalaceCollection(
   {value: 1, origin: {type: "reduce", parent: pork}}
 );
 assert.equal(porkCollected.score - porkPreviewState.score, 46, "preview matches formal settlement: round(50 × 1.15 × 0.80)");
+const porkCardPrice = getEightPalaceCollectionBaseSalePrice(
+  porkPreviewState,
+  {value: 1, origin: {type: "reduce", parent: pork}}
+);
+assert.equal(porkCardPrice, 50, "main card shows the same-item discounted base price");
+assert.notEqual(porkCardPrice, 46, "main card does not include time or route multipliers");
 
 const matchingState = createGameState([
   {value: 8, foodType: aquatic, boardIndex: 0, gameMode: "eightPalace"},
@@ -88,5 +98,8 @@ assert.equal(routeSettled.latestCollection.collectionMultiplierRate, 1.4);
 const boardCellSource = readFileSync("src/components/BoardCell.jsx", "utf8");
 assert.match(boardCellSource, /board-piece-available-score/);
 assert.match(boardCellSource, /`\+\$\{availableScore\}分`/);
+const boardSource = readFileSync("src/components/Board.jsx", "utf8");
+assert.match(boardSource, /getEightPalaceCollectionBaseSalePrice/);
+assert.doesNotMatch(boardSource, /getEightPalaceCollectionScoreGain/);
 
 console.log("score value tests passed");

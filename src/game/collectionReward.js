@@ -8,6 +8,10 @@ export function getBoardAverageValue(board = []){
   return values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : 0;
 }
 
+export function getCollectionBaseSalePrice(collectionCards, value, foodType){
+  return getCollectionScoreBreakdown(collectionCards, value, foodType).collectionScore;
+}
+
 function getBreakdownResult(value){
   return Number(value.toFixed(2));
 }
@@ -50,7 +54,7 @@ export function createCollectionRewardSettlement({
   const saleBreakdown = [{label: "基础售价", operation: null, result: score.baseScore}];
   if(hasCrossFamilyDiscount){
     saleBreakdown.push({
-      label: "同数字跨系调整",
+      label: "同款半价",
       operation: `×${Math.round(score.collectionScore / score.baseScore * 100)}%`,
       result: score.collectionScore
     });

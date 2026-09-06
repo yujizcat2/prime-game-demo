@@ -19,7 +19,7 @@ import {
 
 import BoardCell from "./BoardCell";
 import { getCombinePreviewPlacement } from "../game/combinePreview";
-import { getEightPalaceCollectionScoreGain } from "../game/collectionRules";
+import { getEightPalaceCollectionBaseSalePrice } from "../game/collectionRules";
 import { BOARD_NATIVE_FOOD_TYPES } from "../game/nativeFoodTypes";
 
 import "./Board.css";
@@ -759,7 +759,7 @@ export default function Board({
 
                     {scoreMode && combinePreview.piece?.scoreValue != null && (
                       <div className="board-piece-locked-score board-preview-locked-score">
-                        +{getEightPalaceCollectionScoreGain(
+                        +{getEightPalaceCollectionBaseSalePrice(
                           {collectionCards, board, dayMinutesElapsed, timeSalePeriods},
                           {value: 1, origin: {type: "reduce", parent: combinePreview.piece}}
                         )}
@@ -989,7 +989,7 @@ export default function Board({
               null;
 
             const availableScore = scoreMode
-              ? getEightPalaceCollectionScoreGain(
+              ? getEightPalaceCollectionBaseSalePrice(
                   {collectionCards, board, dayMinutesElapsed, timeSalePeriods},
                   {
                     value: 1,
