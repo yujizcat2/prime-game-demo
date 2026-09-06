@@ -78,7 +78,7 @@ export function getTodayNewCollectionCount(state){
 
 export function getDailyCollectionBonus(todayNewCollectionCountAfterCollection){
   const saleNumber = Math.max(0, Math.floor(todayNewCollectionCountAfterCollection ?? 0));
-  return saleNumber <= 5 ? 0 : (saleNumber - 5) * 10;
+  return Math.max(0, saleNumber - 10) * 10;
 }
 
 export function getDailyCollectionBonusTotal(todayNewCollectionCount){

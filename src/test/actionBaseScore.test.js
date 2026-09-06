@@ -83,7 +83,7 @@ const equalRetypeState = createState([
 ]);
 assert.equal(doesReduceCreateEffectiveSale(equalRetypeState, [0, 1]), false, "equal-value processing is not presented as a sale");
 
-const bonusCollections = Array.from({length: 7}, (_, index) => ({
+const bonusCollections = Array.from({length: 10}, (_, index) => ({
   value: index + 20,
   foodType: BASE_FOOD_TYPES[index % 2]
 }));

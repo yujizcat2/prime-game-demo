@@ -160,9 +160,9 @@ const eighthCollection = applyAction(eighthPreviewState, {type: "reduce", indexe
 const eighthReward = eighthCollection.latestCollectionRewards[0];
 assert.equal(eighthReward.saleScore, eighthPreviewScore, "pre-collection preview remains the unmodified dish sale price");
 assert.equal(eighthReward.todayCollectionNumber, 8);
-assert.equal(eighthReward.dailyCollectionBonus, 30);
-assert.equal(eighthReward.totalScore, eighthPreviewScore + 30);
-assert.equal(eighthCollection.dayRevenue - eighthPreviewState.dayRevenue, eighthPreviewScore + 30);
+assert.equal(eighthReward.dailyCollectionBonus, 0);
+assert.equal(eighthReward.totalScore, eighthPreviewScore);
+assert.equal(eighthCollection.dayRevenue - eighthPreviewState.dayRevenue, eighthPreviewScore);
 assert.ok(eighthCollection.score > eighthPreviewState.score, "a real sale immediately awards points");
 assert.equal(eighthCollection.timeSaleScores[18 * 60], eighthPreviewScore, "daily bonus does not enter dynamic market sales");
 
@@ -172,8 +172,8 @@ const discountedSaleScore = getEightPalaceCollectionScoreGain(
   sameCollectible
 );
 assert.equal(discountedEighth.latestCollectionRewards[0].saleScore, discountedSaleScore);
-assert.equal(discountedEighth.latestCollectionRewards[0].dailyCollectionBonus, 30);
-assert.equal(discountedEighth.dayRevenue - eighthPreviewState.dayRevenue, discountedSaleScore + 30, "the 0.80 market rate never discounts the daily sale bonus");
+assert.equal(discountedEighth.latestCollectionRewards[0].dailyCollectionBonus, 0);
+assert.equal(discountedEighth.dayRevenue - eighthPreviewState.dayRevenue, discountedSaleScore, "sales before the eleventh receive no daily sale bonus");
 
 const leveledEighthState = {
   ...eighthPreviewState,
@@ -186,10 +186,10 @@ const leveledEighthState = {
 const leveledEighth = applyAction(leveledEighthState, {type: "reduce", indexes: [0, 1]});
 assert.equal(leveledEighth.latestCollectionRewards[0].collectionRewardLevel, 2);
 assert.equal(leveledEighth.latestCollectionRewards[0].collectionMultiplierRate, 1);
-assert.equal(leveledEighth.latestCollectionRewards[0].dailyCollectionBonus, 30, "reward-level multiplier never changes the daily sale bonus");
+assert.equal(leveledEighth.latestCollectionRewards[0].dailyCollectionBonus, 0, "reward-level multiplier never changes the daily sale bonus");
 assert.equal(
   leveledEighth.latestCollectionRewards[0].totalScore,
-  leveledEighth.latestCollectionRewards[0].saleScore + 30
+  leveledEighth.latestCollectionRewards[0].saleScore
 );
 
 const closingDayOne = resolveGameOver({
