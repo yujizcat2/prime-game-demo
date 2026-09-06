@@ -6,6 +6,10 @@ export function getFoodCardDisplayName(piece){
   return getFoodDisplayName(piece);
 }
 
+export function getFoodCardDisplayValue(piece, _reducePreview = null){
+  return piece?.value ?? null;
+}
+
 export function getFoodCardTypeLabel(piece){
   return piece?.foodType ? getFoodTypeShortName(piece.foodType) : "";
 }

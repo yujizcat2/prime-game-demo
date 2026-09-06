@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import {
   getFoodCardDisplayName,
+  getFoodCardDisplayValue,
   getFoodCardTypeLabel,
   getFoodOriginDescription
 } from "../components/foodCardDisplay";
@@ -18,6 +19,14 @@ const reduced = {
 };
 const reducedName = getFoodCardDisplayName(reduced);
 assert.match(getFoodOriginDescription(reduced), new RegExp(`^一种由.+处理而来的${reducedName}$`));
+
+for(const [stage, reducePreview] of [
+  ["unselected", null],
+  ["first selected", null],
+  ["two selected before confirmation", {value: 1, foodType: "land"}]
+]){
+  assert.equal(getFoodCardDisplayValue(reduced, reducePreview), 8, `${stage} keeps the real card value`);
+}
 
 const combined = {
   value: 12,

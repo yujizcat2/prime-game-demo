@@ -1,9 +1,10 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { createGameState } from "../game/gameEngine";
+import { applyAction, createGameState } from "../game/gameEngine";
 import { applyEightPalaceCollection, getEightPalaceCollectionScoreGain } from "../game/collectionRules";
 import { BASE_FOOD_TYPES } from "../game/rules";
 import { getBaseScore, getCollectionScoreGain } from "../game/scoreValue";
+import { getFoodCardDisplayValue } from "../components/foodCardDisplay";
 
 for(const [minimum, maximum, expected] of [
   [2, 9, 100], [10, 19, 150], [20, 29, 200], [30, 39, 250],
@@ -39,6 +40,43 @@ assert.deepEqual(settled.latestCollection.bonuses, []);
 
 const repeatedPreview = getEightPalaceCollectionScoreGain(settled, piece);
 assert.equal(repeatedPreview, 0);
+
+const pork = {
+  value: 8,
+  foodType: land,
+  origin: {type: "reduce", parent: {value: 32, foodType: land, origin: null}}
+};
+const porkPreviewState = {
+  ...state,
+  dayMinutesElapsed: 0,
+  collectionCards: [{value: 8, foodType: aquatic}]
+};
+for(const selectedIndexes of [[], [0], [0, 1]]){
+  assert.equal(
+    getEightPalaceCollectionScoreGain(porkPreviewState, {value: 1, origin: {type: "reduce", parent: pork}}),
+    29,
+    `selection ${selectedIndexes.join(",") || "none"} does not change the current collection preview`
+  );
+}
+const porkCollected = applyEightPalaceCollection(
+  porkPreviewState,
+  {value: 1, origin: {type: "reduce", parent: pork}}
+);
+assert.equal(porkCollected.score - porkPreviewState.score, 29, "preview 29 matches formal settlement: round(50 × 1.15 × 0.50)");
+
+const matchingState = createGameState([
+  {value: 8, foodType: aquatic, boardIndex: 0, gameMode: "eightPalace"},
+  {value: 8, foodType: land, boardIndex: 1, gameMode: "eightPalace"}
+]);
+for(const selectedIndexes of [[], [0], [0, 1]]){
+  assert.deepEqual(
+    matchingState.board.slice(0, 2).map(getFoodCardDisplayValue),
+    [8, 8],
+    `matching cards keep state values before confirmation (${selectedIndexes.length} selected)`
+  );
+}
+const processedMatchingState = applyAction(matchingState, {type: "reduce", indexes: [0, 1]});
+assert.deepEqual(processedMatchingState.board.slice(0, 2), [null, null], "only the confirmed equal reduction changes the board");
 
 const routePiece = collectible(5, fruit);
 routePiece.origin.parent.origin = {type: "reduce", parent: {value: 35}};

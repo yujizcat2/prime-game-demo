@@ -1990,8 +1990,8 @@
   position:
     absolute;
 
-  inset:
-    0;
+  right: 8px;
+  bottom: 30px;
 
   z-index:
     12;
@@ -2003,22 +2003,18 @@
     column;
 
   align-items:
-    center;
+    flex-end;
 
-  justify-content:
-    center;
-
-  opacity:
-    0;
+  justify-content: center;
+  padding: 4px 7px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, .86);
+  opacity: 1;
 
   pointer-events:
     none;
 
-  animation:
-    boardPieceReducePreview
-    2.5s
-    ease-in-out
-    infinite;
+  box-shadow: 0 2px 8px rgba(45, 60, 51, .12);
 
 }
 
@@ -2026,7 +2022,7 @@
 .board-piece-reduce-name {
 
   font-size:
-    27px;
+    9px;
 
   line-height:
     1;
@@ -2040,10 +2036,10 @@
 .board-piece-reduce-number {
 
   margin-top:
-    8px;
+    2px;
 
   font-size:
-    18px;
+    12px;
 
   line-height:
     1;
@@ -2052,7 +2048,7 @@
     900;
 
   opacity:
-    .65;
+    .8;
 
 }
 

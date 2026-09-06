@@ -7,7 +7,7 @@ import {
   getFoodName
 } from "../data/food/foodRegistry";
 import { getSpecialOneName } from "../data/specialOneRegistry";
-import { getFoodCardDisplayName, getFoodOriginDescription } from "./foodCardDisplay";
+import { getFoodCardDisplayName, getFoodCardDisplayValue, getFoodOriginDescription } from "./foodCardDisplay";
 import { getNativeFoodType } from "../game/nativeFoodTypes";
 
 import "./Board.css";
@@ -130,27 +130,18 @@ export default function BoardCell({
   // ==========================================================
 
   const value =
-    piece.value;
+    getFoodCardDisplayValue(piece, reducePreview);
 
 
   const foodType =
     piece.foodType
     ?? null;
 
-  const showsReducedPiece =
-    reducePreview !== null &&
-    reducePreview?.autoCollect !== true &&
-    reducePreview?.clear !== true;
-
   const displayedFoodType =
-    showsReducedPiece
-      ? reducePreview?.foodType ?? foodType
-      : foodType;
+    foodType;
 
   const displayedPurity =
-    showsReducedPiece
-      ? reducePreview?.purity ?? null
-      : piece.purity;
+    piece.purity;
 
 
   const isMeat =
@@ -439,57 +430,6 @@ export default function BoardCell({
   // ==========================================================
 
   const foodName = getFoodCardDisplayName(piece);
-
-
-
-
-
-  // ==========================================================
-  // 约分后的真实 foodType
-  // ==========================================================
-
-  const reduceResultFoodType =
-
-    isMutationTarget
-
-      ?
-
-        mutationToType
-
-      :
-
-        reducePreview?.foodType
-        ?? foodType;
-
-
-
-
-
-  // ==========================================================
-  // 普通约分后的名称
-  // ==========================================================
-
-  const reduceFoodName =
-
-    reducing
-    &&
-    !autoCollectPreview
-    &&
-    reduceResultValue !== null
-
-      ?
-
-        getFoodName(
-
-          reduceResultValue,
-
-          reduceResultFoodType
-
-        )
-
-      :
-
-        null;
 
 
 
@@ -1108,17 +1048,7 @@ export default function BoardCell({
 
             <span
 
-              className={`
-                board-piece-name
-
-                ${
-                  reducing
-
-                    ? "board-piece-name--reducing"
-
-                    : ""
-                }
-              `}
+              className="board-piece-name"
 
             >
 
@@ -1165,7 +1095,7 @@ export default function BoardCell({
                 "
               >
 
-                {equalClearPreview?"一起清掉":reduceFoodName}
+                处理后
 
               </span>
 
@@ -1176,7 +1106,7 @@ export default function BoardCell({
                 "
               >
 
-                {equalClearPreview?"清除":reduceResultValue}
+                → {equalClearPreview?"清除":reduceResultValue}
 
               </span>
 
