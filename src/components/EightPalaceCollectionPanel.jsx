@@ -4,8 +4,12 @@ import {
   getFoodCardTypeLabel,
   getFoodOriginDescription
 } from "./foodCardDisplay";
+import { getFoodTypeShortName } from "../data/food/foodRegistry";
+import { getSaleSummary, SALE_FOOD_TYPES } from "./saleSummary";
 
 export default function EightPalaceCollectionPanel({cards = [], score = 0}){
+  const saleSummary = getSaleSummary(cards);
+
   return (
     <section className="eight-collection-panel">
       <div className="eight-collection-heading">
@@ -14,6 +18,17 @@ export default function EightPalaceCollectionPanel({cards = [], score = 0}){
           <h2>本局销售记录</h2>
         </div>
         <strong>{cards.length} 张 · {score} 分</strong>
+      </div>
+
+      <div className="eight-collection-summary" aria-label="各系销售汇总">
+        <div className="eight-collection-summary-title">各系销售汇总</div>
+        {SALE_FOOD_TYPES.map(foodType => (
+          <div className="eight-collection-summary-row" key={foodType}>
+            <span>{getFoodTypeShortName(foodType)}</span>
+            <span>数字 {saleSummary[foodType].value}</span>
+            <strong>积分 {saleSummary[foodType].score}</strong>
+          </div>
+        ))}
       </div>
 
       {cards.length === 0 ? (

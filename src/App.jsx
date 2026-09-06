@@ -998,7 +998,7 @@ function App(){
           <div className="collection-panel-dialog" onClick={event => event.stopPropagation()}>
             <button type="button" className="collection-panel-close" aria-label="关闭销售记录" onClick={() => setShowCollection(false)}>×</button>
             {["eightPalace", "simpleEightPalace"].includes(game.gameMode) ? (
-              <EightPalaceCollectionPanel cards={game.collectionCards} score={game.score} />
+              <EightPalaceCollectionPanel cards={game.collectionTimeline} score={game.score} />
             ) : (
               <CollectionPanel
                 collection={game.collection}
