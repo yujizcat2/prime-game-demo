@@ -238,7 +238,7 @@ function App(){
     ];
 
 
-    const targetIndex = game.preview.combine.kind==="wrap"
+    const targetIndex = game.preview.combine.kind==="absorb"
       ? game.preview.combine.drinkIndex
       : game.board.findIndex(piece => !piece);
 
@@ -253,10 +253,8 @@ function App(){
 
     const combineKind=game.preview.combine.kind;
     const combineToast={
-      title: combineKind==="wrap"
-        ? `${game.board[indexes[0]].value + game.board[indexes[1]].value} → ${game.preview.combine.value}`
-        : `${game.board[indexes[0]].value} + ${game.board[indexes[1]].value} → ${game.preview.combine.value}`,
-      message: combineKind==="wrap" ? "特殊搭配" : "搭配成功"
+      title: `${game.board[indexes[0]].value} + ${game.board[indexes[1]].value} → ${game.preview.combine.value}`,
+      message: "搭配成功"
     };
     const drinkIndex=game.preview.combine.drinkIndex??null;
     const ingredientIndex=game.preview.combine.ingredientIndex??null;

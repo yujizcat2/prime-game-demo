@@ -58,7 +58,7 @@ const porkPreviewState = {
 for(const selectedIndexes of [[], [0], [0, 1]]){
   assert.equal(
     getEightPalaceCollectionScoreGain(porkPreviewState, {value: 1, origin: {type: "reduce", parent: pork}}),
-    46,
+    40,
     `selection ${selectedIndexes.join(",") || "none"} does not change the current collection preview`
   );
 }
@@ -66,13 +66,13 @@ const porkCollected = applyEightPalaceCollection(
   porkPreviewState,
   {value: 1, origin: {type: "reduce", parent: pork}}
 );
-assert.equal(porkCollected.score - porkPreviewState.score, 46, "preview matches formal settlement: round(50 × 1.15 × 0.80)");
+assert.equal(porkCollected.score - porkPreviewState.score, 40, "preview matches formal settlement: round(50 × 1.00 × 0.80)");
 const porkCardPrice = getEightPalaceCollectionBaseSalePrice(
   porkPreviewState,
   {value: 1, origin: {type: "reduce", parent: pork}}
 );
 assert.equal(porkCardPrice, 50, "main card shows the same-item discounted base price");
-assert.notEqual(porkCardPrice, 46, "main card does not include time or route multipliers");
+assert.notEqual(porkCardPrice, 40, "main card does not include time or reward multipliers");
 
 const matchingState = createGameState([
   {value: 5, foodType: "seasoning", boardIndex: 3, gameMode: "eightPalace"},

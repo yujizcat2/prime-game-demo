@@ -749,7 +749,7 @@ export default function BoardCell({
               animationState?.type === "combine" &&
               animationState.phase === "exit" &&
               animationState.indexes.includes(index)
-                ? animationState.combineKind==="wrap"
+                ? animationState.combineKind==="absorb"
                   ? animationState.drinkIndex===index
                     ? "board-piece--wrap-drink"
                     : "board-piece--wrap-ingredient-stay"

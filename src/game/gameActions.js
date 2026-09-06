@@ -13,6 +13,7 @@ import {
   canApplyFunctionOne,
   canReduce,
   canCombine,
+  isDrinkFoodPair,
   getDessertMutationFoodType
 } from "./rules";
 
@@ -143,9 +144,7 @@ export function canCombineCells(
 
   }
 
-  const hasDrink=a.foodType===FOOD_TYPES.DRINK||b.foodType===FOOD_TYPES.DRINK;
-  const wrapsToNormal=hasDrink&&a.value+b.value>202;
-  if(!wrapsToNormal&&isBoardFull(state.board))return false;
+  if(!isDrinkFoodPair(a,b)&&isBoardFull(state.board))return false;
 
   return canCombine(
 
@@ -282,7 +281,7 @@ export function createReduceOutcome(state,indexA,indexB){
 // 组合
 // ============================================================
 
-// Preview 与正式执行共用：new = 第三格新卡；wrap = 饮品格原位回到普通料理。
+// Preview 与正式执行共用：new = 第三格新卡；absorb = 饮品原位吸收非饮品数值。
 export function createCombineOutcome(state,indexA,indexB){
   const main=getPieceAt(state,indexA),pairing=getPieceAt(state,indexB);
   if(!main||!pairing)return null;
@@ -292,23 +291,13 @@ export function createCombineOutcome(state,indexA,indexB){
   const foodType=combineFoodType(main,pairing);
   if(!foodType)return null;
   const ingredientIndex=drinkIndex===null?null:drinkIndex===indexA?indexB:indexA;
-  if(drinkIndex!==null&&value>202){
-    const normal=drinkIndex===indexA?pairing:main;
-    const wrappedValue=value-200;
+  if(isDrinkFoodPair(main,pairing)){
+    const drink=getPieceAt(state,drinkIndex);
     const piece={
-      ...getPieceAt(state,drinkIndex),
-      value:wrappedValue,
-      scoreValue:getCreatedScoreValue(wrappedValue,main,pairing),
-      foodType:normal.foodType,
-      purity:normal.purity??FOOD_PURITY.PURE,
-      parents:[main.value,pairing.value],
-      sourceKey:[main.value,pairing.value].sort((left,right)=>left-right).join("|"),
-      parentFoods:[main,pairing].map(piece=>({value:piece.value,foodType:piece.foodType,purity:piece.purity??null})),
-      crossed101:false,
-      origin:createCombineOrigin(wrappedValue,main,pairing),
-      singleFlavorPenalty:false
+      ...drink,
+      value
     };
-    return {kind:"wrap",value:wrappedValue,foodType:normal.foodType,purity:piece.purity,piece,drinkIndex,ingredientIndex,targetIndex:drinkIndex};
+    return {kind:"absorb",value,foodType:FOOD_TYPES.DRINK,purity:piece.purity,piece,drinkIndex,ingredientIndex,targetIndex:drinkIndex};
   }
   const piece={
     id:state.nextId,
@@ -408,7 +397,7 @@ export function combineCells(
     ...state.board
 
   ];
-  if(outcome.kind==="wrap"){
+  if(outcome.kind==="absorb"){
     nextBoard[outcome.drinkIndex]=outcome.piece;
   }else{
     const targetIndex=getNextEmptyIndex(state.board);
@@ -425,7 +414,7 @@ export function combineCells(
     board:
       nextBoard,
 
-    nextId: state.nextId + (outcome.kind==="wrap"?0:1)
+    nextId: state.nextId + (outcome.kind==="absorb"?0:1)
 
   };
 

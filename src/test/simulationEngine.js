@@ -11,6 +11,7 @@ import {
   BASE_FOOD_TYPES,
   canReduce,
   canCombine,
+  isDrinkFoodPair,
   getDessertMutationFoodType
 } from "../game/rules";
 import { markSingleFlavorBoardPieces } from "../game/singleFlavorPenalty";
@@ -677,9 +678,7 @@ function canCombineIndexes(
 
   }
 
-  const hasDrink=a.foodType===FOOD_TYPES.DRINK||b.foodType===FOOD_TYPES.DRINK;
-  const wrapsToNormal=hasDrink&&a.value+b.value>202;
-  if(!wrapsToNormal&&isBoardFull(state.board))return false;
+  if(!isDrinkFoodPair(a,b)&&isBoardFull(state.board))return false;
   if(hasCombinePair(state.combineHistoryKeys, a, b)){
     return false;
   }
@@ -977,24 +976,14 @@ function applyCombine(
   }
 
   const drinkIndex=a.foodType===FOOD_TYPES.DRINK?indexA:b.foodType===FOOD_TYPES.DRINK?indexB:null;
-  if(drinkIndex!==null&&value>202){
-    const normal=drinkIndex===indexA?b:a;
-    const wrappedValue=value-200;
+  if(isDrinkFoodPair(a,b)){
     state.board[drinkIndex]={
       ...state.board[drinkIndex],
-      value:wrappedValue,
-      foodType:normal.foodType,
-      purity:normal.purity??FOOD_PURITY.PURE,
-      crossed101:false,
-      parents:[a.value,b.value],
-      sourceKey:[a.value,b.value].sort((left,right)=>left-right).join("|"),
-      parentFoods:[a,b].map(piece=>({value:piece.value,foodType:piece.foodType,purity:piece.purity??null})),
-      previousValue:null,
-      singleFlavorPenalty:false
+      value
     };
     state.steps++;
     state.combineHistoryKeys=addCombinePair(state.combineHistoryKeys,a,b);
-    state.recentActionSignatures=appendRecentActionSignature(state.recentActionSignatures,createCombineActionSignature(a.value,b.value,wrappedValue));
+    state.recentActionSignatures=appendRecentActionSignature(state.recentActionSignatures,actionSignature);
     state.usedCombinationPairs=[...(state.usedCombinationPairs??[]),createCombinationPairKey(a.value,b.value)];
     return true;
   }

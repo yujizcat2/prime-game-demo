@@ -101,7 +101,7 @@ const collectible = (value, foodType, singleFlavorPenalty) => ({
   assert.equal(normal.latestCollection.collectionScore, rawBaseScore);
   assert.equal(penalized.latestCollection.baseScore, rawBaseScore);
   assert.equal(penalized.latestCollection.collectionScore, rawBaseScore);
-  assert.equal(penalized.latestCollection.totalScore, rawBaseScore);
+  assert.equal(penalized.latestCollection.totalScore, normal.latestCollection.totalScore);
 }
 
 {

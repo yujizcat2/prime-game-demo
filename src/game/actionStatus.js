@@ -6,7 +6,8 @@ import {
   canReduce,
   canCombine,
   combineValue,
-  hasSameParents
+  hasSameParents,
+  isDrinkFoodPair
 } from "./rules";
 
 import {
@@ -163,6 +164,7 @@ function getCombineStatus(
   // ==========================================================
 
   if(
+    !isDrinkFoodPair(first,second) &&
     numbers.length >=
     GAME_CONFIG.MAX_NUMBERS
   ){
