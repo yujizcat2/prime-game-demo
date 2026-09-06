@@ -1,6 +1,8 @@
 import { getBoardCount } from "./boardRules";
 import { getNonDrinkBoardSum } from "./scoreValue";
 import { getScoreEfficiency } from "./scoreEfficiency";
+import { getActivityStatus } from "./activityStatus";
+import { getPrimeDensity } from "./primeStatus";
 import {
   createNextTimeSalePeriods,
   createTimeSaleMarketRows,
@@ -18,23 +20,53 @@ export function getDayTargetScore(_day = 1){
   return DAY_REVENUE_TARGET;
 }
 
-export function getEfficiencyBonus(minutesRemaining = 0){
-  if(minutesRemaining < 120) return 0;
-  if(minutesRemaining < 240) return .5;
-  if(minutesRemaining < 360) return 1;
-  return 2;
+function clamp01(value){
+  return Math.min(1, Math.max(0, value));
 }
 
-export function getOverflowBonus(dayRevenue = 0){
-  return Math.min(2, Math.floor(Math.max(0, dayRevenue - DAY_REVENUE_TARGET) / 200) * .5);
-}
+export function getPerformanceBonusBreakdown(state, dayBaseScore){
+  const passed = (state?.dayRevenue ?? 0) >= DAY_REVENUE_TARGET;
+  if(!passed) return {
+    efficiencyRate: 0, overflowRate: 0, qualityRate: 0, boardRate: 0,
+    performanceBonusRate: 0, performanceBonusScore: 0
+  };
 
-export function getBoardBonus(boardValueSum = 0){
-  if(boardValueSum >= 200) return 2;
-  if(boardValueSum >= 150) return 1.5;
-  if(boardValueSum >= 100) return 1;
-  if(boardValueSum >= 50) return .5;
-  return 0;
+  const totalBusinessTime = Math.max(0, state?.dayMinutesElapsed ?? 0);
+  const targetReachedAt = state?.dayTargetReachedAtMinutes;
+  const efficiencyIndex = targetReachedAt == null || totalBusinessTime <= 0
+    ? 0
+    : clamp01(1 - targetReachedAt / totalBusinessTime);
+  const overflowIndex = clamp01(((state?.dayRevenue ?? 0) - DAY_REVENUE_TARGET) / 500);
+  const todaySales = (state?.collectionCards ?? state?.collection ?? [])
+    .slice(state?.dayStartCollectionCount ?? 0);
+  const averageQualityMultiplier = todaySales.length
+    ? todaySales.reduce((sum, sale) => sum + (sale.collectionMultiplierRate ?? 1), 0) / todaySales.length
+    : 1;
+  const qualityIndex = clamp01((averageQualityMultiplier - 1) / .5);
+  const boardValueSum = getNonDrinkBoardSum(state?.board);
+  const growthIndex = clamp01(boardValueSum / 200);
+  const activity = getActivityStatus(
+    (state?.board ?? []).filter(Boolean),
+    getPrimeDensity((state?.board ?? []).filter(Boolean)),
+    state?.steps ?? 0,
+    state?.combineHistoryKeys ?? {}
+  ).activity;
+  const activityIndex = clamp01(activity / 100);
+  const boardIndex = growthIndex * .5 + activityIndex * .5;
+  const efficiencyRate = efficiencyIndex * .08;
+  const overflowRate = overflowIndex * .05;
+  const qualityRate = qualityIndex * .06;
+  const boardRate = clamp01(boardIndex) * .06;
+  const performanceBonusRate = Math.min(.25, Math.max(0,
+    efficiencyRate + overflowRate + qualityRate + boardRate
+  ));
+  return {
+    efficiencyIndex, overflowIndex, averageQualityMultiplier, qualityIndex,
+    growthIndex, activityIndex, boardIndex,
+    efficiencyRate, overflowRate, qualityRate, boardRate,
+    performanceBonusRate,
+    performanceBonusScore: Number(((dayBaseScore ?? 0) * performanceBonusRate).toFixed(2))
+  };
 }
 
 export function getTodayNewCollectionCount(state){
@@ -106,12 +138,8 @@ export function createDaySettlement(state){
   const timeSaleScores = state.timeSaleScores ?? {};
   const nextTimeSalePeriods = createNextTimeSalePeriods(timeSalePeriods, timeSaleScores);
   const boardSum = getNonDrinkBoardSum(state.board);
-  const efficiencyBonus = scoreTargetMet
-    ? getEfficiencyBonus(DAY_DURATION_MINUTES - (state.dayTargetReachedAtMinutes ?? DAY_DURATION_MINUTES))
-    : 0;
-  const overflowBonus = scoreTargetMet ? getOverflowBonus(dailyRevenue) : 0;
-  const boardBonus = scoreTargetMet ? getBoardBonus(boardSum) : 0;
-  const settlementBonus = efficiencyBonus + overflowBonus + boardBonus;
+  const performance = getPerformanceBonusBreakdown(state, scoreGainToday);
+  const dayFinalScore = Number((scoreGainToday + performance.performanceBonusScore).toFixed(2));
   return {
     day: state.day,
     weekday: getWeekday(state.day),
@@ -120,11 +148,10 @@ export function createDaySettlement(state){
     targetScore,
     scoreGainToday,
     dailyScore: scoreGainToday,
-    efficiencyBonus,
-    overflowBonus,
-    boardBonus,
-    settlementBonus,
-    cumulativeScore: Number((finalScore + settlementBonus).toFixed(2)),
+    ...performance,
+    dayBaseScore: scoreGainToday,
+    dayFinalScore,
+    cumulativeScore: Number((finalScore + performance.performanceBonusScore).toFixed(2)),
     collectionGainToday: todayNewCollectionCount,
     dailyCollectionBonusTotal,
     scoreTargetMet,

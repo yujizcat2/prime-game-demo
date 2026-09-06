@@ -13,13 +13,21 @@ export default function DaySettlement({settlement, onContinue}){
   const isWeekComplete = settlement.day >= 7 && settlement.passed;
   const marketRows = settlement.timeSaleMarketRows ?? [];
   const formatMultiplier = value => Number(value).toFixed(2);
+  const formatRate = value => `+${(Number(value ?? 0) * 100).toFixed(1)}%`;
   return <div className="day-settlement-backdrop" role="dialog" aria-modal="true" aria-labelledby="day-settlement-title">
     <section className="day-settlement-card">
       <div className="day-settlement-kicker">DAY {settlement.day} · {settlement.weekday} · 打烊</div>
       <h2 id="day-settlement-title">{settlement.passed ? "今日营业完成" : "今日目标未完成"}</h2>
       <div className="day-settlement-rule" />
-      <Metric label="今日积分" value={`+${Number(settlement.dailyScore ?? 0).toFixed(2)}`} />
-      <Metric label="日结奖励" value={`+${Number(settlement.settlementBonus ?? 0).toFixed(2)}`} />
+      <Metric label="今日基础积分" value={`+${Number(settlement.dayBaseScore ?? 0).toFixed(2)}`} />
+      <div className="day-settlement-rule" />
+      <Metric label="综合表现 · 效率" value={formatRate(settlement.efficiencyRate)} />
+      <Metric label="综合表现 · 超额" value={formatRate(settlement.overflowRate)} />
+      <Metric label="综合表现 · 售出质量" value={formatRate(settlement.qualityRate)} />
+      <Metric label="综合表现 · 收盘盘面" value={formatRate(settlement.boardRate)} />
+      <Metric label="综合加成" value={formatRate(settlement.performanceBonusRate)} />
+      <Metric label="额外积分" value={`+${Number(settlement.performanceBonusScore ?? 0).toFixed(2)}`} />
+      <Metric label="今日积分" value={`+${Number(settlement.dayFinalScore ?? 0).toFixed(2)}`} />
       <Metric label="累计积分" value={Number(settlement.cumulativeScore ?? settlement.finalScore ?? 0).toFixed(2)} />
       <Metric label="营业额" value={`${numberFormatter.format(settlement.dailyRevenue)} / ${settlement.targetScore} ${settlement.scoreTargetMet ? "✓" : "✕"}`} />
       <Metric label="今日售出" value={numberFormatter.format(settlement.collectionGainToday)} />

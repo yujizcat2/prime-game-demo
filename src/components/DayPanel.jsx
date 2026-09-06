@@ -2,16 +2,18 @@ import "./DayPanel.css";
 import { useState } from "react";
 import { DAY_DURATION_MINUTES, formatClosingTimeRemaining, getDayTargetScore } from "../game/dayCycle";
 import { getComboBonus } from "../game/scoreCombo";
+import { getScoreEfficiency } from "../game/scoreEfficiency";
 import { getTimeSalePeriod, TIME_SALE_PERIODS } from "../game/timeSaleMultiplier";
 
 const numberFormatter = new Intl.NumberFormat("zh-CN");
 
-export default function DayPanel({day, weekday, time, period, dayMinutesElapsed, timeSalePeriods = TIME_SALE_PERIODS, score, dayRevenue = 0, collectionsToday = 0, comboCount}){
+export default function DayPanel({day, weekday, time, period, dayMinutesElapsed, timeSalePeriods = TIME_SALE_PERIODS, score, dayRevenue = 0, collectionsToday = 0, totalActionMinutes = 0, comboCount}){
   const [showTimeSalePeriods, setShowTimeSalePeriods] = useState(false);
   const remaining = Math.max(0, DAY_DURATION_MINUTES - dayMinutesElapsed);
   const urgency = remaining <= 120 ? " day-panel--urgent" : remaining <= 300 ? " day-panel--near" : "";
   const targetScore = getDayTargetScore(day);
   const scoreTargetMet = dayRevenue >= targetScore;
+  const scoreEfficiency = getScoreEfficiency(score, totalActionMinutes);
   const currentTimeSalePeriod = getTimeSalePeriod(time, timeSalePeriods);
   const formatMultiplier = multiplier => Number(multiplier).toFixed(2);
 
@@ -26,7 +28,7 @@ export default function DayPanel({day, weekday, time, period, dayMinutesElapsed,
     {comboCount >= 2 && <div className="day-panel-combo" role="status">{comboCount} 连击 · +{getComboBonus(comboCount)}</div>}
     <div className="day-panel-business">
       <div className={scoreTargetMet ? "day-panel-target--met" : ""}><span>营业额</span><strong>{numberFormatter.format(dayRevenue)} <small>/ {targetScore}</small>{scoreTargetMet && " ✓"}</strong></div>
-      <div><span>积分</span><strong>{score.toFixed(2)}</strong></div>
+      <div><span>积分</span><strong>{score.toFixed(2)}</strong><small>积分效率 {scoreEfficiency.toFixed(2)}/h</small></div>
       <span className="day-panel-complete">今日售出 {collectionsToday}</span>
     </div>
     <div className="day-panel-progress" role="progressbar" aria-label="营业额目标进度" aria-valuemin="0" aria-valuemax={targetScore} aria-valuenow={Math.min(dayRevenue, targetScore)}>
