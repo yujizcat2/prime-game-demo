@@ -56,7 +56,7 @@ assert.equal(illegal.totalActionMinutes, 45);
 
 const overtime45Base = createState(normalReduceCards, {
   steps: 23,
-  score: 980,
+  score: 1000,
   dayMinutesElapsed: 1420,
   totalActionMinutes: 1420,
   collectionCards: dailyCollections

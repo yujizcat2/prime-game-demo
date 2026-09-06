@@ -16,9 +16,9 @@ const combineState = createState([
   {value: 3, foodType: BASE_FOOD_TYPES[1], boardIndex: 1}
 ]);
 const combined = applyAction(combineState, {type: "combine", indexes: [0, 1]});
-assert.equal(combined.score, 10);
-assert.equal(combined.score - combined.dayStartScore, 10, "combine score enters today's revenue immediately");
-assert.equal(combined.latestActionBaseScore.score, 10);
+assert.equal(combined.score, 0, "combine does not create revenue");
+assert.equal(combined.score - combined.dayStartScore, 0);
+assert.equal(combined.latestActionBaseScore, null);
 assert.equal(combined.comboCount, 0);
 assert.equal(combined.comboBonusTotal, 0);
 
@@ -27,10 +27,10 @@ const reduceState = createState([
   {value: 9, foodType: BASE_FOOD_TYPES[1], boardIndex: 1}
 ]);
 const reduced = applyAction(reduceState, {type: "reduce", indexes: [0, 1]});
-assert.equal(reduced.score, 20);
-assert.equal(reduced.score - reduced.dayStartScore, 20, "ordinary reduce score enters today's revenue immediately");
+assert.equal(reduced.score, 0, "ordinary reduce without a collection does not create revenue");
+assert.equal(reduced.score - reduced.dayStartScore, 0);
 assert.equal(reduced.collectionCards.length, 0);
-assert.equal(reduced.latestActionBaseScore.score, 20);
+assert.equal(reduced.latestActionBaseScore, null);
 assert.equal(reduced.comboCount, 0);
 assert.equal(reduced.comboBonusTotal, 0);
 
@@ -49,13 +49,13 @@ assert.equal(applyAction(combineState, {type: "combine", indexes: [0, 8]}), comb
 assert.equal(applyAction(reduceState, {type: "reduce", indexes: [0, 8]}), reduceState);
 
 const closingCombine = applyAction({...combineState, score: 990, steps: 23, dayMinutesElapsed: 1410, collectionCards: dailyCollections}, {type: "combine", indexes: [0, 1]});
-assert.equal(closingCombine.score, 1000);
-assert.equal(closingCombine.daySettlement.scoreGainToday, 1000);
-assert.equal(closingCombine.daySettlement.passed, true);
+assert.equal(closingCombine.score, 990);
+assert.equal(closingCombine.daySettlement.scoreGainToday, 990);
+assert.equal(closingCombine.daySettlement.passed, false);
 
 const closingReduce = applyAction({...reduceState, score: 980, steps: 23, dayMinutesElapsed: 1395, collectionCards: dailyCollections}, {type: "reduce", indexes: [0, 1]});
-assert.equal(closingReduce.score, 1000);
-assert.equal(closingReduce.daySettlement.scoreGainToday, 1000);
-assert.equal(closingReduce.daySettlement.passed, true);
+assert.equal(closingReduce.score, 980);
+assert.equal(closingReduce.daySettlement.scoreGainToday, 980);
+assert.equal(closingReduce.daySettlement.passed, false);
 
 console.log("action base score tests passed");
