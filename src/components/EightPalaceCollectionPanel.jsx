@@ -26,7 +26,7 @@ export default function EightPalaceCollectionPanel({cards = [], score = 0}){
           <div className={`eight-collection-summary-cell eight-collection-summary-cell--${foodType}`} key={foodType}>
             <span className="eight-collection-summary-type">{getFoodTypeShortName(foodType)}</span>
             <span className="eight-collection-summary-metric">能量 <strong>{saleSummary[foodType].value}</strong></span>
-            <span className="eight-collection-summary-metric">积分 <strong>{saleSummary[foodType].score}</strong></span>
+            <span className="eight-collection-summary-metric">总额 <strong>{saleSummary[foodType].revenue}</strong></span>
           </div>
         ))}
       </div>
