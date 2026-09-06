@@ -30,7 +30,11 @@ export default function CollectionRewardModal({reward, onClose}){
           <strong>+{reward.totalScore ?? 0}</strong>
         </div>
         <p className="collection-reward-breakdown">
-          料理基础 {reward.baseSaleScore ?? reward.collectionScore} × {Math.round((reward.timeSaleMultiplier ?? 1) * 100)}% × 路线{Math.round((reward.collectionMultiplierRate ?? 1) * 100)}%
+          料理基础 {reward.baseSaleScore ?? reward.baseScore ?? reward.collectionScore}
+          {(reward.preCuisineSaleScore ?? reward.collectionScore) !== (reward.baseSaleScore ?? reward.baseScore ?? reward.collectionScore)
+            ? ` · 同数字跨系调整 ${reward.preCuisineSaleScore ?? reward.collectionScore}`
+            : ""}
+          {` × 系列${Math.round((reward.cuisineScoreMultiplier ?? 1) * 100)}% × 时段${Math.round((reward.timeSaleMultiplier ?? 1) * 100)}% × 路线${Math.round((reward.collectionMultiplierRate ?? 1) * 100)}% = ${saleScore}`}
           {reward.timeSaleLabel ? ` · ${reward.timeSaleLabel}` : ""}
         </p>
         <button type="button" onClick={onClose}>确认</button>

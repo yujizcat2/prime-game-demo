@@ -51,6 +51,42 @@ assert.equal(multiplied.totalScore, 140, "the route multiplier is applied before
 assert.equal(multiplied.collectionMultiplier, 7);
 assert.equal(multiplied.collectionMultiplierRate, 1.4);
 
+const yuzuEight = card(8, "fruit");
+const priorAquatic = card(3, "aquatic");
+const tigerShrimpRecord = {
+  value: 8,
+  foodType: "aquatic",
+  origin: {type: "reduce", parent: {value: 32, foodType: "aquatic"}}
+};
+const tigerShrimp = createCollectionRewardSettlement({
+  collectionCards: [yuzuEight, priorAquatic],
+  value: tigerShrimpRecord.value,
+  foodType: tigerShrimpRecord.foodType,
+  name: "虎虾",
+  cuisineSequenceIndex: 2,
+  gameTime: "04:00",
+  collectionRecord: tigerShrimpRecord
+});
+assert.equal(tigerShrimp.baseSaleScore, 100, "value 8 base lookup uses the sold value");
+assert.equal(tigerShrimp.preCuisineSaleScore, 50, "an existing value 8 in another cuisine keeps the existing cross-cuisine adjustment");
+assert.equal(tigerShrimp.collectionScore, 25, "the existing cuisine sequence multiplier remains separate from base price");
+assert.equal(tigerShrimp.collectionMultiplier, 4);
+assert.equal(tigerShrimp.collectionMultiplierRate, 1.15);
+assert.equal(tigerShrimp.timeSaleMultiplier, 1);
+assert.equal(tigerShrimp.totalScore, 29, "round(25 × 1.00 × 1.15) is the sale amount");
+
+for(const collectionRecord of [
+  {value: 8, foodType: "aquatic"},
+  {value: 8, foodType: "aquatic", origin: {type: "reduce", parent: {value: 16}}},
+  tigerShrimpRecord
+]){
+  const reward = createCollectionRewardSettlement({
+    collectionCards: [], value: 8, foodType: "aquatic", name: "8号料理",
+    collectionRecord
+  });
+  assert.equal(reward.baseSaleScore, 100, "origin and parent never replace the final value in base lookup");
+}
+
 for(const path of ["src/game/collectionReward.js", "src/components/CollectionRewardModal.jsx"]){
   const source = readFileSync(path, "utf8");
   assert.doesNotMatch(source, /首次发现|新料理系|firstDiscoveryRate|getNewFoodTypeBonus/);

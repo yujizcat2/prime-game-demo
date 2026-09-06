@@ -79,10 +79,12 @@ const settlement = createCollectionRewardSettlement({
   collectionCards: [], value: 2, foodType: BASE_FOOD_TYPES[0], name: "test",
   cuisineSequenceIndex: 2, gameTime: "17:00"
 });
-assert.equal(settlement.baseSaleScore, 50);
+assert.equal(settlement.baseSaleScore, 100);
+assert.equal(settlement.preCuisineSaleScore, 100);
+assert.equal(settlement.collectionScore, 50);
 assert.equal(
   settlement.totalScore,
-  Math.round(settlement.baseSaleScore * settlement.timeSaleMultiplier),
+  Math.round(settlement.collectionScore * settlement.timeSaleMultiplier),
   "final score uses Math.round"
 );
 
@@ -123,6 +125,7 @@ assert.equal(
 const earlyMorningCollection = reduceAt(3 * 60 + 59);
 const earlyMorningReward = earlyMorningCollection.latestCollectionRewards[0];
 assert.equal(earlyMorningReward.baseSaleScore, 100);
+assert.equal(earlyMorningReward.collectionScore, 100);
 assert.equal(earlyMorningReward.timeSaleMultiplier, 0.8);
 assert.equal(earlyMorningReward.totalScore, 80);
 assert.equal(earlyMorningCollection.score, 80, "real reduce-to-one action banks the discounted score once");
@@ -224,10 +227,10 @@ const daySettlementSource = readFileSync("src/components/DaySettlement.jsx", "ut
 assert.match(daySettlementSource, /今日销售行情/);
 assert.match(daySettlementSource, /row\.saleIntensity/);
 assert.match(daySettlementSource, /dailyCollectionBonusTotal/);
-assert.notEqual(settlement.totalScore, settlement.baseSaleScore * settlement.timeSaleMultiplier);
+assert.notEqual(settlement.totalScore, settlement.collectionScore * settlement.timeSaleMultiplier);
 assert.equal(
   settlement.totalScore,
-  Math.round(settlement.baseSaleScore * getTimeSaleMultiplier("17:00")),
+  Math.round(settlement.collectionScore * getTimeSaleMultiplier("17:00")),
   "time multiplier is applied exactly once"
 );
 
