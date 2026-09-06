@@ -75,40 +75,40 @@ assert.equal(porkCardPrice, 50, "main card shows the same-item discounted base p
 assert.notEqual(porkCardPrice, 46, "main card does not include time or route multipliers");
 
 const matchingState = createGameState([
-  {value: 8, foodType: aquatic, boardIndex: 0, gameMode: "eightPalace"},
-  {value: 8, foodType: land, boardIndex: 1, gameMode: "eightPalace"}
+  {value: 5, foodType: "seasoning", boardIndex: 3, gameMode: "eightPalace"},
+  {value: 5, foodType: land, boardIndex: 0, gameMode: "eightPalace"}
 ]);
 for(const selectedIndexes of [[], [0], [0, 1]]){
   assert.deepEqual(
-    matchingState.board.slice(0, 2).map(getFoodCardDisplayValue),
-    [8, 8],
+    [matchingState.board[3], matchingState.board[0]].map(getFoodCardDisplayValue),
+    [5, 5],
     `matching cards keep state values before confirmation (${selectedIndexes.length} selected)`
   );
 }
-const processedMatchingState = applyAction(matchingState, {type: "reduce", indexes: [0, 1]});
-assert.equal(processedMatchingState.board[0].id, matchingState.board[0].id, "equal-value processing preserves the first card identity");
-assert.equal(processedMatchingState.board[0].value, 8, "equal-value processing preserves the value");
-assert.equal(processedMatchingState.board[0].foodType, land, "equal-value processing takes the second card food type");
-assert.equal(processedMatchingState.board[1], null, "equal-value processing removes the second card");
+const processedMatchingState = applyAction(matchingState, {type: "reduce", indexes: [3, 0]});
+assert.equal(processedMatchingState.board[3].id, matchingState.board[3].id, "equal-value processing preserves the first card identity");
+assert.equal(processedMatchingState.board[3].value, 5, "equal-value processing preserves the value");
+assert.equal(processedMatchingState.board[3].foodType, "grainBean", "equal-value processing uses the first card position type");
+assert.equal(processedMatchingState.board[0], null, "equal-value processing removes the second card");
 assert.equal(processedMatchingState.collectionCards.length, 0, "equal-value processing does not collect");
 assert.equal(processedMatchingState.score, matchingState.score, "equal-value processing produces no revenue");
 
 const reverseMatchingState = createGameState([
-  {value: 7, foodType: "aquatic", boardIndex: 0, gameMode: "eightPalace"},
-  {value: 7, foodType: "vegetable", boardIndex: 1, gameMode: "eightPalace"}
+  {value: 5, foodType: "seasoning", boardIndex: 3, gameMode: "eightPalace"},
+  {value: 5, foodType: "fruit", boardIndex: 0, gameMode: "eightPalace"}
 ]);
-const reverseProcessed = applyAction(reverseMatchingState, {type: "reduce", indexes: [0, 1]});
-assert.equal(reverseProcessed.board[0].foodType, "vegetable", "the second selection supplies the food type");
-assert.equal(reverseProcessed.board[1], null);
+const reverseProcessed = applyAction(reverseMatchingState, {type: "reduce", indexes: [3, 0]});
+assert.equal(reverseProcessed.board[3].foodType, "grainBean", "the second card food type does not affect the result");
+assert.equal(reverseProcessed.board[0], null);
 
 const sameTypeMatchingState = createGameState([
-  {value: 7, foodType: "vegetable", boardIndex: 0, gameMode: "eightPalace"},
-  {value: 7, foodType: "vegetable", boardIndex: 1, gameMode: "eightPalace"}
+  {value: 7, foodType: "vegetable", boardIndex: 2, gameMode: "eightPalace"},
+  {value: 7, foodType: "aquatic", boardIndex: 0, gameMode: "eightPalace"}
 ]);
-const sameTypeProcessed = applyAction(sameTypeMatchingState, {type: "reduce", indexes: [0, 1]});
-assert.equal(sameTypeProcessed.board[0].value, 7);
-assert.equal(sameTypeProcessed.board[0].foodType, "vegetable");
-assert.equal(sameTypeProcessed.board[1], null, "same-type equal values compress to one card");
+const sameTypeProcessed = applyAction(sameTypeMatchingState, {type: "reduce", indexes: [2, 0]});
+assert.equal(sameTypeProcessed.board[2].value, 7);
+assert.equal(sameTypeProcessed.board[2].foodType, "vegetable");
+assert.equal(sameTypeProcessed.board[0], null, "a first card already matching its position only compresses");
 
 const ordinaryGcdState = createGameState([
   {value: 20, foodType: land, boardIndex: 0, gameMode: "eightPalace"},

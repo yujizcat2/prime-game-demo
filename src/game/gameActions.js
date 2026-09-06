@@ -48,7 +48,7 @@ import {
 import { applyEightPalaceCollection } from "./collectionRules";
 import { getCreatedScoreValue } from "./scoreValue";
 import { isHeaterTarget } from "./heater";
-import { getReductionFoodTypes } from "./nativeFoodTypes";
+import { getNativeFoodType, getReductionFoodTypes } from "./nativeFoodTypes";
 
 import {
   addCombinePair,
@@ -259,7 +259,7 @@ export function createReduceOutcome(state,indexA,indexB){
     kind:"equalRetype",
     divisor,
     results:[
-      {...first,foodType:second.foodType,autoCollect:false},
+      {...first,foodType:getNativeFoodType(indexA)??first.foodType,autoCollect:false},
       {...second,clear:true,autoCollect:false}
     ]
   };
@@ -613,7 +613,7 @@ export function reduceCells(
 
   if(reductionOutcome.kind==="equalRetype"){
     const board=[...state.board];
-    board[indexA]={...first,foodType:second.foodType};
+    board[indexA]={...first,foodType:firstOutcome.foodType};
     board[indexB]=null;
     return consumeStep({
       ...state,

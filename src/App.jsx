@@ -368,7 +368,7 @@ function App(){
 
     const reduceToast=game.preview.reduce.equalRetype
       ? {
-          title:`转为${FOOD_TYPE_LABELS[game.board[indexes[1]].foodType] ?? "饮品"}系 · ${game.board[indexes[0]].value}`,
+          title:`转为${FOOD_TYPE_LABELS[game.preview.reduce.results[0].foodType] ?? "饮品"}系 · ${game.board[indexes[0]].value}`,
           message:"处理完成"
         }
       : {

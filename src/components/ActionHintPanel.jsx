@@ -103,11 +103,12 @@ function PairHint({status,keyOutcome,preview}){
   }
 
   if(canReduce&&preview?.reduce?.equalRetype){
-    const sameType=first.foodType===second.foodType;
+    const targetFoodType=preview.reduce.results[0].foodType;
+    const sameType=first.foodType===targetFoodType;
     return (
     <div className="cooking-hint cooking-hint--pair cooking-hint--combine-detail">
       <div className="cooking-hint__dish cooking-hint__dish--pair-detail">
-        <strong>{sameType?`同系处理：保留 ${first.value} ${getTypeShortName(first.foodType)}，另一份将被处理`:`转系处理：保留 ${first.value}，转为${getTypeShortName(second.foodType)}系`}</strong>
+        <strong>{sameType?`同系处理：保留 ${first.value} ${getTypeShortName(first.foodType)}，另一份将被处理`:`转系处理：保留 ${first.value}，转为${getTypeShortName(targetFoodType)}系`}</strong>
         <span><b>{firstName} {first.value}</b> 与 <b>{secondName} {second.value}</b></span>
         <span>第一份保留原位和数字，第二份消失</span>
       </div>

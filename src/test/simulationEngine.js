@@ -1250,7 +1250,7 @@ function applyReduce(
 
   const actionSignature = createReduceActionSignature(oldA, oldB, firstResult, secondResult);
   if(oldA===oldB){
-    state.board[indexA]={...first,foodType:second.foodType};
+    state.board[indexA]={...first,foodType:getNativeFoodType(indexA)??first.foodType};
     state.board[indexB]=null;
     state.lastCollectionEvents=[];
     state.steps++;
