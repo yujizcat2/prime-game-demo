@@ -1003,7 +1003,7 @@ export default function Board({
               reducePreview?.autoCollect === true &&
               reducePreview?.clear !== true
             ){
-              scorePreview = availableScore;
+              scorePreview = reducePreview.salePreviewTotal ?? availableScore;
             }
 
 

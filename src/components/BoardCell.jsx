@@ -1091,17 +1091,6 @@ export default function BoardCell({
 
               <span
                 className="
-                  board-piece-reduce-name
-                "
-              >
-
-                处理后
-
-              </span>
-
-
-              <span
-                className="
                   board-piece-reduce-number
                 "
               >

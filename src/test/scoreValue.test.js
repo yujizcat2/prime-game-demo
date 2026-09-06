@@ -101,5 +101,7 @@ assert.match(boardCellSource, /`\+\$\{availableScore\}分`/);
 const boardSource = readFileSync("src/components/Board.jsx", "utf8");
 assert.match(boardSource, /getEightPalaceCollectionBaseSalePrice/);
 assert.doesNotMatch(boardSource, /getEightPalaceCollectionScoreGain/);
+assert.match(boardSource, /reducePreview\.salePreviewTotal \?\? availableScore/);
+assert.doesNotMatch(boardCellSource, />\s*处理中?\s*</);
 
 console.log("score value tests passed");

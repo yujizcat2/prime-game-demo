@@ -33,7 +33,7 @@ import {
   createCombineOutcome,
   canReduceCells,
   createReduceOutcome,
-  doesReduceCreateEffectiveSale,
+  getReduceSalePreviewRewards,
 
   applyAction,
   resolveGameOver
@@ -707,9 +707,22 @@ export default function useGame(){
       ? createCombineOutcome(gameState,first.index,second.index)
       : null;
     const reduceOutcome=reduceAllowed?createReduceOutcome(gameState,first.index,second.index):null;
-    const reduceCreatesEffectiveSale = reduceAllowed
-      ? doesReduceCreateEffectiveSale(gameState, [first.index, second.index])
-      : false;
+    const reduceSaleRewards = reduceAllowed
+      ? getReduceSalePreviewRewards(gameState, [first.index, second.index])
+      : [];
+    const reduceCreatesEffectiveSale = reduceSaleRewards.some(reward =>
+      reward?.duplicate === false && (reward.saleScore ?? reward.totalScore ?? 0) > 0
+    );
+    const getSalePreviewTotal = resultIndex => {
+      if(reduceOutcome?.results?.[resultIndex]?.value !== 1) return null;
+      const rewardIndex = reduceOutcome.results
+        .slice(0, resultIndex)
+        .filter(result => result.value === 1).length;
+      const reward = reduceSaleRewards[rewardIndex];
+      return reward?.duplicate === false && (reward.saleScore ?? reward.totalScore ?? 0) > 0
+        ? reward.totalScore
+        : null;
+    };
 
 
     return {
@@ -779,7 +792,8 @@ export default function useGame(){
 
                   foodType:reduceOutcome.results[0].foodType,
 
-                  purity:reduceOutcome.results[0].purity
+                  purity:reduceOutcome.results[0].purity,
+                  salePreviewTotal:getSalePreviewTotal(0)
 
                 },
 
@@ -799,7 +813,8 @@ export default function useGame(){
 
                   foodType:reduceOutcome.results[1].foodType,
 
-                  purity:reduceOutcome.results[1].purity
+                  purity:reduceOutcome.results[1].purity,
+                  salePreviewTotal:getSalePreviewTotal(1)
 
                 }
 

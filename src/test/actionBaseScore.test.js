@@ -3,6 +3,7 @@ import {
   applyAction,
   createGameState,
   doesReduceCreateEffectiveSale,
+  getReduceSalePreviewRewards,
   hasEffectiveSaleReward
 } from "../game/gameEngine";
 import { BASE_FOOD_TYPES } from "../game/rules";
@@ -59,6 +60,8 @@ assert.equal(collected.comboCount, 2, "collection scoring keeps the existing com
 assert.equal(collected.latestComboEvent.comboBonus, 10);
 assert.equal(collected.score, collected.collectionCards[0].scoreGain);
 assert.equal(doesReduceCreateEffectiveSale(collectionState, [0, 1]), true);
+const salePreview = getReduceSalePreviewRewards(collectionState, [0, 1])[0];
+assert.equal(salePreview.totalScore, collected.latestCollectionRewards[0].totalScore, "sale preview matches the modal total");
 assert.equal(
   getReduceButtonLabel([0, 1], {reduce: {createsEffectiveSale: true}}),
   "售出",
@@ -80,6 +83,16 @@ const equalClearState = createState([
   {value: 8, foodType: BASE_FOOD_TYPES[0], boardIndex: 1}
 ]);
 assert.equal(doesReduceCreateEffectiveSale(equalClearState, [0, 1]), false, "equal clear is not presented as a sale");
+
+const bonusCollections = Array.from({length: 7}, (_, index) => ({
+  value: index + 20,
+  foodType: BASE_FOOD_TYPES[index % 2]
+}));
+const bonusPreviewState = {...collectionState, collectionCards: bonusCollections};
+const bonusPreview = getReduceSalePreviewRewards(bonusPreviewState, [0, 1])[0];
+const bonusSettled = applyAction(bonusPreviewState, {type: "reduce", indexes: [0, 1]});
+assert.ok(bonusPreview.dailyCollectionBonus > 0, "later daily sales include their formal daily bonus in preview");
+assert.equal(bonusPreview.totalScore, bonusSettled.latestCollectionRewards[0].totalScore);
 
 assert.equal(hasEffectiveSaleReward([
   {duplicate: true, saleScore: 0},

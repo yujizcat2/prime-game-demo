@@ -414,9 +414,13 @@ export function hasEffectiveSaleReward(rewards = []){
   );
 }
 
-export function doesReduceCreateEffectiveSale(state, indexes){
+export function getReduceSalePreviewRewards(state, indexes){
   const result = applyAction(state, {type: "reduce", indexes});
-  return result !== state && hasEffectiveSaleReward(result.latestCollectionRewards);
+  return result === state ? [] : (result.latestCollectionRewards ?? []);
+}
+
+export function doesReduceCreateEffectiveSale(state, indexes){
+  return hasEffectiveSaleReward(getReduceSalePreviewRewards(state, indexes));
 }
 
 export function recordGameRecapSnapshot(state, force = false){
