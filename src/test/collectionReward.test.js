@@ -51,6 +51,46 @@ assert.equal(multiplied.totalScore, 140, "the route multiplier is applied before
 assert.equal(multiplied.collectionMultiplier, 7);
 assert.equal(multiplied.collectionMultiplierRate, 1.4);
 
+const crossFamilyWithSeries = createCollectionRewardSettlement({
+  collectionCards: [card(2, BASE_FOOD_TYPES[0])],
+  value: 2,
+  foodType: BASE_FOOD_TYPES[1],
+  name: "跨系料理",
+  cuisineSequenceIndex: 2,
+  gameTime: "12:00",
+  collectionRecord: reductionRecord(8, 2)
+});
+assert.equal(crossFamilyWithSeries.baseScore, 100);
+assert.equal(crossFamilyWithSeries.preCuisineSaleScore, 50);
+assert.equal(crossFamilyWithSeries.cuisineScoreMultiplier, 1, "cross-family adjustment skips the duplicate series half-price");
+assert.equal(crossFamilyWithSeries.collectionScore, 50, "100 becomes 50 only once");
+assert.equal(crossFamilyWithSeries.totalScore, 58, "50 × 115% rounds to 58");
+assert.equal(crossFamilyWithSeries.saleBreakdown.at(-1).result, crossFamilyWithSeries.totalScore);
+
+const normalSeriesSale = createCollectionRewardSettlement({
+  collectionCards: [], value: 2, foodType: BASE_FOOD_TYPES[0], name: "系列料理",
+  cuisineSequenceIndex: 2, gameTime: "12:00"
+});
+assert.equal(normalSeriesSale.cuisineScoreMultiplier, .5);
+assert.equal(normalSeriesSale.totalScore, 50, "series half-price still applies without a cross-family adjustment");
+
+const timedCrossFamilySale = createCollectionRewardSettlement({
+  collectionCards: [card(2, BASE_FOOD_TYPES[0])],
+  value: 2,
+  foodType: BASE_FOOD_TYPES[1],
+  name: "时段料理",
+  cuisineSequenceIndex: 2,
+  gameTime: "18:00",
+  collectionRecord: reductionRecord(8, 2)
+});
+assert.equal(timedCrossFamilySale.totalScore, 69, "time and route multipliers still apply after the single cross-family adjustment");
+
+assert.deepEqual(duplicate.saleBreakdown, [
+  {label: "基础售价", operation: null, result: 150},
+  {label: "重复销售调整", operation: "→", result: 0},
+  {label: "最终结算", operation: "四舍五入", result: 0}
+]);
+
 const yuzuEight = card(8, "fruit");
 const priorAquatic = card(3, "aquatic");
 const tigerShrimpRecord = {
@@ -69,11 +109,11 @@ const tigerShrimp = createCollectionRewardSettlement({
 });
 assert.equal(tigerShrimp.baseSaleScore, 100, "value 8 base lookup uses the sold value");
 assert.equal(tigerShrimp.preCuisineSaleScore, 50, "an existing value 8 in another cuisine keeps the existing cross-cuisine adjustment");
-assert.equal(tigerShrimp.collectionScore, 25, "the existing cuisine sequence multiplier remains separate from base price");
+assert.equal(tigerShrimp.collectionScore, 50, "cross-cuisine adjustment is not halved again by the cuisine sequence");
 assert.equal(tigerShrimp.collectionMultiplier, 4);
 assert.equal(tigerShrimp.collectionMultiplierRate, 1.15);
 assert.equal(tigerShrimp.timeSaleMultiplier, 1);
-assert.equal(tigerShrimp.totalScore, 29, "round(25 × 1.00 × 1.15) is the sale amount");
+assert.equal(tigerShrimp.totalScore, 58, "round(50 × 1.00 × 1.15) is the sale amount");
 
 for(const collectionRecord of [
   {value: 8, foodType: "aquatic"},

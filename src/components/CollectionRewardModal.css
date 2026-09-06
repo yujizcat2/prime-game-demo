@@ -37,6 +37,9 @@
 
 .collection-reward-modal h2 { margin: 0; font-size: 17px; }
 .collection-reward-meta { margin: 3px 0 0; color: #8b7a65; font-size: 11px; font-weight: 700; }
+.collection-reward-calculation { display: grid; gap: 5px; margin-top: 15px; padding: 11px 12px; border-radius: 12px; background: rgba(255,255,255,.52); }
+.collection-reward-calculation > strong { margin-bottom: 3px; color: #684b29; font-size: 12px; }
+.collection-reward-calculation > div { display: flex; justify-content: space-between; gap: 12px; color: #756754; font-size: 11px; font-weight: 750; font-variant-numeric: tabular-nums; }
 .collection-reward-details { display: grid; gap: 8px; margin-top: 16px; }
 .collection-reward-details > div, .collection-reward-total { display: flex; justify-content: space-between; gap: 16px; }
 .collection-reward-details span { color: #756754; font-size: 13px; font-weight: 750; }

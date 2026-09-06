@@ -1,4 +1,4 @@
-import { getCollectionScoreBreakdown } from "./scoreValue";
+import { getBaseScore, getCollectionScoreBreakdown } from "./scoreValue";
 import { applyCuisineScoreMultiplier, getCuisineScoreMultiplier } from "./scoreScale";
 import { getTimeSalePeriod } from "./timeSaleMultiplier";
 import { getCollectionMultiplier } from "./collectionMultiplier";
@@ -8,6 +8,14 @@ export function getBoardAverageValue(board = []){
   return values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : 0;
 }
 
+function getBreakdownResult(value){
+  return Number(value.toFixed(2));
+}
+
+function roundSaleScore(value){
+  return Math.round(value + Number.EPSILON * Math.abs(value));
+}
+
 export function createCollectionRewardSettlement({
   collectionCards = [], value, foodType, name, nonDrinkBoardSum = 0, cuisineSequenceIndex = 1,
   gameTime = "04:00", timeSalePeriods, collectionRecord = null
@@ -15,25 +23,54 @@ export function createCollectionRewardSettlement({
   const score = getCollectionScoreBreakdown(collectionCards, value, foodType);
   const collectionMultiplier = getCollectionMultiplier(collectionRecord);
   if(score.duplicate || score.baseScore <= 0){
+    const baseScore = getBaseScore(value);
     return {
       collected: false, duplicate: score.duplicate, value, foodType, name,
-      baseScore: 0, collectionScore: 0, nonDrinkBoardSum,
+      baseScore, collectionScore: 0, nonDrinkBoardSum,
       ...collectionMultiplier,
       existingFoodTypeCountForSameNumber: score.existingFoodTypeCountForSameNumber,
+      saleBreakdown: [
+        {label: "基础售价", operation: null, result: baseScore},
+        {label: "重复销售调整", operation: "→", result: 0},
+        {label: "最终结算", operation: "四舍五入", result: 0}
+      ],
       bonuses: [], bonusScore: 0, totalScore: 0, rewardLevel: "none"
     };
   }
 
-  const collectionScore = applyCuisineScoreMultiplier(score.collectionScore, cuisineSequenceIndex);
+  const hasCrossFamilyDiscount = score.existingFoodTypeCountForSameNumber > 0;
+  const cuisineScoreMultiplier = hasCrossFamilyDiscount ? 1 : getCuisineScoreMultiplier(cuisineSequenceIndex);
+  const collectionScore = hasCrossFamilyDiscount
+    ? score.collectionScore
+    : applyCuisineScoreMultiplier(score.collectionScore, cuisineSequenceIndex);
   const timeSalePeriod = getTimeSalePeriod(gameTime, timeSalePeriods);
-  const totalScore = Math.round(
-    collectionScore * timeSalePeriod.multiplier * collectionMultiplier.collectionMultiplierRate
+  const timeAdjustedScore = collectionScore * timeSalePeriod.multiplier;
+  const routeAdjustedScore = timeAdjustedScore * collectionMultiplier.collectionMultiplierRate;
+  const totalScore = roundSaleScore(routeAdjustedScore);
+  const saleBreakdown = [{label: "基础售价", operation: null, result: score.baseScore}];
+  if(hasCrossFamilyDiscount){
+    saleBreakdown.push({
+      label: "同数字跨系调整",
+      operation: `×${Math.round(score.collectionScore / score.baseScore * 100)}%`,
+      result: score.collectionScore
+    });
+  }else if(cuisineScoreMultiplier !== 1){
+    saleBreakdown.push({
+      label: "系列调整",
+      operation: `×${Math.round(cuisineScoreMultiplier * 100)}%`,
+      result: collectionScore
+    });
+  }
+  saleBreakdown.push(
+    {label: "当前时段", operation: `×${Math.round(timeSalePeriod.multiplier * 100)}%`, result: getBreakdownResult(timeAdjustedScore)},
+    {label: `×${collectionMultiplier.collectionMultiplier}路线奖励`, operation: `×${Math.round(collectionMultiplier.collectionMultiplierRate * 100)}%`, result: getBreakdownResult(routeAdjustedScore)},
+    {label: "最终结算", operation: "四舍五入", result: totalScore}
   );
   return {
     collected: true, duplicate: false, value, foodType, name,
     baseScore: score.baseScore, collectionScore,
     cuisineSequenceIndex,
-    cuisineScoreMultiplier: getCuisineScoreMultiplier(cuisineSequenceIndex),
+    cuisineScoreMultiplier,
     preMultiplierScore: score.collectionScore,
     baseSaleScore: score.baseScore,
     preCuisineSaleScore: score.collectionScore,
@@ -44,6 +81,8 @@ export function createCollectionRewardSettlement({
     nonDrinkBoardSum,
     isFirstNumber: score.isFirstNumber,
     existingFoodTypeCountForSameNumber: score.existingFoodTypeCountForSameNumber,
+    hasCrossFamilyDiscount,
+    saleBreakdown,
     bonuses: [], bonusScore: 0, totalScore,
     rewardLevel: "minor"
   };

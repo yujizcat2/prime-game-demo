@@ -84,7 +84,7 @@ assert.equal(settlement.preCuisineSaleScore, 100);
 assert.equal(settlement.collectionScore, 50);
 assert.equal(
   settlement.totalScore,
-  Math.round(settlement.collectionScore * settlement.timeSaleMultiplier),
+  Math.round(Number((settlement.collectionScore * settlement.timeSaleMultiplier).toFixed(10))),
   "final score uses Math.round"
 );
 
@@ -230,7 +230,7 @@ assert.match(daySettlementSource, /dailyCollectionBonusTotal/);
 assert.notEqual(settlement.totalScore, settlement.collectionScore * settlement.timeSaleMultiplier);
 assert.equal(
   settlement.totalScore,
-  Math.round(settlement.collectionScore * getTimeSaleMultiplier("17:00")),
+  Math.round(Number((settlement.collectionScore * getTimeSaleMultiplier("17:00")).toFixed(10))),
   "time multiplier is applied exactly once"
 );
 
