@@ -51,6 +51,8 @@ export default function Board({
 
   collectionCards = [],
 
+  dayMinutesElapsed = 0,
+
   scoreMode = false,
 
   removingIndex = null,
@@ -756,7 +758,7 @@ export default function Board({
                     {scoreMode && combinePreview.piece?.scoreValue != null && (
                       <div className="board-piece-locked-score board-preview-locked-score">
                         +{getEightPalaceCollectionScoreGain(
-                          {collectionCards, board},
+                          {collectionCards, board, dayMinutesElapsed},
                           {value: 1, origin: {type: "reduce", parent: combinePreview.piece}}
                         )}
                       </div>
@@ -986,7 +988,7 @@ export default function Board({
 
             const availableScore = scoreMode
               ? getEightPalaceCollectionScoreGain(
-                  {collectionCards, board},
+                  {collectionCards, board, dayMinutesElapsed},
                   {
                     value: 1,
                     origin: {type: "reduce", parent: piece}

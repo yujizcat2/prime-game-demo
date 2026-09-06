@@ -4,6 +4,7 @@ import { createCollectionRewardSettlement } from "../game/collectionReward";
 import { getTimeSaleMultiplier } from "../game/timeSaleMultiplier";
 import { BASE_FOOD_TYPES } from "../game/rules";
 import { applyAction, createGameState } from "../game/gameEngine";
+import { getEightPalaceCollectionScoreGain } from "../game/collectionRules";
 
 for(const [gameTime, expected] of [
   ["03:59", 0.5], ["04:00", 1], ["10:59", 1], ["11:00", 1.1],
@@ -36,6 +37,32 @@ const reduceAt = dayMinutesElapsed => applyAction({
   dayMinutesElapsed
 }, {type: "reduce", indexes: [0, 1]});
 
+const sameCollectible = {
+  value: 1,
+  foodType: BASE_FOOD_TYPES[0],
+  origin: {type: "reduce", parent: {value: 2, foodType: BASE_FOOD_TYPES[0], origin: null}}
+};
+const previewState = {
+  collectionCards: [],
+  board: [],
+  dayMinutesElapsed: 3 * 60 + 59
+};
+assert.equal(getEightPalaceCollectionScoreGain(previewState, sameCollectible), 50);
+assert.equal(
+  getEightPalaceCollectionScoreGain({...previewState, dayMinutesElapsed: 4 * 60}, sameCollectible),
+  100,
+  "the same uncollected dish updates when current time crosses 04:00"
+);
+assert.equal(
+  getEightPalaceCollectionScoreGain({...previewState, dayMinutesElapsed: 10 * 60 + 59}, sameCollectible),
+  100
+);
+assert.equal(
+  getEightPalaceCollectionScoreGain({...previewState, dayMinutesElapsed: 11 * 60}, sameCollectible),
+  110,
+  "the same preview also updates across the lunch boundary"
+);
+
 const earlyMorningCollection = reduceAt(3 * 60 + 59);
 const earlyMorningReward = earlyMorningCollection.latestCollectionRewards[0];
 assert.equal(earlyMorningReward.baseSaleScore, 100);
@@ -44,12 +71,19 @@ assert.equal(earlyMorningReward.totalScore, 50);
 assert.equal(earlyMorningCollection.score, 50, "real reduce-to-one action banks the discounted score once");
 assert.equal(earlyMorningCollection.latestCollection.totalScore, 50);
 
+const normalCollection = reduceAt(4 * 60);
+assert.equal(normalCollection.latestCollectionRewards[0].baseSaleScore, 100);
+assert.equal(normalCollection.latestCollectionRewards[0].totalScore, 100);
+assert.equal(normalCollection.score, 100, "04:00 real auto-collection banks the restored base price once");
+
 const lunchCollection = reduceAt(11 * 60);
 assert.equal(lunchCollection.latestCollectionRewards[0].timeSaleMultiplier, 1.1);
 assert.equal(lunchCollection.score, 110, "real non-early-morning action keeps its configured multiplier");
 
 const rewardModalSource = readFileSync("src/components/CollectionRewardModal.jsx", "utf8");
 assert.match(rewardModalSource, /<strong>\+\{reward\.totalScore\}分<\/strong>/);
+const boardSource = readFileSync("src/components/Board.jsx", "utf8");
+assert.match(boardSource, /\{collectionCards, board, dayMinutesElapsed\}/);
 assert.notEqual(settlement.totalScore, settlement.baseSaleScore * settlement.timeSaleMultiplier);
 assert.equal(
   settlement.totalScore,

@@ -981,6 +981,9 @@ function App(){
                 collectionCards={
                   game.collectionCards
                 }
+                dayMinutesElapsed={
+                  game.dayMinutesElapsed
+                }
                 scoreMode={
                   ["eightPalace", "simpleEightPalace"].includes(game.gameMode)
                 }
