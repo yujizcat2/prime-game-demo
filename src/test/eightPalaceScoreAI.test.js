@@ -9,6 +9,8 @@ import {
   evaluateCheckpointAwareness,
   evaluateScoreSearchState,
   evaluateScoreState,
+  getImmediateCollectionPotential,
+  getScoreAIDailyContext,
   getCheckpointGapPressure,
   getCheckpointUrgency,
   getStrategicCandidateActions,
@@ -454,6 +456,101 @@ const keyed = {
 };
 assert.equal(evaluateScoreState(keyless), evaluateScoreState(keyed), "keys have no evaluation reward");
 
+function createOperatingScoreState(values, {
+  score = 1000,
+  collectionCount = 7,
+  dayMinutesElapsed = 1430,
+  timeSalePeriods = TIME_SALE_PERIODS
+} = {}){
+  const state = createGameState(values.map((value, index) => ({
+    value,
+    foodType: BASE_FOOD_TYPES[index % BASE_FOOD_TYPES.length],
+    boardIndex: index
+  })), {dayCycleEnabled: true});
+  return {
+    ...state,
+    dayCycleEnabled: true,
+    day: 1,
+    score,
+    dayMinutesElapsed,
+    dayStartCollectionCount: 0,
+    collectionCards: Array.from({length: collectionCount}, (_, index) => ({
+      value: index + 20,
+      foodType: BASE_FOOD_TYPES[index % BASE_FOOD_TYPES.length]
+    })),
+    timeSalePeriods
+  };
+}
+
+const oneCollectionShort = createOperatingScoreState([8, 16, 3, 5]);
+const surplusWithoutCollection = createOperatingScoreState([9, 15, 3, 5], {score: 1100});
+const oneCollectionAction = [{type: "reduce", indexes: [0, 1]}];
+assert.equal(getScoreAIDailyContext(oneCollectionShort).collectionGap, 1);
+assert.ok(
+  evaluateScoreState(oneCollectionShort, oneCollectionAction) > evaluateScoreState(surplusWithoutCollection, oneCollectionAction),
+  "near closing, a real eighth-collection opportunity beats surplus score without collection progress"
+);
+
+const lowValueSale = createOperatingScoreState([4, 8, 3, 5], {score: 500, collectionCount: 8});
+const highValueSale = createOperatingScoreState([30, 60, 3, 5], {score: 500, collectionCount: 8});
+assert.ok(
+  evaluateScoreState(highValueSale, oneCollectionAction) > evaluateScoreState(lowValueSale, oneCollectionAction),
+  "near closing with collections complete, the higher-value formal sale opportunity is preferred"
+);
+
+const goalsDoneSafe = createOperatingScoreState([2, 3, 5, 7, 11], {collectionCount: 8});
+const goalsDoneFragile = createOperatingScoreState([2], {score: 1100, collectionCount: 8});
+const safeActions = Array.from({length: 10}, (_, index) => ({type: "combine", indexes: [index % 5, (index + 1) % 5]}));
+assert.ok(
+  evaluateScoreState(goalsDoneSafe, safeActions) > evaluateScoreState(goalsDoneFragile, []),
+  "after both goals, survival and action space beat a small amount of surplus score"
+);
+
+const lowMarketPeriods = TIME_SALE_PERIODS.map(period => period.startMinutes === 18 * 60
+  ? {...period, multiplier: .8}
+  : period
+);
+const highMarketPeriods = TIME_SALE_PERIODS.map(period => period.startMinutes === 18 * 60
+  ? {...period, multiplier: 1.2}
+  : period
+);
+const lowMarketState = createOperatingScoreState([8, 16, 3, 5], {
+  score: 500,
+  collectionCount: 8,
+  dayMinutesElapsed: 18 * 60,
+  timeSalePeriods: lowMarketPeriods
+});
+const highMarketState = {...lowMarketState, timeSalePeriods: highMarketPeriods};
+assert.equal(getScoreAIDailyContext(lowMarketState).marketMultiplier, .8);
+assert.equal(getScoreAIDailyContext(highMarketState).marketMultiplier, 1.2);
+assert.ok(
+  evaluateScoreState(highMarketState, oneCollectionAction) > evaluateScoreState(lowMarketState, oneCollectionAction),
+  "the same immediate sale is worth more under the current higher dynamic multiplier"
+);
+
+const earlySafe = createOperatingScoreState([2, 3, 5, 7, 11], {score: 0, collectionCount: 0, dayMinutesElapsed: 0});
+const earlyFragile = createOperatingScoreState([2], {score: 0, collectionCount: 0, dayMinutesElapsed: 0});
+assert.ok(
+  evaluateScoreState(earlySafe, safeActions) > evaluateScoreState(earlyFragile, []),
+  "early Day 1 collection gap does not override basic survival quality"
+);
+
+const formalSaleState = createOperatingScoreState([8, 16, 3, 5], {
+  score: 0,
+  collectionCount: 0,
+  dayMinutesElapsed: 18 * 60
+});
+const formalSaleAction = getLegalActions(formalSaleState).find(action =>
+  action.type === "reduce" && action.indexes.includes(0) && action.indexes.includes(1)
+);
+const formalPotential = getImmediateCollectionPotential(formalSaleState, [formalSaleAction]);
+const formalSaleResult = applyAction(formalSaleState, formalSaleAction);
+assert.equal(
+  formalSaleResult.score - formalSaleState.score,
+  formalPotential.bestScore,
+  "AI preview reuses the formal reward result without changing it"
+);
+
 const fixed = await runFixedScoreAttempts({attempts: 2, depth: 1, beamWidth: 8, maxActions: 12, fixedOpening: opening});
 assert.equal(fixed.attempts, 2);
 assert.ok(fixed.distinctRouteCount >= 1);
@@ -547,8 +644,8 @@ assert.match(marketTestLabSource, /Day \{record\.day\} 销售/);
 assert.match(marketTestLabSource, /record\.market\.saleScores/);
 
 const daySummary = summarizeScoreResults([
-  {finalScore: 600, scoreEfficiency: 25, collectionCount: 10, primeCollectionCount: 1, compositeCollectionCount: 9, steps: 24, completed100Steps: false, deadlocked: false, dayCycleEnabled: true, finalDay: 1, dayHistory: [{day: 1, targetScore: 100, finalScore: 600, scoreGainToday: 600, scoreTargetMet: true, collectionGainToday: 10, boardSum: 100, passed: true}], dayRecords: [{day: 1, dayAverageBoardSum: 30}]},
-  {finalScore: 400, scoreEfficiency: 16.67, collectionCount: 9, primeCollectionCount: 0, compositeCollectionCount: 9, steps: 24, completed100Steps: false, deadlocked: false, dayCycleEnabled: true, finalDay: 1, dayHistory: [{day: 1, targetScore: 100, finalScore: 400, scoreGainToday: 99, scoreTargetMet: false, collectionGainToday: 9, boardSum: 80, passed: false}], dayRecords: [{day: 1, dayAverageBoardSum: 15}]},
+  {finalScore: 600, scoreEfficiency: 25, collectionCount: 10, primeCollectionCount: 1, compositeCollectionCount: 9, steps: 24, completed100Steps: false, deadlocked: false, dayCycleEnabled: true, finalDay: 1, dayHistory: [{day: 1, targetScore: 100, finalScore: 600, scoreGainToday: 600, scoreTargetMet: true, collectionTargetMet: true, collectionTarget: 8, collectionGainToday: 10, boardSum: 100, passed: true}], dayRecords: [{day: 1, dayAverageBoardSum: 30}]},
+  {finalScore: 400, scoreEfficiency: 16.67, collectionCount: 9, primeCollectionCount: 0, compositeCollectionCount: 9, steps: 24, completed100Steps: false, deadlocked: false, dayCycleEnabled: true, finalDay: 1, dayHistory: [{day: 1, targetScore: 500, finalScore: 400, scoreGainToday: 99, scoreTargetMet: false, collectionTargetMet: true, collectionTarget: 8, collectionGainToday: 9, boardSum: 80, passed: false}], dayRecords: [{day: 1, dayAverageBoardSum: 15}]},
   {finalScore: 0, scoreEfficiency: 0, collectionCount: 0, primeCollectionCount: 0, compositeCollectionCount: 0, steps: 4, completed100Steps: false, deadlocked: true, dayCycleEnabled: true, finalDay: 1, dayHistory: []}
 ]);
 assert.equal(daySummary.daySummaries[0].reachedCount, 3);
@@ -556,6 +653,22 @@ assert.equal(daySummary.daySummaries[0].passedCount, 1);
 assert.equal(daySummary.daySummaries[0].passRate, 1 / 3, "day pass rate uses reachedCount as its denominator");
 assert.equal(daySummary.daySummaries[0].averageBoardSum, 90, "closing board sum reporting is unchanged");
 assert.equal(daySummary.daySummaries[0].averageDayBoardSum, 15, "daily averages are averaged across every reached game, including empty samples");
+assert.equal(daySummary.scoreTargetFailureCount, 1);
+assert.equal(daySummary.collectionTargetFailureCount, 0);
+assert.equal(daySummary.dualTargetFailureCount, 0);
+assert.equal(daySummary.averageClosingScoreGap, 50);
+assert.equal(daySummary.averageClosingCollectionGap, 0);
+
+const failureSummary = summarizeScoreResults([
+  {finalScore: 90, scoreEfficiency: 0, collectionCount: 8, primeCollectionCount: 0, compositeCollectionCount: 0, finalDay: 1, dayHistory: [{day: 1, targetScore: 100, finalScore: 90, scoreTargetMet: false, collectionTargetMet: true, collectionTarget: 8, collectionGainToday: 8, passed: false}]},
+  {finalScore: 100, scoreEfficiency: 0, collectionCount: 7, primeCollectionCount: 0, compositeCollectionCount: 0, finalDay: 1, dayHistory: [{day: 1, targetScore: 100, finalScore: 100, scoreTargetMet: true, collectionTargetMet: false, collectionTarget: 8, collectionGainToday: 7, passed: false}]},
+  {finalScore: 80, scoreEfficiency: 0, collectionCount: 6, primeCollectionCount: 0, compositeCollectionCount: 0, finalDay: 1, dayHistory: [{day: 1, targetScore: 100, finalScore: 80, scoreTargetMet: false, collectionTargetMet: false, collectionTarget: 8, collectionGainToday: 6, passed: false}]}
+]);
+assert.equal(failureSummary.scoreTargetFailureCount, 1);
+assert.equal(failureSummary.collectionTargetFailureCount, 1);
+assert.equal(failureSummary.dualTargetFailureCount, 1);
+assert.equal(failureSummary.averageClosingScoreGap, 10);
+assert.equal(failureSummary.averageClosingCollectionGap, 1);
 
 console.log("eight palace Score AI tests passed", {
   score: result.finalScore,

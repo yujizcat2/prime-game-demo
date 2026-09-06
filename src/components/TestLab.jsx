@@ -1382,6 +1382,8 @@ function ScoreSummaryGrid({result}){
       <ResultItem label="达到测试保护上限" value={`${result.reachedTestProtectionLimitCount ?? 0} / ${result.games ?? result.attempts}`} />
       <ResultItem label="提前死局" value={`${result.deadlockCount} / ${result.games ?? result.attempts} (${(result.deadlockRate * 100).toFixed(1)}%)`} />
       <ResultItem label="可避免的立即死局" value={result.avoidableImmediateDeathCount ?? 0} />
+      <ResultItem label="失败原因（分数 / 收藏 / 双不足）" value={`${result.scoreTargetFailureCount ?? 0} / ${result.collectionTargetFailureCount ?? 0} / ${result.dualTargetFailureCount ?? 0}`} />
+      <ResultItem label="打烊平均缺口（分数 / 收藏）" value={`${(result.averageClosingScoreGap ?? 0).toFixed(1)} / ${(result.averageClosingCollectionGap ?? 0).toFixed(2)}`} />
       <ResultItem label="平均搜索节点" value={Math.round(result.averageSearchedNodes ?? 0)} />
       <ResultItem label="平均评价节点" value={Math.round(result.averageEvaluatedNodes ?? 0)} />
       <ResultItem label="平均生成动作" value={Math.round(result.averageGeneratedActions ?? 0)} />

@@ -21,8 +21,15 @@ import {
   createFoodTypeBoardSnapshot,
   summarizeFoodTypeTelemetry
 } from "./foodTypeTelemetry";
-import { advanceToNextDay, getDayTargetScore, getDayTime } from "../game/dayCycle";
-import { getTimeSalePriceTotal } from "../game/timeSaleMultiplier";
+import {
+  advanceToNextDay,
+  DAILY_COLLECTION_TARGET,
+  DAY_DURATION_MINUTES,
+  getDayTargetScore,
+  getDayTime
+} from "../game/dayCycle";
+import { getTimeSaleMultiplier, getTimeSalePriceTotal } from "../game/timeSaleMultiplier";
+import { getEightPalaceCollectionScoreGain } from "../game/collectionRules";
 
 export const SCORE_AI_DEFAULTS = Object.freeze({
   depth: 3,
@@ -309,6 +316,69 @@ function getImmediateScorePotential(state, legalActions = getLegalActions(state)
   return {total, best};
 }
 
+export const SCORE_AI_DAILY_WEIGHTS = Object.freeze({
+  targetScorePoint: 1_000_000_000,
+  surplusScorePoint: 100_000,
+  scoreGapBase: 50_000_000,
+  scoreGapUrgency: 450_000_000,
+  collectionGapBase: 100_000_000,
+  collectionGapUrgency: 2_000_000_000,
+  immediateSalePointBase: 5_000_000,
+  immediateSalePointUrgency: 15_000_000,
+  immediateNewCollectionBase: 50_000_000,
+  immediateNewCollectionUrgency: 1_500_000_000,
+  minimumSurvivalWeight: .35,
+  completedGoalsSurvivalWeight: 4
+});
+
+export function getScoreAIDailyContext(state){
+  const targetScore = getDayTargetScore(state?.day ?? 1);
+  const todayNewCollectionCount = Math.max(
+    0,
+    (state?.collectionCards?.length ?? 0) - (state?.dayStartCollectionCount ?? 0)
+  );
+  const remainingMinutes = Math.max(0, DAY_DURATION_MINUTES - (state?.dayMinutesElapsed ?? 0));
+  const remainingRatio = Math.min(1, remainingMinutes / DAY_DURATION_MINUTES);
+  return {
+    targetScore,
+    scoreGap: Math.max(0, targetScore - (state?.score ?? 0)),
+    todayNewCollectionCount,
+    collectionGap: Math.max(0, DAILY_COLLECTION_TARGET - todayNewCollectionCount),
+    remainingMinutes,
+    remainingRatio,
+    urgency: 1 - remainingRatio,
+    marketMultiplier: getTimeSaleMultiplier(getDayTime(state), state?.timeSalePeriods)
+  };
+}
+
+export function getImmediateCollectionPotential(state, legalActions = getLegalActions(state)){
+  let totalScore = 0;
+  let bestScore = 0;
+  let collectionCount = 0;
+
+  for(const action of legalActions){
+    if(action.type !== "reduce") continue;
+    const [leftIndex, rightIndex] = action.indexes ?? [];
+    const left = state.board?.[leftIndex];
+    const right = state.board?.[rightIndex];
+    if(!left || !right || left.value === right.value) continue;
+    const divisor = gcd(left.value, right.value);
+    for(const piece of [left, right]){
+      if(piece.value / divisor !== 1) continue;
+      const score = getEightPalaceCollectionScoreGain(state, {
+        value: 1,
+        foodType: piece.foodType,
+        origin: {type: "reduce", parent: piece}
+      });
+      totalScore += score;
+      bestScore = Math.max(bestScore, score);
+      if(score > 0) collectionCount++;
+    }
+  }
+
+  return {totalScore, bestScore, collectionCount};
+}
+
 export function isPrematureDeadlock(state){
   return state?.gameOver === true && state.gameOverReason === "no_legal_actions";
 }
@@ -341,6 +411,36 @@ export function evaluateScoreState(state, legalActions = state.gameOver ? [] : g
   let boardNovelty = 0;
   for(const piece of state.board ?? []){
     if(piece && !collected.has(`${piece.value}:${piece.foodType}`)) boardNovelty++;
+  }
+
+  if(state.dayCycleEnabled){
+    const context = getScoreAIDailyContext(state);
+    const collectionPotential = getImmediateCollectionPotential(state, legalActions);
+    const goalsComplete = context.scoreGap === 0 && context.collectionGap === 0;
+    const weights = SCORE_AI_DAILY_WEIGHTS;
+    const scoreAtTarget = Math.min(state.score ?? 0, context.targetScore);
+    const surplusScore = Math.max(0, (state.score ?? 0) - context.targetScore);
+    const scoreGapWeight = weights.scoreGapBase + weights.scoreGapUrgency * context.urgency;
+    const collectionGapWeight = weights.collectionGapBase + weights.collectionGapUrgency * context.urgency;
+    const immediateSaleWeight = weights.immediateSalePointBase
+      + weights.immediateSalePointUrgency * context.urgency;
+    const immediateCollectionWeight = weights.immediateNewCollectionBase
+      + weights.immediateNewCollectionUrgency * context.urgency;
+    const survivalWeight = goalsComplete
+      ? weights.completedGoalsSurvivalWeight
+      : Math.max(weights.minimumSurvivalWeight, 1 - .65 * context.urgency);
+
+    return unscaleScore(scoreAtTarget) * weights.targetScorePoint
+      + unscaleScore(surplusScore) * weights.surplusScorePoint
+      - unscaleScore(context.scoreGap) * scoreGapWeight
+      - context.collectionGap * collectionGapWeight
+      + unscaleScore(collectionPotential.bestScore) * immediateSaleWeight
+      + collectionPotential.collectionCount * (context.collectionGap > 0 ? immediateCollectionWeight : 0)
+      + boardNovelty * 5_000
+      + reduceActions * 1_000
+      + legalActions.length * 10
+      + getScoreSurvivalValue(state, legalActions) * survivalWeight
+      - (terminalDeadlock ? IMMEDIATE_DEATH_PENALTY : 0);
   }
 
   // One point of banked score outweighs every auxiliary term. Board count is
@@ -1055,6 +1155,17 @@ export function summarizeScoreResults(results){
     (sum, result) => sum + (result.avoidableImmediateDeathCount ?? 0),
     0
   );
+  const closingSettlements = results.flatMap(result => result.dayHistory ?? []);
+  const failedSettlements = closingSettlements.filter(settlement => settlement.passed === false);
+  const scoreTargetFailureCount = failedSettlements.filter(settlement =>
+    settlement.scoreTargetMet === false && settlement.collectionTargetMet !== false
+  ).length;
+  const collectionTargetFailureCount = failedSettlements.filter(settlement =>
+    settlement.scoreTargetMet !== false && settlement.collectionTargetMet === false
+  ).length;
+  const dualTargetFailureCount = failedSettlements.filter(settlement =>
+    settlement.scoreTargetMet === false && settlement.collectionTargetMet === false
+  ).length;
   const maximumDay = results.length ? Math.max(0, ...results.map(result => result.finalDay ?? 0)) : 0;
   const daySummaries = Array.from({length: maximumDay}, (_, index) => index + 1).map(day => {
     const reached = results.filter(result => (result.finalDay ?? 0) >= day);
@@ -1225,6 +1336,15 @@ export function summarizeScoreResults(results){
     deadlockCount,
     deadlockRate: results.length ? deadlockCount / results.length : 0,
     avoidableImmediateDeathCount,
+    scoreTargetFailureCount,
+    collectionTargetFailureCount,
+    dualTargetFailureCount,
+    averageClosingScoreGap: average(closingSettlements, settlement =>
+      Math.max(0, (settlement.targetScore ?? getDayTargetScore(settlement.day)) - (settlement.finalScore ?? 0))
+    ),
+    averageClosingCollectionGap: average(closingSettlements, settlement =>
+      Math.max(0, (settlement.collectionTarget ?? DAILY_COLLECTION_TARGET) - (settlement.collectionGainToday ?? 0))
+    ),
     averageCollectionEfficiencyTimeline: summarizeCollectionEfficiencyTimelines(results),
     highScore,
     results
