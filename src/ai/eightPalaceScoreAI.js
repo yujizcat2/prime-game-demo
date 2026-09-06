@@ -354,13 +354,13 @@ export function getImmediateCollectionPotential(state, legalActions = getLegalAc
     const right = state.board?.[rightIndex];
     if(!left || !right || left.value === right.value) continue;
     const divisor = gcd(left.value, right.value);
-    for(const piece of [left, right]){
+    for(const [piece, otherPiece] of [[left, right], [right, left]]){
       if(piece.value / divisor !== 1) continue;
       const score = getEightPalaceCollectionScoreGain(state, {
         value: 1,
         foodType: piece.foodType,
         origin: {type: "reduce", parent: piece}
-      });
+      }, otherPiece.value / divisor);
       totalScore += score;
       bestScore = Math.max(bestScore, score);
       if(score > 0) collectionCount++;

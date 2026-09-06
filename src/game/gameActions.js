@@ -812,7 +812,10 @@ export function reduceCells(
       null,
 
     origin:
-      firstOrigin
+      firstOrigin,
+
+    collectionRewardLevel:
+      firstResult === 1 ? secondResult : null
 
   };
 
@@ -840,7 +843,10 @@ export function reduceCells(
       null,
 
     origin:
-      secondOrigin
+      secondOrigin,
+
+    collectionRewardLevel:
+      secondResult === 1 ? firstResult : null
 
   };
 

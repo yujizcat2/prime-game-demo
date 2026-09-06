@@ -18,7 +18,7 @@ export default function CollectionRewardModal({reward, onClose}){
       >
         <p className="collection-reward-kicker">✦ 售出成功</p>
         <h2 id="collection-reward-title">{reward.name} · {reward.value}</h2>
-        {typeLabel && <p className="collection-reward-meta">{typeLabel} · ×{reward.collectionMultiplier ?? 1}路线</p>}
+        {typeLabel && <p className="collection-reward-meta">{typeLabel} · {reward.collectionRewardLevel ?? 2}级奖励 · ×{(reward.collectionMultiplierRate ?? 1).toFixed(2)}</p>}
         <div className="collection-reward-calculation">
           <strong>营业额计算</strong>
           {(reward.saleBreakdown ?? []).map((step, index) => <div key={`${step.label}-${index}`}>

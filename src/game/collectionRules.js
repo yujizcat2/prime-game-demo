@@ -16,7 +16,7 @@ import {
 import { getDailyCollectionBonus, getDayTime, getTodayNewCollectionCount } from "./dayCycle";
 import { getCuisineSequenceIndex } from "./scoreScale";
 import { getTimeSalePeriod } from "./timeSaleMultiplier";
-import { getCollectionMultiplier } from "./collectionMultiplier";
+import { getCollectionRewardMultiplier } from "./collectionRewardLevel";
 
 
 // ============================================================
@@ -854,7 +854,7 @@ function applySimulationCollection(
     value,
     foodType,
     isNewCollection,
-    ...getCollectionMultiplier(getCollectionRecord(piece))
+    ...getCollectionRewardMultiplier(piece?.collectionRewardLevel)
   });
 
   if(isNewCollection){
@@ -1024,7 +1024,7 @@ function applyGameCollection(
 
     null;
 
-  const collectionMultiplier = getCollectionMultiplier(previousRecord);
+  const rewardMultiplier = getCollectionRewardMultiplier(piece?.collectionRewardLevel);
 
 
 
@@ -1113,7 +1113,7 @@ function applyGameCollection(
         isNewCollection: false,
         isFirstNumber: false,
         trendFrom: null,
-        ...collectionMultiplier,
+        ...rewardMultiplier,
         eventId: (state.collectionEventId ?? 0) + 1
       },
 
@@ -1331,7 +1331,7 @@ function applyGameCollection(
         ? state.previousCollection
         : null,
 
-    ...collectionMultiplier,
+    ...rewardMultiplier,
 
     eventId:
       (state.collectionEventId ?? 0) + 1
@@ -1532,7 +1532,7 @@ export function applyCollection(
           step: state.steps ?? null,
           name: getFoodName(snapshot.value, snapshot.foodType),
           reducePath: getMainLineage(snapshot),
-          ...getCollectionMultiplier(snapshot)
+          ...getCollectionRewardMultiplier(piece?.collectionRewardLevel)
         }
       ]
     };
@@ -1563,7 +1563,7 @@ function getEightPalaceCollectionKey(record){
   return `${record?.foodType ?? "default"}:${record?.value ?? ""}`;
 }
 
-export function getEightPalaceCollectionScoreGain(state, piece){
+export function getEightPalaceCollectionScoreGain(state, piece, collectionRewardLevel = piece?.collectionRewardLevel){
   const record = getCollectionRecord(piece);
   if(!record) return 0;
 
@@ -1579,7 +1579,7 @@ export function getEightPalaceCollectionScoreGain(state, piece){
     singleFlavorPenalty: record.singleFlavorPenalty === true,
     gameTime: getDayTime(state),
     timeSalePeriods: state.timeSalePeriods,
-    collectionRecord: record
+    collectionRewardLevel
   }).totalScore;
 }
 
@@ -1625,7 +1625,7 @@ export function applyEightPalaceCollection(
     singleFlavorPenalty: record.singleFlavorPenalty === true,
     gameTime,
     timeSalePeriods: state.timeSalePeriods,
-    collectionRecord: record
+    collectionRewardLevel: piece?.collectionRewardLevel
   });
   const todayCollectionNumber = getTodayNewCollectionCount(state) + (isNewCollection ? 1 : 0);
   const dailyCollectionBonus = isNewCollection && state.dayCycleEnabled
@@ -1665,7 +1665,7 @@ export function applyEightPalaceCollection(
     dailyCollectionBonus,
     todayCollectionNumber,
     totalScore,
-    collectionMultiplier: rewardSettlement.collectionMultiplier,
+    collectionRewardLevel: rewardSettlement.collectionRewardLevel,
     collectionMultiplierRate: rewardSettlement.collectionMultiplierRate,
     bonuses: rewardSettlement.bonuses,
     rewardLevel: rewardSettlement.rewardLevel,

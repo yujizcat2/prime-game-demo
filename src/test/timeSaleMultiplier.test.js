@@ -173,7 +173,7 @@ assert.equal(discountedEighth.latestCollectionRewards[0].saleScore, discountedSa
 assert.equal(discountedEighth.latestCollectionRewards[0].dailyCollectionBonus, 30);
 assert.equal(discountedEighth.score - eighthPreviewState.score, discountedSaleScore + 30, "the 0.80 market rate never discounts the daily sale bonus");
 
-const routedEighthState = {
+const leveledEighthState = {
   ...eighthPreviewState,
   board: [
     {value: 5, foodType: BASE_FOOD_TYPES[0], boardIndex: 0, origin: {type: "reduce", parent: {value: 35, foodType: BASE_FOOD_TYPES[0]}}},
@@ -181,12 +181,13 @@ const routedEighthState = {
     ...eighthPreviewState.board.slice(2)
   ]
 };
-const routedEighth = applyAction(routedEighthState, {type: "reduce", indexes: [0, 1]});
-assert.equal(routedEighth.latestCollectionRewards[0].collectionMultiplierRate, 1.4);
-assert.equal(routedEighth.latestCollectionRewards[0].dailyCollectionBonus, 30, "route multiplier never changes the daily sale bonus");
+const leveledEighth = applyAction(leveledEighthState, {type: "reduce", indexes: [0, 1]});
+assert.equal(leveledEighth.latestCollectionRewards[0].collectionRewardLevel, 2);
+assert.equal(leveledEighth.latestCollectionRewards[0].collectionMultiplierRate, 1);
+assert.equal(leveledEighth.latestCollectionRewards[0].dailyCollectionBonus, 30, "reward-level multiplier never changes the daily sale bonus");
 assert.equal(
-  routedEighth.latestCollectionRewards[0].totalScore,
-  routedEighth.latestCollectionRewards[0].saleScore + 30
+  leveledEighth.latestCollectionRewards[0].totalScore,
+  leveledEighth.latestCollectionRewards[0].saleScore + 30
 );
 
 const closingDayOne = resolveGameOver({

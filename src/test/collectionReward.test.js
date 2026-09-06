@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { createCollectionRewardSettlement, getCollectionBaseSalePrice } from "../game/collectionReward";
 import { BASE_FOOD_TYPES } from "../game/rules";
-import { getCollectionMultiplier } from "../game/collectionMultiplier";
+import { getCollectionRewardMultiplier } from "../game/collectionRewardLevel";
 
 const card = (value, foodType) => ({value, foodType});
 const settle = (collectionCards, value, foodType, nonDrinkBoardSum = 0, singleFlavorPenalty = false) =>
@@ -24,32 +24,28 @@ const duplicate = settle([card(17, BASE_FOOD_TYPES[0])], 17, BASE_FOOD_TYPES[0],
 assert.equal(duplicate.duplicate, true);
 assert.equal(duplicate.totalScore, 0);
 
-const reductionRecord = (originalValue, value = 5) => ({
-  value,
-  origin: {type: "reduce", parent: {value: originalValue}}
-});
-for(const [originalValue, expectedMultiplier, expectedRate] of [
-  [10, 2, 1], [15, 3, 1.1], [25, 5, 1.25], [35, 7, 1.4], [40, 8, 1.5], [60, 12, 1.5]
+for(const [rewardLevel, expectedRate] of [
+  [2, 1], [3, 1.05], [4, 1.1], [7, 1.25], [12, 1.5], [20, 1.5]
 ]){
-  assert.deepEqual(getCollectionMultiplier(reductionRecord(originalValue)), {
-    collectionMultiplier: expectedMultiplier,
+  assert.deepEqual(getCollectionRewardMultiplier(rewardLevel), {
+    collectionRewardLevel: rewardLevel,
     collectionMultiplierRate: expectedRate
   });
 }
-for(const invalidRecord of [null, {value: 5}, reductionRecord(12)]){
-  assert.deepEqual(getCollectionMultiplier(invalidRecord), {
-    collectionMultiplier: 1,
+for(const invalidLevel of [null, undefined, 1]){
+  assert.deepEqual(getCollectionRewardMultiplier(invalidLevel), {
+    collectionRewardLevel: 2,
     collectionMultiplierRate: 1
   });
 }
 
 const multiplied = createCollectionRewardSettlement({
   collectionCards: [], value: 5, foodType: BASE_FOOD_TYPES[0], name: "5号料理",
-  collectionRecord: reductionRecord(35)
+  collectionRewardLevel: 7
 });
-assert.equal(multiplied.totalScore, 140, "the route multiplier is applied before final rounding");
-assert.equal(multiplied.collectionMultiplier, 7);
-assert.equal(multiplied.collectionMultiplierRate, 1.4);
+assert.equal(multiplied.totalScore, 125, "the reward-level multiplier is applied before final rounding");
+assert.equal(multiplied.collectionRewardLevel, 7);
+assert.equal(multiplied.collectionMultiplierRate, 1.25);
 
 const crossFamilyWithSeries = createCollectionRewardSettlement({
   collectionCards: [card(2, BASE_FOOD_TYPES[0])],
@@ -58,17 +54,17 @@ const crossFamilyWithSeries = createCollectionRewardSettlement({
   name: "跨系料理",
   cuisineSequenceIndex: 2,
   gameTime: "12:00",
-  collectionRecord: reductionRecord(8, 2)
+  collectionRewardLevel: 4
 });
 assert.equal(crossFamilyWithSeries.baseScore, 100);
 assert.equal(crossFamilyWithSeries.preCuisineSaleScore, 50);
 assert.equal(crossFamilyWithSeries.cuisineScoreMultiplier, 1, "cross-family adjustment skips the duplicate series half-price");
 assert.equal(crossFamilyWithSeries.collectionScore, 50, "100 becomes 50 only once");
-assert.equal(crossFamilyWithSeries.totalScore, 58, "50 × 115% rounds to 58");
+assert.equal(crossFamilyWithSeries.totalScore, 55, "50 × 110% rounds to 55");
 assert.equal(crossFamilyWithSeries.saleBreakdown.at(-1).result, crossFamilyWithSeries.totalScore);
 assert.deepEqual(
   crossFamilyWithSeries.saleBreakdown.map(step => step.label),
-  ["基础售价", "同款半价", "当前时段", "×4路线奖励", "最终结算"]
+  ["基础售价", "同款半价", "当前时段", "4级奖励", "最终结算"]
 );
 assert.equal(
   getCollectionBaseSalePrice([card(2, BASE_FOOD_TYPES[0])], 2, BASE_FOOD_TYPES[1]),
@@ -84,7 +80,7 @@ assert.equal(normalSeriesSale.cuisineScoreMultiplier, 1);
 assert.equal(normalSeriesSale.totalScore, 100, "food-type sale order never discounts a first sale of this value");
 assert.deepEqual(
   normalSeriesSale.saleBreakdown.map(step => step.label),
-  ["基础售价", "当前时段", "×1路线奖励", "最终结算"]
+  ["基础售价", "当前时段", "2级奖励", "最终结算"]
 );
 assert.equal(getCollectionBaseSalePrice([], 2, BASE_FOOD_TYPES[0]), 100, "first-sale card price ignores series order");
 assert.equal(getCollectionBaseSalePrice([card(2, BASE_FOOD_TYPES[0])], 2, BASE_FOOD_TYPES[0]), 0, "same-family repeats stay zero");
@@ -135,9 +131,9 @@ const timedCrossFamilySale = createCollectionRewardSettlement({
   name: "时段料理",
   cuisineSequenceIndex: 2,
   gameTime: "18:00",
-  collectionRecord: reductionRecord(8, 2)
+  collectionRewardLevel: 4
 });
-assert.equal(timedCrossFamilySale.totalScore, 69, "time and route multipliers still apply after the single cross-family adjustment");
+assert.equal(timedCrossFamilySale.totalScore, 66, "time and reward-level multipliers still apply after the single cross-family adjustment");
 
 assert.deepEqual(duplicate.saleBreakdown, [
   {label: "基础售价", operation: null, result: 150},
@@ -159,15 +155,15 @@ const tigerShrimp = createCollectionRewardSettlement({
   name: "虎虾",
   cuisineSequenceIndex: 2,
   gameTime: "04:00",
-  collectionRecord: tigerShrimpRecord
+  collectionRewardLevel: 4
 });
 assert.equal(tigerShrimp.baseSaleScore, 100, "value 8 base lookup uses the sold value");
 assert.equal(tigerShrimp.preCuisineSaleScore, 50, "an existing value 8 in another cuisine keeps the existing cross-cuisine adjustment");
 assert.equal(tigerShrimp.collectionScore, 50, "cross-cuisine adjustment is not halved again by the cuisine sequence");
-assert.equal(tigerShrimp.collectionMultiplier, 4);
-assert.equal(tigerShrimp.collectionMultiplierRate, 1.15);
+assert.equal(tigerShrimp.collectionRewardLevel, 4);
+assert.equal(tigerShrimp.collectionMultiplierRate, 1.1);
 assert.equal(tigerShrimp.timeSaleMultiplier, 1);
-assert.equal(tigerShrimp.totalScore, 58, "round(50 × 1.00 × 1.15) is the sale amount");
+assert.equal(tigerShrimp.totalScore, 55, "round(50 × 1.00 × 1.10) is the sale amount");
 
 for(const collectionRecord of [
   {value: 8, foodType: "aquatic"},
@@ -176,7 +172,7 @@ for(const collectionRecord of [
 ]){
   const reward = createCollectionRewardSettlement({
     collectionCards: [], value: 8, foodType: "aquatic", name: "8号料理",
-    collectionRecord
+    collectionRewardLevel: collectionRecord.rewardLevel
   });
   assert.equal(reward.baseSaleScore, 100, "origin and parent never replace the final value in base lookup");
 }

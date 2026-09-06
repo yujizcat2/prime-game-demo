@@ -1,6 +1,6 @@
 import { getBaseScore, getCollectionScoreBreakdown } from "./scoreValue";
 import { getTimeSalePeriod } from "./timeSaleMultiplier";
-import { getCollectionMultiplier } from "./collectionMultiplier";
+import { getCollectionRewardMultiplier } from "./collectionRewardLevel";
 
 export function getBoardAverageValue(board = []){
   const values = board.filter(piece => Number.isFinite(piece?.value)).map(piece => piece.value);
@@ -21,16 +21,16 @@ function roundSaleScore(value){
 
 export function createCollectionRewardSettlement({
   collectionCards = [], value, foodType, name, nonDrinkBoardSum = 0, cuisineSequenceIndex = 1,
-  gameTime = "04:00", timeSalePeriods, collectionRecord = null
+  gameTime = "04:00", timeSalePeriods, collectionRewardLevel = null
 }){
   const score = getCollectionScoreBreakdown(collectionCards, value, foodType);
-  const collectionMultiplier = getCollectionMultiplier(collectionRecord);
+  const rewardMultiplier = getCollectionRewardMultiplier(collectionRewardLevel);
   if(score.duplicate || score.baseScore <= 0){
     const baseScore = getBaseScore(value);
     return {
       collected: false, duplicate: score.duplicate, value, foodType, name,
       baseScore, collectionScore: 0, nonDrinkBoardSum,
-      ...collectionMultiplier,
+      ...rewardMultiplier,
       existingFoodTypeCountForSameNumber: score.existingFoodTypeCountForSameNumber,
       saleBreakdown: [
         {label: "基础售价", operation: null, result: baseScore},
@@ -46,8 +46,8 @@ export function createCollectionRewardSettlement({
   const collectionScore = score.collectionScore;
   const timeSalePeriod = getTimeSalePeriod(gameTime, timeSalePeriods);
   const timeAdjustedScore = collectionScore * timeSalePeriod.multiplier;
-  const routeAdjustedScore = timeAdjustedScore * collectionMultiplier.collectionMultiplierRate;
-  const totalScore = roundSaleScore(routeAdjustedScore);
+  const rewardAdjustedScore = timeAdjustedScore * rewardMultiplier.collectionMultiplierRate;
+  const totalScore = roundSaleScore(rewardAdjustedScore);
   const saleBreakdown = [{label: "基础售价", operation: null, result: score.baseScore}];
   if(hasCrossFamilyDiscount){
     saleBreakdown.push({
@@ -58,7 +58,7 @@ export function createCollectionRewardSettlement({
   }
   saleBreakdown.push(
     {label: "当前时段", operation: `×${Math.round(timeSalePeriod.multiplier * 100)}%`, result: getBreakdownResult(timeAdjustedScore)},
-    {label: `×${collectionMultiplier.collectionMultiplier}路线奖励`, operation: `×${Math.round(collectionMultiplier.collectionMultiplierRate * 100)}%`, result: getBreakdownResult(routeAdjustedScore)},
+    {label: `${rewardMultiplier.collectionRewardLevel}级奖励`, operation: `×${rewardMultiplier.collectionMultiplierRate.toFixed(2)}`, result: getBreakdownResult(rewardAdjustedScore)},
     {label: "最终结算", operation: "四舍五入", result: totalScore}
   );
   return {
@@ -71,7 +71,7 @@ export function createCollectionRewardSettlement({
     preCuisineSaleScore: score.collectionScore,
     timeSaleMultiplier: timeSalePeriod.multiplier,
     timeSaleLabel: timeSalePeriod.label,
-    ...collectionMultiplier,
+    ...rewardMultiplier,
     gameTime,
     nonDrinkBoardSum,
     isFirstNumber: score.isFirstNumber,

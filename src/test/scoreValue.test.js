@@ -119,12 +119,24 @@ assert.equal(ordinaryGcdProcessed.board[0].value, 2, "different values keep the 
 assert.equal(ordinaryGcdProcessed.board[1], null, "ordinary reduce-to-one collection remains unchanged");
 assert.ok(ordinaryGcdProcessed.collectionCards.some(item => item.value === 10 && item.foodType === land));
 
-const routePiece = collectible(5, fruit);
-routePiece.origin.parent.origin = {type: "reduce", parent: {value: 35}};
-const routeSettled = applyEightPalaceCollection(state, routePiece);
-assert.equal(routeSettled.latestCollection.totalScore, 140);
-assert.equal(routeSettled.latestCollection.collectionMultiplier, 7);
-assert.equal(routeSettled.latestCollection.collectionMultiplierRate, 1.4);
+for(const [otherValue, expectedLevel, expectedRate] of [
+  [10, 2, 1], [15, 3, 1.05], [20, 4, 1.1], [35, 7, 1.25], [60, 12, 1.5], [100, 20, 1.5]
+]){
+  const rewardState = createGameState([
+    {value: otherValue, foodType: land, boardIndex: 0, gameMode: "eightPalace"},
+    {value: 5, foodType: fruit, boardIndex: 1, gameMode: "eightPalace"}
+  ]);
+  const processed = applyAction(rewardState, {type: "reduce", indexes: [0, 1]});
+  assert.equal(processed.latestCollection.collectionRewardLevel, expectedLevel);
+  assert.equal(processed.latestCollection.collectionMultiplierRate, expectedRate);
+}
+
+const leveledPiece = collectible(5, fruit);
+leveledPiece.collectionRewardLevel = 7;
+const levelSettled = applyEightPalaceCollection(state, leveledPiece);
+assert.equal(levelSettled.latestCollection.totalScore, 125);
+assert.equal(levelSettled.latestCollection.collectionRewardLevel, 7);
+assert.equal(levelSettled.latestCollection.collectionMultiplierRate, 1.25);
 
 const boardCellSource = readFileSync("src/components/BoardCell.jsx", "utf8");
 assert.match(boardCellSource, /board-piece-available-score/);
