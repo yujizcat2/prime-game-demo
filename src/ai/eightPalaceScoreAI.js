@@ -22,6 +22,7 @@ import {
   summarizeFoodTypeTelemetry
 } from "./foodTypeTelemetry";
 import { advanceToNextDay, getDayTargetScore, getDayTime } from "../game/dayCycle";
+import { getTimeSalePriceTotal } from "../game/timeSaleMultiplier";
 
 export const SCORE_AI_DEFAULTS = Object.freeze({
   depth: 3,
@@ -164,6 +165,20 @@ export function getAverageBoardSum(samples = []){
     : 0;
 }
 
+export function createDayMarketRecord(settlement){
+  if(!settlement) return null;
+  const periods = structuredClone(settlement.timeSalePeriods ?? []);
+  const saleScores = structuredClone(settlement.timeSaleScores ?? {});
+  const nextPeriods = structuredClone(settlement.nextTimeSalePeriods ?? []);
+  return {
+    periods,
+    saleScores,
+    nextPeriods,
+    priceTotal: getTimeSalePriceTotal(periods),
+    averageMultiplier: periods.length ? getTimeSalePriceTotal(periods) / 24 : 0
+  };
+}
+
 function createDayRecords(openings, actionSnapshots, dayHistory, finalDay){
   return Array.from({length: finalDay ?? 0}, (_, index) => index + 1).map(day => {
     const actions = actionSnapshots.filter(snapshot => snapshot.day === day);
@@ -176,6 +191,7 @@ function createDayRecords(openings, actionSnapshots, dayHistory, finalDay){
       dayAverageBoardSum: getAverageBoardSum(actions),
       closing: settlement ? actions.at(-1) ?? null : null,
       settlement,
+      market: createDayMarketRecord(settlement),
       collectionSequence
     };
   });

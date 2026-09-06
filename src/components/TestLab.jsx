@@ -1534,6 +1534,19 @@ function CompactBoard({board = []}){
   </div>;
 }
 
+function formatMarketPeriod(period){
+  const hour = minutes => String(minutes / 60).padStart(2, "0");
+  return `${hour(period.startMinutes)}–${hour(period.endMinutes)}`;
+}
+
+function formatMarketPrices(periods = []){
+  return periods.map(period => `${formatMarketPeriod(period)} ×${period.multiplier.toFixed(2)}`).join(" · ");
+}
+
+function formatMarketSales(periods = [], saleScores = {}){
+  return periods.map(period => `${formatMarketPeriod(period)} ${saleScores[period.startMinutes] ?? 0}`).join(" · ");
+}
+
 function DayHistory({game}){
   return <div className="test-lab-record-collection">
     <strong>每日营业记录</strong>
@@ -1544,6 +1557,12 @@ function DayHistory({game}){
       {record.opening && <div className="test-lab-day-section">
         <strong>开店 · 00:00</strong> · 积分 {record.opening.score} · 收藏 {record.opening.collectionCount}
         <CompactBoard board={record.opening.board} />
+      </div>}
+      {record.market && <div className="test-lab-day-section">
+        <div><strong>Day {record.day} 价格：</strong>{formatMarketPrices(record.market.periods)}</div>
+        <div><strong>Day {record.day} 销售：</strong>{formatMarketSales(record.market.periods, record.market.saleScores)}</div>
+        <div>价格总量 {record.market.priceTotal.toFixed(2)} · 平均倍率 ×{record.market.averageMultiplier.toFixed(2)}</div>
+        {record.market.nextPeriods.length > 0 && <div><strong>→ Day {record.day + 1} 价格：</strong>{formatMarketPrices(record.market.nextPeriods)}</div>}
       </div>}
       <div className="test-lab-day-section">
         <strong>行动状态（{record.actions.length}）</strong>

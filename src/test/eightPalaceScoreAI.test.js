@@ -20,6 +20,7 @@ import {
   getScoreSurvivalValue,
   runFixedScoreAttempts,
   runScoreGame,
+  createDayMarketRecord,
   runScoreGames,
   scoreAITestUtils,
   summarizeScoreResults
@@ -33,6 +34,8 @@ import { getScoreEfficiency } from "../game/scoreEfficiency";
 import { getBoardSum } from "../game/scoreValue";
 import { isPrime } from "../game/prime";
 import { createFoodTypeBoardSnapshot } from "../ai/foodTypeTelemetry";
+import { advanceToNextDay } from "../game/dayCycle";
+import { TIME_SALE_PERIODS } from "../game/timeSaleMultiplier";
 
 assert.equal(getScoreEfficiency(60, 600), 6);
 assert.equal(getScoreEfficiency(100, 600), 10);
@@ -505,6 +508,43 @@ const failedDayOne = resolveGameOver({
 });
 assert.equal(failedDayOne.gameOverReason, "daily_targets_not_met", "missing a daily target ends the day-cycle run");
 assert.equal(Object.hasOwn(failedDayOne.daySettlement, "nextDayCards"), false, "settlement no longer creates next-day preparation");
+
+const marketClosedDayOne = resolveGameOver({
+  ...createGameState(opening, {dayCycleEnabled: true}),
+  steps: 24,
+  dayMinutesElapsed: 1440,
+  score: 1000,
+  collectionCards: Array.from({length: 8}, (_, index) => ({value: index + 20, foodType: BASE_FOOD_TYPES[index % 2]})),
+  timeSaleScores: {0: 80, 240: 700, 660: 110, 720: 400, 960: 230, 1080: 40, 1200: 400}
+});
+const dayOneMarketRecord = createDayMarketRecord(marketClosedDayOne.daySettlement);
+assert.deepEqual(
+  dayOneMarketRecord.periods.map(period => period.multiplier),
+  TIME_SALE_PERIODS.map(period => period.multiplier),
+  "Day 1 report records the fixed price table"
+);
+assert.equal(dayOneMarketRecord.saleScores[0], 80);
+assert.ok(Math.abs(dayOneMarketRecord.priceTotal - 24) < 1e-10);
+assert.equal(dayOneMarketRecord.averageMultiplier.toFixed(2), "1.00");
+const marketDayTwo = advanceToNextDay(marketClosedDayOne);
+assert.deepEqual(marketDayTwo.timeSaleScores, {}, "rollover clears live sales after settlement snapshotting");
+assert.equal(dayOneMarketRecord.saleScores[240], 700, "Day 1 report keeps sales after rollover clears live state");
+const dayTwoMarketRecord = createDayMarketRecord({
+  timeSalePeriods: marketDayTwo.timeSalePeriods,
+  timeSaleScores: marketDayTwo.timeSaleScores,
+  nextTimeSalePeriods: marketDayTwo.timeSalePeriods
+});
+assert.deepEqual(dayTwoMarketRecord.periods, marketDayTwo.timeSalePeriods, "Day 2 report reads its active dynamic prices");
+assert.notDeepEqual(
+  dayTwoMarketRecord.periods.map(period => period.multiplier),
+  TIME_SALE_PERIODS.map(period => period.multiplier),
+  "Day 2 report does not fall back to Day 1 defaults"
+);
+
+const marketTestLabSource = readFileSync("src/components/TestLab.jsx", "utf8");
+assert.match(marketTestLabSource, /Day \{record\.day\} 价格/);
+assert.match(marketTestLabSource, /Day \{record\.day\} 销售/);
+assert.match(marketTestLabSource, /record\.market\.saleScores/);
 
 const daySummary = summarizeScoreResults([
   {finalScore: 600, scoreEfficiency: 25, collectionCount: 10, primeCollectionCount: 1, compositeCollectionCount: 9, steps: 24, completed100Steps: false, deadlocked: false, dayCycleEnabled: true, finalDay: 1, dayHistory: [{day: 1, targetScore: 100, finalScore: 600, scoreGainToday: 600, scoreTargetMet: true, collectionGainToday: 10, boardSum: 100, passed: true}], dayRecords: [{day: 1, dayAverageBoardSum: 30}]},
