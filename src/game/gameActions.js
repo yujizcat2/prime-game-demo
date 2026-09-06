@@ -48,7 +48,6 @@ import {
 import { applyEightPalaceCollection } from "./collectionRules";
 import { getCreatedScoreValue } from "./scoreValue";
 import { isHeaterTarget } from "./heater";
-import { getLegalRestoreActions } from "./restore";
 import { getReductionFoodTypes } from "./nativeFoodTypes";
 
 import {
@@ -257,9 +256,12 @@ export function createReduceOutcome(state,indexA,indexB){
   const divisor=gcd(first.value,second.value);
   if(divisor<=1)return null;
   if(first.value===second.value)return {
-    kind:"equalClear",
+    kind:"equalRetype",
     divisor,
-    results:[first,second].map(piece=>({value:1,foodType:piece.foodType,purity:piece.purity??null,clear:true,autoCollect:false}))
+    results:[
+      {...first,foodType:second.foodType,autoCollect:false},
+      {...second,clear:true,autoCollect:false}
+    ]
   };
   const template=first.foodType===FOOD_TYPES.DRINK?second:second.foodType===FOOD_TYPES.DRINK?first:null;
   const firstResult=first.value/divisor,secondResult=second.value/divisor;
@@ -609,9 +611,10 @@ export function reduceCells(
     actionSignature
   );
 
-  if(reductionOutcome.kind==="equalClear"){
+  if(reductionOutcome.kind==="equalRetype"){
     const board=[...state.board];
-    board[indexA]=null;board[indexB]=null;
+    board[indexA]={...first,foodType:second.foodType};
+    board[indexB]=null;
     return consumeStep({
       ...state,
       board,
@@ -1316,8 +1319,7 @@ export function getLegalActions(
       && (state.superHeaterCount ?? 0) > 0
         ? [{type: "super_heater"}]
         : []
-    ),
-    ...getLegalRestoreActions(state)
+    )
 
   ];
 

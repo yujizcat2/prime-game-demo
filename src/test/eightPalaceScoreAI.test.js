@@ -182,7 +182,7 @@ assert.equal(JSON.stringify({
 assert.ok(result.actionPath.every(action =>
   action.scoreEfficiencyAfter === getScoreEfficiency(action.scoreAfter, action.totalActionMinutes)
 ));
-for(const field of ["searchedNodes", "evaluatedNodes", "generatedActions", "prunedActions", "restoreCandidatesGenerated", "restoreCandidatesKept", "heaterCandidatesGenerated", "heaterCandidatesKept", "elapsedMs"]){
+for(const field of ["searchedNodes", "evaluatedNodes", "generatedActions", "prunedActions", "heaterCandidatesGenerated", "heaterCandidatesKept", "elapsedMs"]){
   assert.equal(typeof result[field], "number", `${field} telemetry is reported`);
 }
 assert.equal(getScoreEfficiency(0, 60).toFixed(2), "0.00");
@@ -360,11 +360,11 @@ assert.equal(atStep100.steps, 100);
 assert.notEqual(atStep100.gameOverReason, "step_limit");
 assert.notEqual(chooseScoreAction(atStep100), null, "Score AI remains playable at Step 100");
 
-const equalClearState=createGameState([
+const equalRetypeState=createGameState([
   {value:43,foodType:BASE_FOOD_TYPES[0],boardIndex:0},
   {value:43,foodType:BASE_FOOD_TYPES[1],boardIndex:1}
 ]);
-assert.deepEqual(scoreAITestUtils.getImmediateScorePotential(equalClearState),{total:0,best:0},"equal-value clear has no predicted collection reward");
+assert.deepEqual(scoreAITestUtils.getImmediateScorePotential(equalRetypeState),{total:0,best:0},"equal-value processing has no predicted collection reward");
 
 const base = createGameState(opening);
 assert.notEqual(
@@ -387,7 +387,6 @@ const candidateTelemetry = createSearchTelemetry();
 const allCandidates = getLegalActions(candidateState);
 const strategicCandidates = getStrategicCandidateActions(candidateState, allCandidates, {telemetry: candidateTelemetry});
 assert.ok(strategicCandidates.length <= 24);
-assert.ok(strategicCandidates.filter(action => action.type === "restore").length <= 3);
 assert.ok(strategicCandidates.filter(action => action.type === "heater").length <= 2);
 assert.equal(candidateTelemetry.generatedActions, allCandidates.length);
 assert.equal(candidateTelemetry.prunedActions, allCandidates.length - strategicCandidates.length);
@@ -399,7 +398,6 @@ const oneCardState = {
   ...base,
   board: [base.board[0], null, null, null, null, null, null, null, null],
   heaterCount: 0,
-  restoreCount: 0,
   superHeaterCount: 0
 };
 const healthyState = createGameState([
@@ -432,7 +430,6 @@ const avoidableDeathState = {
     {value: 3, foodType: BASE_FOOD_TYPES[2], boardIndex: 2}
   ]).board.map((piece, index) => index === 2 ? {...piece, parentFoods: [{value: 2, foodType: BASE_FOOD_TYPES[1]}]} : piece),
   heaterCount: 0,
-  restoreCount: 0,
   superHeaterCount: 0
 };
 const suicidalReduce = getLegalActions(avoidableDeathState).find(action => action.type === "reduce" && action.indexes[0] === 0 && action.indexes[1] === 1);

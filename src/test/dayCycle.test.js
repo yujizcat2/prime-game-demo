@@ -110,7 +110,6 @@ assert.equal(dayTwoOpening.collectionCards.length, tenCollections.length, "cumul
 assert.equal(getTodayNewCollectionCount(dayTwoOpening), 0, "the daily collection bonus count restarts at rollover");
 assert.equal(getDailyCollectionBonus(getTodayNewCollectionCount(dayTwoOpening) + 1), 0);
 assert.equal(dayTwoOpening.heaterCount, 1);
-assert.equal(dayTwoOpening.restoreCount, 1);
 assert.equal(dayTwoOpening.superHeaterCount, 1);
 const dayTwoFailed = resolveGameOver({
   ...dayTwoOpening,

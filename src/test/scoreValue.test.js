@@ -86,7 +86,38 @@ for(const selectedIndexes of [[], [0], [0, 1]]){
   );
 }
 const processedMatchingState = applyAction(matchingState, {type: "reduce", indexes: [0, 1]});
-assert.deepEqual(processedMatchingState.board.slice(0, 2), [null, null], "only the confirmed equal reduction changes the board");
+assert.equal(processedMatchingState.board[0].id, matchingState.board[0].id, "equal-value processing preserves the first card identity");
+assert.equal(processedMatchingState.board[0].value, 8, "equal-value processing preserves the value");
+assert.equal(processedMatchingState.board[0].foodType, land, "equal-value processing takes the second card food type");
+assert.equal(processedMatchingState.board[1], null, "equal-value processing removes the second card");
+assert.equal(processedMatchingState.collectionCards.length, 0, "equal-value processing does not collect");
+assert.equal(processedMatchingState.score, matchingState.score, "equal-value processing produces no revenue");
+
+const reverseMatchingState = createGameState([
+  {value: 7, foodType: "aquatic", boardIndex: 0, gameMode: "eightPalace"},
+  {value: 7, foodType: "vegetable", boardIndex: 1, gameMode: "eightPalace"}
+]);
+const reverseProcessed = applyAction(reverseMatchingState, {type: "reduce", indexes: [0, 1]});
+assert.equal(reverseProcessed.board[0].foodType, "vegetable", "the second selection supplies the food type");
+assert.equal(reverseProcessed.board[1], null);
+
+const sameTypeMatchingState = createGameState([
+  {value: 7, foodType: "vegetable", boardIndex: 0, gameMode: "eightPalace"},
+  {value: 7, foodType: "vegetable", boardIndex: 1, gameMode: "eightPalace"}
+]);
+const sameTypeProcessed = applyAction(sameTypeMatchingState, {type: "reduce", indexes: [0, 1]});
+assert.equal(sameTypeProcessed.board[0].value, 7);
+assert.equal(sameTypeProcessed.board[0].foodType, "vegetable");
+assert.equal(sameTypeProcessed.board[1], null, "same-type equal values compress to one card");
+
+const ordinaryGcdState = createGameState([
+  {value: 20, foodType: land, boardIndex: 0, gameMode: "eightPalace"},
+  {value: 10, foodType: land, boardIndex: 1, gameMode: "eightPalace"}
+]);
+const ordinaryGcdProcessed = applyAction(ordinaryGcdState, {type: "reduce", indexes: [0, 1]});
+assert.equal(ordinaryGcdProcessed.board[0].value, 2, "different values keep the ordinary gcd result");
+assert.equal(ordinaryGcdProcessed.board[1], null, "ordinary reduce-to-one collection remains unchanged");
+assert.ok(ordinaryGcdProcessed.collectionCards.some(item => item.value === 10 && item.foodType === land));
 
 const routePiece = collectible(5, fruit);
 routePiece.origin.parent.origin = {type: "reduce", parent: {value: 35}};

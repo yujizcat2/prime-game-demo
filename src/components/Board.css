@@ -298,22 +298,6 @@
   45%,100% { opacity:1; transform:translateY(0); }
 }
 
-.board-piece.board-piece--restoring {
-  animation: boardPieceRestoring .48s cubic-bezier(.2,.8,.3,1) both;
-}
-.board-piece--restoring .board-piece-number {
-  animation: boardPieceRestoredNumber .4s ease-out both;
-}
-@keyframes boardPieceRestoring {
-  0% { opacity:.5; transform:translateY(-4px) scale(.94); }
-  62% { opacity:1; transform:translateY(0) scale(1.03); }
-  100% { opacity:1; transform:translateY(0) scale(1); }
-}
-@keyframes boardPieceRestoredNumber {
-  from { opacity:.5; transform:translateY(-4px); }
-  to { opacity:1; transform:translateY(0); }
-}
-
 .board.board--super-heating {
   animation: boardSuperHeating .62s ease-out both;
 }
@@ -6115,16 +6099,6 @@
   background: rgba(31, 41, 55, .38);
 }
 
-.board-cell--restore-available .board-piece {
-  box-shadow: 0 0 0 3px rgba(34, 197, 94, .72), 0 8px 22px rgba(34, 197, 94, .22);
-  cursor: pointer;
-}
-
-.board-cell--restore-unavailable .board-piece {
-  opacity: .32;
-  filter: grayscale(.65);
-  cursor: not-allowed;
-}
 .board-piece-single-flavor {
   display: block;
   margin-top: 1px;

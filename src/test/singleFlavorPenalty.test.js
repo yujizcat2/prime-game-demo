@@ -63,17 +63,6 @@ for(const ignored of [
 }
 
 {
-  const marked = markSingleFlavorBoardPieces(baseState([
-    piece(1, 4, grainBean), piece(2, 6, grainBean), piece(3, 8, grainBean),
-    piece(4, 10, grainBean), null, piece(5, 12, grainBean)
-  ]));
-  const restored = applyAction(marked, {type: "restore", indexes: [5]});
-  assert.equal(restored.board[5].foodType, dairyEgg);
-  assert.equal(restored.board[5].singleFlavorPenalty, true);
-  assert.ok(restored.board.filter(Boolean).every(card => card.singleFlavorPenalty === true));
-}
-
-{
   const state = baseState([
     piece(1, 4, grainBean, {singleFlavorPenalty: true}),
     piece(2, 6, dairyEgg, {singleFlavorPenalty: true})

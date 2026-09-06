@@ -36,7 +36,6 @@ export default function BoardCell({
   removeCandidate = false,
   applyOneCandidate = false,
   heaterTargetState = null,
-  restoreTargetState = null,
 
   reducePreview = null,
 
@@ -184,11 +183,11 @@ export default function BoardCell({
     reducePreview?.autoCollect ===
     true;
 
-  const equalClearPreview=reducePreview?.clear===true;
+  const clearedPreview=reducePreview?.clear===true;
   const collectScorePreview =
     scoreMode &&
     autoCollectPreview &&
-    !equalClearPreview &&
+    !clearedPreview &&
     scorePreview !== null;
 
 
@@ -516,8 +515,6 @@ export default function BoardCell({
 
         ${heaterTargetState === "available" ? "board-cell--heater-available" : ""}
         ${heaterTargetState === "unavailable" ? "board-cell--heater-unavailable" : ""}
-        ${restoreTargetState === "available" ? "board-cell--restore-available" : ""}
-        ${restoreTargetState === "unavailable" ? "board-cell--restore-unavailable" : ""}
 
         ${
           selected
@@ -728,7 +725,6 @@ export default function BoardCell({
 
             ${animationState?.type==="heater"?"board-piece--heating":""}
 
-            ${animationState?.type==="restore"?"board-piece--restoring":""}
 
             ${animationState?.type==="super-heater"?"board-piece--super-heating":""}
 
@@ -980,8 +976,6 @@ export default function BoardCell({
                     ? "board-piece-number--changed"
                     : animationState?.type === "heater"
                       ? "board-piece-number--heated"
-                      : animationState?.type === "restore"
-                        ? "board-piece-number--restored"
                     : ""
                 }
 
@@ -1095,7 +1089,7 @@ export default function BoardCell({
                 "
               >
 
-                → {equalClearPreview?"清除":reduceResultValue}
+                → {clearedPreview?"清除":reduceResultValue}
 
               </span>
 

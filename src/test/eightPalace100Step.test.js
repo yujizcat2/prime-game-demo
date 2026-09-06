@@ -128,7 +128,6 @@ const deadEarly = resolveGameOver({
   ...createGameState(actionOpening),
   board: [{id: 1, value: 17, foodType: BASE_FOOD_TYPES[0]}, ...Array(8).fill(null)],
   heaterCount: 0,
-  restoreCount: 0,
   superHeaterCount: 0,
   steps: 73,
   checkpoint: {index: 5, step: 80, type: "score", requiredScore: 1}

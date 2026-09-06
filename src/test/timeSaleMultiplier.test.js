@@ -135,7 +135,7 @@ assert.equal(earlyMorningCollection.timeSaleScores[0], 80, "only the formal coll
 const normalCollection = reduceAt(4 * 60);
 assert.equal(normalCollection.latestCollectionRewards[0].baseSaleScore, 100);
 assert.equal(normalCollection.latestCollectionRewards[0].totalScore, 100);
-assert.equal(normalCollection.score, 100, "04:00 real auto-collection banks the restored base price once");
+assert.equal(normalCollection.score, 100, "04:00 real auto-collection banks the base price once");
 
 const lunchCollection = reduceAt(11 * 60);
 assert.equal(lunchCollection.latestCollectionRewards[0].timeSaleMultiplier, 1.1);

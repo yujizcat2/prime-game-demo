@@ -21,8 +21,6 @@ const printable = summary => ({
   largeCollections: summary.largeCollections,
   averageHeaterUseCount: summary.averageHeaterUseCount,
   averageHeaterSpending: summary.averageHeaterSpending,
-  averageRestoreUseCount: summary.averageRestoreUseCount,
-  averageRestoreSpending: summary.averageRestoreSpending,
   averageSuperHeaterUseCount: summary.averageSuperHeaterUseCount,
   averageSuperHeaterSpending: summary.averageSuperHeaterSpending,
   extensionTelemetry: summary.extensionTelemetry,

@@ -14,7 +14,6 @@ import { getScoreEfficiency } from "../game/scoreEfficiency";
 import { isPrime } from "../game/prime";
 import { summarizeCollectionEfficiencyTimelines } from "../game/collectionEfficiency";
 import { BASE_FOOD_TYPES, FOOD_TYPES } from "../game/rules";
-import { BOARD_NATIVE_FOOD_TYPES } from "../game/nativeFoodTypes";
 import { getBoardSum } from "../game/scoreValue";
 import {
   createCollectionFoodTypeTimeline,
@@ -46,7 +45,6 @@ export const ADAPTIVE_SEARCH_DEFAULTS = Object.freeze({
 
 export const STRATEGIC_CANDIDATE_LIMITS = Object.freeze({
   normal: 24,
-  restore: 3,
   heater: 2,
   superHeater: 1,
   total: 24
@@ -232,7 +230,6 @@ function getStateKey(state){
     maxCombo: state.maxCombo ?? 0,
     comboBonusTotal: state.comboBonusTotal ?? 0,
     heaterCount: state.heaterCount ?? 0,
-    restoreCount: state.restoreCount ?? 0,
     superHeaterCount: state.superHeaterCount ?? 0,
     collectionCards: (state.collectionCards ?? []).map(card => [card.value, card.foodType]).sort(),
     combineHistoryKeys: Object.keys(state.combineHistoryKeys ?? {}).sort(),
@@ -470,30 +467,6 @@ function getCollectionFacts(state){
   return {identities, typesByValue};
 }
 
-function scoreRestoreCandidate(state, action, facts, boardTypes){
-  const index = action.indexes[0];
-  const piece = state.board[index];
-  const targetType = BOARD_NATIVE_FOOD_TYPES[index];
-  const targetValue = index === 4 ? piece.value + 100 : piece.value;
-  const novelty = !facts.identities.has(`${targetValue}:${targetType}`);
-  const progress = facts.typesByValue.get(targetValue)?.size ?? 0;
-  const restoresExtinctType = targetType !== FOOD_TYPES.DRINK && !boardTypes.has(targetType);
-  let followUp = 0;
-  for(const other of state.board){
-    if(!other || other === piece) continue;
-    if(targetType === FOOD_TYPES.DRINK || other.foodType === FOOD_TYPES.DRINK){
-      if(!(targetType === FOOD_TYPES.DRINK && other.foodType === FOOD_TYPES.DRINK)) followUp++;
-    }else if(gcd(targetValue, other.value) > 1 || targetValue + other.value <= 202){
-      followUp++;
-    }
-  }
-  return (novelty ? 1_000 : 0)
-    + progress * 120
-    + (restoresExtinctType ? 400 : 0)
-    + followUp * 12
-    + (index === 4 && followUp > 0 ? 80 : 0);
-}
-
 function scoreHeaterCandidate(state, action){
   const index = action.indexes[0];
   const piece = state.board[index];
@@ -552,36 +525,29 @@ export function getStrategicCandidateActions(state, legalActions, {
   telemetry = null
 } = {}){
   const facts = getCollectionFacts(state);
-  const boardTypes = new Set((state.board ?? []).filter(Boolean).map(piece => piece.foodType));
-  const restore = [];
   const heater = [];
   const superHeater = [];
   const normal = [];
   for(const action of legalActions){
-    if(action.type === "restore") restore.push({action, rank: scoreRestoreCandidate(state, action, facts, boardTypes)});
-    else if(action.type === "heater") heater.push({action, rank: scoreHeaterCandidate(state, action)});
+    if(action.type === "heater") heater.push({action, rank: scoreHeaterCandidate(state, action)});
     else if(action.type === "super_heater") superHeater.push({action, rank: scoreSuperHeaterCandidate(state, action)});
     else normal.push({action, rank: scoreNormalCandidate(state, action, facts)});
   }
-  const paidStreakPenalty = ["heater", "super_heater", "restore"].includes(previousActionType) ? 150 : 0;
-  for(const candidate of restore) candidate.rank -= paidStreakPenalty;
+  const paidStreakPenalty = ["heater", "super_heater"].includes(previousActionType) ? 150 : 0;
   for(const candidate of heater) candidate.rank -= paidStreakPenalty;
   for(const candidate of superHeater) candidate.rank -= paidStreakPenalty;
   const sort = (left, right) => right.rank - left.rank || getActionKey(left.action).localeCompare(getActionKey(right.action));
-  normal.sort(sort); restore.sort(sort); heater.sort(sort); superHeater.sort(sort);
+  normal.sort(sort); heater.sort(sort); superHeater.sort(sort);
   const keptNormal = normal.slice(0, limits.normal);
-  const keptRestore = restore.slice(0, limits.restore);
   const keptHeater = heater.slice(0, limits.heater);
   const keptSuperHeater = superHeater.slice(0, limits.superHeater ?? 1);
-  const kept = [...keptNormal, ...keptRestore, ...keptHeater, ...keptSuperHeater]
+  const kept = [...keptNormal, ...keptHeater, ...keptSuperHeater]
     .sort(sort)
     .slice(0, limits.total)
     .map(candidate => candidate.action);
   if(telemetry){
     telemetry.generatedActions += legalActions.length;
     telemetry.prunedActions += legalActions.length - kept.length;
-    telemetry.restoreCandidatesGenerated += restore.length;
-    telemetry.restoreCandidatesKept += kept.filter(action => action.type === "restore").length;
     telemetry.heaterCandidatesGenerated += heater.length;
     telemetry.heaterCandidatesKept += kept.filter(action => action.type === "heater").length;
     telemetry.superHeaterCandidatesGenerated += superHeater.length;
@@ -596,8 +562,6 @@ export function createSearchTelemetry(){
     evaluatedNodes: 0,
     generatedActions: 0,
     prunedActions: 0,
-    restoreCandidatesGenerated: 0,
-    restoreCandidatesKept: 0,
     heaterCandidatesGenerated: 0,
     heaterCandidatesKept: 0,
     superHeaterCandidatesGenerated: 0,
@@ -614,11 +578,9 @@ export function createSearchTelemetry(){
     depthNodeCounts: {1: 0, 2: 0, 3: 0, 4: 0, 5: 0},
     beamWidthsUsed: [],
     heaterExtensionCount: 0,
-    restoreExtensionCount: 0,
     superHeaterExtensionCount: 0,
     retypeExtensionCount: 0,
     heaterExtensionChosenCount: 0,
-    restoreExtensionChosenCount: 0,
     superHeaterExtensionChosenCount: 0,
     retypeExtensionChosenCount: 0,
     elapsedMs: 0
@@ -643,7 +605,7 @@ function tacticalExtensionType(beforeState, action, afterState, beforeActions, a
   const beforeCombine = beforeActions.filter(candidate => candidate.type.startsWith("combine")).length;
   const afterCombine = afterActions.filter(candidate => candidate.type.startsWith("combine")).length;
   const recovered = beforeActions.length <= 4 && afterActions.length >= 8;
-  if(["heater", "restore", "super_heater", "retype"].includes(action.type)
+  if(["heater", "super_heater", "retype"].includes(action.type)
     && (afterReduce > beforeReduce || afterCombine > beforeCombine || recovered)) return action.type;
   if(action.type.startsWith("combine")){
     const createdLargeOrdinary = afterState.board.some((piece, index) =>
@@ -747,7 +709,6 @@ export function chooseScoreAction(state, {
         const extensionCount = node.extensionCount + (extensionType ? 1 : 0);
         const extensionTypes = extensionType ? [...node.extensionTypes, extensionType] : node.extensionTypes;
         if(extensionType === "heater") stats.heaterExtensionCount++;
-        else if(extensionType === "restore") stats.restoreExtensionCount++;
         else if(extensionType === "super_heater") stats.superHeaterExtensionCount++;
         else if(extensionType === "retype") stats.retypeExtensionCount++;
         candidates.push({
@@ -786,7 +747,6 @@ export function chooseScoreAction(state, {
   stats.completedSearches++;
   for(const type of new Set(best?.extensionTypes ?? [])){
     if(type === "heater") stats.heaterExtensionChosenCount++;
-    else if(type === "restore") stats.restoreExtensionChosenCount++;
     else if(type === "super_heater") stats.superHeaterExtensionChosenCount++;
     else if(type === "retype") stats.retypeExtensionChosenCount++;
   }
@@ -854,11 +814,6 @@ function describeAction(state, action, nextState, number){
       legalActionsAfter: nextState.gameOver ? 0 : getLegalActions(nextState).length,
       reduceActionsBefore: getLegalActions(state).filter(candidate => candidate.type === "reduce").length,
       reduceActionsAfter: nextState.gameOver ? 0 : getLegalActions(nextState).filter(candidate => candidate.type === "reduce").length
-    } : null,
-    restoreUse: action.type === "restore" ? {
-      ...structuredClone(nextState.latestRestoreUse),
-      day: nextState.day,
-      time: getDayTime(nextState)
     } : null,
     collectionEvents,
     foodTypeBoardState: collectionBoardState,
@@ -991,7 +946,6 @@ export async function runScoreGame({
     }];
   });
   const superHeaterTimeline = actionPath.flatMap(action => action.superHeaterUse ? [action.superHeaterUse] : []);
-  const restoreTimeline = actionPath.flatMap(action => action.restoreUse ? [action.restoreUse] : []);
   const elapsedMs = performance.now() - gameStartedAt;
   const dayHistory = structuredClone(state.dayHistory ?? []);
   const finalDay = state.day ?? 1;
@@ -1007,7 +961,6 @@ export async function runScoreGame({
     finalScore: state.score,
     heaterTimeline,
     superHeaterTimeline,
-    restoreTimeline,
     searchTelemetry: {
       ...searchTelemetry,
       elapsedMs
@@ -1016,8 +969,6 @@ export async function runScoreGame({
     evaluatedNodes: searchTelemetry.evaluatedNodes,
     generatedActions: searchTelemetry.generatedActions,
     prunedActions: searchTelemetry.prunedActions,
-    restoreCandidatesGenerated: searchTelemetry.restoreCandidatesGenerated,
-    restoreCandidatesKept: searchTelemetry.restoreCandidatesKept,
     heaterCandidatesGenerated: searchTelemetry.heaterCandidatesGenerated,
     heaterCandidatesKept: searchTelemetry.heaterCandidatesKept,
     superHeaterCandidatesGenerated: searchTelemetry.superHeaterCandidatesGenerated,
@@ -1264,8 +1215,6 @@ export function summarizeScoreResults(results){
     averageEvaluatedNodes: average(results, result => result.evaluatedNodes ?? 0),
     averageGeneratedActions: average(results, result => result.generatedActions ?? 0),
     averagePrunedActions: average(results, result => result.prunedActions ?? 0),
-    averageRestoreCandidatesGenerated: average(results, result => result.restoreCandidatesGenerated ?? 0),
-    averageRestoreCandidatesKept: average(results, result => result.restoreCandidatesKept ?? 0),
     averageHeaterCandidatesGenerated: average(results, result => result.heaterCandidatesGenerated ?? 0),
     averageHeaterCandidatesKept: average(results, result => result.heaterCandidatesKept ?? 0),
     averageSuperHeaterCandidatesGenerated: average(results, result => result.superHeaterCandidatesGenerated ?? 0),
@@ -1282,7 +1231,7 @@ export function summarizeScoreResults(results){
     totalEvaluationCacheMisses: sumSearch("evaluationCacheMisses"),
     totalTranspositionHits: sumSearch("transpositionHits"),
     extensionTelemetry: Object.fromEntries([
-      "heater", "restore", "superHeater", "retype"
+      "heater", "superHeater", "retype"
     ].map(name => [name, {
       branches: sumSearch(`${name}ExtensionCount`),
       chosen: sumSearch(`${name}ExtensionChosenCount`)

@@ -37,21 +37,12 @@ function getSelectedPair(
 
 
 
-  const list =
-
-    numbers.filter(
-
-      item =>
-        selected.includes(
-          item.id
-        )
-
-    );
+  const list = selected.map(id => numbers.find(item => item.id === id));
 
 
 
   if(
-    list.length !== 2
+    list.length !== 2 || list.some(item => !item)
   ){
 
     return null;

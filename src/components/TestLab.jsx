@@ -1388,7 +1388,6 @@ function ScoreSummaryGrid({result}){
       <ResultItem label="平均评价节点" value={Math.round(result.averageEvaluatedNodes ?? 0)} />
       <ResultItem label="平均生成动作" value={Math.round(result.averageGeneratedActions ?? 0)} />
       <ResultItem label="平均剪枝动作" value={Math.round(result.averagePrunedActions ?? 0)} />
-      <ResultItem label="Restore 候选（生成/保留）" value={`${Math.round(result.averageRestoreCandidatesGenerated ?? 0)} / ${Math.round(result.averageRestoreCandidatesKept ?? 0)}`} />
       <ResultItem label="Heater 候选（生成/保留）" value={`${Math.round(result.averageHeaterCandidatesGenerated ?? 0)} / ${Math.round(result.averageHeaterCandidatesKept ?? 0)}`} />
       <ResultItem label="Super Heater 候选（生成/保留）" value={`${Math.round(result.averageSuperHeaterCandidatesGenerated ?? 0)} / ${Math.round(result.averageSuperHeaterCandidatesKept ?? 0)}`} />
       <ResultItem label="平均耗时" value={`${(result.averageElapsedMs ?? 0).toFixed(1)}ms`} />
@@ -1655,12 +1654,6 @@ function ScoreRecord({title, game}){
           {` · Reduce ${event.reduceActionsBefore} → ${event.reduceActionsAfter}`}
         </div>)}
       </div>}
-      {game.restoreTimeline?.length > 0 && <div className="test-lab-record-collection">
-        <strong>Restore 时间线</strong>
-        {game.restoreTimeline.map((event, index) => <div key={`${event.step}-${index}`}>
-          Restore #{index + 1} · {formatEventClock(event)}
-        </div>)}
-      </div>}
       <CollectionEfficiencyTimeline timeline={game.collectionEfficiencyTimeline} />
       <DayHistory game={game} />
       <FoodTypeBoardTimeline game={game} />
@@ -1851,7 +1844,7 @@ function formatScoreBoard(board){
 }
 
 function formatScoreAction(action){
-  const label = {combine: "合成", combine_ordered: "合成", reduce: "约分", apply_one: "特殊 1", heater: "加热器", super_heater: "超级加热器", restore: "归味"}[action.type] ?? action.type;
+  const label = {combine: "合成", combine_ordered: "合成", reduce: "约分", apply_one: "特殊 1", heater: "加热器", super_heater: "超级加热器"}[action.type] ?? action.type;
   const inputs = (action.inputs ?? []).map(piece => `格${piece.index + 1} ${formatFoodType(piece.foodType)}${piece.value}`).join(" + ");
   return inputs ? `${label}：${inputs}` : label;
 }

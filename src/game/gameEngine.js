@@ -41,7 +41,6 @@ import {
 
 import { GAME_MODES } from "./eightPalaceKeys";
 import { applyHeater } from "./heater";
-import { applyRestore, getLegalRestoreActions } from "./restore";
 import { canUseHeater } from "./heater";
 import { applySuperHeater } from "./superHeater";
 import { markSingleFlavorBoardPieces } from "./singleFlavorPenalty";
@@ -314,14 +313,6 @@ export function applyAction(
       actionState = applySuperHeater(state);
       break;
 
-    case "restore":
-      actionState = applyRestore(state, action.indexes?.[0] ?? action.index);
-      break;
-
-
-
-
-
     // ========================================================
     // 未知动作
     // ========================================================
@@ -482,7 +473,6 @@ export function resolveGameOver(
     && boardCount <= 2
     && !canUseHeater(activeState)
     && !getLegalActions(activeState).some(action => action.type === "super_heater")
-    && getLegalRestoreActions(activeState).length === 0
   ){
 
     return {

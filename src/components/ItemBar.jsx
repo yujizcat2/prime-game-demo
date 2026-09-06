@@ -8,11 +8,7 @@ export default function ItemBar({
   onHeaterClick,
   superHeaterCount = 0,
   superHeaterAvailable = false,
-  onSuperHeaterClick,
-  restoreCount = 0,
-  restoreAvailable = false,
-  restoreActive = false,
-  onRestoreClick
+  onSuperHeaterClick
 }){
   const [open, setOpen] = useState(false);
   const menuRef = useRef(null);
@@ -33,11 +29,6 @@ export default function ItemBar({
 
   function handleHeaterClick(){
     onHeaterClick?.();
-    setOpen(false);
-  }
-
-  function handleRestoreClick(){
-    onRestoreClick?.();
     setOpen(false);
   }
 
@@ -62,27 +53,19 @@ export default function ItemBar({
     active: false,
     disabled: !superHeaterAvailable,
     onClick: handleSuperHeaterClick
-  }, {
-    id: "restore",
-    name: "归味",
-    effect: "恢复原生系",
-    count: restoreCount,
-    active: restoreActive,
-    disabled: !restoreActive && !restoreAvailable,
-    onClick: handleRestoreClick
   }];
 
   return (
     <div className="item-bar" ref={menuRef} aria-label="道具栏">
       <button
         type="button"
-        className={`item-bar-trigger${heaterActive || restoreActive ? " item-bar-trigger--active" : ""}`}
+        className={`item-bar-trigger${heaterActive ? " item-bar-trigger--active" : ""}`}
         aria-expanded={open}
         aria-haspopup="menu"
         onClick={() => setOpen(current => !current)}
       >
         道具
-        {(heaterActive || restoreActive) && <span>选择中</span>}
+        {heaterActive && <span>选择中</span>}
       </button>
 
       {open && <div className="item-bar-menu" role="menu" aria-label="可使用道具">
@@ -98,12 +81,10 @@ export default function ItemBar({
           <span className="item-bar-effect">{item.active ? "选择中" : item.effect}</span>
           <span className="item-bar-count">×{item.count}</span>
         </button>)}
-        <div className={`item-bar-status${heaterAvailable || superHeaterAvailable || restoreAvailable || heaterActive || restoreActive ? " item-bar-status--ready" : ""}`}>
-          {restoreActive
-            ? "选择一道料理恢复原生系"
-            : heaterActive
+        <div className={`item-bar-status${heaterAvailable || superHeaterAvailable || heaterActive ? " item-bar-status--ready" : ""}`}>
+          {heaterActive
             ? "选择一道料理进行加热"
-            : heaterAvailable || superHeaterAvailable || restoreAvailable
+            : heaterAvailable || superHeaterAvailable
               ? "可使用"
               : "今日已使用或没有适用料理"}
         </div>

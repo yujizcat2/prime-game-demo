@@ -20,7 +20,6 @@ import {
 
 import { getNextSelectionIndexes } from "../game/selection";
 import { canUseHeater } from "../game/heater";
-import { canRestorePiece } from "../game/restore";
 import { canUseSuperHeater } from "../game/superHeater";
 
 import {
@@ -230,10 +229,6 @@ export default function useGame(){
   const heaterAvailable = canUseHeater(gameState);
   const superHeaterCount = gameState?.superHeaterCount ?? 0;
   const superHeaterAvailable = canUseSuperHeater(gameState);
-  const restoreCount = gameState?.restoreCount ?? 0;
-  const restoreAvailable = Boolean(gameState?.board?.some((_, index) => canRestorePiece(gameState, index)));
-
-
   // ==========================================================
   // 分数 / 时间
   // ==========================================================
@@ -609,15 +604,6 @@ export default function useGame(){
     return nextState.latestSuperHeaterUse;
   }
 
-  function useRestoreOnCell(index){
-    if(!gameState) return null;
-    const nextState = applyAction(gameState, {type: "restore", indexes: [index]});
-    if(nextState === gameState) return null;
-    setGameState(nextState);
-    clearSelection();
-    return nextState.latestRestoreUse;
-  }
-
   function startNextDay(){
     if(!gameState) return;
     setGameState(advanceToNextDay(gameState));
@@ -751,10 +737,10 @@ export default function useGame(){
 
               divisor,
               kind:reduceOutcome.kind,
-              equalClear:reduceOutcome.kind==="equalClear",
+              equalRetype:reduceOutcome.kind==="equalRetype",
               createsEffectiveSale: reduceCreatesEffectiveSale,
               durationMinutes:getReduceDurationMinutes(
-                reduceOutcome.kind==="equalClear"
+                reduceOutcome.kind==="equalRetype"
                   ? 2
                   : ["eightPalace","simpleEightPalace"].includes(gameState?.gameMode)
                     ? reduceOutcome.results.filter(result=>result.value===1).length
@@ -763,7 +749,7 @@ export default function useGame(){
 
               keyOutcome:(()=>{
                 if(!["eightPalace","simpleEightPalace"].includes(gameState?.gameMode))return null;
-                if(reduceOutcome.kind==="equalClear")return null;
+                if(reduceOutcome.kind==="equalRetype")return null;
                 const firstResult=first.piece.value/divisor,secondResult=second.piece.value/divisor;
                 const triggerPiece=firstResult===1?first.piece:secondResult===1?second.piece:null;
                 if(!triggerPiece)return null;
@@ -1428,9 +1414,6 @@ export default function useGame(){
     heaterAvailable,
     superHeaterCount,
     superHeaterAvailable,
-    restoreCount,
-    restoreAvailable,
-
     // 分数 / 时间
     score,
 
@@ -1489,7 +1472,6 @@ export default function useGame(){
 
     useHeaterOnCell,
     useSuperHeater,
-    useRestoreOnCell,
     startNextDay,
 
     combineNumbers,

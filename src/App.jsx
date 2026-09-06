@@ -67,7 +67,6 @@ function App(){
   const [actionToast,setActionToast] = useState(null);
   const [collectionRewardQueue,setCollectionRewardQueue] = useState([]);
   const [heaterSelectMode,setHeaterSelectMode] = useState(false);
-  const [restoreSelectMode,setRestoreSelectMode] = useState(false);
 
   const animationTimersRef = useRef([]);
   const animationTokenRef = useRef(0);
@@ -99,19 +98,7 @@ function App(){
       return;
     }
     game.clearSelection();
-    setRestoreSelectMode(false);
     setHeaterSelectMode(true);
-  }
-
-  function toggleRestoreMode(){
-    if(restoreSelectMode){ setRestoreSelectMode(false); return; }
-    if(!game.restoreAvailable){
-      showActionToast("无法归味", game.restoreCount === 0 ? "今日已使用" : "没有可归味的料理");
-      return;
-    }
-    game.clearSelection();
-    setHeaterSelectMode(false);
-    setRestoreSelectMode(true);
   }
 
   function handleSuperHeater(){
@@ -120,7 +107,6 @@ function App(){
       return;
     }
     setHeaterSelectMode(false);
-    setRestoreSelectMode(false);
     const result = game.useSuperHeater();
     if(result){
       beginInstantAnimation({
@@ -147,24 +133,6 @@ function App(){
     },430);
     showActionToast(`${result.fromValue} → ${result.toValue}`, "加热完成");
   }
-
-  function handleRestoreTarget(index){
-    const result = game.useRestoreOnCell(index);
-    if(!result) return;
-    setRestoreSelectMode(false);
-    beginInstantAnimation({
-      type: "restore",
-      sourceIndexes: [index],
-      targetIndexes: [index],
-      beforeValues: [result.valueBefore],
-      afterValues: [result.valueAfter]
-    },480);
-    showActionToast(
-      "归味",
-      `${FOOD_TYPE_LABELS[result.foodTypeBefore] ?? "饮品"} ${result.valueBefore} → ${FOOD_TYPE_LABELS[result.foodTypeAfter] ?? "饮品"} ${result.valueAfter}`
-    );
-  }
-
 
   function clearAnimationTimers(){
 
@@ -398,9 +366,9 @@ function App(){
       ...game.selectedIndexes
     ];
 
-    const reduceToast=game.preview.reduce.equalClear
+    const reduceToast=game.preview.reduce.equalRetype
       ? {
-          title:`${game.board[indexes[0]].value} + ${game.board[indexes[1]].value} → 清除`,
+          title:`转为${FOOD_TYPE_LABELS[game.board[indexes[1]].foodType] ?? "饮品"}系 · ${game.board[indexes[0]].value}`,
           message:"处理完成"
         }
       : {
@@ -411,8 +379,8 @@ function App(){
         };
 
 
-    const removedIndexes = game.preview.reduce.equalClear
-      ? indexes
+    const removedIndexes = game.preview.reduce.equalRetype
+      ? [indexes[1]]
       : indexes.filter((_,position)=>game.preview.reduce.results?.[position]?.autoCollect);
 
 
@@ -901,10 +869,6 @@ function App(){
               superHeaterCount={game.superHeaterCount}
               superHeaterAvailable={game.superHeaterAvailable && !game.daySettlement}
               onSuperHeaterClick={handleSuperHeater}
-              restoreCount={game.restoreCount}
-              restoreAvailable={game.restoreAvailable && !game.daySettlement}
-              restoreActive={restoreSelectMode}
-              onRestoreClick={toggleRestoreMode}
             />
 
             <div className="game-meta-buttons">
@@ -961,12 +925,9 @@ function App(){
                   game.functionOneIndex
                 }
                 heaterSelectMode={heaterSelectMode}
-                restoreSelectMode={restoreSelectMode}
                 onSelectCell={
                   game.daySettlement || activeAnimation?.phase === "exit" || activeAnimation?.phase === "compress"
                     ? undefined
-                    : restoreSelectMode
-                      ? handleRestoreTarget
                     : heaterSelectMode
                       ? handleHeaterTarget
                       : handleSelectCell
@@ -1019,7 +980,7 @@ function App(){
                   onCombine={handleCombine}
                   onBlockedCombine={handleBlockedCombine}
                   onReduce={handleReduce}
-                  gameOver={game.gameOver || Boolean(game.daySettlement) || heaterSelectMode || restoreSelectMode}
+                  gameOver={game.gameOver || Boolean(game.daySettlement) || heaterSelectMode}
                   removingId={removingIndex ?? ((activeAnimation?.phase === "exit" || activeAnimation?.phase === "compress") ? activeAnimation.token : null)}
                 />
               </div>

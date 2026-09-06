@@ -31,7 +31,6 @@ import {
   hasCombinePair
 } from "../game/combineHistory";
 import { getNativeFoodType, getReductionFoodTypes } from "../game/nativeFoodTypes";
-import { getRestoreOutcome } from "../game/restore";
 import { applyHeaterIncrement, isHeaterTarget } from "../game/heater";
 
 
@@ -400,9 +399,6 @@ export function createSimulationState(
       new Set(),
 
     heaterCount:
-      1,
-
-    restoreCount:
       1,
 
     superHeaterCount:
@@ -887,12 +883,6 @@ export function getSimulationLegalActions(
 
   }
 
-  if((state.restoreCount ?? 0) > 0){
-    for(let index = 0; index < SIM_BOARD_SIZE; index++){
-      if(getRestoreOutcome(board[index], index)) actions.push({type: "restore", indexes: [index]});
-    }
-  }
-
   const pieces = board.filter(Boolean);
   if(
     pieces.length > 0
@@ -1260,7 +1250,7 @@ function applyReduce(
 
   const actionSignature = createReduceActionSignature(oldA, oldB, firstResult, secondResult);
   if(oldA===oldB){
-    state.board[indexA]=null;
+    state.board[indexA]={...first,foodType:second.foodType};
     state.board[indexB]=null;
     state.lastCollectionEvents=[];
     state.steps++;
@@ -1833,17 +1823,6 @@ export function applySimulationAction(
 
       break;
 
-    case "restore": {
-      const index = action.indexes?.[0];
-      const outcome = getRestoreOutcome(state.board?.[index], index);
-      if(!outcome || (state.restoreCount ?? 0) <= 0) break;
-      state.board[index] = outcome.piece;
-      state.restoreCount = 0;
-      state.latestRestoreUse = {...outcome, targetIndex: index};
-      applied = true;
-      break;
-    }
-
     case "super_heater": {
       const pieces = state.board.filter(Boolean);
       if(
@@ -2034,9 +2013,6 @@ export function cloneSimulationState(
 
     heaterCount:
       state.heaterCount ?? 0,
-
-    restoreCount:
-      state.restoreCount ?? 0,
 
     superHeaterCount:
       state.superHeaterCount ?? 0,

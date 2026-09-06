@@ -139,7 +139,6 @@ export function advanceToNextDay(state){
     dayComboBonusTotal: 0,
     latestComboEvent: null,
     heaterCount: 1,
-    restoreCount: 1,
     superHeaterCount: 1,
     timeSalePeriods: state.daySettlement.nextTimeSalePeriods,
     timeSaleScores: {},

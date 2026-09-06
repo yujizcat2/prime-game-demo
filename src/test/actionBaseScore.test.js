@@ -12,7 +12,6 @@ import { getReduceButtonLabel } from "../components/actionButtonLabel";
 const createState = (cards, overrides = {}) => ({
   ...createGameState(cards, {dayCycleEnabled: true}),
   heaterCount: 0,
-  restoreCount: 0,
   superHeaterCount: 0,
   ...overrides
 });
@@ -78,11 +77,11 @@ assert.equal(
   "a reduce-to-one duplicate with zero formal sale value stays processing"
 );
 
-const equalClearState = createState([
+const equalRetypeState = createState([
   {value: 8, foodType: BASE_FOOD_TYPES[0], boardIndex: 0},
   {value: 8, foodType: BASE_FOOD_TYPES[0], boardIndex: 1}
 ]);
-assert.equal(doesReduceCreateEffectiveSale(equalClearState, [0, 1]), false, "equal clear is not presented as a sale");
+assert.equal(doesReduceCreateEffectiveSale(equalRetypeState, [0, 1]), false, "equal-value processing is not presented as a sale");
 
 const bonusCollections = Array.from({length: 7}, (_, index) => ({
   value: index + 20,
