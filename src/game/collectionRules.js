@@ -9,7 +9,7 @@ import {
 import { getFoodName } from "../data/food/foodRegistry";
 import { getNonDrinkBoardSum } from "./scoreValue";
 import { createCollectionRewardSettlement, getBoardAverageValue } from "./collectionReward";
-import { getDayTime } from "./dayCycle";
+import { getDailyCollectionBonus, getDayTime, getTodayNewCollectionCount } from "./dayCycle";
 import { getCuisineSequenceIndex } from "./scoreScale";
 import { getTimeSalePeriod } from "./timeSaleMultiplier";
 import { getCollectionMultiplier } from "./collectionMultiplier";
@@ -1612,6 +1612,18 @@ export function applyEightPalaceCollection(
     timeSalePeriods: state.timeSalePeriods,
     collectionRecord: record
   });
+  const todayCollectionNumber = getTodayNewCollectionCount(state) + (isNewCollection ? 1 : 0);
+  const dailyCollectionBonus = isNewCollection && state.dayCycleEnabled
+    ? getDailyCollectionBonus(todayCollectionNumber)
+    : 0;
+  const totalScore = rewardSettlement.totalScore + dailyCollectionBonus;
+  const collectionReward = {
+    ...rewardSettlement,
+    saleScore: rewardSettlement.totalScore,
+    todayCollectionNumber,
+    dailyCollectionBonus,
+    totalScore
+  };
   const timeSalePeriod = getTimeSalePeriod(gameTime, state.timeSalePeriods);
 
   const parentFoods = createConcreteParentSnapshots(record);
@@ -1627,14 +1639,17 @@ export function applyEightPalaceCollection(
     parentFoods,
     origin: record.origin ? structuredClone(record.origin) : null,
     originType: record.origin?.type ?? null,
-    scoreGain: rewardSettlement.totalScore,
+    scoreGain: totalScore,
     baseScore: rewardSettlement.baseScore,
     nonDrinkBoardSum: rewardSettlement.nonDrinkBoardSum,
     collectionScore: rewardSettlement.collectionScore,
     isFirstNumber: rewardSettlement.isFirstNumber ?? false,
     existingFoodTypeCountForSameNumber: rewardSettlement.existingFoodTypeCountForSameNumber,
     bonusScore: rewardSettlement.bonusScore,
-    totalScore: rewardSettlement.totalScore,
+    saleScore: rewardSettlement.totalScore,
+    dailyCollectionBonus,
+    todayCollectionNumber,
+    totalScore,
     collectionMultiplier: rewardSettlement.collectionMultiplier,
     collectionMultiplierRate: rewardSettlement.collectionMultiplierRate,
     bonuses: rewardSettlement.bonuses,
@@ -1655,9 +1670,9 @@ export function applyEightPalaceCollection(
     latestCollection: snapshot,
     latestCollectionRewards: [
       ...(state.latestCollectionRewards ?? []),
-      rewardSettlement
+      collectionReward
     ],
-    score: (state.score ?? 0) + rewardSettlement.totalScore,
+    score: (state.score ?? 0) + totalScore,
     timeSaleScores: {
       ...(state.timeSaleScores ?? {}),
       [timeSalePeriod.startMinutes]: (state.timeSaleScores?.[timeSalePeriod.startMinutes] ?? 0) + rewardSettlement.totalScore

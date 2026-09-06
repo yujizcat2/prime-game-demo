@@ -9,9 +9,12 @@ import {
   MAX_DAYS,
   WEEKDAYS,
   advanceToNextDay,
+  getDailyCollectionBonus,
+  getDailyCollectionBonusTotal,
   getDayTargetScore,
   formatClosingTimeRemaining,
   getDayTime,
+  getTodayNewCollectionCount,
   getWeekday
 } from "../game/dayCycle";
 
@@ -24,6 +27,14 @@ const makeCollections = (count, offset = 0) => Array.from({length: count}, (_, i
 const initial = createDayState();
 assert.equal(DAY_DURATION_MINUTES, 1440);
 assert.equal(DAILY_COLLECTION_TARGET, 8);
+assert.equal(getDailyCollectionBonus(7), 0);
+assert.equal(getDailyCollectionBonus(8), 50);
+assert.equal(getDailyCollectionBonus(9), 50);
+assert.equal(getDailyCollectionBonus(11), 50);
+assert.equal(getDailyCollectionBonusTotal(7), 0);
+assert.equal(getDailyCollectionBonusTotal(8), 50);
+assert.equal(getDailyCollectionBonusTotal(9), 100);
+assert.equal(getDailyCollectionBonusTotal(11), 200);
 assert.equal(formatClosingTimeRemaining(300), "距离打烊还有 5小时");
 assert.equal(formatClosingTimeRemaining(270), "距离打烊还有 4小时30分钟");
 assert.equal(formatClosingTimeRemaining(30), "距离打烊还有 30分钟");
@@ -56,6 +67,7 @@ assert.equal(passed.daySettlement.passed, true);
 assert.equal(passed.daySettlement.scoreTargetMet, true);
 assert.equal(passed.daySettlement.targetScore, 1000);
 assert.equal(passed.daySettlement.collectionGainToday, 10);
+assert.equal(passed.daySettlement.dailyCollectionBonusTotal, 150);
 assert.equal(passed.daySettlement.weekday, "星期一");
 assert.equal(passed.daySettlement.scoreGainToday, 1000);
 assert.equal(passed.daySettlement.efficiency, 1000 / 1440 * 60);
@@ -99,6 +111,8 @@ assert.equal(dayTwoOpening.dayMinutesElapsed, 0);
 assert.equal(dayTwoOpening.score - dayTwoOpening.dayStartScore, 0, "Day 2 daily revenue restarts at zero");
 assert.equal(dayTwoOpening.score, 1000, "cumulative score is retained");
 assert.equal(dayTwoOpening.collectionCards.length, tenCollections.length, "cumulative collections are retained");
+assert.equal(getTodayNewCollectionCount(dayTwoOpening), 0, "the daily collection bonus count restarts at rollover");
+assert.equal(getDailyCollectionBonus(getTodayNewCollectionCount(dayTwoOpening) + 1), 0);
 assert.equal(dayTwoOpening.heaterCount, 1);
 assert.equal(dayTwoOpening.restoreCount, 1);
 assert.equal(dayTwoOpening.superHeaterCount, 1);

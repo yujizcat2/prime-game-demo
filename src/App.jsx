@@ -568,8 +568,9 @@ function App(){
         if(result){
           const rewards = result.collectionRewards ?? [];
           playSound(rewards.length > 0 || removedIndexes.length > 0 ? "collect" : "process");
-          if(rewards.length > 0){
-            setCollectionRewardQueue(queue => [...queue, ...rewards]);
+          const newCollectionRewards = rewards.filter(reward => reward.isNewCollection);
+          if(newCollectionRewards.length > 0){
+            setCollectionRewardQueue(queue => [...queue, ...newCollectionRewards]);
           }else{
             showActionToast(reduceToast.title,`${reduceToast.message}${result.actionBaseScore?.score ? ` +${result.actionBaseScore.score}分` : ""}`);
           }

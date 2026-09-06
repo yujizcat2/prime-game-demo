@@ -11,12 +11,34 @@ import {
 
 export const DAY_DURATION_MINUTES = 1440;
 export const DAILY_COLLECTION_TARGET = 8;
+export const DAILY_COLLECTION_BONUS_SCORE = 50;
 export const MAX_DAYS = 7;
 export const OPENING_HOUR = 0;
 export const WEEKDAYS = Object.freeze(["星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"]);
 
 export function getDayTargetScore(day = 1){
   return scaleScore(Math.max(1, Math.floor(day)) * 100);
+}
+
+export function getTodayNewCollectionCount(state){
+  return Math.max(
+    0,
+    (state?.collectionCards ?? state?.collection ?? []).length - (state?.dayStartCollectionCount ?? 0)
+  );
+}
+
+export function getDailyCollectionBonus(todayNewCollectionCountAfterCollection){
+  return todayNewCollectionCountAfterCollection >= DAILY_COLLECTION_TARGET
+    ? DAILY_COLLECTION_BONUS_SCORE
+    : 0;
+}
+
+export function getDailyCollectionBonusTotal(todayNewCollectionCount){
+  let total = 0;
+  for(let count = 1; count <= Math.max(0, todayNewCollectionCount ?? 0); count++){
+    total += getDailyCollectionBonus(count);
+  }
+  return total;
 }
 
 export function getWeekday(day = 1){
@@ -55,15 +77,14 @@ export function getDayPeriod(state){
 }
 
 export function createDaySettlement(state){
-  const todayCollections = (state?.collectionCards ?? state?.collection ?? [])
-    .slice(state?.dayStartCollectionCount ?? 0)
-    .map(card => ({value: card.value, foodType: card.foodType}));
+  const todayNewCollectionCount = getTodayNewCollectionCount(state);
   const finalScore = state.score ?? 0;
   const todayActions = getDayStep(state);
   const scoreGainToday = finalScore - (state.dayStartScore ?? 0);
   const targetScore = getDayTargetScore(state.day);
   const scoreTargetMet = finalScore >= targetScore;
-  const collectionTargetMet = todayCollections.length >= DAILY_COLLECTION_TARGET;
+  const collectionTargetMet = todayNewCollectionCount >= DAILY_COLLECTION_TARGET;
+  const dailyCollectionBonusTotal = getDailyCollectionBonusTotal(todayNewCollectionCount);
   const passed = scoreTargetMet && collectionTargetMet;
   const timeSalePeriods = state.timeSalePeriods ?? TIME_SALE_PERIODS;
   const timeSaleScores = state.timeSaleScores ?? {};
@@ -74,9 +95,10 @@ export function createDaySettlement(state){
     finalScore,
     targetScore,
     scoreGainToday,
-    collectionGainToday: todayCollections.length,
+    collectionGainToday: todayNewCollectionCount,
     collectionTarget: DAILY_COLLECTION_TARGET,
     collectionTargetMet,
+    dailyCollectionBonusTotal,
     scoreTargetMet,
     maxComboToday: state.dayMaxCombo ?? 0,
     comboBonusToday: state.dayComboBonusTotal ?? 0,

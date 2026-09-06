@@ -138,6 +138,54 @@ const lunchCollection = reduceAt(11 * 60);
 assert.equal(lunchCollection.latestCollectionRewards[0].timeSaleMultiplier, 1.1);
 assert.equal(lunchCollection.score, 110, "real non-early-morning action keeps its configured multiplier");
 
+const sevenCollections = Array.from({length: 7}, (_, index) => ({
+  value: 20 + index,
+  foodType: BASE_FOOD_TYPES[index % BASE_FOOD_TYPES.length]
+}));
+const eighthPreviewState = {
+  ...createGameState([
+    {value: 2, foodType: BASE_FOOD_TYPES[0], boardIndex: 0, gameMode: "eightPalace"},
+    {value: 4, foodType: BASE_FOOD_TYPES[1], boardIndex: 1, gameMode: "eightPalace"}
+  ], {dayCycleEnabled: true}),
+  collectionCards: sevenCollections,
+  dayStartCollectionCount: 0,
+  dayMinutesElapsed: 18 * 60
+};
+const eighthPreviewScore = getEightPalaceCollectionScoreGain(eighthPreviewState, sameCollectible);
+const eighthCollection = applyAction(eighthPreviewState, {type: "reduce", indexes: [0, 1]});
+const eighthReward = eighthCollection.latestCollectionRewards[0];
+assert.equal(eighthReward.saleScore, eighthPreviewScore, "pre-collection preview remains the unmodified dish sale price");
+assert.equal(eighthReward.todayCollectionNumber, 8);
+assert.equal(eighthReward.dailyCollectionBonus, 50);
+assert.equal(eighthReward.totalScore, eighthPreviewScore + 50);
+assert.equal(eighthCollection.score - eighthPreviewState.score, eighthPreviewScore + 50);
+assert.equal(eighthCollection.timeSaleScores[18 * 60], eighthPreviewScore, "daily bonus does not enter dynamic market sales");
+
+const discountedEighth = applyAction({...eighthPreviewState, dayMinutesElapsed: 0}, {type: "reduce", indexes: [0, 1]});
+const discountedSaleScore = getEightPalaceCollectionScoreGain(
+  {...eighthPreviewState, dayMinutesElapsed: 0},
+  sameCollectible
+);
+assert.equal(discountedEighth.latestCollectionRewards[0].saleScore, discountedSaleScore);
+assert.equal(discountedEighth.latestCollectionRewards[0].dailyCollectionBonus, 50);
+assert.equal(discountedEighth.score - eighthPreviewState.score, discountedSaleScore + 50, "the 0.80 market rate never discounts the fixed bonus");
+
+const routedEighthState = {
+  ...eighthPreviewState,
+  board: [
+    {value: 5, foodType: BASE_FOOD_TYPES[0], boardIndex: 0, origin: {type: "reduce", parent: {value: 35, foodType: BASE_FOOD_TYPES[0]}}},
+    {value: 10, foodType: BASE_FOOD_TYPES[1], boardIndex: 1},
+    ...eighthPreviewState.board.slice(2)
+  ]
+};
+const routedEighth = applyAction(routedEighthState, {type: "reduce", indexes: [0, 1]});
+assert.equal(routedEighth.latestCollectionRewards[0].collectionMultiplierRate, 1.4);
+assert.equal(routedEighth.latestCollectionRewards[0].dailyCollectionBonus, 50, "route multiplier never changes the fixed bonus");
+assert.equal(
+  routedEighth.latestCollectionRewards[0].totalScore,
+  routedEighth.latestCollectionRewards[0].saleScore + 50
+);
+
 const closingDayOne = resolveGameOver({
   ...createGameState([
     {value: 2, foodType: BASE_FOOD_TYPES[0], boardIndex: 0, gameMode: "eightPalace"},
@@ -157,7 +205,16 @@ assert.equal(dayTwoCollected.score - dayTwoState.score, dayTwoPreview, "Day 2 pr
 assert.equal(dayTwoCollected.latestCollectionRewards[0].timeSaleMultiplier, dayTwoPeriods[0].multiplier);
 
 const rewardModalSource = readFileSync("src/components/CollectionRewardModal.jsx", "utf8");
-assert.match(rewardModalSource, /<strong>\+\{reward\.totalScore\}分<\/strong>/);
+assert.match(rewardModalSource, /createPortal/);
+assert.match(rewardModalSource, /今日收藏奖励/);
+assert.match(rewardModalSource, />确认<\/button>/);
+assert.doesNotMatch(rewardModalSource, /setTimeout/);
+const rewardModalCssSource = readFileSync("src/components/CollectionRewardModal.css", "utf8");
+assert.match(rewardModalCssSource, /position:\s*fixed/);
+assert.match(rewardModalCssSource, /z-index:\s*10000/);
+assert.match(rewardModalCssSource, /max-height:\s*calc\(100vh/);
+const appSource = readFileSync("src/App.jsx", "utf8");
+assert.match(appSource, /rewards\.filter\(reward => reward\.isNewCollection\)/);
 const boardSource = readFileSync("src/components/Board.jsx", "utf8");
 assert.match(boardSource, /\{collectionCards, board, dayMinutesElapsed, timeSalePeriods\}/);
 const dayPanelSource = readFileSync("src/components/DayPanel.jsx", "utf8");
@@ -166,6 +223,7 @@ assert.match(dayPanelSource, /timeSalePeriods\.map/);
 const daySettlementSource = readFileSync("src/components/DaySettlement.jsx", "utf8");
 assert.match(daySettlementSource, /今日销售行情/);
 assert.match(daySettlementSource, /row\.saleIntensity/);
+assert.match(daySettlementSource, /dailyCollectionBonusTotal/);
 assert.notEqual(settlement.totalScore, settlement.baseSaleScore * settlement.timeSaleMultiplier);
 assert.equal(
   settlement.totalScore,
