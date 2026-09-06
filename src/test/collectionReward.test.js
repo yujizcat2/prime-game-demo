@@ -17,7 +17,7 @@ assert.equal(first.bonusScore, 0);
 assert.deepEqual(first.bonuses, []);
 
 const second = settle([card(17, BASE_FOOD_TYPES[0])], 17, BASE_FOOD_TYPES[1], 0);
-assert.equal(second.totalScore, 100);
+assert.equal(second.totalScore, 75);
 assert.equal(second.existingFoodTypeCountForSameNumber, 1);
 
 const duplicate = settle([card(17, BASE_FOOD_TYPES[0])], 17, BASE_FOOD_TYPES[0], 900);
@@ -80,10 +80,53 @@ const normalSeriesSale = createCollectionRewardSettlement({
   collectionCards: [], value: 2, foodType: BASE_FOOD_TYPES[0], name: "系列料理",
   cuisineSequenceIndex: 2, gameTime: "12:00"
 });
-assert.equal(normalSeriesSale.cuisineScoreMultiplier, .5);
-assert.equal(normalSeriesSale.totalScore, 50, "series half-price still applies without a cross-family adjustment");
+assert.equal(normalSeriesSale.cuisineScoreMultiplier, 1);
+assert.equal(normalSeriesSale.totalScore, 100, "food-type sale order never discounts a first sale of this value");
+assert.deepEqual(
+  normalSeriesSale.saleBreakdown.map(step => step.label),
+  ["基础售价", "当前时段", "×1路线奖励", "最终结算"]
+);
 assert.equal(getCollectionBaseSalePrice([], 2, BASE_FOOD_TYPES[0]), 100, "first-sale card price ignores series order");
 assert.equal(getCollectionBaseSalePrice([card(2, BASE_FOOD_TYPES[0])], 2, BASE_FOOD_TYPES[0]), 0, "same-family repeats stay zero");
+
+const priorSevenAndThree = [
+  card(7, BASE_FOOD_TYPES[2]),
+  card(3, BASE_FOOD_TYPES[4])
+];
+const firstDairyEight = createCollectionRewardSettlement({
+  collectionCards: priorSevenAndThree,
+  value: 8,
+  foodType: BASE_FOOD_TYPES[4],
+  name: "奶油 8",
+  cuisineSequenceIndex: 2,
+  gameTime: "12:00"
+});
+assert.equal(firstDairyEight.hasCrossFamilyDiscount, false);
+assert.equal(firstDairyEight.collectionScore, firstDairyEight.baseScore);
+assert.equal(firstDairyEight.totalScore, 100);
+assert.doesNotMatch(firstDairyEight.saleBreakdown.map(step => step.label).join(" "), /系列调整|同款半价/);
+assert.equal(getCollectionBaseSalePrice(priorSevenAndThree, 8, BASE_FOOD_TYPES[4]), 100);
+
+const secondFruitEight = createCollectionRewardSettlement({
+  collectionCards: [...priorSevenAndThree, card(8, BASE_FOOD_TYPES[4])],
+  value: 8,
+  foodType: BASE_FOOD_TYPES[5],
+  name: "水果 8",
+  gameTime: "12:00"
+});
+assert.equal(secondFruitEight.hasCrossFamilyDiscount, true);
+assert.equal(secondFruitEight.collectionScore, 50);
+assert.equal(secondFruitEight.saleBreakdown[1].label, "同款半价");
+assert.equal(getCollectionBaseSalePrice([...priorSevenAndThree, card(8, BASE_FOOD_TYPES[4])], 8, BASE_FOOD_TYPES[5]), 50);
+
+const repeatedDairyEight = createCollectionRewardSettlement({
+  collectionCards: [...priorSevenAndThree, card(8, BASE_FOOD_TYPES[4])],
+  value: 8,
+  foodType: BASE_FOOD_TYPES[4],
+  name: "奶油 8"
+});
+assert.equal(repeatedDairyEight.duplicate, true);
+assert.equal(repeatedDairyEight.totalScore, 0);
 
 const timedCrossFamilySale = createCollectionRewardSettlement({
   collectionCards: [card(2, BASE_FOOD_TYPES[0])],

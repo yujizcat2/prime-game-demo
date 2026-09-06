@@ -22,10 +22,10 @@ for(const [minimum, maximum, expected] of [
 const card = (value, foodType) => ({value, foodType});
 const [aquatic, land, fruit] = BASE_FOOD_TYPES;
 assert.equal(getCollectionScoreGain([], 37, aquatic), 250, "first type receives the full tier score");
-assert.equal(getCollectionScoreGain([card(37, aquatic)], 37, land), 200, "second type loses five");
-assert.equal(getCollectionScoreGain([card(37, aquatic), card(37, land)], 37, fruit), 150, "third type loses another five");
+assert.equal(getCollectionScoreGain([card(37, aquatic)], 37, land), 125, "another type receives one same-item half-price");
+assert.equal(getCollectionScoreGain([card(37, aquatic), card(37, land)], 37, fruit), 125, "same-item half-price is applied only once");
 assert.equal(getCollectionScoreGain([card(37, aquatic)], 37, aquatic), 0, "same number and type is a duplicate");
-assert.equal(getCollectionScoreGain(BASE_FOOD_TYPES.map(type => card(2, type)), 2, "drink"), 0, "score never drops below zero");
+assert.equal(getCollectionScoreGain(BASE_FOOD_TYPES.map(type => card(2, type)), 2, "drink"), 50, "cross-family history applies one half-price only");
 assert.equal(getCollectionScoreGain([], 37, aquatic, 900, true), 250, "board sum and legacy penalty do not affect score");
 
 const collectible = (value, foodType) => ({

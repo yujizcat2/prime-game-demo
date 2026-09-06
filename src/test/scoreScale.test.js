@@ -35,6 +35,6 @@ const secondCollection = createCollectionRewardSettlement({
 });
 assert.equal(secondCollection.value, 7);
 assert.equal(secondCollection.preMultiplierScore, 100);
-assert.equal(secondCollection.totalScore, 50);
+assert.equal(secondCollection.totalScore, 100, "cuisine sequence no longer changes formal sale revenue");
 
 console.log("score scale tests passed");

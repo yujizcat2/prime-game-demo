@@ -1,5 +1,5 @@
 import { BASE_FOOD_TYPES } from "./rules";
-import { SCORE_SCALE, scaleScore } from "./scoreScale";
+import { scaleScore } from "./scoreScale";
 
 export const COLLECTION_SCORE_TIERS = Object.freeze([
   [9, 10], [19, 15], [29, 20], [39, 25], [49, 30],
@@ -43,7 +43,9 @@ export function getCollectionScoreBreakdown(collectionCards, value, foodType){
   ).size;
   const collectionScore = duplicate
     ? 0
-    : Math.max(0, baseScore - 5 * SCORE_SCALE * existingFoodTypeCountForSameNumber);
+    : sameNumberCards.length > 0
+      ? baseScore * .5
+      : baseScore;
 
   return {
     duplicate,

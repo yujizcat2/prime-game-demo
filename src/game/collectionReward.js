@@ -1,5 +1,4 @@
 import { getBaseScore, getCollectionScoreBreakdown } from "./scoreValue";
-import { applyCuisineScoreMultiplier, getCuisineScoreMultiplier } from "./scoreScale";
 import { getTimeSalePeriod } from "./timeSaleMultiplier";
 import { getCollectionMultiplier } from "./collectionMultiplier";
 
@@ -43,10 +42,8 @@ export function createCollectionRewardSettlement({
   }
 
   const hasCrossFamilyDiscount = score.existingFoodTypeCountForSameNumber > 0;
-  const cuisineScoreMultiplier = hasCrossFamilyDiscount ? 1 : getCuisineScoreMultiplier(cuisineSequenceIndex);
-  const collectionScore = hasCrossFamilyDiscount
-    ? score.collectionScore
-    : applyCuisineScoreMultiplier(score.collectionScore, cuisineSequenceIndex);
+  const cuisineScoreMultiplier = 1;
+  const collectionScore = score.collectionScore;
   const timeSalePeriod = getTimeSalePeriod(gameTime, timeSalePeriods);
   const timeAdjustedScore = collectionScore * timeSalePeriod.multiplier;
   const routeAdjustedScore = timeAdjustedScore * collectionMultiplier.collectionMultiplierRate;
@@ -57,12 +54,6 @@ export function createCollectionRewardSettlement({
       label: "同款半价",
       operation: `×${Math.round(score.collectionScore / score.baseScore * 100)}%`,
       result: score.collectionScore
-    });
-  }else if(cuisineScoreMultiplier !== 1){
-    saleBreakdown.push({
-      label: "系列调整",
-      operation: `×${Math.round(cuisineScoreMultiplier * 100)}%`,
-      result: collectionScore
     });
   }
   saleBreakdown.push(

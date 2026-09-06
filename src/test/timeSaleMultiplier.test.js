@@ -81,7 +81,7 @@ const settlement = createCollectionRewardSettlement({
 });
 assert.equal(settlement.baseSaleScore, 100);
 assert.equal(settlement.preCuisineSaleScore, 100);
-assert.equal(settlement.collectionScore, 50);
+assert.equal(settlement.collectionScore, 100);
 assert.equal(
   settlement.totalScore,
   Math.round(Number((settlement.collectionScore * settlement.timeSaleMultiplier).toFixed(10))),
