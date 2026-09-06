@@ -23,7 +23,6 @@ import {
 } from "./foodTypeTelemetry";
 import {
   advanceToNextDay,
-  DAILY_COLLECTION_TARGET,
   DAY_DURATION_MINUTES,
   getDayTargetScore,
   getDayTime
@@ -321,12 +320,8 @@ export const SCORE_AI_DAILY_WEIGHTS = Object.freeze({
   surplusScorePoint: 100_000,
   scoreGapBase: 50_000_000,
   scoreGapUrgency: 450_000_000,
-  collectionGapBase: 100_000_000,
-  collectionGapUrgency: 2_000_000_000,
   immediateSalePointBase: 5_000_000,
   immediateSalePointUrgency: 15_000_000,
-  immediateNewCollectionBase: 50_000_000,
-  immediateNewCollectionUrgency: 1_500_000_000,
   minimumSurvivalWeight: .35,
   completedGoalsSurvivalWeight: 4
 });
@@ -343,7 +338,6 @@ export function getScoreAIDailyContext(state){
     targetScore,
     scoreGap: Math.max(0, targetScore - (state?.score ?? 0)),
     todayNewCollectionCount,
-    collectionGap: Math.max(0, DAILY_COLLECTION_TARGET - todayNewCollectionCount),
     remainingMinutes,
     remainingRatio,
     urgency: 1 - remainingRatio,
@@ -416,26 +410,21 @@ export function evaluateScoreState(state, legalActions = state.gameOver ? [] : g
   if(state.dayCycleEnabled){
     const context = getScoreAIDailyContext(state);
     const collectionPotential = getImmediateCollectionPotential(state, legalActions);
-    const goalsComplete = context.scoreGap === 0 && context.collectionGap === 0;
+    const goalComplete = context.scoreGap === 0;
     const weights = SCORE_AI_DAILY_WEIGHTS;
     const scoreAtTarget = Math.min(state.score ?? 0, context.targetScore);
     const surplusScore = Math.max(0, (state.score ?? 0) - context.targetScore);
     const scoreGapWeight = weights.scoreGapBase + weights.scoreGapUrgency * context.urgency;
-    const collectionGapWeight = weights.collectionGapBase + weights.collectionGapUrgency * context.urgency;
     const immediateSaleWeight = weights.immediateSalePointBase
       + weights.immediateSalePointUrgency * context.urgency;
-    const immediateCollectionWeight = weights.immediateNewCollectionBase
-      + weights.immediateNewCollectionUrgency * context.urgency;
-    const survivalWeight = goalsComplete
+    const survivalWeight = goalComplete
       ? weights.completedGoalsSurvivalWeight
       : Math.max(weights.minimumSurvivalWeight, 1 - .65 * context.urgency);
 
     return unscaleScore(scoreAtTarget) * weights.targetScorePoint
       + unscaleScore(surplusScore) * weights.surplusScorePoint
       - unscaleScore(context.scoreGap) * scoreGapWeight
-      - context.collectionGap * collectionGapWeight
       + unscaleScore(collectionPotential.bestScore) * immediateSaleWeight
-      + collectionPotential.collectionCount * (context.collectionGap > 0 ? immediateCollectionWeight : 0)
       + boardNovelty * 5_000
       + reduceActions * 1_000
       + legalActions.length * 10
@@ -1157,15 +1146,7 @@ export function summarizeScoreResults(results){
   );
   const closingSettlements = results.flatMap(result => result.dayHistory ?? []);
   const failedSettlements = closingSettlements.filter(settlement => settlement.passed === false);
-  const scoreTargetFailureCount = failedSettlements.filter(settlement =>
-    settlement.scoreTargetMet === false && settlement.collectionTargetMet !== false
-  ).length;
-  const collectionTargetFailureCount = failedSettlements.filter(settlement =>
-    settlement.scoreTargetMet !== false && settlement.collectionTargetMet === false
-  ).length;
-  const dualTargetFailureCount = failedSettlements.filter(settlement =>
-    settlement.scoreTargetMet === false && settlement.collectionTargetMet === false
-  ).length;
+  const scoreTargetFailureCount = failedSettlements.filter(settlement => settlement.scoreTargetMet === false).length;
   const maximumDay = results.length ? Math.max(0, ...results.map(result => result.finalDay ?? 0)) : 0;
   const daySummaries = Array.from({length: maximumDay}, (_, index) => index + 1).map(day => {
     const reached = results.filter(result => (result.finalDay ?? 0) >= day);
@@ -1337,13 +1318,8 @@ export function summarizeScoreResults(results){
     deadlockRate: results.length ? deadlockCount / results.length : 0,
     avoidableImmediateDeathCount,
     scoreTargetFailureCount,
-    collectionTargetFailureCount,
-    dualTargetFailureCount,
     averageClosingScoreGap: average(closingSettlements, settlement =>
       Math.max(0, (settlement.targetScore ?? getDayTargetScore(settlement.day)) - (settlement.finalScore ?? 0))
-    ),
-    averageClosingCollectionGap: average(closingSettlements, settlement =>
-      Math.max(0, (settlement.collectionTarget ?? DAILY_COLLECTION_TARGET) - (settlement.collectionGainToday ?? 0))
     ),
     averageCollectionEfficiencyTimeline: summarizeCollectionEfficiencyTimelines(results),
     highScore,

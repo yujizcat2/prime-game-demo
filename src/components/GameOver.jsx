@@ -38,7 +38,7 @@ export default function GameOver({
 }) {
 
   const isEightPalace = gameMode === "eightPalace" || gameMode === "simpleEightPalace";
-  const isDayFailure = reason === "daily_targets_not_met";
+  const isDayFailure = reason === "daily_score_target_not_met";
   const [showRecap, setShowRecap] = useState(false);
   const safeCollection = Array.isArray(collection) ? collection : [];
   const primeCollectionCount = safeCollection.filter(card => isPrime(card?.value)).length;
@@ -183,7 +183,7 @@ export default function GameOver({
           <div className="flex justify-between py-1"><span>今日获得积分</span><strong>+{daySettlement.scoreGainToday}</strong></div>
           <div className="flex justify-between py-1"><span>营业额</span><strong>{daySettlement.finalScore} / {daySettlement.targetScore} {daySettlement.scoreTargetMet ? "✓" : "✕"}</strong></div>
           <div className="flex justify-between py-1"><span>今日效率</span><strong>{daySettlement.efficiency.toFixed(2)}</strong></div>
-          <div className="flex justify-between py-1"><span>今日售出</span><strong>{daySettlement.collectionGainToday} / {daySettlement.collectionTarget} {daySettlement.collectionTargetMet ? "✓" : "✕"}</strong></div>
+          <div className="flex justify-between py-1"><span>今日售出</span><strong>{daySettlement.collectionGainToday}</strong></div>
         </div>}
 
 

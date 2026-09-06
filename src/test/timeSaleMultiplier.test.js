@@ -159,9 +159,9 @@ const eighthCollection = applyAction(eighthPreviewState, {type: "reduce", indexe
 const eighthReward = eighthCollection.latestCollectionRewards[0];
 assert.equal(eighthReward.saleScore, eighthPreviewScore, "pre-collection preview remains the unmodified dish sale price");
 assert.equal(eighthReward.todayCollectionNumber, 8);
-assert.equal(eighthReward.dailyCollectionBonus, 50);
-assert.equal(eighthReward.totalScore, eighthPreviewScore + 50);
-assert.equal(eighthCollection.score - eighthPreviewState.score, eighthPreviewScore + 50);
+assert.equal(eighthReward.dailyCollectionBonus, 30);
+assert.equal(eighthReward.totalScore, eighthPreviewScore + 30);
+assert.equal(eighthCollection.score - eighthPreviewState.score, eighthPreviewScore + 30);
 assert.equal(eighthCollection.timeSaleScores[18 * 60], eighthPreviewScore, "daily bonus does not enter dynamic market sales");
 
 const discountedEighth = applyAction({...eighthPreviewState, dayMinutesElapsed: 0}, {type: "reduce", indexes: [0, 1]});
@@ -170,8 +170,8 @@ const discountedSaleScore = getEightPalaceCollectionScoreGain(
   sameCollectible
 );
 assert.equal(discountedEighth.latestCollectionRewards[0].saleScore, discountedSaleScore);
-assert.equal(discountedEighth.latestCollectionRewards[0].dailyCollectionBonus, 50);
-assert.equal(discountedEighth.score - eighthPreviewState.score, discountedSaleScore + 50, "the 0.80 market rate never discounts the fixed bonus");
+assert.equal(discountedEighth.latestCollectionRewards[0].dailyCollectionBonus, 30);
+assert.equal(discountedEighth.score - eighthPreviewState.score, discountedSaleScore + 30, "the 0.80 market rate never discounts the daily sale bonus");
 
 const routedEighthState = {
   ...eighthPreviewState,
@@ -183,10 +183,10 @@ const routedEighthState = {
 };
 const routedEighth = applyAction(routedEighthState, {type: "reduce", indexes: [0, 1]});
 assert.equal(routedEighth.latestCollectionRewards[0].collectionMultiplierRate, 1.4);
-assert.equal(routedEighth.latestCollectionRewards[0].dailyCollectionBonus, 50, "route multiplier never changes the fixed bonus");
+assert.equal(routedEighth.latestCollectionRewards[0].dailyCollectionBonus, 30, "route multiplier never changes the daily sale bonus");
 assert.equal(
   routedEighth.latestCollectionRewards[0].totalScore,
-  routedEighth.latestCollectionRewards[0].saleScore + 50
+  routedEighth.latestCollectionRewards[0].saleScore + 30
 );
 
 const closingDayOne = resolveGameOver({

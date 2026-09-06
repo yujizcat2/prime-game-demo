@@ -5,7 +5,6 @@ import { resolveGameOver } from "../game/gameEngine";
 import { getScoreEfficiency } from "../game/scoreEfficiency";
 import {
   DAY_DURATION_MINUTES,
-  DAILY_COLLECTION_TARGET,
   MAX_DAYS,
   WEEKDAYS,
   advanceToNextDay,
@@ -26,15 +25,14 @@ const makeCollections = (count, offset = 0) => Array.from({length: count}, (_, i
 
 const initial = createDayState();
 assert.equal(DAY_DURATION_MINUTES, 1440);
-assert.equal(DAILY_COLLECTION_TARGET, 8);
-assert.equal(getDailyCollectionBonus(7), 0);
-assert.equal(getDailyCollectionBonus(8), 50);
-assert.equal(getDailyCollectionBonus(9), 50);
-assert.equal(getDailyCollectionBonus(11), 50);
-assert.equal(getDailyCollectionBonusTotal(7), 0);
-assert.equal(getDailyCollectionBonusTotal(8), 50);
-assert.equal(getDailyCollectionBonusTotal(9), 100);
-assert.equal(getDailyCollectionBonusTotal(11), 200);
+assert.equal(getDailyCollectionBonus(5), 0);
+assert.equal(getDailyCollectionBonus(6), 10);
+assert.equal(getDailyCollectionBonus(7), 20);
+assert.equal(getDailyCollectionBonus(8), 30);
+assert.equal(getDailyCollectionBonus(10), 50);
+assert.equal(getDailyCollectionBonusTotal(5), 0);
+assert.equal(getDailyCollectionBonusTotal(8), 60);
+assert.equal(getDailyCollectionBonusTotal(10), 150);
 assert.equal(formatClosingTimeRemaining(300), "距离打烊还有 5小时");
 assert.equal(formatClosingTimeRemaining(270), "距离打烊还有 4小时30分钟");
 assert.equal(formatClosingTimeRemaining(30), "距离打烊还有 30分钟");
@@ -55,7 +53,7 @@ assert.equal(at23.gameOver, false);
 const tenCollections = makeCollections(10);
 const failedAt99 = resolveGameOver({...initial, steps: 24, dayMinutesElapsed: 1440, score: 999, collectionCards: tenCollections});
 assert.equal(failedAt99.daySettlement.passed, false);
-assert.equal(failedAt99.gameOverReason, "daily_targets_not_met");
+assert.equal(failedAt99.gameOverReason, "daily_score_target_not_met");
 
 const closingBoard = initial.board.map((piece, index) => piece && index === 0 ? {
   ...piece,
@@ -81,12 +79,10 @@ assert.equal(overTarget.daySettlement.passed, true);
 
 const fewCollections = resolveGameOver({...initial, steps: 24, dayMinutesElapsed: 1440, score: 1000, collectionCards: makeCollections(7)});
 assert.equal(fewCollections.daySettlement.scoreTargetMet, true);
-assert.equal(fewCollections.daySettlement.collectionTargetMet, false);
-assert.equal(fewCollections.daySettlement.passed, false, "revenue alone cannot pass without eight new collections");
+assert.equal(fewCollections.daySettlement.passed, true, "revenue passes even with fewer than eight sales");
 
 const manyCollectionsLowScore = resolveGameOver({...initial, steps: 24, dayMinutesElapsed: 1440, score: 999, collectionCards: makeCollections(20)});
 assert.equal(manyCollectionsLowScore.daySettlement.passed, false, "many collections cannot replace the score target");
-assert.equal(manyCollectionsLowScore.daySettlement.collectionTargetMet, true);
 
 assert.equal(getScoreEfficiency(100, 600), 10, "live efficiency is hourly score from actual minutes");
 assert.equal(getScoreEfficiency(60, 600), 6);
@@ -168,7 +164,7 @@ assert.equal(advanceToNextDay(state), state, "the eighth day is never created");
 assert.equal(state.dayHistory.length, 7);
 
 const daySevenFailed = resolveGameOver({...initial, day: 7, dayMinutesElapsed: 1440, score: 6999, collectionCards: tenCollections});
-assert.equal(daySevenFailed.gameOverReason, "daily_targets_not_met");
+assert.equal(daySevenFailed.gameOverReason, "daily_score_target_not_met");
 const daySevenPassed = resolveGameOver({...initial, day: 7, dayMinutesElapsed: 1440, score: 7000, collectionCards: tenCollections});
 assert.equal(daySevenPassed.gameOverReason, "week_complete");
 

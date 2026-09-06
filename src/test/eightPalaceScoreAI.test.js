@@ -482,14 +482,12 @@ function createOperatingScoreState(values, {
   };
 }
 
-const oneCollectionShort = createOperatingScoreState([8, 16, 3, 5]);
+const oneCollectionShort = createOperatingScoreState([8, 16, 3, 5], {score: 900});
 const surplusWithoutCollection = createOperatingScoreState([9, 15, 3, 5], {score: 1100});
 const oneCollectionAction = [{type: "reduce", indexes: [0, 1]}];
-assert.equal(getScoreAIDailyContext(oneCollectionShort).collectionGap, 1);
-assert.ok(
-  evaluateScoreState(oneCollectionShort, oneCollectionAction) > evaluateScoreState(surplusWithoutCollection, oneCollectionAction),
-  "near closing, a real eighth-collection opportunity beats surplus score without collection progress"
-);
+assert.equal(Object.hasOwn(getScoreAIDailyContext(oneCollectionShort), "collectionGap"), false);
+assert.ok(getScoreAIDailyContext(oneCollectionShort).scoreGap > 0);
+assert.equal(getScoreAIDailyContext(surplusWithoutCollection).scoreGap, 0, "revenue is the sole daily target");
 
 const lowValueSale = createOperatingScoreState([4, 8, 3, 5], {score: 500, collectionCount: 8});
 const highValueSale = createOperatingScoreState([30, 60, 3, 5], {score: 500, collectionCount: 8});
@@ -603,7 +601,7 @@ const failedDayOne = resolveGameOver({
   score: 99,
   collectionCards: Array.from({length: 20}, (_, index) => ({value: index + 2, foodType: "aquatic"}))
 });
-assert.equal(failedDayOne.gameOverReason, "daily_targets_not_met", "missing a daily target ends the day-cycle run");
+assert.equal(failedDayOne.gameOverReason, "daily_score_target_not_met", "missing the revenue target ends the day-cycle run");
 assert.equal(Object.hasOwn(failedDayOne.daySettlement, "nextDayCards"), false, "settlement no longer creates next-day preparation");
 
 const marketClosedDayOne = resolveGameOver({
@@ -644,8 +642,8 @@ assert.match(marketTestLabSource, /Day \{record\.day\} 销售/);
 assert.match(marketTestLabSource, /record\.market\.saleScores/);
 
 const daySummary = summarizeScoreResults([
-  {finalScore: 600, scoreEfficiency: 25, collectionCount: 10, primeCollectionCount: 1, compositeCollectionCount: 9, steps: 24, completed100Steps: false, deadlocked: false, dayCycleEnabled: true, finalDay: 1, dayHistory: [{day: 1, targetScore: 100, finalScore: 600, scoreGainToday: 600, scoreTargetMet: true, collectionTargetMet: true, collectionTarget: 8, collectionGainToday: 10, boardSum: 100, passed: true}], dayRecords: [{day: 1, dayAverageBoardSum: 30}]},
-  {finalScore: 400, scoreEfficiency: 16.67, collectionCount: 9, primeCollectionCount: 0, compositeCollectionCount: 9, steps: 24, completed100Steps: false, deadlocked: false, dayCycleEnabled: true, finalDay: 1, dayHistory: [{day: 1, targetScore: 500, finalScore: 400, scoreGainToday: 99, scoreTargetMet: false, collectionTargetMet: true, collectionTarget: 8, collectionGainToday: 9, boardSum: 80, passed: false}], dayRecords: [{day: 1, dayAverageBoardSum: 15}]},
+  {finalScore: 600, scoreEfficiency: 25, collectionCount: 10, primeCollectionCount: 1, compositeCollectionCount: 9, steps: 24, completed100Steps: false, deadlocked: false, dayCycleEnabled: true, finalDay: 1, dayHistory: [{day: 1, targetScore: 100, finalScore: 600, scoreGainToday: 600, scoreTargetMet: true, collectionGainToday: 10, boardSum: 100, passed: true}], dayRecords: [{day: 1, dayAverageBoardSum: 30}]},
+  {finalScore: 400, scoreEfficiency: 16.67, collectionCount: 9, primeCollectionCount: 0, compositeCollectionCount: 9, steps: 24, completed100Steps: false, deadlocked: false, dayCycleEnabled: true, finalDay: 1, dayHistory: [{day: 1, targetScore: 500, finalScore: 400, scoreGainToday: 99, scoreTargetMet: false, collectionGainToday: 9, boardSum: 80, passed: false}], dayRecords: [{day: 1, dayAverageBoardSum: 15}]},
   {finalScore: 0, scoreEfficiency: 0, collectionCount: 0, primeCollectionCount: 0, compositeCollectionCount: 0, steps: 4, completed100Steps: false, deadlocked: true, dayCycleEnabled: true, finalDay: 1, dayHistory: []}
 ]);
 assert.equal(daySummary.daySummaries[0].reachedCount, 3);
@@ -654,21 +652,7 @@ assert.equal(daySummary.daySummaries[0].passRate, 1 / 3, "day pass rate uses rea
 assert.equal(daySummary.daySummaries[0].averageBoardSum, 90, "closing board sum reporting is unchanged");
 assert.equal(daySummary.daySummaries[0].averageDayBoardSum, 15, "daily averages are averaged across every reached game, including empty samples");
 assert.equal(daySummary.scoreTargetFailureCount, 1);
-assert.equal(daySummary.collectionTargetFailureCount, 0);
-assert.equal(daySummary.dualTargetFailureCount, 0);
 assert.equal(daySummary.averageClosingScoreGap, 50);
-assert.equal(daySummary.averageClosingCollectionGap, 0);
-
-const failureSummary = summarizeScoreResults([
-  {finalScore: 90, scoreEfficiency: 0, collectionCount: 8, primeCollectionCount: 0, compositeCollectionCount: 0, finalDay: 1, dayHistory: [{day: 1, targetScore: 100, finalScore: 90, scoreTargetMet: false, collectionTargetMet: true, collectionTarget: 8, collectionGainToday: 8, passed: false}]},
-  {finalScore: 100, scoreEfficiency: 0, collectionCount: 7, primeCollectionCount: 0, compositeCollectionCount: 0, finalDay: 1, dayHistory: [{day: 1, targetScore: 100, finalScore: 100, scoreTargetMet: true, collectionTargetMet: false, collectionTarget: 8, collectionGainToday: 7, passed: false}]},
-  {finalScore: 80, scoreEfficiency: 0, collectionCount: 6, primeCollectionCount: 0, compositeCollectionCount: 0, finalDay: 1, dayHistory: [{day: 1, targetScore: 100, finalScore: 80, scoreTargetMet: false, collectionTargetMet: false, collectionTarget: 8, collectionGainToday: 6, passed: false}]}
-]);
-assert.equal(failureSummary.scoreTargetFailureCount, 1);
-assert.equal(failureSummary.collectionTargetFailureCount, 1);
-assert.equal(failureSummary.dualTargetFailureCount, 1);
-assert.equal(failureSummary.averageClosingScoreGap, 10);
-assert.equal(failureSummary.averageClosingCollectionGap, 1);
 
 console.log("eight palace Score AI tests passed", {
   score: result.finalScore,

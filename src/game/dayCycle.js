@@ -10,8 +10,6 @@ import {
 } from "./timeSaleMultiplier";
 
 export const DAY_DURATION_MINUTES = 1440;
-export const DAILY_COLLECTION_TARGET = 8;
-export const DAILY_COLLECTION_BONUS_SCORE = 50;
 export const MAX_DAYS = 7;
 export const OPENING_HOUR = 0;
 export const WEEKDAYS = Object.freeze(["星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"]);
@@ -28,9 +26,8 @@ export function getTodayNewCollectionCount(state){
 }
 
 export function getDailyCollectionBonus(todayNewCollectionCountAfterCollection){
-  return todayNewCollectionCountAfterCollection >= DAILY_COLLECTION_TARGET
-    ? DAILY_COLLECTION_BONUS_SCORE
-    : 0;
+  const saleNumber = Math.max(0, Math.floor(todayNewCollectionCountAfterCollection ?? 0));
+  return saleNumber <= 5 ? 0 : (saleNumber - 5) * 10;
 }
 
 export function getDailyCollectionBonusTotal(todayNewCollectionCount){
@@ -83,9 +80,8 @@ export function createDaySettlement(state){
   const scoreGainToday = finalScore - (state.dayStartScore ?? 0);
   const targetScore = getDayTargetScore(state.day);
   const scoreTargetMet = finalScore >= targetScore;
-  const collectionTargetMet = todayNewCollectionCount >= DAILY_COLLECTION_TARGET;
   const dailyCollectionBonusTotal = getDailyCollectionBonusTotal(todayNewCollectionCount);
-  const passed = scoreTargetMet && collectionTargetMet;
+  const passed = scoreTargetMet;
   const timeSalePeriods = state.timeSalePeriods ?? TIME_SALE_PERIODS;
   const timeSaleScores = state.timeSaleScores ?? {};
   const nextTimeSalePeriods = createNextTimeSalePeriods(timeSalePeriods, timeSaleScores);
@@ -96,8 +92,6 @@ export function createDaySettlement(state){
     targetScore,
     scoreGainToday,
     collectionGainToday: todayNewCollectionCount,
-    collectionTarget: DAILY_COLLECTION_TARGET,
-    collectionTargetMet,
     dailyCollectionBonusTotal,
     scoreTargetMet,
     maxComboToday: state.dayMaxCombo ?? 0,
@@ -126,7 +120,7 @@ export function settleDayIfNeeded(state){
     dayHistory: [...(state.dayHistory ?? []), daySettlement],
     gameOver: !daySettlement.passed || state.day >= MAX_DAYS,
     gameOverReason: !daySettlement.passed
-      ? "daily_targets_not_met"
+      ? "daily_score_target_not_met"
       : state.day >= MAX_DAYS ? "week_complete" : null
   };
 }
