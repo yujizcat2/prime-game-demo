@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { createCollectionRewardSettlement } from "../game/collectionReward";
-import { getTimeSaleMultiplier } from "../game/timeSaleMultiplier";
+import { getTimeSaleMultiplier, TIME_SALE_PERIODS } from "../game/timeSaleMultiplier";
 import { BASE_FOOD_TYPES } from "../game/rules";
 import { applyAction, createGameState } from "../game/gameEngine";
 import { getEightPalaceCollectionScoreGain } from "../game/collectionRules";
@@ -17,6 +17,16 @@ for(const [gameTime, expected] of [
 assert.equal(getTimeSaleMultiplier("24:00"), 0.5, "cross-midnight clock wraps to 00:00");
 assert.equal(getTimeSaleMultiplier("27:59"), 0.5, "cross-midnight 03:59 remains early morning");
 assert.equal(getTimeSaleMultiplier("28:00"), 1, "cross-midnight 04:00 returns to normal");
+assert.deepEqual(
+  TIME_SALE_PERIODS.map(({range, multiplier, displayName}) => [range, multiplier, displayName]),
+  [
+    ["00:00–03:59", 0.5, "深夜半价"], ["04:00–10:59", 1, "正常价格"],
+    ["11:00–12:59", 1.1, "午市加价"], ["13:00–16:59", 1, "正常价格"],
+    ["17:00–18:59", 1.15, "晚餐前段"], ["19:00–21:29", 1.2, "晚市高峰"],
+    ["21:30–打烊", 1, "正常价格"]
+  ],
+  "the UI schedule comes from the scoring authority"
+);
 
 const settlement = createCollectionRewardSettlement({
   collectionCards: [], value: 2, foodType: BASE_FOOD_TYPES[0], name: "test",
