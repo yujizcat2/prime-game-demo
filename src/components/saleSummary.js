@@ -1,11 +1,6 @@
-import { FOOD_TYPES } from "../game/rules";
+import { BASE_FOOD_TYPES } from "../game/rules";
 
-export const SALE_FOOD_TYPES = [
-  FOOD_TYPES.LAND,
-  FOOD_TYPES.AQUATIC,
-  FOOD_TYPES.GRAIN_BEAN,
-  FOOD_TYPES.DAIRY_EGG
-];
+export const SALE_FOOD_TYPES = BASE_FOOD_TYPES;
 
 export function getSaleSummary(cards = []){
   const summary = Object.fromEntries(

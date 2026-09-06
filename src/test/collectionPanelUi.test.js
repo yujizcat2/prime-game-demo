@@ -16,7 +16,7 @@ assert.deepEqual(saleSummary.land, {value: 24, score: 30});
 assert.deepEqual(saleSummary.aquatic, {value: 8, score: 15});
 assert.deepEqual(saleSummary.grainBean, {value: 0, score: 0});
 assert.equal(Object.hasOwn(saleSummary, "drink"), false);
-assert.equal(Object.keys(saleSummary).length, 4);
+assert.equal(Object.keys(saleSummary).length, 8);
 
 assert.doesNotMatch(source, />\s*已获得的料理包\s*</);
 assert.doesNotMatch(source, /OBTAINED DISH PACKS/);
