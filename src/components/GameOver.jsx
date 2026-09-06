@@ -173,7 +173,7 @@ export default function GameOver({
 
         {reason === "checkpoint_failed" && checkpointResult && <p className="mt-3 text-sm font-bold text-gray-600">
           {checkpointResult.type === "collection"
-            ? `Step ${checkpointResult.step} · 任务：获得至少 1 个收藏`
+            ? `Step ${checkpointResult.step} · 任务：售出至少 1 个料理`
             : `Step ${checkpointResult.step} · 最终积分 ${checkpointResult.currentScore} · 目标积分 ${checkpointResult.requiredScore} · 还差 ${Math.max(0, checkpointResult.requiredScore - checkpointResult.currentScore)} 分`}
         </p>}
 
@@ -183,7 +183,7 @@ export default function GameOver({
           <div className="flex justify-between py-1"><span>今日获得积分</span><strong>+{daySettlement.scoreGainToday}</strong></div>
           <div className="flex justify-between py-1"><span>营业额</span><strong>{daySettlement.finalScore} / {daySettlement.targetScore} {daySettlement.scoreTargetMet ? "✓" : "✕"}</strong></div>
           <div className="flex justify-between py-1"><span>今日效率</span><strong>{daySettlement.efficiency.toFixed(2)}</strong></div>
-          <div className="flex justify-between py-1"><span>今日收藏</span><strong>{daySettlement.collectionGainToday} / {daySettlement.collectionTarget} {daySettlement.collectionTargetMet ? "✓" : "✕"}</strong></div>
+          <div className="flex justify-between py-1"><span>今日售出</span><strong>{daySettlement.collectionGainToday} / {daySettlement.collectionTarget} {daySettlement.collectionTargetMet ? "✓" : "✕"}</strong></div>
         </div>}
 
 
@@ -257,7 +257,7 @@ export default function GameOver({
               <div className="mt-1 text-xl font-black text-gray-700">{steps}</div>
             </div>
             <div className="rounded-2xl bg-gray-50 py-4">
-              <div className="text-xs text-gray-400">收藏</div>
+              <div className="text-xs text-gray-400">售出</div>
               <div className="mt-1 text-xl font-black text-gray-700">{collection.length}</div>
             </div>
           </div>
@@ -278,15 +278,15 @@ export default function GameOver({
             <span>最终 Step <strong>{recapValue(steps)}</strong></span>
             <span>最终效率 <strong>{totalActionMinutes > 0 ? getScoreEfficiency(score, totalActionMinutes).toFixed(2) : "—"}</strong></span>
             <span>实际动作耗时 <strong>{recapValue(totalActionMinutes)} 分钟</strong></span>
-            <span>收藏数 <strong>{safeCollection.length}</strong></span>
+            <span>售出数量 <strong>{safeCollection.length}</strong></span>
             <span>通过检查站 <strong>{recapValue(passedCheckpointCount)}</strong></span>
             <span>失败检查站 <strong>{reason === "checkpoint_failed" ? `第 ${recapValue(checkpointResult?.index)} 站` : "—"}</strong></span>
             <span>实际分 / 目标分 <strong>{checkpointResult?.type === "score" ? `${checkpointResult.currentScore} / ${checkpointResult.requiredScore}` : "—"}</strong></span>
             <span>差多少分 <strong>{checkpointResult?.type === "score" ? Math.max(0, checkpointResult.requiredScore - checkpointResult.currentScore) : "—"}</strong></span>
-            <span>最后新收藏 Step <strong>{lastCollectionStep >= 0 ? lastCollectionStep : "—"}</strong></span>
+            <span>最后新增售出 Step <strong>{lastCollectionStep >= 0 ? lastCollectionStep : "—"}</strong></span>
             <span>最终搭配数量 <strong>{recapValue(recapActionCounts?.combine)}</strong></span>
             <span>最终处理数量 <strong>{recapValue(recapActionCounts?.reduce)}</strong></span>
-            <span>质数 / 合数收藏 <strong>{primeCollectionCount} / {compositeCollectionCount}</strong></span>
+            <span>质数 / 合数售出 <strong>{primeCollectionCount} / {compositeCollectionCount}</strong></span>
             <span>普通料理系数量 <strong>{normalFoodTypeCount}</strong></span>
             <span>全局最高连击 <strong>{maxCombo ?? 0}</strong></span>
             <span>累计连击奖励 <strong>+{comboBonusTotal ?? 0}</strong></span>
@@ -295,7 +295,7 @@ export default function GameOver({
             {snapshots.length === 0 ? <div>阶段快照：—</div> : <>
               <div>处理：{snapshots.map(item => item.legalReduceCount).join(" → ")}</div>
               <div>搭配：{snapshots.map(item => item.legalCombineCount).join(" → ")}</div>
-              <div>收藏：{snapshots.map(item => item.collectionCount).join(" → ")}</div>
+              <div>售出：{snapshots.map(item => item.collectionCount).join(" → ")}</div>
               <div>积分：{snapshots.map(item => item.score).join(" → ")}</div>
             </>}
           </div>

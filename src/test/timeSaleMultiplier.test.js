@@ -206,7 +206,7 @@ assert.equal(dayTwoCollected.latestCollectionRewards[0].timeSaleMultiplier, dayT
 
 const rewardModalSource = readFileSync("src/components/CollectionRewardModal.jsx", "utf8");
 assert.match(rewardModalSource, /createPortal/);
-assert.match(rewardModalSource, /今日收藏奖励/);
+assert.match(rewardModalSource, /今日销售奖励/);
 assert.match(rewardModalSource, />确认<\/button>/);
 assert.doesNotMatch(rewardModalSource, /setTimeout/);
 const rewardModalCssSource = readFileSync("src/components/CollectionRewardModal.css", "utf8");

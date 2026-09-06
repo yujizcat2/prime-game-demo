@@ -1125,7 +1125,7 @@ export default function BoardCell({
               不显示：
               1
               →
-              收藏
+              售出
 
               直接显示：
 

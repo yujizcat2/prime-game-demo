@@ -608,7 +608,7 @@ export default function CollectionPanel({
           "
         >
 
-          尚未获得料理包
+          尚无售出料理
 
         </div>
 
@@ -951,7 +951,7 @@ export default function CollectionPanel({
 
 
       {/* ======================================================
-          收藏详情
+          销售详情
       ====================================================== */}
 
       {
@@ -1033,7 +1033,7 @@ export default function CollectionPanel({
                   className="text-[10px] font-bold text-gray-400"
                 >
 
-                  已获得的料理包详情
+                  已售料理详情
 
                 </span>
 
@@ -1492,7 +1492,7 @@ export default function CollectionPanel({
                 "
               >
 
-                ★ 三系料理包已获得
+                ★ 三系料理已售出
 
               </div>
 

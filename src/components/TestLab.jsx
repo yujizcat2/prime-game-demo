@@ -686,7 +686,7 @@ export default function TestLab({
 
             >
 
-              最多收藏 AI
+              最大销量 AI
 
             </ModeButton>
 
@@ -777,7 +777,7 @@ export default function TestLab({
 
               {" · "}
 
-              三槽收藏
+              三槽销售
 
             </>
 
@@ -1199,7 +1199,7 @@ function ProgressPanel({
         <div>
           当前积分 <strong>{progress.currentScore}</strong>
           {" · "}
-          收藏 <strong>{progress.currentCollection}</strong>
+          售出 <strong>{progress.currentCollection}</strong>
           {" · "}
           <strong>{formatDayClock(progress.currentSteps)}</strong>
           {" · "}
@@ -1248,7 +1248,7 @@ function ProgressPanel({
 
             {" · "}
 
-            收藏槽{" "}
+            销售槽{" "}
 
             <strong>
 
@@ -1291,7 +1291,7 @@ function ProgressPanel({
 
               <div>
 
-                自动收藏{" "}
+                自动售出{" "}
 
                 <strong>
                   {formatNumber(autoCollectionEvents)}
@@ -1355,12 +1355,12 @@ function ScoreSummaryGrid({result}){
       <ResultItem label="平均实际动作耗时" value={`${(result.averageTotalActionMinutes ?? 0).toFixed(1)} 分钟`} />
       <ResultItem label="最高积分" value={result.highestScore} highlight />
       <ResultItem label="最低积分" value={result.lowestScore} />
-      <ResultItem label="平均收藏数量" value={result.averageCollectionCount.toFixed(2)} />
+      <ResultItem label="平均售出数量" value={result.averageCollectionCount.toFixed(2)} />
       <ResultItem label="平均最高连击" value={(result.averageMaxCombo ?? 0).toFixed(2)} />
       <ResultItem label="最大最高连击" value={result.maximumMaxCombo ?? 0} />
       <ResultItem label="平均连击奖励" value={(result.averageComboBonusTotal ?? 0).toFixed(2)} />
       <ResultItem label="连击奖励占最终积分" value={`${((result.comboBonusScoreRatio ?? 0) * 100).toFixed(2)}%`} />
-      <ResultItem label="平均累计收藏普通系" value={(result.averageCollectedNormalFoodTypeCount ?? 0).toFixed(2)} />
+      <ResultItem label="平均累计售出普通系" value={(result.averageCollectedNormalFoodTypeCount ?? 0).toFixed(2)} />
       {[5, 6, 7, 8].map(target => <ResultItem
         key={`collected-type-${target}`}
         label={`${target}系达成`}
@@ -1368,22 +1368,22 @@ function ScoreSummaryGrid({result}){
       />)}
       {[50, 70, 90].map(threshold => <ResultItem
         key={`large-collection-${threshold}`}
-        label={`≥${threshold} 收藏 / 当时盘面均值`}
+        label={`≥${threshold} 售出 / 当时盘面均值`}
         value={`${(result.largeCollectionSummary?.[threshold]?.averageCount ?? 0).toFixed(2)} · ${result.largeCollectionSummary?.[threshold]?.averageBoardValue?.toFixed(1) ?? "—"}`}
       />)}
-      <ResultItem label="质数收藏" value={result.averagePrimeCollectionCount.toFixed(2)} />
-      <ResultItem label="合数收藏" value={result.averageCompositeCollectionCount.toFixed(2)} />
+      <ResultItem label="质数售出" value={result.averagePrimeCollectionCount.toFixed(2)} />
+      <ResultItem label="合数售出" value={result.averageCompositeCollectionCount.toFixed(2)} />
       <ResultItem label="质数占比" value={`${(result.primeCollectionShare * 100).toFixed(1)}%`} />
       <ResultItem label="合数占比" value={`${(result.compositeCollectionShare * 100).toFixed(1)}%`} />
-      <ResultItem label="最大收藏数量" value={result.maxCollectionCount} />
+      <ResultItem label="最大售出数量" value={result.maxCollectionCount} />
       <ResultItem label="平均经营天数" value={(result.averageOperatingDays ?? 0).toFixed(2)} />
       <ResultItem label="最高经营天数" value={result.highestOperatingDays ?? 0} />
       <ResultItem label="最低经营天数" value={result.lowestOperatingDays ?? 0} />
       <ResultItem label="达到测试保护上限" value={`${result.reachedTestProtectionLimitCount ?? 0} / ${result.games ?? result.attempts}`} />
       <ResultItem label="提前死局" value={`${result.deadlockCount} / ${result.games ?? result.attempts} (${(result.deadlockRate * 100).toFixed(1)}%)`} />
       <ResultItem label="可避免的立即死局" value={result.avoidableImmediateDeathCount ?? 0} />
-      <ResultItem label="失败原因（分数 / 收藏 / 双不足）" value={`${result.scoreTargetFailureCount ?? 0} / ${result.collectionTargetFailureCount ?? 0} / ${result.dualTargetFailureCount ?? 0}`} />
-      <ResultItem label="打烊平均缺口（分数 / 收藏）" value={`${(result.averageClosingScoreGap ?? 0).toFixed(1)} / ${(result.averageClosingCollectionGap ?? 0).toFixed(2)}`} />
+      <ResultItem label="失败原因（分数 / 销量 / 双不足）" value={`${result.scoreTargetFailureCount ?? 0} / ${result.collectionTargetFailureCount ?? 0} / ${result.dualTargetFailureCount ?? 0}`} />
+      <ResultItem label="打烊平均缺口（分数 / 销量）" value={`${(result.averageClosingScoreGap ?? 0).toFixed(1)} / ${(result.averageClosingCollectionGap ?? 0).toFixed(2)}`} />
       <ResultItem label="平均搜索节点" value={Math.round(result.averageSearchedNodes ?? 0)} />
       <ResultItem label="平均评价节点" value={Math.round(result.averageEvaluatedNodes ?? 0)} />
       <ResultItem label="平均生成动作" value={Math.round(result.averageGeneratedActions ?? 0)} />
@@ -1397,7 +1397,7 @@ function ScoreSummaryGrid({result}){
       {(result.daySummaries ?? []).map(day => <div key={day.day}>
           Day {day.day} · 到达 {day.reachedCount}/{result.games ?? result.attempts} · 通过 {day.passedCount}/{day.reachedCount} ({(day.passRate * 100).toFixed(1)}%)
           {` · 累计目标 ${day.targetScore} · 平均打烊累计积分 ${day.averageClosingScore.toFixed(1)}`}
-          {` · 平均当日新增积分 +${day.averageScoreGainToday.toFixed(1)} · 平均新增收藏 ${day.averageCollectionCount.toFixed(1)} · 平均打烊盘面总和 ${day.averageBoardSum.toFixed(1)} · 平均日内盘面总和 ${(day.averageDayBoardSum ?? 0).toFixed(1)}`}
+          {` · 平均当日新增积分 +${day.averageScoreGainToday.toFixed(1)} · 平均售出数量 ${day.averageCollectionCount.toFixed(1)} · 平均打烊盘面总和 ${day.averageBoardSum.toFixed(1)} · 平均日内盘面总和 ${(day.averageDayBoardSum ?? 0).toFixed(1)}`}
           {` · 平均最高连击 ${day.averageMaxCombo.toFixed(1)} · 平均连击奖励 +${day.averageComboBonus.toFixed(1)}`}
       </div>)}
     </div>
@@ -1411,7 +1411,7 @@ function CollectionEfficiencyTimeline({timeline = []}){
     {timeline.length === 0
       ? <div>尚无营业快照</div>
       : timeline.map(snapshot => <div key={snapshot.step}>
-        {formatDayClock(snapshot.step)} · 积分 {snapshot.cumulativeScore} · 收藏 {snapshot.cumulativeCollections} · 效率 {snapshot.collectionEfficiency.toFixed(2)} · 近期 +{snapshot.recent10Collections}
+        {formatDayClock(snapshot.step)} · 积分 {snapshot.cumulativeScore} · 售出 {snapshot.cumulativeCollections} · 效率 {snapshot.collectionEfficiency.toFixed(2)} · 近期 +{snapshot.recent10Collections}
       </div>)}
   </div>;
 }
@@ -1459,7 +1459,7 @@ function FoodTypeBoardTimeline({game}){
       </div>)}
     </div>
     <div className="test-lab-record-collection">
-      <strong>每 5 小时新收藏料理系累计</strong>
+      <strong>每 5 小时新增售出料理系累计</strong>
       {(game.collectionFoodTypeTimeline ?? []).map(snapshot => <div key={snapshot.step}>
         {formatDayClock(snapshot.step)} · {formatFoodTypeCounts(snapshot.foodTypeCounts)}
       </div>)}
@@ -1478,7 +1478,7 @@ function FoodTypeTelemetrySummary({result}){
       {` · 风味单一 ${snapshot.singleFlavorCount}/${snapshot.gameCount} (${(snapshot.singleFlavorRate * 100).toFixed(1)}%)`}
     </div>)}
     <div className="test-lab-record-collection">
-      料理系平均收藏：{formatFoodTypeCounts(result.averageCollectionFoodTypeCounts)}
+      料理系平均售出：{formatFoodTypeCounts(result.averageCollectionFoodTypeCounts)}
     </div>
     <div className="test-lab-record-collection">
       首次占优：{Object.entries(result.firstDominanceThresholdSteps ?? {}).map(([ratio, stats]) =>
@@ -1486,7 +1486,7 @@ function FoodTypeTelemetrySummary({result}){
       ).join(" · ")}
     </div>
     <div className="test-lab-record-collection">
-      收藏平均分：多系 {(result.averageCollectionScoreByBoardState?.multiFlavor ?? 0).toFixed(1)}
+      销售平均分：多系 {(result.averageCollectionScoreByBoardState?.multiFlavor ?? 0).toFixed(1)}
       {` · 单系 ${(result.averageCollectionScoreByBoardState?.singleFlavor ?? 0).toFixed(1)}`}
       {` · Penalty ${(result.averageCollectionScoreByBoardState?.penalized ?? 0).toFixed(1)}`}
       {` · 非 Penalty ${(result.averageCollectionScoreByBoardState?.unpenalized ?? 0).toFixed(1)}`}
@@ -1499,9 +1499,9 @@ function RandomSummaryGrid({result}){
     <div className="test-lab-result-grid">
       <ResultItem label="平均最终积分" value={result.averageFinalScore.toFixed(2)} />
       <ResultItem label="平均得分效率" value={result.averageScoreEfficiency.toFixed(2)} />
-      <ResultItem label="平均收藏数量" value={result.averageCollectionCount.toFixed(2)} />
-      <ResultItem label="质数收藏" value={result.averagePrimeCollectionCount.toFixed(2)} />
-      <ResultItem label="合数收藏" value={result.averageCompositeCollectionCount.toFixed(2)} />
+      <ResultItem label="平均售出数量" value={result.averageCollectionCount.toFixed(2)} />
+      <ResultItem label="质数售出" value={result.averagePrimeCollectionCount.toFixed(2)} />
+      <ResultItem label="合数售出" value={result.averageCompositeCollectionCount.toFixed(2)} />
       <ResultItem label="质数占比" value={`${(result.primeCollectionShare * 100).toFixed(1)}%`} />
       <ResultItem label="合数占比" value={`${(result.compositeCollectionShare * 100).toFixed(1)}%`} />
       <ResultItem label="达到测试保护上限" value={`${result.reachedTestProtectionLimitCount ?? 0} / ${result.games}`} />
@@ -1557,7 +1557,7 @@ function DayHistory({game}){
         Day {record.day} · {record.settlement ? `${record.settlement.passed ? "通过" : "未通过"} · 打烊 ${record.settlement.finalScore}分` : `营业中 · ${record.actions.length} 次行动`}
       </summary>
       {record.opening && <div className="test-lab-day-section">
-        <strong>开店 · 00:00</strong> · 积分 {record.opening.score} · 收藏 {record.opening.collectionCount}
+        <strong>开店 · 00:00</strong> · 积分 {record.opening.score} · 售出 {record.opening.collectionCount}
         <CompactBoard board={record.opening.board} />
       </div>}
       {record.market && <div className="test-lab-day-section">
@@ -1570,9 +1570,9 @@ function DayHistory({game}){
         <strong>行动状态（{record.actions.length}）</strong>
         {record.actions.map(snapshot => <details key={snapshot.actionIndex} className="test-lab-action-snapshot">
           <summary>{snapshot.time} · {formatScoreAction(snapshot.action)} · 积分 {snapshot.scoreBefore} → {snapshot.score}{snapshot.scoreGain ? `（+${snapshot.scoreGain}）` : ""}</summary>
-          <div>收藏 {snapshot.collectionCount}{snapshot.collectionGain ? `（+${snapshot.collectionGain}）` : ""} · 盘面 {snapshot.boardCount} 张 / 总和 {snapshot.boardSum}</div>
+          <div>售出 {snapshot.collectionCount}{snapshot.collectionGain ? `（+${snapshot.collectionGain}）` : ""} · 盘面 {snapshot.boardCount} 张 / 总和 {snapshot.boardSum}</div>
           <div>合法动作 {snapshot.legalActionCount} · 合并 {snapshot.combineCount} · 处理 {snapshot.reduceCount} · 料理系 {formatFoodTypeCounts(snapshot.foodTypeCounts)}</div>
-          {snapshot.collections.length > 0 && <div>本次收藏：{snapshot.collections.map(formatCard).join(" / ")}</div>}
+          {snapshot.collections.length > 0 && <div>本次售出：{snapshot.collections.map(formatCard).join(" / ")}</div>}
           {snapshot.toolsUsedSincePreviousAction.length > 0 && <div>此前道具：{snapshot.toolsUsedSincePreviousAction.map(tool => formatScoreAction(tool)).join(" / ")}</div>}
           <CompactBoard board={snapshot.board} />
         </details>)}
@@ -1588,10 +1588,10 @@ function DayHistory({game}){
       {record.settlement && <div className="test-lab-day-section">
         <strong>打烊 · 24:00</strong>
         {` · 累计 ${record.settlement.finalScore} / ${record.settlement.targetScore} · 当日 +${record.settlement.scoreGainToday} · 效率 ${record.settlement.efficiency.toFixed(2)}`}
-        {` · 收藏 +${record.settlement.collectionGainToday} · 打烊盘面总和 ${record.settlement.boardSum} · 当日平均盘面总和 ${(record.dayAverageBoardSum ?? 0).toFixed(1)} · ${record.settlement.passed ? "通过" : "未通过"}`}
+        {` · 售出 +${record.settlement.collectionGainToday} · 打烊盘面总和 ${record.settlement.boardSum} · 当日平均盘面总和 ${(record.dayAverageBoardSum ?? 0).toFixed(1)} · ${record.settlement.passed ? "通过" : "未通过"}`}
       </div>}
       {record.collectionSequence.length > 0 && <div className="test-lab-day-section">
-        <strong>当日收藏顺序：</strong>{record.collectionSequence.map(formatCard).join(" → ")}
+        <strong>当日售出顺序：</strong>{record.collectionSequence.map(formatCard).join(" → ")}
         <div>当日最大：{formatCard(record.collectionSequence.reduce((best, card) => !best || card.value >= best.value ? card : best, null))}</div>
       </div>}
     </details>)}
@@ -1615,23 +1615,23 @@ function ScoreRecord({title, game}){
         {" · "}
         得分效率 <strong>{game.scoreEfficiency.toFixed(2)}</strong>
         {" · "}
-        收藏 <strong>{game.collectionCount}</strong>
+        售出 <strong>{game.collectionCount}</strong>
         {" · "}<strong>Day {game.finalDay} · {getDayTime({dayMinutesElapsed:game.finalDayMinutesElapsed})}</strong>
       </div>
       <div className="test-lab-record-collection">
-        收藏构成：质数 {game.primeCollectionCount} · 合数 {game.compositeCollectionCount}
+        销售构成：质数 {game.primeCollectionCount} · 合数 {game.compositeCollectionCount}
       </div>
       <div className="test-lab-record-collection">
-        料理系收藏构成：{formatFoodTypeCounts(game.collectionFoodTypeCounts)}
+        料理系销售构成：{formatFoodTypeCounts(game.collectionFoodTypeCounts)}
         {game.dominantCollectionFoodType && ` · 最多${FOOD_TYPE_LABELS[game.dominantCollectionFoodType] ?? game.dominantCollectionFoodType} ${game.dominantCollectionFoodTypeCount}/${game.collectionCount} (${(game.dominantCollectionFoodTypeRatio * 100).toFixed(1)}%)`}
       </div>
       <div className="test-lab-record-collection">
-        累计收藏普通系：{game.collectedNormalFoodTypeCount ?? 0}
+        累计售出普通系：{game.collectedNormalFoodTypeCount ?? 0}
       </div>
       <div className="test-lab-record-collection">最终盘面：{formatScoreBoard(game.finalBoard) || "空"}</div>
       <div className="test-lab-record-collection">全局最高连击：{game.maxCombo ?? 0} · 连击奖励总分：+{game.comboBonusTotal ?? 0}</div>
       {(game.dayRecords ?? []).filter(record => record.settlement).map(record => <div key={`board-day-${record.day}`} className="test-lab-record-collection">
-        Day {record.day} · 当日 +{record.settlement.scoreGainToday} · 新增收藏 {record.settlement.collectionGainToday} · 打烊盘面总和 {record.settlement.boardSum} · 当日平均盘面总和 {(record.dayAverageBoardSum ?? 0).toFixed(1)}
+        Day {record.day} · 当日 +{record.settlement.scoreGainToday} · 新增售出 {record.settlement.collectionGainToday} · 打烊盘面总和 {record.settlement.boardSum} · 当日平均盘面总和 {(record.dayAverageBoardSum ?? 0).toFixed(1)}
       </div>)}
       {(game.dayHistory ?? []).map(day => <div key={`combo-day-${day.day}`} className="test-lab-record-collection">
         Day {day.day} · 最高连击 {day.maxComboToday ?? 0} · 连击奖励 +{day.comboBonusToday ?? 0}
@@ -1677,8 +1677,8 @@ function ScoreRecord({title, game}){
               {action.scoreGain > 0 && <>（+{action.scoreGain}）</>}
               {action.collectionEvents.map(event => (
                 <span key={event.id}>
-                  {" · 收藏 "}{event.value}{FOOD_TYPE_LABELS[event.foodType] ?? event.foodType}
-                  {event.isNewCollection ? " · 新收藏" : " · 重复"}
+                  {" · 售出 "}{event.value}{FOOD_TYPE_LABELS[event.foodType] ?? event.foodType}
+                  {event.isNewCollection ? " · 新增售出" : " · 重复"}
                 </span>
               ))}
               {" · "}
@@ -1735,7 +1735,7 @@ function AllScoreRecords({title = "全部测试记录", games = []}){
             onToggle={event => setGameExpanded(gameKey, event.currentTarget.open)}
           >
             <summary>
-              开局 #{gameKey} · {game.finalScore}分 · 收藏{game.collectionCount} · Day {game.finalDay} · {getDayTime({dayMinutesElapsed:game.finalDayMinutesElapsed})}
+              开局 #{gameKey} · {game.finalScore}分 · 售出{game.collectionCount} · Day {game.finalDay} · {getDayTime({dayMinutesElapsed:game.finalDayMinutesElapsed})}
               {` · 经营至 Day ${game.finalDay} · 完成 ${game.completedDayCount} 天`}
               {status ? ` · ${status}` : ""}
             </summary>
@@ -1745,7 +1745,7 @@ function AllScoreRecords({title = "全部测试记录", games = []}){
               <div className="test-lab-record-collection">开局：{formatScoreBoard(game.initialBoard)}</div>
               <div className="test-lab-record-collection">最终盘面：{formatScoreBoard(game.finalBoard) || "空"}</div>
               <div className="test-lab-record-collection">
-                收藏构成：质数 {game.primeCollectionCount} · 合数 {game.compositeCollectionCount}
+                销售构成：质数 {game.primeCollectionCount} · 合数 {game.compositeCollectionCount}
               </div>
               <div className="test-lab-record-collection">结束原因：<strong>{getScoreGameEndReason(game)}</strong></div>
               <DayHistory game={game} />
@@ -1761,8 +1761,8 @@ function AllScoreRecords({title = "全部测试记录", games = []}){
                     {action.scoreGain > 0 && <>（+{action.scoreGain}）</>}
                     {action.collectionEvents.map(event => (
                       <span key={event.id}>
-                        {" · 收藏 "}{event.value}{FOOD_TYPE_LABELS[event.foodType] ?? event.foodType}
-                        {event.isNewCollection ? " · 新收藏" : " · 重复"}
+                        {" · 售出 "}{event.value}{FOOD_TYPE_LABELS[event.foodType] ?? event.foodType}
+                        {event.isNewCollection ? " · 新增售出" : " · 重复"}
                       </span>
                     ))}
                     {" · "}
@@ -2298,7 +2298,7 @@ function ResultGrid({
 
 
       <ResultItem
-        label="平均收藏槽"
+        label="平均销售槽"
         value={
           Number(
             result.averageCollection
@@ -2311,7 +2311,7 @@ function ResultGrid({
 
 
       <ResultItem
-        label="最多收藏槽"
+        label="最多销售槽"
         value={
           result.maxCollection
           ?? 0
@@ -2351,7 +2351,7 @@ function ResultGrid({
 
 
           <ResultItem
-            label="自动收藏总数"
+            label="自动售出总数"
             value={
               formatNumber(
                 totalAutoCollectionEvents
@@ -2361,7 +2361,7 @@ function ResultGrid({
 
 
           <ResultItem
-            label="重复自动收藏"
+            label="重复自动售出"
             value={
               formatNumber(
                 repeatAutoCollections
@@ -2371,7 +2371,7 @@ function ResultGrid({
 
 
           <ResultItem
-            label="每新槽平均重复自动收藏"
+            label="每新槽平均重复自动售出"
             value={
               Number(
                 averageRepeatAutoCollections
@@ -2543,7 +2543,7 @@ function BestGameCard({
       >
 
         {
-          collectionMode ? "最多收藏槽纪录" : "最长步数纪录"
+          collectionMode ? "最多销售槽纪录" : "最长步数纪录"
         }
 
       </div>
@@ -2584,7 +2584,7 @@ function BestGameCard({
 
         {" · "}
 
-        收藏槽{" "}
+        销售槽{" "}
 
         <strong>
           {game.collectionCount}
@@ -2600,7 +2600,7 @@ function BestGameCard({
 
         <div>
 
-          自动收藏：
+          自动售出：
 
           {" "}
 
@@ -2639,7 +2639,7 @@ function BestGameCard({
 
         <div>
 
-          收藏槽类型：
+          销售槽类型：
 
           {" "}
 
@@ -2828,7 +2828,7 @@ function CollectionTimeline({
         "
       >
 
-        收藏时间线
+        销售时间线
 
       </div>
 
@@ -2847,7 +2847,7 @@ function CollectionTimeline({
           {timeline.length}
         </strong>
 
-        {" "}个新收藏槽
+        {" "}个新销售槽
 
       </div>
 
@@ -3130,7 +3130,7 @@ function CollectionTimelineItem({
 
               <br />
 
-              重复自动收藏{" "}
+              重复自动售出{" "}
 
               <strong>
                 {repeatAutoCollectionsSincePrevious}
@@ -3257,7 +3257,7 @@ function CollectionRouteDetail({
         >
 
           <strong>
-            收藏触发：
+            售出触发：
           </strong>
 
           {" "}
@@ -3343,7 +3343,7 @@ function CollectionRouteDetail({
                         <strong>
 
                           {
-                            ` [重复自动收藏${
+                            ` [重复自动售出${
                               repeatAutoCollectionCount > 1
 
                                 ? `×${repeatAutoCollectionCount}`

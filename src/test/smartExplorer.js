@@ -2362,7 +2362,7 @@ function describeAction(
 
       ?
 
-        " · 自动收藏 "
+        " · 自动售出 "
 
         +
 

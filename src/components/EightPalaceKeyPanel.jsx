@@ -40,10 +40,10 @@ export default function EightPalaceKeyPanel({
     <section className="eight-key-panel">
       <div className="eight-key-heading">
         <div>
-          <div className="eight-key-kicker">{simple?"BEGINNER COLLECTION":"EIGHT PALACE GATE"}</div>
-          <h2>{simple?"两系收藏":"八系钥匙门"}</h2>
+          <div className="eight-key-kicker">{simple?"BEGINNER SALES":"EIGHT PALACE GATE"}</div>
+          <h2>{simple?"两系销售":"八系钥匙门"}</h2>
         </div>
-        <strong>收藏 {keyCount} / {targetFoodTypes.length}</strong>
+        <strong>售出 {keyCount} / {targetFoodTypes.length}</strong>
       </div>
 
       {!simple&&<div className="eight-key-used-values">已用钥匙数字：{usedKeyTriggerValues.length?usedKeyTriggerValues.join(" · "):"暂无"}</div>}

@@ -74,7 +74,7 @@ export default function StepPanel({
                 ? <p>完成 10 Step 后生成第一条效率记录</p>
                 : <div className="collection-efficiency-list">
                   {collectionEfficiencyTimeline.map(snapshot => <div key={snapshot.step}>
-                    Step {snapshot.step}　积分 {snapshot.cumulativeScore}　收藏 {snapshot.cumulativeCollections}　效率 {snapshot.collectionEfficiency.toFixed(2)}　近10步 +{snapshot.recent10Collections}
+                    Step {snapshot.step}　积分 {snapshot.cumulativeScore}　售出 {snapshot.cumulativeCollections}　效率 {snapshot.collectionEfficiency.toFixed(2)}　近10步 +{snapshot.recent10Collections}
                   </div>)}
                 </div>}
             </div>}
@@ -108,12 +108,14 @@ export default function StepPanel({
             <span className="checkpoint-card-caption">{isCollectionCheckpoint ? "任务" : "目标"}</span>
             <strong className="checkpoint-card-target">
               {isCollectionCheckpoint
-                ? "获得至少 1 个收藏"
+                ? "售出至少 1 个料理"
                 : `${numberFormatter.format(checkpointTarget)} 分`}
             </strong>
           </div>
           <div className="checkpoint-card-current">
-            <span>当前 {numberFormatter.format(checkpointCurrent)}{isCollectionCheckpoint ? " 个收藏" : " 分"}</span>
+            <span>当前 {isCollectionCheckpoint
+              ? `已售出 ${numberFormatter.format(checkpointCurrent)} 个`
+              : `${numberFormatter.format(checkpointCurrent)} 分`}</span>
             <strong>{checkpointDifference >= 0
               ? checkpointDifference === 0 ? "已达标" : isCollectionCheckpoint ? `${checkpointCurrent} / ${checkpointTarget} · 已完成` : `已达标 · 领先 ${numberFormatter.format(checkpointDifference)} 分`
               : `还差 ${numberFormatter.format(-checkpointDifference)}${isCollectionCheckpoint ? " 个" : " 分"}`}</strong>

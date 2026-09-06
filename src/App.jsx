@@ -241,7 +241,7 @@ function App(){
       showActionToast(
         "检查站未通过",
         result.type === "collection"
-          ? "Step 10 前需要至少获得 1 个收藏"
+          ? "Step 10 前需要至少售出 1 个料理"
           : `目标 ${numberFormatter.format(result.requiredScore)} 分 · 最终 ${numberFormatter.format(result.currentScore)} 分`
       );
     }
@@ -921,7 +921,7 @@ function App(){
                 className="combine-history-trigger"
                 onClick={() => setShowCollection(true)}
               >
-                收藏
+                销售记录
                 <span>{collectionCount}</span>
               </button>
             </div>
@@ -1036,7 +1036,7 @@ function App(){
       {showCollection && (
         <div className="collection-panel-overlay" onClick={() => setShowCollection(false)}>
           <div className="collection-panel-dialog" onClick={event => event.stopPropagation()}>
-            <button type="button" className="collection-panel-close" aria-label="关闭收藏" onClick={() => setShowCollection(false)}>×</button>
+            <button type="button" className="collection-panel-close" aria-label="关闭销售记录" onClick={() => setShowCollection(false)}>×</button>
             {["eightPalace", "simpleEightPalace"].includes(game.gameMode) ? (
               <EightPalaceCollectionPanel cards={game.collectionCards} score={game.score} />
             ) : (

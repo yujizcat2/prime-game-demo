@@ -29,7 +29,7 @@ export default function DayPanel({day, weekday, time, period, dayMinutesElapsed,
     {comboCount >= 2 && <div className="day-panel-combo" role="status">{comboCount} 连击 · +{getComboBonus(comboCount)}</div>}
     <div className="day-panel-business">
       <div className={scoreTargetMet ? "day-panel-target--met" : ""}><span>营业额</span><strong>{numberFormatter.format(score)} <small>/ {targetScore}</small>{scoreTargetMet && " ✓"}</strong></div>
-      <div className={collectionTargetMet ? "day-panel-target--met" : ""}><span>今日收藏</span><strong>{collectionsToday} <small>/ {DAILY_COLLECTION_TARGET}</small>{collectionTargetMet && " ✓"}</strong></div>
+      <div className={collectionTargetMet ? "day-panel-target--met" : ""}><span>今日售出</span><strong>{collectionsToday} <small>/ {DAILY_COLLECTION_TARGET}</small>{collectionTargetMet && " ✓"}</strong></div>
       <span className="day-panel-complete">效率 {efficiency.toFixed(2)}</span>
     </div>
     <div className="day-panel-progress" role="progressbar" aria-label="营业额目标进度" aria-valuemin="0" aria-valuemax={targetScore} aria-valuenow={Math.min(score, targetScore)}>

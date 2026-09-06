@@ -109,7 +109,7 @@ function PairHint({status,keyOutcome,preview}){
         <span><b>{firstName} {first.value}</b> 与 <b>{secondName} {second.value}</b></span>
         <span>执行后两张都会从料理台消失</span>
       </div>
-      <div className="cooking-hint__next"><small>同数消除</small><span>同数清理不会获得新的料理包。</span></div>
+      <div className="cooking-hint__next"><small>同数消除</small><span>同数清理不会售出新料理。</span></div>
     </div>
   );
 

@@ -13,7 +13,7 @@ assert.match(source, /\{display\.typeLabel\}/);
 assert.match(source, /\{display\.originText\}/);
 assert.match(source, /getFoodOriginDescription\(piece, name\)/);
 assert.doesNotMatch(appSource, /<Discovery/);
-assert.match(source, /已获得的料理包详情/);
+assert.match(source, /已售料理详情/);
 assert.match(source, /collection\.map/);
 
 console.log("Collection panel UI tests passed");
