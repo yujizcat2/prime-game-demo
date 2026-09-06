@@ -977,9 +977,12 @@ function applyCombine(
 
   const drinkIndex=a.foodType===FOOD_TYPES.DRINK?indexA:b.foodType===FOOD_TYPES.DRINK?indexB:null;
   if(isDrinkFoodPair(a,b)){
+    const ingredient=drinkIndex===indexA?b:a;
     state.board[drinkIndex]={
       ...state.board[drinkIndex],
-      value
+      value,
+      drinkOriginValue:state.board[drinkIndex].drinkOriginValue??state.board[drinkIndex].value,
+      drinkIngredients:[...(state.board[drinkIndex].drinkIngredients??[]),{value:ingredient.value,foodType:ingredient.foodType}]
     };
     state.steps++;
     state.combineHistoryKeys=addCombinePair(state.combineHistoryKeys,a,b);
@@ -1058,7 +1061,9 @@ function applyCombine(
       null,
 
     singleFlavorPenalty:
-      false
+      false,
+
+    ...(foodType===FOOD_TYPES.DRINK?{drinkOriginValue:value,drinkIngredients:[]}:null)
 
   };
   const targetIndex=getNextEmptyIndex(state.board);
@@ -1898,6 +1903,10 @@ function clonePiece(
 
     drinkOriginValue:
       piece.drinkOriginValue
+      ?? null,
+
+    drinkIngredients:
+      piece.drinkIngredients?.map(ingredient=>({...ingredient}))
       ?? null,
 
     singleFlavorPenalty:

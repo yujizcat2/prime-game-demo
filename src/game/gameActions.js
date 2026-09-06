@@ -285,6 +285,7 @@ export function createReduceOutcome(state,indexA,indexB){
 export function createCombineOutcome(state,indexA,indexB){
   const main=getPieceAt(state,indexA),pairing=getPieceAt(state,indexB);
   if(!main||!pairing)return null;
+  if(!canCombine(main,pairing,getBoardPieces(state.board)))return null;
   if(main.foodType===FOOD_TYPES.DRINK&&pairing.foodType===FOOD_TYPES.DRINK)return null;
   const drinkIndex=main.foodType===FOOD_TYPES.DRINK?indexA:pairing.foodType===FOOD_TYPES.DRINK?indexB:null;
   const value=combineValue(main.value,pairing.value);
@@ -293,9 +294,12 @@ export function createCombineOutcome(state,indexA,indexB){
   const ingredientIndex=drinkIndex===null?null:drinkIndex===indexA?indexB:indexA;
   if(isDrinkFoodPair(main,pairing)){
     const drink=getPieceAt(state,drinkIndex);
+    const ingredient=getPieceAt(state,ingredientIndex);
     const piece={
       ...drink,
-      value
+      value,
+      drinkOriginValue:drink.drinkOriginValue??drink.value,
+      drinkIngredients:[...(drink.drinkIngredients??[]),{value:ingredient.value,foodType:ingredient.foodType}]
     };
     return {kind:"absorb",value,foodType:FOOD_TYPES.DRINK,purity:piece.purity,piece,drinkIndex,ingredientIndex,targetIndex:drinkIndex};
   }
@@ -310,7 +314,8 @@ export function createCombineOutcome(state,indexA,indexB){
     parentFoods:[main,pairing].map(piece=>({value:piece.value,foodType:piece.foodType,purity:piece.purity??null})),
     crossed101:main.value+pairing.value>101,
     origin:createCombineOrigin(value,main,pairing),
-    singleFlavorPenalty:false
+    singleFlavorPenalty:false,
+    ...(foodType===FOOD_TYPES.DRINK?{drinkOriginValue:value,drinkIngredients:[]}:null)
   };
   return {
     kind:"new",

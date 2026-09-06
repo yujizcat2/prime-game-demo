@@ -1,5 +1,6 @@
 import { getFoodDisplayName, getFoodName, getFoodTypeShortName } from "../data/food/foodRegistry";
 import { getSpecialOneDisplayName } from "../data/specialOneRegistry";
+import { FOOD_TYPES } from "../game/rules";
 
 export function getFoodCardDisplayName(piece){
   if(piece?.value === 1 && piece?.specialOne) return getSpecialOneDisplayName(piece);
@@ -16,6 +17,17 @@ export function getFoodCardTypeLabel(piece){
 
 export function getFoodOriginDescription(piece, displayName = getFoodCardDisplayName(piece)){
   if(!piece || !displayName) return "";
+
+  if(piece.foodType === FOOD_TYPES.DRINK){
+    const originValue=piece.drinkOriginValue??piece.value;
+    const entries=[
+      {value:originValue,foodType:FOOD_TYPES.DRINK},
+      ...(piece.drinkIngredients??[])
+    ];
+    return entries.map((entry,index)=>
+      `${index===0?"原生：":""}${getFoodName(entry.value,entry.foodType)}（${entry.value}）`
+    ).join(" · ");
+  }
 
   if(piece.origin?.type === "heater" && piece.origin.from){
     return `加热器 ← ${piece.origin.from.value}`;

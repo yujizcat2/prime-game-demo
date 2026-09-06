@@ -146,6 +146,11 @@ export function createGameState(
           ? initialValue.boardIndex
           : index;
 
+      const foodType = (usesPlacedInitialValues ? initialValue.foodType : null)
+        ?? getNativeFoodType(boardIndex)
+        ?? initialFoodTypes[index]
+        ?? FOOD_TYPES.LAND;
+
 
       board[boardIndex] = {
 
@@ -160,10 +165,7 @@ export function createGameState(
           getBaseScore(value),
 
 
-        foodType: (usesPlacedInitialValues ? initialValue.foodType : null)
-          ?? getNativeFoodType(boardIndex)
-          ?? initialFoodTypes[index]
-          ?? FOOD_TYPES.LAND,
+        foodType,
 
 
         purity:
@@ -178,8 +180,13 @@ export function createGameState(
           null,
 
         drinkOriginValue:
-          usesPlacedInitialValues
-            ? initialValue.drinkOriginValue ?? null
+          foodType === FOOD_TYPES.DRINK
+            ? initialValue.drinkOriginValue ?? value
+            : null,
+
+        drinkIngredients:
+          foodType === FOOD_TYPES.DRINK
+            ? (initialValue.drinkIngredients??[]).map(ingredient=>({value:ingredient.value,foodType:ingredient.foodType}))
             : null,
 
         sourceKey:

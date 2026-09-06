@@ -422,6 +422,10 @@ export function createMazePieceSnapshot(
       piece.drinkOriginValue
       ?? null,
 
+    drinkIngredients:
+      piece.drinkIngredients?.map(ingredient=>({value:ingredient.value,foodType:ingredient.foodType}))
+      ?? null,
+
 
     purity:
       piece.purity

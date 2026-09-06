@@ -5,7 +5,8 @@ import {
   getFoodCardTypeLabel,
   getFoodOriginDescription
 } from "../components/foodCardDisplay";
-import { getFoodTypeShortName } from "../data/food/foodRegistry";
+import { getFoodName, getFoodTypeShortName } from "../data/food/foodRegistry";
+import { FOOD_TYPES } from "../game/rules";
 
 const native = {value: 7, foodType: "dairyEgg"};
 const nativeName = getFoodCardDisplayName(native);
@@ -38,5 +39,23 @@ const combined = {
 };
 const combinedName = getFoodCardDisplayName(combined);
 assert.match(getFoodOriginDescription(combined), new RegExp(`^一种由.+与.+制成的${combinedName}$`));
+
+const drink={value:117,foodType:FOOD_TYPES.DRINK,drinkOriginValue:117,drinkIngredients:[]};
+assert.equal(
+  getFoodOriginDescription(drink),
+  `原生：${getFoodName(117,FOOD_TYPES.DRINK)}（117）`
+);
+const grownDrink={
+  ...drink,
+  value:171,
+  drinkIngredients:[
+    {value:23,foodType:FOOD_TYPES.AQUATIC},
+    {value:31,foodType:FOOD_TYPES.GRAIN_BEAN}
+  ]
+};
+assert.equal(
+  getFoodOriginDescription(grownDrink),
+  `原生：${getFoodName(117,FOOD_TYPES.DRINK)}（117） · ${getFoodName(23,FOOD_TYPES.AQUATIC)}（23） · ${getFoodName(31,FOOD_TYPES.GRAIN_BEAN)}（31）`
+);
 
 console.log("Food card display tests passed");

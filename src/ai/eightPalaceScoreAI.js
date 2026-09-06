@@ -212,6 +212,7 @@ function getStateKey(state){
     piece.value,
     piece.foodType,
     piece.drinkOriginValue ?? null,
+    (piece.drinkIngredients ?? []).map(ingredient => `${ingredient.value}:${ingredient.foodType}`).join(","),
     piece.purity ?? null,
     piece.sourceKey ?? null,
     piece.specialOne?.identity ?? null,

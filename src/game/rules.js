@@ -15,6 +15,7 @@ export function isCrossing101(a,b){return a+b>=102;}
 export function combineValue(a,b){return a+b;}
 export function isNormalFoodType(type){return BASE_FOOD_TYPES.includes(type);}
 export function isDrinkFoodPair(a,b){return Boolean(a&&b&&(a.foodType===FOOD_TYPES.DRINK)!==(b.foodType===FOOD_TYPES.DRINK));}
+export function hasDrinkIngredientValue(drink,value){return Boolean(drink?.foodType===FOOD_TYPES.DRINK&&drink.drinkIngredients?.some(ingredient=>ingredient.value===value));}
 export function flipFoodType(){return null;}
 export function getDessertMutationFoodType(){return null;}
 
@@ -41,4 +42,4 @@ export function isSameFoodIdentity(a,b){return Boolean(a&&b&&a.value===b.value&&
 export function hasParentFood(child,candidate){if(!child||!candidate)return false;if(Array.isArray(child.parentFoods))return child.parentFoods.some(parent=>isSameFoodIdentity(parent,candidate));return Array.isArray(child.parents)&&child.parents.includes(candidate.value);}
 export function hasSameParents(numbers,a,b){return Array.isArray(numbers)&&numbers.some(item=>{if(Array.isArray(item.parentFoods)&&item.parentFoods.length>=2){const [p1,p2]=item.parentFoods;return isSameFoodIdentity(p1,a)&&isSameFoodIdentity(p2,b)||isSameFoodIdentity(p1,b)&&isSameFoodIdentity(p2,a);}if(!Array.isArray(item.parents)||item.parents.length<2)return false;const [p1,p2]=item.parents;return p1===a.value&&p2===b.value||p1===b.value&&p2===a.value;});}
 export function canCombineRelation(a,b,numbers=[]){return Boolean(a&&b&&!hasParentFood(a,b)&&!hasParentFood(b,a)&&!hasSameParents(numbers,a,b));}
-export function canCombine(a,b,numbers=[]){const aType=a?.foodType==="meat"?FOOD_TYPES.LAND:a?.foodType,bType=b?.foodType==="meat"?FOOD_TYPES.LAND:b?.foodType;return Boolean(!(aType===FOOD_TYPES.DRINK&&bType===FOOD_TYPES.DRINK)&&(numbers.length<9||isDrinkFoodPair(a,b))&&canCombineRelation(a,b,numbers)&&(isNormalFoodType(aType)||aType===FOOD_TYPES.DRINK)&&(isNormalFoodType(bType)||bType===FOOD_TYPES.DRINK));}
+export function canCombine(a,b,numbers=[]){const aType=a?.foodType==="meat"?FOOD_TYPES.LAND:a?.foodType,bType=b?.foodType==="meat"?FOOD_TYPES.LAND:b?.foodType;const drink=aType===FOOD_TYPES.DRINK?a:bType===FOOD_TYPES.DRINK?b:null,ingredient=drink===a?b:drink===b?a:null;return Boolean(!(aType===FOOD_TYPES.DRINK&&bType===FOOD_TYPES.DRINK)&&!hasDrinkIngredientValue(drink,ingredient?.value)&&(numbers.length<9||isDrinkFoodPair(a,b))&&canCombineRelation(a,b,numbers)&&(isNormalFoodType(aType)||aType===FOOD_TYPES.DRINK)&&(isNormalFoodType(bType)||bType===FOOD_TYPES.DRINK));}
