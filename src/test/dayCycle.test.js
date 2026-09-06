@@ -66,6 +66,10 @@ const tenCollections = makeCollections(10);
 const failedAt99 = resolveGameOver({...initial, steps: 24, dayMinutesElapsed: 1440, score: 9.9, dayRevenue: 999, collectionCards: tenCollections});
 assert.equal(failedAt99.daySettlement.passed, false);
 assert.equal(failedAt99.gameOverReason, "daily_score_target_not_met");
+const semanticFailure = resolveGameOver({...initial, dayMinutesElapsed: 1440, score: 12.75, dayRevenue: 856});
+assert.equal(semanticFailure.daySettlement.passed, false, "score 12.75 cannot pass when revenue is 856");
+const semanticPass = resolveGameOver({...initial, dayMinutesElapsed: 1440, score: 5, dayRevenue: 1000});
+assert.equal(semanticPass.daySettlement.passed, true, "score 5 passes when revenue is 1000");
 
 const closingBoard = initial.board.map((piece, index) => piece && index === 0 ? {
   ...piece,

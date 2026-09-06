@@ -326,6 +326,7 @@ export const SCORE_AI_DAILY_WEIGHTS = Object.freeze({
 
 export function getScoreAIDailyContext(state){
   const targetScore = getDayTargetScore(state?.day ?? 1);
+  const dayRevenue = state?.dayRevenue ?? 0;
   const todayNewCollectionCount = Math.max(
     0,
     (state?.collectionCards?.length ?? 0) - (state?.dayStartCollectionCount ?? 0)
@@ -334,7 +335,7 @@ export function getScoreAIDailyContext(state){
   const remainingRatio = Math.min(1, remainingMinutes / DAY_DURATION_MINUTES);
   return {
     targetScore,
-    scoreGap: Math.max(0, targetScore - (state?.score ?? 0)),
+    scoreGap: Math.max(0, targetScore - dayRevenue),
     todayNewCollectionCount,
     remainingMinutes,
     remainingRatio,
@@ -410,8 +411,8 @@ export function evaluateScoreState(state, legalActions = state.gameOver ? [] : g
     const collectionPotential = getImmediateCollectionPotential(state, legalActions);
     const goalComplete = context.scoreGap === 0;
     const weights = SCORE_AI_DAILY_WEIGHTS;
-    const scoreAtTarget = Math.min(state.score ?? 0, context.targetScore);
-    const surplusScore = Math.max(0, (state.score ?? 0) - context.targetScore);
+    const scoreAtTarget = Math.min(state.dayRevenue ?? 0, context.targetScore);
+    const surplusScore = Math.max(0, (state.dayRevenue ?? 0) - context.targetScore);
     const scoreGapWeight = weights.scoreGapBase + weights.scoreGapUrgency * context.urgency;
     const immediateSaleWeight = weights.immediateSalePointBase
       + weights.immediateSalePointUrgency * context.urgency;
@@ -1116,6 +1117,7 @@ export function summarizeScoreResults(results){
       passedCount,
       passRate: reached.length ? passedCount / reached.length : 0,
       averageClosingScore: average(settlements, settlement => settlement.finalScore),
+      averageClosingRevenue: average(settlements, settlement => settlement.dailyRevenue ?? 0),
       averageScoreGainToday: average(settlements, settlement => settlement.scoreGainToday),
       averageCollectionCount: average(settlements, settlement => settlement.collectionGainToday),
       averageMaxCombo: average(settlements, settlement => settlement.maxComboToday ?? 0),
@@ -1271,7 +1273,7 @@ export function summarizeScoreResults(results){
     avoidableImmediateDeathCount,
     scoreTargetFailureCount,
     averageClosingScoreGap: average(closingSettlements, settlement =>
-      Math.max(0, (settlement.targetScore ?? getDayTargetScore(settlement.day)) - (settlement.finalScore ?? 0))
+      Math.max(0, (settlement.targetScore ?? getDayTargetScore(settlement.day)) - (settlement.dailyRevenue ?? 0))
     ),
     averageCollectionEfficiencyTimeline: summarizeCollectionEfficiencyTimelines(results),
     highScore,

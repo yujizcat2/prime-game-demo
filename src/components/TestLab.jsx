@@ -1395,7 +1395,7 @@ function ScoreSummaryGrid({result}){
     <div className="test-lab-timeline">
       {(result.daySummaries ?? []).map(day => <div key={day.day}>
           Day {day.day} · 到达 {day.reachedCount}/{result.games ?? result.attempts} · 通过 {day.passedCount}/{day.reachedCount} ({(day.passRate * 100).toFixed(1)}%)
-          {` · 累计目标 ${day.targetScore} · 平均打烊累计积分 ${day.averageClosingScore.toFixed(1)}`}
+          {` · 营业额目标 ${day.targetScore} · 平均打烊营业额 ${day.averageClosingRevenue.toFixed(1)}`}
           {` · 平均当日新增积分 +${day.averageScoreGainToday.toFixed(1)} · 平均售出数量 ${day.averageCollectionCount.toFixed(1)} · 平均打烊盘面总和 ${day.averageBoardSum.toFixed(1)} · 平均日内盘面总和 ${(day.averageDayBoardSum ?? 0).toFixed(1)}`}
           {` · 平均最高连击 ${day.averageMaxCombo.toFixed(1)} · 平均连击奖励 +${day.averageComboBonus.toFixed(1)}`}
       </div>)}
@@ -1553,7 +1553,7 @@ function DayHistory({game}){
     <strong>每日营业记录</strong>
     {(game.dayRecords ?? []).map(record => <details key={record.day} className="test-lab-day-record">
       <summary>
-        Day {record.day} · {record.settlement ? `${record.settlement.passed ? "通过" : "未通过"} · 打烊 ${record.settlement.finalScore}分` : `营业中 · ${record.actions.length} 次行动`}
+        Day {record.day} · {record.settlement ? `${record.settlement.passed ? "通过" : "未通过"} · 打烊营业额 ${record.settlement.dailyRevenue}` : `营业中 · ${record.actions.length} 次行动`}
       </summary>
       {record.opening && <div className="test-lab-day-section">
         <strong>开店 · 00:00</strong> · 积分 {record.opening.score} · 售出 {record.opening.collectionCount}
@@ -1586,7 +1586,7 @@ function DayHistory({game}){
       </div>
       {record.settlement && <div className="test-lab-day-section">
         <strong>打烊 · 24:00</strong>
-        {` · 累计 ${record.settlement.finalScore} / ${record.settlement.targetScore} · 当日 +${record.settlement.scoreGainToday} · 效率 ${record.settlement.efficiency.toFixed(2)}`}
+        {` · 营业额 ${record.settlement.dailyRevenue} / ${record.settlement.targetScore} · 当日积分 +${record.settlement.scoreGainToday} · 效率 ${record.settlement.efficiency.toFixed(2)}`}
         {` · 售出 +${record.settlement.collectionGainToday} · 打烊盘面总和 ${record.settlement.boardSum} · 当日平均盘面总和 ${(record.dayAverageBoardSum ?? 0).toFixed(1)} · ${record.settlement.passed ? "通过" : "未通过"}`}
       </div>}
       {record.collectionSequence.length > 0 && <div className="test-lab-day-section">

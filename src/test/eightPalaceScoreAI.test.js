@@ -457,6 +457,7 @@ assert.equal(evaluateScoreState(keyless), evaluateScoreState(keyed), "keys have 
 
 function createOperatingScoreState(values, {
   score = 1000,
+  dayRevenue = score,
   collectionCount = 7,
   dayMinutesElapsed = 1430,
   timeSalePeriods = TIME_SALE_PERIODS
@@ -471,6 +472,7 @@ function createOperatingScoreState(values, {
     dayCycleEnabled: true,
     day: 1,
     score,
+    dayRevenue,
     dayMinutesElapsed,
     dayStartCollectionCount: 0,
     collectionCards: Array.from({length: collectionCount}, (_, index) => ({
@@ -487,6 +489,8 @@ const oneCollectionAction = [{type: "reduce", indexes: [0, 1]}];
 assert.equal(Object.hasOwn(getScoreAIDailyContext(oneCollectionShort), "collectionGap"), false);
 assert.ok(getScoreAIDailyContext(oneCollectionShort).scoreGap > 0);
 assert.equal(getScoreAIDailyContext(surplusWithoutCollection).scoreGap, 0, "revenue is the sole daily target");
+assert.equal(getScoreAIDailyContext(createOperatingScoreState([9, 15], {score: 12.75, dayRevenue: 856})).scoreGap, 144);
+assert.equal(getScoreAIDailyContext(createOperatingScoreState([9, 15], {score: 5, dayRevenue: 1000})).scoreGap, 0);
 
 const lowValueSale = createOperatingScoreState([4, 8, 3, 5], {score: 500, collectionCount: 8});
 const highValueSale = createOperatingScoreState([30, 60, 3, 5], {score: 500, collectionCount: 8});
@@ -642,14 +646,15 @@ assert.match(marketTestLabSource, /Day \{record\.day\} 销售/);
 assert.match(marketTestLabSource, /record\.market\.saleScores/);
 
 const daySummary = summarizeScoreResults([
-  {finalScore: 600, scoreEfficiency: 25, collectionCount: 10, primeCollectionCount: 1, compositeCollectionCount: 9, steps: 24, completed100Steps: false, deadlocked: false, dayCycleEnabled: true, finalDay: 1, dayHistory: [{day: 1, targetScore: 100, finalScore: 600, scoreGainToday: 600, scoreTargetMet: true, collectionGainToday: 10, boardSum: 100, passed: true}], dayRecords: [{day: 1, dayAverageBoardSum: 30}]},
-  {finalScore: 400, scoreEfficiency: 16.67, collectionCount: 9, primeCollectionCount: 0, compositeCollectionCount: 9, steps: 24, completed100Steps: false, deadlocked: false, dayCycleEnabled: true, finalDay: 1, dayHistory: [{day: 1, targetScore: 500, finalScore: 400, scoreGainToday: 99, scoreTargetMet: false, collectionGainToday: 9, boardSum: 80, passed: false}], dayRecords: [{day: 1, dayAverageBoardSum: 15}]},
+  {finalScore: 600, scoreEfficiency: 25, collectionCount: 10, primeCollectionCount: 1, compositeCollectionCount: 9, steps: 24, completed100Steps: false, deadlocked: false, dayCycleEnabled: true, finalDay: 1, dayHistory: [{day: 1, targetScore: 100, finalScore: 600, dailyRevenue: 100, scoreGainToday: 600, scoreTargetMet: true, collectionGainToday: 10, boardSum: 100, passed: true}], dayRecords: [{day: 1, dayAverageBoardSum: 30}]},
+  {finalScore: 400, scoreEfficiency: 16.67, collectionCount: 9, primeCollectionCount: 0, compositeCollectionCount: 9, steps: 24, completed100Steps: false, deadlocked: false, dayCycleEnabled: true, finalDay: 1, dayHistory: [{day: 1, targetScore: 500, finalScore: 400, dailyRevenue: 400, scoreGainToday: 99, scoreTargetMet: false, collectionGainToday: 9, boardSum: 80, passed: false}], dayRecords: [{day: 1, dayAverageBoardSum: 15}]},
   {finalScore: 0, scoreEfficiency: 0, collectionCount: 0, primeCollectionCount: 0, compositeCollectionCount: 0, steps: 4, completed100Steps: false, deadlocked: true, dayCycleEnabled: true, finalDay: 1, dayHistory: []}
 ]);
 assert.equal(daySummary.daySummaries[0].reachedCount, 3);
 assert.equal(daySummary.daySummaries[0].passedCount, 1);
 assert.equal(daySummary.daySummaries[0].passRate, 1 / 3, "day pass rate uses reachedCount as its denominator");
 assert.equal(daySummary.daySummaries[0].averageBoardSum, 90, "closing board sum reporting is unchanged");
+assert.equal(daySummary.daySummaries[0].averageClosingRevenue, 250);
 assert.equal(daySummary.daySummaries[0].averageDayBoardSum, 15, "daily averages are averaged across every reached game, including empty samples");
 assert.equal(daySummary.scoreTargetFailureCount, 1);
 assert.equal(daySummary.averageClosingScoreGap, 50);
