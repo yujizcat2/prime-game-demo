@@ -7,7 +7,7 @@ import { getTimeSalePeriod, TIME_SALE_PERIODS } from "../game/timeSaleMultiplier
 
 const numberFormatter = new Intl.NumberFormat("zh-CN");
 
-export default function DayPanel({day, weekday, time, period, dayMinutesElapsed, score, collectionsToday = 0, totalActionMinutes, comboCount}){
+export default function DayPanel({day, weekday, time, period, dayMinutesElapsed, timeSalePeriods = TIME_SALE_PERIODS, score, collectionsToday = 0, totalActionMinutes, comboCount}){
   const [showTimeSalePeriods, setShowTimeSalePeriods] = useState(false);
   const remaining = Math.max(0, DAY_DURATION_MINUTES - dayMinutesElapsed);
   const urgency = remaining <= 120 ? " day-panel--urgent" : remaining <= 300 ? " day-panel--near" : "";
@@ -15,7 +15,7 @@ export default function DayPanel({day, weekday, time, period, dayMinutesElapsed,
   const targetScore = getDayTargetScore(day);
   const scoreTargetMet = score >= targetScore;
   const collectionTargetMet = collectionsToday >= DAILY_COLLECTION_TARGET;
-  const currentTimeSalePeriod = getTimeSalePeriod(time);
+  const currentTimeSalePeriod = getTimeSalePeriod(time, timeSalePeriods);
   const formatMultiplier = multiplier => Number(multiplier).toFixed(2);
 
   return <section className={`day-panel${urgency}`} aria-label={`${weekday}营业日`}>
@@ -45,7 +45,7 @@ export default function DayPanel({day, weekday, time, period, dayMinutesElapsed,
             <button type="button" aria-label="关闭价格时段" onClick={() => setShowTimeSalePeriods(false)}>×</button>
           </div>
           <div className="day-panel-price-list">
-            {TIME_SALE_PERIODS.map(item => (
+            {timeSalePeriods.map(item => (
               <div
                 key={item.startMinutes}
                 className={`day-panel-price-row day-panel-price-row--${item.multiplier < 1 ? "low" : item.multiplier > 1 ? "high" : "normal"}${item === currentTimeSalePeriod ? " day-panel-price-row--current" : ""}`}

@@ -25,6 +25,7 @@ import {
 import { getBaseScore } from "./scoreValue";
 import { getNativeFoodType } from "./nativeFoodTypes";
 import { createFirstCheckpoint } from "./checkpoints";
+import { TIME_SALE_PERIODS } from "./timeSaleMultiplier";
 
 
 
@@ -370,6 +371,8 @@ export function createGameState(
     dayStartCollectionCount: 0,
     daySettlement: null,
     dayHistory: [],
+    timeSalePeriods: TIME_SALE_PERIODS.map(period => ({...period})),
+    timeSaleScores: {},
 
     gameRecapSnapshots: [],
     recapActionCounts: {combine: 0, reduce: 0},

@@ -2,6 +2,12 @@ import { getBoardCount } from "./boardRules";
 import { getNonDrinkBoardSum } from "./scoreValue";
 import { getScoreEfficiency } from "./scoreEfficiency";
 import { scaleScore } from "./scoreScale";
+import {
+  createNextTimeSalePeriods,
+  createTimeSaleMarketRows,
+  getTimeSalePriceTotal,
+  TIME_SALE_PERIODS
+} from "./timeSaleMultiplier";
 
 export const DAY_DURATION_MINUTES = 1440;
 export const DAILY_COLLECTION_TARGET = 8;
@@ -59,6 +65,9 @@ export function createDaySettlement(state){
   const scoreTargetMet = finalScore >= targetScore;
   const collectionTargetMet = todayCollections.length >= DAILY_COLLECTION_TARGET;
   const passed = scoreTargetMet && collectionTargetMet;
+  const timeSalePeriods = state.timeSalePeriods ?? TIME_SALE_PERIODS;
+  const timeSaleScores = state.timeSaleScores ?? {};
+  const nextTimeSalePeriods = createNextTimeSalePeriods(timeSalePeriods, timeSaleScores);
   return {
     day: state.day,
     weekday: getWeekday(state.day),
@@ -76,6 +85,12 @@ export function createDaySettlement(state){
     efficiency: getScoreEfficiency(scoreGainToday, state.dayMinutesElapsed ?? 0),
     boardCount: getBoardCount(state.board),
     boardSum: getNonDrinkBoardSum(state.board),
+    timeSalePeriods,
+    timeSaleScores,
+    nextTimeSalePeriods,
+    timeSaleMarketRows: createTimeSaleMarketRows(timeSalePeriods, timeSaleScores, nextTimeSalePeriods),
+    timeSalePriceTotal: getTimeSalePriceTotal(timeSalePeriods),
+    nextTimeSalePriceTotal: getTimeSalePriceTotal(nextTimeSalePeriods),
     passed
   };
 }
@@ -110,6 +125,8 @@ export function advanceToNextDay(state){
     heaterCount: 1,
     restoreCount: 1,
     superHeaterCount: 1,
+    timeSalePeriods: state.daySettlement.nextTimeSalePeriods,
+    timeSaleScores: {},
     daySettlement: null,
     gameOver: false,
     gameOverReason: null

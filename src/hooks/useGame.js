@@ -1429,6 +1429,7 @@ export default function useGame(){
     dayTime,
     dayPeriod,
     weekday,
+    timeSalePeriods: gameState?.timeSalePeriods,
     scoreGainToday,
     collectionsToday: Math.max(0, collectionCards.length - (gameState?.dayStartCollectionCount ?? 0)),
     comboCount,

@@ -11,6 +11,7 @@ import { getNonDrinkBoardSum } from "./scoreValue";
 import { createCollectionRewardSettlement, getBoardAverageValue } from "./collectionReward";
 import { getDayTime } from "./dayCycle";
 import { getCuisineSequenceIndex } from "./scoreScale";
+import { getTimeSalePeriod } from "./timeSaleMultiplier";
 import { getCollectionMultiplier } from "./collectionMultiplier";
 
 
@@ -1573,6 +1574,7 @@ export function getEightPalaceCollectionScoreGain(state, piece){
     boardAverageValue: getBoardAverageValue(state?.board),
     singleFlavorPenalty: record.singleFlavorPenalty === true,
     gameTime: getDayTime(state),
+    timeSalePeriods: state.timeSalePeriods,
     collectionRecord: record
   }).totalScore;
 }
@@ -1596,6 +1598,7 @@ export function applyEightPalaceCollection(
   const isNewCollection = !alreadyCollected;
   const sequenceIndex = getCuisineSequenceIndex(state.collectionCards, record.foodType);
   const name = getFoodName(value, record.foodType);
+  const gameTime = getDayTime(state);
   const rewardSettlement = createCollectionRewardSettlement({
     collectionCards: state.collectionCards,
     value,
@@ -1605,9 +1608,11 @@ export function applyEightPalaceCollection(
     nonDrinkBoardSum: getNonDrinkBoardSum(settlementBoard),
     boardAverageValue: getBoardAverageValue(settlementBoard),
     singleFlavorPenalty: record.singleFlavorPenalty === true,
-    gameTime: getDayTime(state),
+    gameTime,
+    timeSalePeriods: state.timeSalePeriods,
     collectionRecord: record
   });
+  const timeSalePeriod = getTimeSalePeriod(gameTime, state.timeSalePeriods);
 
   const parentFoods = createConcreteParentSnapshots(record);
   const collectionStep = (state.steps ?? 0) + 1;
@@ -1652,7 +1657,11 @@ export function applyEightPalaceCollection(
       ...(state.latestCollectionRewards ?? []),
       rewardSettlement
     ],
-    score: (state.score ?? 0) + rewardSettlement.totalScore
+    score: (state.score ?? 0) + rewardSettlement.totalScore,
+    timeSaleScores: {
+      ...(state.timeSaleScores ?? {}),
+      [timeSalePeriod.startMinutes]: (state.timeSaleScores?.[timeSalePeriod.startMinutes] ?? 0) + rewardSettlement.totalScore
+    }
   };
 }
 

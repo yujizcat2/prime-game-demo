@@ -10,7 +10,7 @@ export function getBoardAverageValue(board = []){
 
 export function createCollectionRewardSettlement({
   collectionCards = [], value, foodType, name, nonDrinkBoardSum = 0, cuisineSequenceIndex = 1,
-  gameTime = "04:00", collectionRecord = null
+  gameTime = "04:00", timeSalePeriods, collectionRecord = null
 }){
   const score = getCollectionScoreBreakdown(collectionCards, value, foodType);
   const collectionMultiplier = getCollectionMultiplier(collectionRecord);
@@ -25,7 +25,7 @@ export function createCollectionRewardSettlement({
   }
 
   const collectionScore = applyCuisineScoreMultiplier(score.collectionScore, cuisineSequenceIndex);
-  const timeSalePeriod = getTimeSalePeriod(gameTime);
+  const timeSalePeriod = getTimeSalePeriod(gameTime, timeSalePeriods);
   const totalScore = Math.round(
     collectionScore * timeSalePeriod.multiplier * collectionMultiplier.collectionMultiplierRate
   );

@@ -829,6 +829,7 @@ function App(){
             time={game.dayTime}
             period={game.dayPeriod}
             dayMinutesElapsed={game.dayMinutesElapsed}
+            timeSalePeriods={game.timeSalePeriods}
             score={game.score}
             collectionsToday={game.collectionsToday}
             steps={game.steps}
@@ -983,6 +984,9 @@ function App(){
                 }
                 dayMinutesElapsed={
                   game.dayMinutesElapsed
+                }
+                timeSalePeriods={
+                  game.timeSalePeriods
                 }
                 scoreMode={
                   ["eightPalace", "simpleEightPalace"].includes(game.gameMode)

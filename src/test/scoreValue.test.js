@@ -54,7 +54,7 @@ const porkPreviewState = {
 for(const selectedIndexes of [[], [0], [0, 1]]){
   assert.equal(
     getEightPalaceCollectionScoreGain(porkPreviewState, {value: 1, origin: {type: "reduce", parent: pork}}),
-    29,
+    46,
     `selection ${selectedIndexes.join(",") || "none"} does not change the current collection preview`
   );
 }
@@ -62,7 +62,7 @@ const porkCollected = applyEightPalaceCollection(
   porkPreviewState,
   {value: 1, origin: {type: "reduce", parent: pork}}
 );
-assert.equal(porkCollected.score - porkPreviewState.score, 29, "preview 29 matches formal settlement: round(50 × 1.15 × 0.50)");
+assert.equal(porkCollected.score - porkPreviewState.score, 46, "preview matches formal settlement: round(50 × 1.15 × 0.80)");
 
 const matchingState = createGameState([
   {value: 8, foodType: aquatic, boardIndex: 0, gameMode: "eightPalace"},
