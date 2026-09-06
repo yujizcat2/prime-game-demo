@@ -240,6 +240,7 @@ export default function useGame(){
     ??
 
     0;
+  const dayRevenue = gameState?.dayRevenue ?? 0;
 
 
   const steps =
@@ -1416,6 +1417,7 @@ export default function useGame(){
     superHeaterAvailable,
     // 分数 / 时间
     score,
+    dayRevenue,
 
     steps,
     totalActionMinutes,

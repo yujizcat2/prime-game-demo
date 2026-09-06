@@ -18,8 +18,10 @@ export default function DaySettlement({settlement, onContinue}){
       <div className="day-settlement-kicker">DAY {settlement.day} · {settlement.weekday} · 打烊</div>
       <h2 id="day-settlement-title">{settlement.passed ? "今日营业完成" : "今日目标未完成"}</h2>
       <div className="day-settlement-rule" />
-      <Metric label="今日获得积分" value={`+${numberFormatter.format(settlement.scoreGainToday)}`} />
-      <Metric label="营业额" value={`${numberFormatter.format(settlement.finalScore)} / ${settlement.targetScore} ${settlement.scoreTargetMet ? "✓" : "✕"}`} />
+      <Metric label="今日积分" value={`+${Number(settlement.dailyScore ?? 0).toFixed(2)}`} />
+      <Metric label="日结奖励" value={`+${Number(settlement.settlementBonus ?? 0).toFixed(2)}`} />
+      <Metric label="累计积分" value={Number(settlement.cumulativeScore ?? settlement.finalScore ?? 0).toFixed(2)} />
+      <Metric label="营业额" value={`${numberFormatter.format(settlement.dailyRevenue)} / ${settlement.targetScore} ${settlement.scoreTargetMet ? "✓" : "✕"}`} />
       <Metric label="今日售出" value={numberFormatter.format(settlement.collectionGainToday)} />
       <Metric label="今日销售奖励" value={`+${numberFormatter.format(settlement.dailyCollectionBonusTotal ?? 0)}`} />
       <Metric label="今日效率" value={settlement.efficiency.toFixed(2)} />

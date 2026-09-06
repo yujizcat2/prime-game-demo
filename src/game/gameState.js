@@ -312,6 +312,9 @@ export function createGameState(
     score:
       0,
 
+    dayRevenue: 0,
+    dayTargetReachedAtMinutes: null,
+
     comboCount: 0,
     maxCombo: 0,
     comboBonusTotal: 0,

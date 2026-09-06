@@ -55,9 +55,9 @@ const collectionState = createState([
 const collected = applyAction(collectionState, {type: "reduce", indexes: [0, 1]});
 assert.equal(collected.collectionCards.length, 1);
 assert.equal(collected.latestActionBaseScore, null, "a collecting reduce does not also receive +2");
-assert.equal(collected.comboCount, 2, "collection scoring keeps the existing combo behavior");
-assert.equal(collected.latestComboEvent.comboBonus, 10);
-assert.equal(collected.score, collected.collectionCards[0].scoreGain);
+assert.equal(collected.comboCount, 2, "collection tracking keeps the existing combo behavior");
+assert.equal(collected.latestComboEvent.comboBonus, 0, "Day mode points use only the sale formula");
+assert.equal(collected.score, collected.collectionCards[0].salePointScore);
 assert.equal(doesReduceCreateEffectiveSale(collectionState, [0, 1]), true);
 const salePreview = getReduceSalePreviewRewards(collectionState, [0, 1])[0];
 assert.equal(salePreview.totalScore, collected.latestCollectionRewards[0].totalScore, "sale preview matches the modal total");
@@ -107,12 +107,12 @@ assert.equal(applyAction(reduceState, {type: "reduce", indexes: [0, 8]}), reduce
 
 const closingCombine = applyAction({...combineState, score: 990, steps: 23, dayMinutesElapsed: 1410, collectionCards: dailyCollections}, {type: "combine", indexes: [0, 1]});
 assert.equal(closingCombine.score, 990);
-assert.equal(closingCombine.daySettlement.scoreGainToday, 990);
+assert.equal(closingCombine.daySettlement.dailyRevenue, 0);
 assert.equal(closingCombine.daySettlement.passed, false);
 
 const closingReduce = applyAction({...reduceState, score: 980, steps: 23, dayMinutesElapsed: 1395, collectionCards: dailyCollections}, {type: "reduce", indexes: [0, 1]});
 assert.equal(closingReduce.score, 980);
-assert.equal(closingReduce.daySettlement.scoreGainToday, 980);
+assert.equal(closingReduce.daySettlement.dailyRevenue, 0);
 assert.equal(closingReduce.daySettlement.passed, false);
 
 console.log("action base score tests passed");

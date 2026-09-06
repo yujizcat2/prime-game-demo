@@ -17,6 +17,7 @@ import { getDailyCollectionBonus, getDayTime, getTodayNewCollectionCount } from 
 import { getCuisineSequenceIndex } from "./scoreScale";
 import { getTimeSalePeriod } from "./timeSaleMultiplier";
 import { getCollectionRewardMultiplier } from "./collectionRewardLevel";
+import { getSaleScore } from "./saleScore";
 
 
 // ============================================================
@@ -1632,11 +1633,19 @@ export function applyEightPalaceCollection(
     ? getDailyCollectionBonus(todayCollectionNumber)
     : 0;
   const totalScore = rewardSettlement.totalScore + dailyCollectionBonus;
+  const salePointScore = isNewCollection && state.dayCycleEnabled
+    ? getSaleScore({
+        baseSalePrice: rewardSettlement.baseScore,
+        qualityMultiplier: rewardSettlement.collectionMultiplierRate,
+        daySaleCount: todayCollectionNumber
+      })
+    : totalScore;
   const collectionReward = {
     ...rewardSettlement,
     saleScore: rewardSettlement.totalScore,
     todayCollectionNumber,
     dailyCollectionBonus,
+    salePointScore,
     totalScore
   };
   const timeSalePeriod = getTimeSalePeriod(gameTime, state.timeSalePeriods);
@@ -1663,6 +1672,7 @@ export function applyEightPalaceCollection(
     bonusScore: rewardSettlement.bonusScore,
     saleScore: rewardSettlement.totalScore,
     dailyCollectionBonus,
+    salePointScore,
     todayCollectionNumber,
     totalScore,
     collectionRewardLevel: rewardSettlement.collectionRewardLevel,
@@ -1687,7 +1697,10 @@ export function applyEightPalaceCollection(
       ...(state.latestCollectionRewards ?? []),
       collectionReward
     ],
-    score: (state.score ?? 0) + totalScore,
+    score: (state.score ?? 0) + salePointScore,
+    dayRevenue: state.dayCycleEnabled
+      ? (state.dayRevenue ?? 0) + totalScore
+      : state.dayRevenue,
     timeSaleScores: {
       ...(state.timeSaleScores ?? {}),
       [timeSalePeriod.startMinutes]: (state.timeSaleScores?.[timeSalePeriod.startMinutes] ?? 0) + rewardSettlement.totalScore

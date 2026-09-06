@@ -57,6 +57,7 @@ assert.equal(illegal.totalActionMinutes, 45);
 const overtime45Base = createState(normalReduceCards, {
   steps: 23,
   score: 1000,
+  dayRevenue: 1000,
   dayMinutesElapsed: 1420,
   totalActionMinutes: 1420,
   collectionCards: dailyCollections
@@ -70,6 +71,7 @@ assert.equal(overtime45.daySettlement.efficiency, 1000 / 1465 * 60);
 const overtime60Base = createState(collectingReduceCards, {
   steps: 23,
   score: 1000,
+  dayRevenue: 1000,
   comboCount: 1,
   dayMinutesElapsed: 1430,
   totalActionMinutes: 1430,
@@ -79,7 +81,7 @@ const overtime60 = applyAction(overtime60Base, {type: "reduce", indexes: [0, 1]}
 assert.equal(getDayTime(overtime60), "24:50");
 assert.equal(overtime60.daySettlement.minutesToday, 1490);
 assert.equal(overtime60.comboCount, 2);
-assert.equal(overtime60.latestComboEvent.comboBonus, 10);
+assert.equal(overtime60.latestComboEvent.comboBonus, 0);
 assert.ok(overtime60.daySettlement.scoreGainToday > 1000);
 
 const closed = {...overtime45Base, dayMinutesElapsed: 1440};
@@ -90,7 +92,7 @@ assert.equal(dayTwo.dayMinutesElapsed, 0);
 assert.equal(getDayTime(dayTwo), "00:00");
 assert.equal(dayTwo.totalActionMinutes, 1465, "cross-day clock reset does not reset total action minutes");
 
-const weekEnd = applyAction({...overtime60Base, day: 7, score: 7000}, {type: "reduce", indexes: [0, 1]});
+const weekEnd = applyAction({...overtime60Base, day: 7}, {type: "reduce", indexes: [0, 1]});
 assert.equal(weekEnd.gameOverReason, "week_complete");
 assert.equal(weekEnd.day, 7);
 assert.equal(advanceToNextDay(weekEnd), weekEnd);

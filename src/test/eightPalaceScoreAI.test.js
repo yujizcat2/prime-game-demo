@@ -137,7 +137,9 @@ if(result.steps === 100){
 }
 assert.notEqual(result.gameOverReason, "eight_palace_keys_missing");
 assert.equal(result.finalScore, result.actionPath.reduce((sum, action) => sum + action.scoreGain, 0));
-assert.ok(Number.isInteger(result.finalScore), "AI final score remains an integer");
+assert.ok(Number.isFinite(result.finalScore), "AI final score supports decimal sale points");
+assert.ok(Number.isFinite(result.dailyScore));
+assert.ok(Number.isFinite(result.dailyRevenue));
 assert.ok(result.collections.every(card =>
   Number.isInteger(card.baseScore) &&
   Number.isInteger(card.nonDrinkBoardSum) &&
@@ -267,7 +269,7 @@ for(const summary of [tenGames, tenGames.randomComparison]){
     summary.earliestSingleFlavorFirstTriggeredStep,
     triggered.length ? Math.min(...triggered.map(game => game.singleFlavorFirstTriggeredStep)) : null
   );
-  assert.ok(results.every(game => Number.isInteger(game.finalScore) && !Number.isNaN(game.finalScore)));
+  assert.ok(results.every(game => Number.isFinite(game.finalScore)));
   assert.equal(summary.foodTypeCheckpointSummary.length, 10);
   assert.deepEqual(
     new Set(Object.keys(summary.firstDominanceThresholdSteps)),
@@ -541,7 +543,7 @@ const formalSaleAction = getLegalActions(formalSaleState).find(action =>
 const formalPotential = getImmediateCollectionPotential(formalSaleState, [formalSaleAction]);
 const formalSaleResult = applyAction(formalSaleState, formalSaleAction);
 assert.equal(
-  formalSaleResult.score - formalSaleState.score,
+  formalSaleResult.dayRevenue - formalSaleState.dayRevenue,
   formalPotential.bestScore,
   "AI preview reuses the formal reward result without changing it"
 );
@@ -606,6 +608,7 @@ const marketClosedDayOne = resolveGameOver({
   steps: 24,
   dayMinutesElapsed: 1440,
   score: 1000,
+  dayRevenue: 1000,
   collectionCards: Array.from({length: 8}, (_, index) => ({value: index + 20, foodType: BASE_FOOD_TYPES[index % 2]})),
   timeSaleScores: {0: 80, 240: 700, 660: 110, 720: 400, 960: 230, 1080: 40, 1200: 400}
 });

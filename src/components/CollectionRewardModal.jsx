@@ -36,6 +36,10 @@ export default function CollectionRewardModal({reward, onClose}){
           <span>本次营业额</span>
           <strong>+{reward.totalScore ?? 0}</strong>
         </div>
+        {reward.salePointScore != null && <div className="collection-reward-total">
+          <span>积分</span>
+          <strong>+{Number(reward.salePointScore).toFixed(2)} 分</strong>
+        </div>}
         <button type="button" onClick={onClose}>确认</button>
       </section>
     </div>,

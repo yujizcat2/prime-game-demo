@@ -798,6 +798,7 @@ function App(){
             dayMinutesElapsed={game.dayMinutesElapsed}
             timeSalePeriods={game.timeSalePeriods}
             score={game.score}
+            dayRevenue={game.dayRevenue}
             collectionsToday={game.collectionsToday}
             steps={game.steps}
             totalActionMinutes={game.totalActionMinutes}

@@ -960,6 +960,8 @@ export async function runScoreGame({
     initialBoard,
     score: state.score,
     finalScore: state.score,
+    dailyScore: Number(((state.score ?? 0) - (state.dayStartScore ?? 0)).toFixed(2)),
+    dailyRevenue: state.dayRevenue ?? state.daySettlement?.dailyRevenue ?? 0,
     heaterTimeline,
     superHeaterTimeline,
     searchTelemetry: {

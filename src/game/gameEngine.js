@@ -45,7 +45,7 @@ import { canUseHeater } from "./heater";
 import { applySuperHeater } from "./superHeater";
 import { markSingleFlavorBoardPieces } from "./singleFlavorPenalty";
 import { resolveCheckpoint } from "./checkpoints";
-import { DAY_DURATION_MINUTES, getDayTime, settleDayIfNeeded } from "./dayCycle";
+import { DAY_DURATION_MINUTES, DAY_REVENUE_TARGET, getDayTime, settleDayIfNeeded } from "./dayCycle";
 import { applyScoreCombo } from "./scoreCombo";
 import { applyActionBaseScore } from "./actionBaseScore";
 import { applyActionDuration } from "./actionDuration";
@@ -374,12 +374,20 @@ export function applyAction(
   const stampCollection = item => newCollectionIds.has(item?.id)
     ? {...item, collectedAt: `第${durationState.day ?? 1}天 ${completionTime}`}
     : item;
-  const timedState = newCollectionIds.size > 0 ? {
+  let timedState = newCollectionIds.size > 0 ? {
     ...durationState,
     collectionTimeline: durationState.collectionTimeline.map(stampCollection),
     collectionCards: durationState.collectionCards.map(stampCollection),
     latestCollection: stampCollection(durationState.latestCollection)
   } : durationState;
+  if(
+    timedState.dayCycleEnabled
+    && timedState.dayTargetReachedAtMinutes == null
+    && (state.dayRevenue ?? 0) < DAY_REVENUE_TARGET
+    && (timedState.dayRevenue ?? 0) >= DAY_REVENUE_TARGET
+  ){
+    timedState = {...timedState, dayTargetReachedAtMinutes: timedState.dayMinutesElapsed ?? 0};
+  }
   const efficiencyState = recordCollectionEfficiencySnapshot(timedState);
   const recapActionCounts = state.recapActionCounts ?? {combine: 0, reduce: 0};
   const countedState = {

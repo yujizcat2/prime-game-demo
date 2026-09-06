@@ -128,18 +128,19 @@ assert.equal(earlyMorningReward.baseSaleScore, 100);
 assert.equal(earlyMorningReward.collectionScore, 100);
 assert.equal(earlyMorningReward.timeSaleMultiplier, 0.8);
 assert.equal(earlyMorningReward.totalScore, 80);
-assert.equal(earlyMorningCollection.score, 80, "real reduce-to-one action banks the discounted score once");
+assert.equal(earlyMorningCollection.dayRevenue, 80, "real reduce-to-one action banks the discounted revenue once");
+assert.equal(earlyMorningCollection.score, earlyMorningCollection.latestCollection.salePointScore);
 assert.equal(earlyMorningCollection.latestCollection.totalScore, 80);
 assert.equal(earlyMorningCollection.timeSaleScores[0], 80, "only the formal collection score enters period sales");
 
 const normalCollection = reduceAt(4 * 60);
 assert.equal(normalCollection.latestCollectionRewards[0].baseSaleScore, 100);
 assert.equal(normalCollection.latestCollectionRewards[0].totalScore, 100);
-assert.equal(normalCollection.score, 100, "04:00 real auto-collection banks the base price once");
+assert.equal(normalCollection.dayRevenue, 100, "04:00 real auto-collection banks the base price once");
 
 const lunchCollection = reduceAt(11 * 60);
 assert.equal(lunchCollection.latestCollectionRewards[0].timeSaleMultiplier, 1.1);
-assert.equal(lunchCollection.score, 110, "real non-early-morning action keeps its configured multiplier");
+assert.equal(lunchCollection.dayRevenue, 110, "real non-early-morning action keeps its configured multiplier");
 
 const sevenCollections = Array.from({length: 7}, (_, index) => ({
   value: 20 + index,
@@ -161,7 +162,8 @@ assert.equal(eighthReward.saleScore, eighthPreviewScore, "pre-collection preview
 assert.equal(eighthReward.todayCollectionNumber, 8);
 assert.equal(eighthReward.dailyCollectionBonus, 30);
 assert.equal(eighthReward.totalScore, eighthPreviewScore + 30);
-assert.equal(eighthCollection.score - eighthPreviewState.score, eighthPreviewScore + 30);
+assert.equal(eighthCollection.dayRevenue - eighthPreviewState.dayRevenue, eighthPreviewScore + 30);
+assert.ok(eighthCollection.score > eighthPreviewState.score, "a real sale immediately awards points");
 assert.equal(eighthCollection.timeSaleScores[18 * 60], eighthPreviewScore, "daily bonus does not enter dynamic market sales");
 
 const discountedEighth = applyAction({...eighthPreviewState, dayMinutesElapsed: 0}, {type: "reduce", indexes: [0, 1]});
@@ -171,7 +173,7 @@ const discountedSaleScore = getEightPalaceCollectionScoreGain(
 );
 assert.equal(discountedEighth.latestCollectionRewards[0].saleScore, discountedSaleScore);
 assert.equal(discountedEighth.latestCollectionRewards[0].dailyCollectionBonus, 30);
-assert.equal(discountedEighth.score - eighthPreviewState.score, discountedSaleScore + 30, "the 0.80 market rate never discounts the daily sale bonus");
+assert.equal(discountedEighth.dayRevenue - eighthPreviewState.dayRevenue, discountedSaleScore + 30, "the 0.80 market rate never discounts the daily sale bonus");
 
 const leveledEighthState = {
   ...eighthPreviewState,
@@ -197,6 +199,7 @@ const closingDayOne = resolveGameOver({
   ], {dayCycleEnabled: true}),
   dayMinutesElapsed: 24 * 60,
   score: 1000,
+  dayRevenue: 1000,
   collectionCards: Array.from({length: 8}, (_, index) => ({value: 20 + index, foodType: BASE_FOOD_TYPES[index % 2]})),
   timeSaleScores: unevenSaleScores
 });
@@ -205,7 +208,7 @@ assert.deepEqual(dayTwoState.timeSalePeriods, closingDayOne.daySettlement.nextTi
 assert.deepEqual(dayTwoState.timeSaleScores, {}, "new day starts a fresh sales statistic");
 const dayTwoPreview = getEightPalaceCollectionScoreGain(dayTwoState, sameCollectible);
 const dayTwoCollected = applyAction(dayTwoState, {type: "reduce", indexes: [0, 1]});
-assert.equal(dayTwoCollected.score - dayTwoState.score, dayTwoPreview, "Day 2 preview and formal score use the generated price");
+assert.equal(dayTwoCollected.dayRevenue - dayTwoState.dayRevenue, dayTwoPreview, "Day 2 preview and formal revenue use the generated price");
 assert.equal(dayTwoCollected.latestCollectionRewards[0].timeSaleMultiplier, dayTwoPeriods[0].multiplier);
 
 const rewardModalSource = readFileSync("src/components/CollectionRewardModal.jsx", "utf8");

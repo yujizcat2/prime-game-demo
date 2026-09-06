@@ -1,7 +1,6 @@
 import { getBoardCount } from "./boardRules";
 import { getNonDrinkBoardSum } from "./scoreValue";
 import { getScoreEfficiency } from "./scoreEfficiency";
-import { scaleScore } from "./scoreScale";
 import {
   createNextTimeSalePeriods,
   createTimeSaleMarketRows,
@@ -12,10 +11,30 @@ import {
 export const DAY_DURATION_MINUTES = 1440;
 export const MAX_DAYS = 7;
 export const OPENING_HOUR = 0;
+export const DAY_REVENUE_TARGET = 1000;
 export const WEEKDAYS = Object.freeze(["星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"]);
 
-export function getDayTargetScore(day = 1){
-  return scaleScore(Math.max(1, Math.floor(day)) * 100);
+export function getDayTargetScore(_day = 1){
+  return DAY_REVENUE_TARGET;
+}
+
+export function getEfficiencyBonus(minutesRemaining = 0){
+  if(minutesRemaining < 120) return 0;
+  if(minutesRemaining < 240) return .5;
+  if(minutesRemaining < 360) return 1;
+  return 2;
+}
+
+export function getOverflowBonus(dayRevenue = 0){
+  return Math.min(2, Math.floor(Math.max(0, dayRevenue - DAY_REVENUE_TARGET) / 200) * .5);
+}
+
+export function getBoardBonus(boardValueSum = 0){
+  if(boardValueSum >= 200) return 2;
+  if(boardValueSum >= 150) return 1.5;
+  if(boardValueSum >= 100) return 1;
+  if(boardValueSum >= 50) return .5;
+  return 0;
 }
 
 export function getTodayNewCollectionCount(state){
@@ -76,21 +95,36 @@ export function getDayPeriod(state){
 export function createDaySettlement(state){
   const todayNewCollectionCount = getTodayNewCollectionCount(state);
   const finalScore = state.score ?? 0;
+  const dailyRevenue = state.dayRevenue ?? 0;
   const todayActions = getDayStep(state);
-  const scoreGainToday = finalScore - (state.dayStartScore ?? 0);
+  const scoreGainToday = Number((finalScore - (state.dayStartScore ?? 0)).toFixed(2));
   const targetScore = getDayTargetScore(state.day);
-  const scoreTargetMet = finalScore >= targetScore;
+  const scoreTargetMet = dailyRevenue >= targetScore;
   const dailyCollectionBonusTotal = getDailyCollectionBonusTotal(todayNewCollectionCount);
   const passed = scoreTargetMet;
   const timeSalePeriods = state.timeSalePeriods ?? TIME_SALE_PERIODS;
   const timeSaleScores = state.timeSaleScores ?? {};
   const nextTimeSalePeriods = createNextTimeSalePeriods(timeSalePeriods, timeSaleScores);
+  const boardSum = getNonDrinkBoardSum(state.board);
+  const efficiencyBonus = scoreTargetMet
+    ? getEfficiencyBonus(DAY_DURATION_MINUTES - (state.dayTargetReachedAtMinutes ?? DAY_DURATION_MINUTES))
+    : 0;
+  const overflowBonus = scoreTargetMet ? getOverflowBonus(dailyRevenue) : 0;
+  const boardBonus = scoreTargetMet ? getBoardBonus(boardSum) : 0;
+  const settlementBonus = efficiencyBonus + overflowBonus + boardBonus;
   return {
     day: state.day,
     weekday: getWeekday(state.day),
     finalScore,
+    dailyRevenue,
     targetScore,
     scoreGainToday,
+    dailyScore: scoreGainToday,
+    efficiencyBonus,
+    overflowBonus,
+    boardBonus,
+    settlementBonus,
+    cumulativeScore: Number((finalScore + settlementBonus).toFixed(2)),
     collectionGainToday: todayNewCollectionCount,
     dailyCollectionBonusTotal,
     scoreTargetMet,
@@ -100,7 +134,7 @@ export function createDaySettlement(state){
     minutesToday: state.dayMinutesElapsed ?? 0,
     efficiency: getScoreEfficiency(scoreGainToday, state.dayMinutesElapsed ?? 0),
     boardCount: getBoardCount(state.board),
-    boardSum: getNonDrinkBoardSum(state.board),
+    boardSum,
     timeSalePeriods,
     timeSaleScores,
     nextTimeSalePeriods,
@@ -116,6 +150,7 @@ export function settleDayIfNeeded(state){
   const daySettlement = createDaySettlement(state);
   return {
     ...state,
+    score: daySettlement.cumulativeScore,
     daySettlement,
     dayHistory: [...(state.dayHistory ?? []), daySettlement],
     gameOver: !daySettlement.passed || state.day >= MAX_DAYS,
@@ -133,6 +168,8 @@ export function advanceToNextDay(state){
     dayMinutesElapsed: 0,
     dayStartStep: state.steps,
     dayStartScore: state.score ?? 0,
+    dayRevenue: 0,
+    dayTargetReachedAtMinutes: null,
     dayStartCollectionCount: state.collectionCards?.length ?? state.collection?.length ?? 0,
     comboCount: 0,
     dayMaxCombo: 0,

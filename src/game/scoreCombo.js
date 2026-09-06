@@ -54,7 +54,7 @@ export function applyScoreCombo(previousState, actionState){
   }
 
   const comboCount = (previousState.comboCount ?? 0) + 1;
-  const comboBonus = getComboBonus(comboCount);
+  const comboBonus = actionState.dayCycleEnabled ? 0 : getComboBonus(comboCount);
   const withCollectionBonus = addComboBonusToLatestCollection(actionState, comboBonus, comboCount);
   const event = {
     type: "scored",

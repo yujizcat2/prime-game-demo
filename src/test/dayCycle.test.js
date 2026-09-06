@@ -3,17 +3,22 @@ import { createEightPalaceInitialValues } from "../game/initialValues";
 import { createGameState } from "../game/gameState";
 import { resolveGameOver } from "../game/gameEngine";
 import { getScoreEfficiency } from "../game/scoreEfficiency";
+import { getSaleScore } from "../game/saleScore";
 import {
   DAY_DURATION_MINUTES,
+  DAY_REVENUE_TARGET,
   MAX_DAYS,
   WEEKDAYS,
   advanceToNextDay,
+  getBoardBonus,
   getDailyCollectionBonus,
   getDailyCollectionBonusTotal,
   getDayTargetScore,
+  getEfficiencyBonus,
   formatClosingTimeRemaining,
   getDayTime,
   getTodayNewCollectionCount,
+  getOverflowBonus,
   getWeekday
 } from "../game/dayCycle";
 
@@ -39,9 +44,16 @@ assert.equal(formatClosingTimeRemaining(30), "距离打烊还有 30分钟");
 assert.equal(formatClosingTimeRemaining(0), "已到打烊时间");
 assert.deepEqual(
   Array.from({length: MAX_DAYS}, (_, index) => getDayTargetScore(index + 1)),
-  [1000, 2000, 3000, 4000, 5000, 6000, 7000]
+  Array(MAX_DAYS).fill(DAY_REVENUE_TARGET)
 );
 assert.equal(initial.day, 1);
+assert.equal(initial.dayRevenue, 0);
+assert.equal(getSaleScore({baseSalePrice: 99, qualityMultiplier: 1, daySaleCount: 5}), .8);
+assert.equal(getSaleScore({baseSalePrice: 100, qualityMultiplier: 1.05, daySaleCount: 6}), 1.15);
+assert.equal(getSaleScore({baseSalePrice: 300, qualityMultiplier: 1.5, daySaleCount: 8}), 2.1);
+assert.deepEqual([119, 120, 240, 360].map(getEfficiencyBonus), [0, .5, 1, 2]);
+assert.deepEqual([1199, 1200, 1400, 1600, 1800].map(getOverflowBonus), [0, .5, 1, 1.5, 2]);
+assert.deepEqual([49, 50, 100, 150, 200].map(getBoardBonus), [0, .5, 1, 1.5, 2]);
 assert.equal(getWeekday(initial.day), "星期一");
 assert.equal(getDayTime(initial), "00:00");
 assert.equal(getDayTime({...initial, dayMinutesElapsed: 65}), "01:05");
@@ -51,7 +63,7 @@ assert.equal(at23.daySettlement, null, "time before 24:00 does not settle the da
 assert.equal(at23.gameOver, false);
 
 const tenCollections = makeCollections(10);
-const failedAt99 = resolveGameOver({...initial, steps: 24, dayMinutesElapsed: 1440, score: 999, collectionCards: tenCollections});
+const failedAt99 = resolveGameOver({...initial, steps: 24, dayMinutesElapsed: 1440, score: 9.9, dayRevenue: 999, collectionCards: tenCollections});
 assert.equal(failedAt99.daySettlement.passed, false);
 assert.equal(failedAt99.gameOverReason, "daily_score_target_not_met");
 
@@ -60,28 +72,31 @@ const closingBoard = initial.board.map((piece, index) => piece && index === 0 ? 
   parents: [{value: 2, foodType: "aquatic"}],
   origin: {kind: "test-origin", sourceId: 77}
 } : piece);
-const passed = resolveGameOver({...initial, board: closingBoard, steps: 24, dayMinutesElapsed: 1440, score: 1000, collectionCards: tenCollections});
+const passed = resolveGameOver({...initial, board: closingBoard, steps: 24, dayMinutesElapsed: 1440, score: 10, dayRevenue: 1000, collectionCards: tenCollections});
 assert.equal(passed.daySettlement.passed, true);
 assert.equal(passed.daySettlement.scoreTargetMet, true);
 assert.equal(passed.daySettlement.targetScore, 1000);
 assert.equal(passed.daySettlement.collectionGainToday, 10);
 assert.equal(passed.daySettlement.dailyCollectionBonusTotal, 150);
 assert.equal(passed.daySettlement.weekday, "星期一");
-assert.equal(passed.daySettlement.scoreGainToday, 1000);
-assert.equal(passed.daySettlement.efficiency, 1000 / 1440 * 60);
+assert.equal(passed.daySettlement.scoreGainToday, 10);
+assert.equal(passed.daySettlement.dailyRevenue, 1000);
+assert.equal(passed.daySettlement.settlementBonus, passed.daySettlement.boardBonus);
+assert.equal(passed.score, 10 + passed.daySettlement.settlementBonus, "settlement bonus is added exactly once");
+assert.equal(resolveGameOver(passed).score, passed.score, "an existing settlement cannot award its bonus twice");
 assert.equal(passed.daySettlement.boardCount, passed.board.filter(Boolean).length);
 assert.equal(Object.hasOwn(passed.daySettlement, "nextDayCards"), false);
 assert.equal(passed.dayHistory.length, 1);
 assert.equal(getDayTime(passed), "24:00");
 
-const overTarget = resolveGameOver({...initial, steps: 24, dayMinutesElapsed: 1440, score: 1010, collectionCards: tenCollections});
+const overTarget = resolveGameOver({...initial, steps: 24, dayMinutesElapsed: 1440, score: 10, dayRevenue: 1010, collectionCards: tenCollections});
 assert.equal(overTarget.daySettlement.passed, true);
 
-const fewCollections = resolveGameOver({...initial, steps: 24, dayMinutesElapsed: 1440, score: 1000, collectionCards: makeCollections(7)});
+const fewCollections = resolveGameOver({...initial, steps: 24, dayMinutesElapsed: 1440, score: 7, dayRevenue: 1000, collectionCards: makeCollections(7)});
 assert.equal(fewCollections.daySettlement.scoreTargetMet, true);
 assert.equal(fewCollections.daySettlement.passed, true, "revenue passes even with fewer than eight sales");
 
-const manyCollectionsLowScore = resolveGameOver({...initial, steps: 24, dayMinutesElapsed: 1440, score: 999, collectionCards: makeCollections(20)});
+const manyCollectionsLowScore = resolveGameOver({...initial, steps: 24, dayMinutesElapsed: 1440, score: 20, dayRevenue: 999, collectionCards: makeCollections(20)});
 assert.equal(manyCollectionsLowScore.daySettlement.passed, false, "many collections cannot replace the score target");
 
 assert.equal(getScoreEfficiency(100, 600), 10, "live efficiency is hourly score from actual minutes");
@@ -93,9 +108,9 @@ assert.notEqual(
   "equal scores and Step counts can have different efficiency when action minutes differ"
 );
 const efficiencyState = resolveGameOver({
-  ...initial, steps: 24, dayMinutesElapsed: 1440, score: 1480, dayStartScore: 0, collectionCards: tenCollections
+  ...initial, steps: 24, dayMinutesElapsed: 1440, score: 14.8, dayRevenue: 1480, dayStartScore: 0, collectionCards: tenCollections
 });
-assert.equal(efficiencyState.daySettlement.efficiency, 1480 / 1440 * 60, "daily efficiency uses the day's complete action minutes");
+assert.equal(efficiencyState.daySettlement.efficiency, 14.8 / 1440 * 60, "daily efficiency uses the day's score and complete action minutes");
 
 let state = passed;
 const dayTwoOpening = advanceToNextDay(state);
@@ -105,7 +120,8 @@ assert.equal(dayTwoOpening.nextId, state.nextId, "day rollover creates no replac
 assert.equal(dayTwoOpening.comboCount, 0);
 assert.equal(dayTwoOpening.dayMinutesElapsed, 0);
 assert.equal(dayTwoOpening.score - dayTwoOpening.dayStartScore, 0, "Day 2 daily revenue restarts at zero");
-assert.equal(dayTwoOpening.score, 1000, "cumulative score is retained");
+assert.equal(dayTwoOpening.score, passed.score, "cumulative score is retained");
+assert.equal(dayTwoOpening.dayRevenue, 0, "Day 2 revenue starts at zero");
 assert.equal(dayTwoOpening.collectionCards.length, tenCollections.length, "cumulative collections are retained");
 assert.equal(getTodayNewCollectionCount(dayTwoOpening), 0, "the daily collection bonus count restarts at rollover");
 assert.equal(getDailyCollectionBonus(getTodayNewCollectionCount(dayTwoOpening) + 1), 0);
@@ -115,22 +131,23 @@ const dayTwoFailed = resolveGameOver({
   ...dayTwoOpening,
   steps: 48,
   dayMinutesElapsed: 1440,
-  score: 1999,
+  score: dayTwoOpening.score + 9.99,
+  dayRevenue: 999,
   collectionCards: [...dayTwoOpening.collectionCards, ...makeCollections(10, 10)]
 });
-assert.equal(dayTwoFailed.daySettlement.scoreGainToday, 999, "Day 2 retains daily gain as a statistic");
+assert.equal(dayTwoFailed.daySettlement.scoreGainToday, 9.99, "Day 2 retains daily score as a statistic");
 assert.equal(dayTwoFailed.daySettlement.passed, false);
-assert.equal(dayTwoFailed.daySettlement.efficiency, 999 / 1440 * 60, "Day 2 efficiency uses only Day 2 action minutes");
+assert.equal(dayTwoFailed.daySettlement.settlementBonus, 0, "failed days receive no settlement bonus");
 
-const bufferedDayOne = resolveGameOver({...initial, steps: 24, dayMinutesElapsed: 1440, score: 1550, collectionCards: tenCollections});
+const bufferedDayOne = resolveGameOver({...initial, steps: 24, dayMinutesElapsed: 1440, score: 15.5, dayRevenue: 1550, collectionCards: tenCollections});
 const bufferedDayTwo = advanceToNextDay(bufferedDayOne);
-assert.equal(bufferedDayTwo.score, 1550, "Day 1 excess revenue carries into Day 2");
-const alreadyAtDayTwoTarget = resolveGameOver({...bufferedDayTwo, score: 2050});
+assert.equal(bufferedDayTwo.dayRevenue, 0, "Day 1 excess revenue does not carry into Day 2");
+const alreadyAtDayTwoTarget = resolveGameOver({...bufferedDayTwo, dayRevenue: 1000});
 assert.equal(alreadyAtDayTwoTarget.daySettlement, null, "meeting Day 2's target before closing never settles the day early");
-const bufferedDayTwoPassed = resolveGameOver({...bufferedDayTwo, steps: 48, dayMinutesElapsed: 1440, score: 2000, collectionCards: [...bufferedDayTwo.collectionCards, ...makeCollections(8, 10)]});
-assert.equal(bufferedDayTwoPassed.daySettlement.scoreGainToday, 450);
-assert.equal(bufferedDayTwoPassed.daySettlement.targetScore, 2000);
-assert.equal(bufferedDayTwoPassed.daySettlement.passed, true, "Day 2 passes on cumulative revenue");
+const bufferedDayTwoPassed = resolveGameOver({...bufferedDayTwo, steps: 48, dayMinutesElapsed: 1440, score: bufferedDayTwo.score + 8, dayRevenue: 1000, collectionCards: [...bufferedDayTwo.collectionCards, ...makeCollections(8, 10)]});
+assert.equal(bufferedDayTwoPassed.daySettlement.scoreGainToday, 8);
+assert.equal(bufferedDayTwoPassed.daySettlement.targetScore, 1000);
+assert.equal(bufferedDayTwoPassed.daySettlement.passed, true, "Day 2 passes on its own daily revenue");
 
 for(let day = 1; day <= MAX_DAYS; day++){
   assert.equal(state.day, day);
@@ -147,7 +164,8 @@ for(let day = 1; day <= MAX_DAYS; day++){
     ...next,
     steps: (day + 1) * 24,
     dayMinutesElapsed: 1440,
-    score: next.score + 1000,
+    score: next.score + 10,
+    dayRevenue: 1000,
     collectionCards: collections
   });
 }
@@ -162,9 +180,9 @@ assert.equal(state.gameOverReason, "week_complete");
 assert.equal(advanceToNextDay(state), state, "the eighth day is never created");
 assert.equal(state.dayHistory.length, 7);
 
-const daySevenFailed = resolveGameOver({...initial, day: 7, dayMinutesElapsed: 1440, score: 6999, collectionCards: tenCollections});
+const daySevenFailed = resolveGameOver({...initial, day: 7, dayMinutesElapsed: 1440, score: 70, dayRevenue: 999, collectionCards: tenCollections});
 assert.equal(daySevenFailed.gameOverReason, "daily_score_target_not_met");
-const daySevenPassed = resolveGameOver({...initial, day: 7, dayMinutesElapsed: 1440, score: 7000, collectionCards: tenCollections});
+const daySevenPassed = resolveGameOver({...initial, day: 7, dayMinutesElapsed: 1440, score: 70, dayRevenue: 1000, collectionCards: tenCollections});
 assert.equal(daySevenPassed.gameOverReason, "week_complete");
 
 console.log("dayCycle.test.js passed");
