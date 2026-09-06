@@ -135,8 +135,9 @@ export function createDaySettlement(state){
   const dailyCollectionBonusTotal = getDailyCollectionBonusTotal(todayNewCollectionCount);
   const passed = scoreTargetMet;
   const timeSalePeriods = state.timeSalePeriods ?? TIME_SALE_PERIODS;
-  const timeSaleScores = state.timeSaleScores ?? {};
-  const nextTimeSalePeriods = createNextTimeSalePeriods(timeSalePeriods, timeSaleScores);
+  const dayPeriodSales = state.dayPeriodSales ?? timeSalePeriods.map(period => state.timeSaleScores?.[period.startMinutes] ?? 0);
+  const timeSaleScores = Object.fromEntries(timeSalePeriods.map((period, index) => [period.startMinutes, dayPeriodSales[index] ?? 0]));
+  const nextTimeSalePeriods = createNextTimeSalePeriods(timeSalePeriods, dayPeriodSales);
   const boardSum = getNonDrinkBoardSum(state.board);
   const performance = getPerformanceBonusBreakdown(state, scoreGainToday);
   const dayFinalScore = Number((scoreGainToday + performance.performanceBonusScore).toFixed(2));
@@ -163,6 +164,7 @@ export function createDaySettlement(state){
     boardCount: getBoardCount(state.board),
     boardSum,
     timeSalePeriods,
+    dayPeriodSales,
     timeSaleScores,
     nextTimeSalePeriods,
     timeSaleMarketRows: createTimeSaleMarketRows(timeSalePeriods, timeSaleScores, nextTimeSalePeriods),
@@ -205,6 +207,7 @@ export function advanceToNextDay(state){
     heaterCount: 1,
     superHeaterCount: 1,
     timeSalePeriods: state.daySettlement.nextTimeSalePeriods,
+    dayPeriodSales: Array(6).fill(0),
     timeSaleScores: {},
     daySettlement: null,
     gameOver: false,

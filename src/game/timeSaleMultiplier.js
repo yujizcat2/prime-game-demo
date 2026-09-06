@@ -1,10 +1,9 @@
 export const TIME_SALE_PERIODS = Object.freeze([
   {startMinutes: 0, endMinutes: 4 * 60, range: "00:00–03:59", multiplier: 0.8, label: "凌晨", displayName: "凌晨低谷"},
-  {startMinutes: 4 * 60, endMinutes: 11 * 60, range: "04:00–10:59", multiplier: 1, label: "正常", displayName: "正常价格"},
-  {startMinutes: 11 * 60, endMinutes: 12 * 60, range: "11:00–11:59", multiplier: 1.1, label: "午间", displayName: "午间高价"},
-  {startMinutes: 12 * 60, endMinutes: 16 * 60, range: "12:00–15:59", multiplier: 1, label: "正常", displayName: "正常价格"},
-  {startMinutes: 16 * 60, endMinutes: 18 * 60, range: "16:00–17:59", multiplier: 1.15, label: "晚餐", displayName: "晚餐时段"},
-  {startMinutes: 18 * 60, endMinutes: 20 * 60, range: "18:00–19:59", multiplier: 1.2, label: "黄金", displayName: "黄金时段"},
+  {startMinutes: 4 * 60, endMinutes: 8 * 60, range: "04:00–07:59", multiplier: 1, label: "正常", displayName: "正常价格"},
+  {startMinutes: 8 * 60, endMinutes: 12 * 60, range: "08:00–11:59", multiplier: 1.1, label: "上午", displayName: "上午高价"},
+  {startMinutes: 12 * 60, endMinutes: 16 * 60, range: "12:00–15:59", multiplier: 0.9, label: "午后", displayName: "午后低价"},
+  {startMinutes: 16 * 60, endMinutes: 20 * 60, range: "16:00–19:59", multiplier: 1.2, label: "晚餐", displayName: "晚餐高价"},
   {startMinutes: 20 * 60, endMinutes: 24 * 60, range: "20:00–23:59", multiplier: 1, label: "正常", displayName: "正常价格"}
 ]);
 
@@ -68,29 +67,26 @@ function conserveDailyPriceTotal(periods){
 }
 
 export function createNextTimeSalePeriods(previousPeriods = TIME_SALE_PERIODS, saleScores = {}){
-  const totalCollectionSaleScore = previousPeriods.reduce((total, period) =>
-    total + (saleScores[period.startMinutes] ?? 0)
-  , 0);
-  if(totalCollectionSaleScore <= 0) return conserveDailyPriceTotal(previousPeriods);
-
-  const averageIntensity = totalCollectionSaleScore / 24;
-  const changed = previousPeriods.map(period => {
-    const saleScore = saleScores[period.startMinutes] ?? 0;
-    const saleIntensity = saleScore / getTimeSalePeriodHours(period);
-    return {
-      ...period,
-      multiplier: Math.min(
-        MAX_TIME_SALE_MULTIPLIER,
-        Math.max(MIN_TIME_SALE_MULTIPLIER, period.multiplier + getTimeSaleChange(saleIntensity / averageIntensity))
-      )
-    };
+  const rankedMultipliers = [1.2, 1.1, 1, 1, 0.9, 0.8];
+  const rankedPeriods = previousPeriods
+    .map((period, periodIndex) => ({
+      periodIndex,
+      saleScore: saleScores[periodIndex] ?? saleScores[period.startMinutes] ?? 0
+    }))
+    .sort((a, b) => b.saleScore - a.saleScore || a.periodIndex - b.periodIndex);
+  const multipliersByPeriod = Array(previousPeriods.length);
+  rankedPeriods.forEach((period, rank) => {
+    multipliersByPeriod[period.periodIndex] = rankedMultipliers[rank];
   });
-  return conserveDailyPriceTotal(changed);
+  return previousPeriods.map((period, index) => ({
+    ...period,
+    multiplier: multipliersByPeriod[index]
+  }));
 }
 
 export function createTimeSaleMarketRows(periods = TIME_SALE_PERIODS, saleScores = {}, nextPeriods = periods){
   return periods.map((period, index) => {
-    const saleScore = saleScores[period.startMinutes] ?? 0;
+    const saleScore = saleScores[index] ?? saleScores[period.startMinutes] ?? 0;
     return {
       ...period,
       saleScore,

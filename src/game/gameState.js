@@ -379,6 +379,7 @@ export function createGameState(
     daySettlement: null,
     dayHistory: [],
     timeSalePeriods: TIME_SALE_PERIODS.map(period => ({...period})),
+    dayPeriodSales: Array(6).fill(0),
     timeSaleScores: {},
 
     gameRecapSnapshots: [],

@@ -1649,6 +1649,9 @@ export function applyEightPalaceCollection(
     totalScore
   };
   const timeSalePeriod = getTimeSalePeriod(gameTime, state.timeSalePeriods);
+  const timeSalePeriodIndex = (state.timeSalePeriods ?? [])
+    .findIndex(period => period.startMinutes === timeSalePeriod.startMinutes);
+  const normalizedSale = rewardSettlement.totalScore / timeSalePeriod.multiplier;
 
   const parentFoods = createConcreteParentSnapshots(record);
   const collectionStep = (state.steps ?? 0) + 1;
@@ -1701,9 +1704,12 @@ export function applyEightPalaceCollection(
     dayRevenue: state.dayCycleEnabled
       ? (state.dayRevenue ?? 0) + totalScore
       : state.dayRevenue,
+    dayPeriodSales: (state.dayPeriodSales ?? Array(6).fill(0)).map((sale, index) =>
+      index === timeSalePeriodIndex ? sale + normalizedSale : sale
+    ),
     timeSaleScores: {
       ...(state.timeSaleScores ?? {}),
-      [timeSalePeriod.startMinutes]: (state.timeSaleScores?.[timeSalePeriod.startMinutes] ?? 0) + rewardSettlement.totalScore
+      [timeSalePeriod.startMinutes]: (state.timeSaleScores?.[timeSalePeriod.startMinutes] ?? 0) + normalizedSale
     }
   };
 }
