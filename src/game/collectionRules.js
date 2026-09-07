@@ -1646,7 +1646,7 @@ export function applyEightPalaceCollection(
     : 0;
   const totalScore = rewardSettlement.totalScore + dailyCollectionBonus;
   const salePointScore = expiryState.expired
-    ? dailyCollectionBonus
+    ? 0
     : isNewCollection && state.dayCycleEnabled
     ? getSaleScore({
         baseSalePrice: rewardSettlement.baseScore,

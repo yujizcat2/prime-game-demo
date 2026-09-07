@@ -4,6 +4,8 @@ import { createGameState } from "../game/gameState";
 import { resolveGameOver } from "../game/gameEngine";
 import { getScoreEfficiency } from "../game/scoreEfficiency";
 import { getSaleScore } from "../game/saleScore";
+import { applyEightPalaceCollection } from "../game/collectionRules";
+import { BASE_FOOD_TYPES } from "../game/rules";
 import {
   DAY_DURATION_MINUTES,
   DAY_REVENUE_TARGET,
@@ -33,6 +35,41 @@ assert.equal(getDailyCollectionBonus(11), 10);
 assert.equal(getDailyCollectionBonus(12), 20);
 assert.equal(getDailyCollectionBonus(13), 30);
 assert.equal(getDailyCollectionBonusTotal(10), 0);
+
+const thirteenthCollectionState = {
+  ...createGameState([], {dayCycleEnabled: true}),
+  collectionCards: Array.from({length: 13}, (_, index) => ({
+    value: 20 + index,
+    foodType: BASE_FOOD_TYPES[index % BASE_FOOD_TYPES.length]
+  })),
+  dayStartCollectionCount: 0,
+  dayMinutesElapsed: 4 * 60,
+  score: 26.3,
+  dayRevenue: 700
+};
+const fourteenthPiece = {
+  value: 1,
+  foodType: "dairyEgg",
+  collectionRewardLevel: 3,
+  origin: {type: "reduce", parent: {value: 4, foodType: "dairyEgg", bornAt: 0}}
+};
+const fourteenthCollection = applyEightPalaceCollection(thirteenthCollectionState, fourteenthPiece);
+const fourteenthReward = fourteenthCollection.latestCollectionRewards[0];
+assert.equal(fourteenthReward.todayCollectionNumber, 14);
+assert.equal(fourteenthReward.dailyCollectionBonus, 40, "the fourteenth sale still earns +40 revenue");
+assert.equal(fourteenthReward.collectionMultiplierRate, 1.05, "a level-3 route still applies ×1.05 once");
+assert.equal(fourteenthReward.saleScore, 105, "the normal sale uses base 100 × route 1.05");
+assert.equal(fourteenthReward.salePointScore, 1.95, "points use only the normal point formula");
+assert.equal(fourteenthCollection.dayRevenue - thirteenthCollectionState.dayRevenue, 145, "revenue includes the +40 daily sale bonus");
+assert.equal(Number((fourteenthCollection.score - thirteenthCollectionState.score).toFixed(2)), 1.95, "the +40 revenue bonus never enters points");
+
+const expiredFourteenthCollection = applyEightPalaceCollection(
+  {...thirteenthCollectionState, totalActionMinutes: 24 * 60},
+  fourteenthPiece
+);
+assert.equal(expiredFourteenthCollection.latestCollection.dailyCollectionBonus, 40);
+assert.equal(expiredFourteenthCollection.dayRevenue - thirteenthCollectionState.dayRevenue, 40, "an expired fourteenth sale retains its revenue-only bonus");
+assert.equal(expiredFourteenthCollection.score - thirteenthCollectionState.score, 0, "an expired sale cannot convert the +40 revenue bonus into points");
 assert.equal(getDailyCollectionBonusTotal(13), 60);
 assert.equal(formatClosingTimeRemaining(300), "距离打烊还有 5小时");
 assert.equal(formatClosingTimeRemaining(270), "距离打烊还有 4小时30分钟");
