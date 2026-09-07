@@ -9,7 +9,7 @@ import {
 import { getSpecialOneName } from "../data/specialOneRegistry";
 import { getFoodCardDisplayName, getFoodCardDisplayValue, getFoodOriginDescription } from "./foodCardDisplay";
 import { getNativeFoodType } from "../game/nativeFoodTypes";
-import { getFoodExpiryState } from "../game/foodShelfLife";
+import { formatShelfLife, getFoodExpiryState } from "../game/foodShelfLife";
 
 import "./Board.css";
 
@@ -1197,7 +1197,7 @@ export default function BoardCell({
           </div>
 
           <div className={`board-piece-shelf-life ${expiryState.expired ? "board-piece-shelf-life--expired" : expiryState.warning ? "board-piece-shelf-life--warning" : ""}`}>
-            {expiryState.expired ? "已过期 · 0营业额" : "保质期 24小时"}
+            {expiryState.expired ? "已过期 · 0营业额" : formatShelfLife(expiryState.remainingMinutes)}
           </div>
 
 
