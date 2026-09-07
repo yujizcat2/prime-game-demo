@@ -1645,8 +1645,20 @@ export function applyEightPalaceCollection(
     ? getDailyCollectionBonus(todayCollectionNumber)
     : 0;
   const shelfLifeSaleRevenue = Math.round(
-    rewardSettlement.totalScore * expiryState.multiplier
+    (rewardSettlement.preRoundedTotalScore ?? rewardSettlement.totalScore) * expiryState.multiplier
   );
+  const shelfLifeAdjustedRevenue = Number((
+    (rewardSettlement.preRoundedTotalScore ?? rewardSettlement.totalScore) * expiryState.multiplier
+  ).toFixed(2));
+  const saleBreakdown = [
+    ...(rewardSettlement.saleBreakdown ?? []).slice(0, -1),
+    {
+      label: expiryState.status,
+      operation: `×${expiryState.multiplier.toFixed(1)}`,
+      result: shelfLifeAdjustedRevenue
+    },
+    {label: "最终结算", operation: "四舍五入", result: shelfLifeSaleRevenue}
+  ];
   const totalScore = shelfLifeSaleRevenue + dailyCollectionBonus;
   const salePointScore = expiryState.expired
     ? 0
@@ -1662,6 +1674,7 @@ export function applyEightPalaceCollection(
     saleScore: shelfLifeSaleRevenue,
     shelfLifeStatus: expiryState.status,
     shelfLifeMultiplier: expiryState.multiplier,
+    saleBreakdown,
     todayCollectionNumber,
     dailyCollectionBonus,
     salePointScore,

@@ -78,7 +78,7 @@ export function createCollectionRewardSettlement({
     existingFoodTypeCountForSameNumber: score.existingFoodTypeCountForSameNumber,
     hasCrossFamilyDiscount,
     saleBreakdown,
-    bonuses: [], bonusScore: 0, totalScore,
+    bonuses: [], bonusScore: 0, preRoundedTotalScore: rewardAdjustedScore, totalScore,
     rewardLevel: "minor"
   };
 }
