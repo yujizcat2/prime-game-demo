@@ -760,7 +760,7 @@ export default function Board({
                     {scoreMode && combinePreview.piece?.scoreValue != null && (
                       <div className="board-piece-locked-score board-preview-locked-score">
                         +{getEightPalaceCollectionBaseSalePrice(
-                          {collectionCards, board, dayMinutesElapsed, timeSalePeriods},
+                          {collectionCards, board, dayMinutesElapsed, totalActionMinutes, timeSalePeriods},
                           {value: 1, origin: {type: "reduce", parent: combinePreview.piece}}
                         )}
                       </div>
@@ -990,7 +990,7 @@ export default function Board({
 
             const availableScore = scoreMode
               ? getEightPalaceCollectionBaseSalePrice(
-                  {collectionCards, board, dayMinutesElapsed, timeSalePeriods},
+                  {collectionCards, board, dayMinutesElapsed, totalActionMinutes, timeSalePeriods},
                   {
                     value: 1,
                     origin: {type: "reduce", parent: piece}

@@ -1590,11 +1590,12 @@ export function getEightPalaceCollectionBaseSalePrice(state, piece){
   const record = getCollectionRecord(piece);
   if(!record) return 0;
 
-  return getCollectionBaseSalePrice(
+  const baseSalePrice = getCollectionBaseSalePrice(
     state.collectionCards,
     record.value,
     record.foodType
   );
+  return Math.round(baseSalePrice * getFoodExpiryState(record, state).multiplier);
 }
 
 // The 100 Step Eight Palace mode collects the concrete card that existed
