@@ -38,5 +38,8 @@ export function formatShelfLife(minutes){
   const totalMinutes = Math.max(0, Math.ceil(minutes ?? 0));
   const hours = Math.floor(totalMinutes / 60);
   const remainder = totalMinutes % 60;
-  return hours > 0 ? `${hours}h${String(remainder).padStart(2, "0")}m` : `${remainder}m`;
+  if(hours === 0) return `剩余 ${remainder}分`;
+  return remainder === 0
+    ? `剩余 ${hours}小时`
+    : `剩余 ${hours}小时${remainder}分`;
 }

@@ -17,8 +17,12 @@ const state = createGameState([
 ], {dayCycleEnabled: true});
 
 assert.equal(state.board[0].bornAt, 0, "initial food is born at game minute zero");
-assert.equal(formatShelfLife(510), "8h30m");
-assert.equal(formatShelfLife(45), "45m");
+assert.equal(formatShelfLife(600), "剩余 10小时");
+assert.equal(formatShelfLife(510), "剩余 8小时30分");
+assert.equal(formatShelfLife(390), "剩余 6小时30分");
+assert.equal(formatShelfLife(120), "剩余 2小时");
+assert.equal(formatShelfLife(90), "剩余 1小时30分");
+assert.equal(formatShelfLife(45), "剩余 45分");
 assert.equal(getFoodExpiryState(state.board[0], 479).warning, false);
 assert.equal(getFoodExpiryState(state.board[0], 480).warning, true);
 assert.equal(isFoodExpired(state.board[0], FOOD_SHELF_LIFE_MINUTES), true);
