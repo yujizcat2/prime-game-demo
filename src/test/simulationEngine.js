@@ -33,6 +33,8 @@ import {
 } from "../game/combineHistory";
 import { getNativeFoodType, getReductionFoodTypes } from "../game/nativeFoodTypes";
 import { applyHeaterIncrement, isHeaterTarget } from "../game/heater";
+import { getCombineDurationMinutes, getReduceDurationMinutes, TOOL_DURATION_MINUTES } from "../game/actionDuration";
+import { isFoodExpired } from "../game/foodShelfLife";
 
 
 
@@ -345,6 +347,8 @@ export function createSimulationState(
 
         value,
 
+        bornAt: 0,
+
         foodType:
           getNativeFoodType(index),
 
@@ -449,6 +453,10 @@ export function createSimulationState(
 
     steps:
       0,
+
+    totalActionMinutes: 0,
+
+    shelfLifeMetrics: {expiredFoodCount: 0, expiredFoodUseCount: 0, expiredZeroScoreCollectionCount: 0},
 
 
 
@@ -957,6 +965,7 @@ function applyCombine(
     );
 
   const actionSignature = createCombineActionSignature(a.value, b.value, value);
+  const bornAt = (state.totalActionMinutes ?? 0) + getCombineDurationMinutes(a.value, b.value);
 
 
 
@@ -981,6 +990,7 @@ function applyCombine(
     state.board[drinkIndex]={
       ...state.board[drinkIndex],
       value,
+      bornAt,
       drinkOriginValue:state.board[drinkIndex].drinkOriginValue??state.board[drinkIndex].value,
       drinkIngredients:[...(state.board[drinkIndex].drinkIngredients??[]),{value:ingredient.value,foodType:ingredient.foodType}]
     };
@@ -998,6 +1008,8 @@ function applyCombine(
   const resultPiece = {
 
     value,
+
+    bornAt,
 
     foodType,
 
@@ -1243,6 +1255,7 @@ function applyReduce(
     divisor;
 
   const actionSignature = createReduceActionSignature(oldA, oldB, firstResult, secondResult);
+  const reductionDuration = getReduceDurationMinutes((firstResult === 1 ? 1 : 0) + (secondResult === 1 ? 1 : 0));
   if(oldA===oldB){
     state.board[indexA]={...first,foodType:getNativeFoodType(indexA)??first.foodType};
     state.board[indexB]=null;
@@ -1313,7 +1326,8 @@ function applyReduce(
     collectionEvents.push({
       foodType: firstFoodType,
       key,
-      repeated: state.collection.has(key)
+      repeated: state.collection.has(key),
+      expired: isFoodExpired(first, (state.totalActionMinutes ?? 0) + reductionDuration)
     });
   }
 
@@ -1322,7 +1336,8 @@ function applyReduce(
     collectionEvents.push({
       foodType: secondFoodType,
       key,
-      repeated: state.collection.has(key)
+      repeated: state.collection.has(key),
+      expired: isFoodExpired(second, (state.totalActionMinutes ?? 0) + reductionDuration)
     });
   }
 
@@ -1454,6 +1469,7 @@ function applyReduce(
     if(event.repeated){
       state.repeatCollectionCount++;
     }
+    if(event.expired) state.shelfLifeMetrics.expiredZeroScoreCollectionCount++;
   }
 
   state.collectionEventHistory = state.collectionEventHistory.slice(-12);
@@ -1762,6 +1778,26 @@ export function applySimulationAction(
 
   let applied =
     false;
+  const previousMinutes = state.totalActionMinutes ?? 0;
+  const inputIndexes = action.indexes ?? [action.index];
+  state.shelfLifeMetrics ??= {expiredFoodCount: 0, expiredFoodUseCount: 0, expiredZeroScoreCollectionCount: 0};
+  state.shelfLifeMetrics.expiredFoodUseCount += inputIndexes.filter(index =>
+    Number.isInteger(index) && isFoodExpired(state.board?.[index], previousMinutes)
+  ).length;
+  let durationMinutes = TOOL_DURATION_MINUTES;
+  if(action.type === "combine" || action.type === "combine_ordered"){
+    durationMinutes = getCombineDurationMinutes(
+      state.board?.[action.indexes?.[0]]?.value,
+      state.board?.[action.indexes?.[1]]?.value
+    );
+  }else if(action.type === "reduce"){
+    const left = state.board?.[action.indexes?.[0]]?.value;
+    const right = state.board?.[action.indexes?.[1]]?.value;
+    const divisor = gcd(left ?? 0, right ?? 0);
+    durationMinutes = getReduceDurationMinutes(divisor > 1
+      ? ((left / divisor === 1 ? 1 : 0) + (right / divisor === 1 ? 1 : 0))
+      : 0);
+  }
 
 
 
@@ -1849,8 +1885,9 @@ export function applySimulationAction(
   if(
     !applied
   ){
-
-
+    state.shelfLifeMetrics.expiredFoodUseCount -= inputIndexes.filter(index =>
+      Number.isInteger(index) && isFoodExpired(state.board?.[index], previousMinutes)
+    ).length;
     return false;
 
   }
@@ -1860,6 +1897,10 @@ export function applySimulationAction(
 
 
   Object.assign(state, markSingleFlavorBoardPieces(state));
+  state.totalActionMinutes = previousMinutes + durationMinutes;
+  state.shelfLifeMetrics.expiredFoodCount = state.board.filter(piece =>
+    piece && isFoodExpired(piece, state.totalActionMinutes)
+  ).length;
 
   resolveMaze(
     state
@@ -2073,6 +2114,12 @@ export function cloneSimulationState(
 
     steps:
       state.steps,
+
+    totalActionMinutes:
+      state.totalActionMinutes ?? 0,
+
+    shelfLifeMetrics:
+      {...(state.shelfLifeMetrics ?? {})},
 
 
 

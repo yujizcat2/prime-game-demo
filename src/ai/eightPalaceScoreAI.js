@@ -28,6 +28,7 @@ import {
 } from "../game/dayCycle";
 import { getTimeSaleMultiplier, getTimeSalePriceTotal } from "../game/timeSaleMultiplier";
 import { getEightPalaceCollectionScoreGain } from "../game/collectionRules";
+import { isFoodExpired } from "../game/foodShelfLife";
 
 export const SCORE_AI_DEFAULTS = Object.freeze({
   depth: 3,
@@ -304,8 +305,8 @@ function getImmediateScorePotential(state, legalActions = getLegalActions(state)
     if(left.value===right.value)continue;
     const divisor = gcd(left.value, right.value);
     let reward = 0;
-    if(left.value / divisor === 1) reward += left.value;
-    if(right.value / divisor === 1) reward += right.value;
+    if(left.value / divisor === 1 && !isFoodExpired(left, state)) reward += left.value;
+    if(right.value / divisor === 1 && !isFoodExpired(right, state)) reward += right.value;
     total += reward;
     best = Math.max(best, reward);
   }
@@ -951,6 +952,8 @@ export async function runScoreGame({
   const elapsedMs = performance.now() - gameStartedAt;
   const dayHistory = structuredClone(state.dayHistory ?? []);
   const finalDay = state.day ?? 1;
+  const collectedAges = (state.collectionTimeline ?? []).map(card => card.foodAgeMinutes ?? 0);
+  const finalExpiredFoodCount = state.board.filter(piece => piece && isFoodExpired(piece, state)).length;
 
   return {
     strategy,
@@ -987,6 +990,14 @@ export async function runScoreGame({
     scoreEfficiency: getScoreEfficiency(state.score, state.totalActionMinutes),
     totalActionMinutes: state.totalActionMinutes ?? 0,
     collectionCount: state.collectionCards.length,
+    expiredFoodCount: state.shelfLifeMetrics?.expiredFoodIds?.length ?? 0,
+    expiredFoodUseCount: state.shelfLifeMetrics?.expiredFoodUseCount ?? 0,
+    expiredZeroScoreCollectionCount: state.shelfLifeMetrics?.expiredZeroScoreCollectionCount ?? 0,
+    averageCollectedFoodAgeMinutes: collectedAges.length
+      ? collectedAges.reduce((sum, age) => sum + age, 0) / collectedAges.length
+      : 0,
+    maximumCollectedFoodAgeMinutes: collectedAges.length ? Math.max(...collectedAges) : 0,
+    finalExpiredFoodCount,
     maxCombo: state.maxCombo ?? 0,
     comboBonusTotal: state.comboBonusTotal ?? 0,
     comboTimeline: structuredClone(state.comboTimeline ?? []),
@@ -1245,6 +1256,14 @@ export function summarizeScoreResults(results){
     highestScore: results.length ? Math.max(...results.map(result => result.finalScore)) : 0,
     lowestScore: results.length ? Math.min(...results.map(result => result.finalScore)) : 0,
     averageCollectionCount: average(results, result => result.collectionCount),
+    averageExpiredFoodCount: average(results, result => result.expiredFoodCount ?? 0),
+    averageExpiredFoodUseCount: average(results, result => result.expiredFoodUseCount ?? 0),
+    averageExpiredZeroScoreCollectionCount: average(results, result => result.expiredZeroScoreCollectionCount ?? 0),
+    averageCollectedFoodAgeMinutes: average(results, result => result.averageCollectedFoodAgeMinutes ?? 0),
+    maximumCollectedFoodAgeMinutes: results.length
+      ? Math.max(...results.map(result => result.maximumCollectedFoodAgeMinutes ?? 0))
+      : 0,
+    averageFinalExpiredFoodCount: average(results, result => result.finalExpiredFoodCount ?? 0),
     averageMaxCombo: average(results, result => result.maxCombo ?? 0),
     maximumMaxCombo: results.length ? Math.max(...results.map(result => result.maxCombo ?? 0)) : 0,
     averageComboBonusTotal: average(results, result => result.comboBonusTotal ?? 0),

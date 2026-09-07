@@ -158,6 +158,8 @@ export function createGameState(
         id:
           index + 1,
 
+        bornAt: 0,
+
 
         value,
 
@@ -384,6 +386,12 @@ export function createGameState(
 
     gameRecapSnapshots: [],
     recapActionCounts: {combine: 0, reduce: 0},
+
+    shelfLifeMetrics: {
+      expiredFoodIds: [],
+      expiredFoodUseCount: 0,
+      expiredZeroScoreCollectionCount: 0
+    },
 
 
 

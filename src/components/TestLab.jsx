@@ -1356,6 +1356,12 @@ function ScoreSummaryGrid({result}){
       <ResultItem label="最高积分" value={result.highestScore} highlight />
       <ResultItem label="最低积分" value={result.lowestScore} />
       <ResultItem label="平均售出数量" value={result.averageCollectionCount.toFixed(2)} />
+      <ResultItem label="每局过期料理" value={(result.averageExpiredFoodCount ?? 0).toFixed(2)} />
+      <ResultItem label="过期后继续使用" value={(result.averageExpiredFoodUseCount ?? 0).toFixed(2)} />
+      <ResultItem label="过期 0 分收藏" value={(result.averageExpiredZeroScoreCollectionCount ?? 0).toFixed(2)} />
+      <ResultItem label="收藏时平均料理年龄" value={`${(result.averageCollectedFoodAgeMinutes ?? 0).toFixed(1)} 分钟`} />
+      <ResultItem label="最长收藏年龄" value={`${(result.maximumCollectedFoodAgeMinutes ?? 0).toFixed(0)} 分钟`} />
+      <ResultItem label="最终盘面过期料理" value={(result.averageFinalExpiredFoodCount ?? 0).toFixed(2)} />
       <ResultItem label="平均最高连击" value={(result.averageMaxCombo ?? 0).toFixed(2)} />
       <ResultItem label="最大最高连击" value={result.maximumMaxCombo ?? 0} />
       <ResultItem label="平均连击奖励" value={(result.averageComboBonusTotal ?? 0).toFixed(2)} />
@@ -1628,6 +1634,10 @@ function ScoreRecord({title, game}){
         累计售出普通系：{game.collectedNormalFoodTypeCount ?? 0}
       </div>
       <div className="test-lab-record-collection">最终盘面：{formatScoreBoard(game.finalBoard) || "空"}</div>
+      <div className="test-lab-record-collection">
+        保质期：过期 {game.expiredFoodCount ?? 0} · 过期后使用 {game.expiredFoodUseCount ?? 0} · 0分收藏 {game.expiredZeroScoreCollectionCount ?? 0}
+        {` · 平均收藏年龄 ${(game.averageCollectedFoodAgeMinutes ?? 0).toFixed(1)}分钟 · 最长 ${(game.maximumCollectedFoodAgeMinutes ?? 0).toFixed(0)}分钟 · 最终过期 ${game.finalExpiredFoodCount ?? 0}`}
+      </div>
       <div className="test-lab-record-collection">全局最高连击：{game.maxCombo ?? 0} · 连击奖励总分：+{game.comboBonusTotal ?? 0}</div>
       {(game.dayRecords ?? []).filter(record => record.settlement).map(record => <div key={`board-day-${record.day}`} className="test-lab-record-collection">
         Day {record.day} · 当日 +{record.settlement.scoreGainToday} · 新增售出 {record.settlement.collectionGainToday} · 打烊盘面总和 {record.settlement.boardSum} · 当日平均盘面总和 {(record.dayAverageBoardSum ?? 0).toFixed(1)}

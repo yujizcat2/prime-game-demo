@@ -50,6 +50,7 @@ import { applyEightPalaceCollection } from "./collectionRules";
 import { getCreatedScoreValue } from "./scoreValue";
 import { isHeaterTarget } from "./heater";
 import { getNativeFoodType, getReductionFoodTypes } from "./nativeFoodTypes";
+import { getReduceDurationMinutes } from "./actionDuration";
 
 import {
   addCombinePair,
@@ -298,6 +299,7 @@ export function createCombineOutcome(state,indexA,indexB){
     const piece={
       ...drink,
       value,
+      bornAt: state.totalActionMinutes ?? 0,
       drinkOriginValue:drink.drinkOriginValue??drink.value,
       drinkIngredients:[...(drink.drinkIngredients??[]),{value:ingredient.value,foodType:ingredient.foodType}]
     };
@@ -305,6 +307,7 @@ export function createCombineOutcome(state,indexA,indexB){
   }
   const piece={
     id:state.nextId,
+    bornAt: state.totalActionMinutes ?? 0,
     value,
     scoreValue:getCreatedScoreValue(value,main,pairing),
     foodType,
@@ -877,6 +880,10 @@ export function reduceCells(
   };
 
   if(eightPalace){
+    const collectionTime = (state.totalActionMinutes ?? 0) + getReduceDurationMinutes(
+      (firstResult === 1 ? 1 : 0) + (secondResult === 1 ? 1 : 0)
+    );
+    nextState = {...nextState, totalActionMinutes: collectionTime};
     if(firstResult === 1) nextState = applyEightPalaceCollection(nextState, firstReducedPiece, collectionBoardBeforeAction);
     if(secondResult === 1) nextState = applyEightPalaceCollection(nextState, secondReducedPiece, collectionBoardBeforeAction);
     nextState = applyEightPalaceKeyFromReduction(nextState,first,second,firstResult,secondResult);

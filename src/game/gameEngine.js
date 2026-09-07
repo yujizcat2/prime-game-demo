@@ -50,6 +50,7 @@ import { applyScoreCombo } from "./scoreCombo";
 import { applyActionBaseScore } from "./actionBaseScore";
 import { applyActionDuration } from "./actionDuration";
 import { recordCollectionEfficiencySnapshot } from "./collectionEfficiency";
+import { isFoodExpired } from "./foodShelfLife";
 
 
 
@@ -365,6 +366,21 @@ export function applyAction(
   const comboState = applyScoreCombo(state, actionState);
   const scoredState = applyActionBaseScore(state, action, actionState, comboState);
   const durationState = applyActionDuration(state, action, actionState, scoredState);
+  const actionIndexes = action.indexes ?? [action.index, action.oneIndex, action.targetIndex];
+  const expiredFoodUseCount = actionIndexes.filter((index, position, indexes) =>
+    Number.isInteger(index) && indexes.indexOf(index) === position && isFoodExpired(state.board?.[index], state)
+  ).length;
+  const refreshedBoard = (action.type === "combine" || action.type === "combine_ordered")
+    ? durationState.board.map(piece => {
+        if(!piece) return piece;
+        const isNewPiece = piece.id === state.nextId;
+        const isAbsorbedPiece = action.indexes?.some(index => state.board?.[index]?.id === piece.id)
+          && state.board.find(previous => previous?.id === piece.id)?.value !== piece.value;
+        return isNewPiece || isAbsorbedPiece
+          ? {...piece, bornAt: durationState.totalActionMinutes ?? 0}
+          : piece;
+      })
+    : durationState.board;
   const newCollectionIds = new Set(
     (durationState.collectionTimeline ?? [])
       .slice((state.collectionTimeline ?? []).length)
@@ -376,10 +392,28 @@ export function applyAction(
     : item;
   let timedState = newCollectionIds.size > 0 ? {
     ...durationState,
+    board: refreshedBoard,
     collectionTimeline: durationState.collectionTimeline.map(stampCollection),
     collectionCards: durationState.collectionCards.map(stampCollection),
     latestCollection: stampCollection(durationState.latestCollection)
-  } : durationState;
+  } : {...durationState, board: refreshedBoard};
+  const newlyCollected = (timedState.collectionTimeline ?? []).slice((state.collectionTimeline ?? []).length);
+  const expiredFoodIds = new Set(state.shelfLifeMetrics?.expiredFoodIds ?? []);
+  for(const piece of state.board ?? []){
+    if(piece && isFoodExpired(piece, state)) expiredFoodIds.add(piece.id);
+  }
+  for(const piece of timedState.board ?? []){
+    if(piece && isFoodExpired(piece, timedState)) expiredFoodIds.add(piece.id);
+  }
+  timedState = {
+    ...timedState,
+    shelfLifeMetrics: {
+      expiredFoodIds: [...expiredFoodIds],
+      expiredFoodUseCount: (state.shelfLifeMetrics?.expiredFoodUseCount ?? 0) + expiredFoodUseCount,
+      expiredZeroScoreCollectionCount: (state.shelfLifeMetrics?.expiredZeroScoreCollectionCount ?? 0)
+        + newlyCollected.filter(card => card.expired).length
+    }
+  };
   if(
     timedState.dayCycleEnabled
     && timedState.dayTargetReachedAtMinutes == null

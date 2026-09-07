@@ -6107,3 +6107,20 @@
   line-height: 1;
   white-space: nowrap;
 }
+
+.board-piece-shelf-life {
+  position: absolute;
+  right: 6px;
+  bottom: 5px;
+  color: rgba(72, 91, 80, .55);
+  font-size: 8px;
+  font-weight: 800;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.board-piece-shelf-life--warning { color: #d97706; }
+.board-piece-shelf-life--expired { color: #9f3f55; }
+.board-piece--selected .board-piece-shelf-life { color: rgba(255,255,255,.72); }
+.board-piece--selected .board-piece-shelf-life--warning { color: #fde68a; }
+.board-piece--selected .board-piece-shelf-life--expired { color: #fecdd3; }

@@ -18,6 +18,7 @@ import { getCuisineSequenceIndex } from "./scoreScale";
 import { getTimeSalePeriod } from "./timeSaleMultiplier";
 import { getCollectionRewardMultiplier } from "./collectionRewardLevel";
 import { getSaleScore } from "./saleScore";
+import { getFoodExpiryState } from "./foodShelfLife";
 
 
 // ============================================================
@@ -1567,6 +1568,7 @@ function getEightPalaceCollectionKey(record){
 export function getEightPalaceCollectionScoreGain(state, piece, collectionRewardLevel = piece?.collectionRewardLevel){
   const record = getCollectionRecord(piece);
   if(!record) return 0;
+  if(getFoodExpiryState(record, state).expired) return 0;
 
   const sequenceIndex = getCuisineSequenceIndex(state.collectionCards, record.foodType);
   return createCollectionRewardSettlement({
@@ -1615,7 +1617,8 @@ export function applyEightPalaceCollection(
   const sequenceIndex = getCuisineSequenceIndex(state.collectionCards, record.foodType);
   const name = getFoodName(value, record.foodType);
   const gameTime = getDayTime(state);
-  const rewardSettlement = createCollectionRewardSettlement({
+  const expiryState = getFoodExpiryState(record, state);
+  const rawRewardSettlement = createCollectionRewardSettlement({
     collectionCards: state.collectionCards,
     value,
     foodType: record.foodType ?? null,
@@ -1628,12 +1631,23 @@ export function applyEightPalaceCollection(
     timeSalePeriods: state.timeSalePeriods,
     collectionRewardLevel: piece?.collectionRewardLevel
   });
+  const rewardSettlement = expiryState.expired ? {
+    ...rawRewardSettlement,
+    collectionScore: 0,
+    preMultiplierScore: 0,
+    baseSaleScore: 0,
+    preCuisineSaleScore: 0,
+    totalScore: 0,
+    expired: true
+  } : rawRewardSettlement;
   const todayCollectionNumber = getTodayNewCollectionCount(state) + (isNewCollection ? 1 : 0);
   const dailyCollectionBonus = isNewCollection && state.dayCycleEnabled
     ? getDailyCollectionBonus(todayCollectionNumber)
     : 0;
   const totalScore = rewardSettlement.totalScore + dailyCollectionBonus;
-  const salePointScore = isNewCollection && state.dayCycleEnabled
+  const salePointScore = expiryState.expired
+    ? dailyCollectionBonus
+    : isNewCollection && state.dayCycleEnabled
     ? getSaleScore({
         baseSalePrice: rewardSettlement.baseScore,
         qualityMultiplier: rewardSettlement.collectionMultiplierRate,
@@ -1678,6 +1692,8 @@ export function applyEightPalaceCollection(
     salePointScore,
     todayCollectionNumber,
     totalScore,
+    expired: expiryState.expired,
+    foodAgeMinutes: expiryState.ageMinutes,
     collectionRewardLevel: rewardSettlement.collectionRewardLevel,
     collectionMultiplierRate: rewardSettlement.collectionMultiplierRate,
     bonuses: rewardSettlement.bonuses,

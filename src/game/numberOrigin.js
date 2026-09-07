@@ -130,6 +130,9 @@ export function createOriginSnapshot(
     scoreValue:
       number.scoreValue ?? null,
 
+    bornAt:
+      number.bornAt ?? null,
+
     singleFlavorPenalty:
       number.singleFlavorPenalty === true,
 

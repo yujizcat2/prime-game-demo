@@ -946,6 +946,7 @@ function App(){
                 dayMinutesElapsed={
                   game.dayMinutesElapsed
                 }
+                totalActionMinutes={game.totalActionMinutes}
                 timeSalePeriods={
                   game.timeSalePeriods
                 }

@@ -80,9 +80,9 @@ const overtime60Base = createState(collectingReduceCards, {
 const overtime60 = applyAction(overtime60Base, {type: "reduce", indexes: [0, 1]});
 assert.equal(getDayTime(overtime60), "24:50");
 assert.equal(overtime60.daySettlement.minutesToday, 1490);
-assert.equal(overtime60.comboCount, 2);
-assert.equal(overtime60.latestComboEvent.comboBonus, 0);
-assert.ok(overtime60.daySettlement.scoreGainToday > 1000);
+assert.equal(overtime60.comboCount, 0, "an expired zero-value sale does not continue a sales combo");
+assert.equal(overtime60.latestComboEvent.type, "broken");
+assert.equal(overtime60.daySettlement.scoreGainToday, 1000);
 
 const closed = {...overtime45Base, dayMinutesElapsed: 1440};
 assert.equal(applyAction(closed, {type: "reduce", indexes: [0, 1]}), closed, "an action cannot start at 24:00");

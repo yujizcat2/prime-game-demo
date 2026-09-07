@@ -51,6 +51,8 @@ export default function Board({
 
   dayMinutesElapsed = 0,
 
+  totalActionMinutes = 0,
+
   timeSalePeriods,
 
   scoreMode = false,
@@ -1121,6 +1123,8 @@ export default function Board({
                     ? combinePreviewPlacement.resultPiece
                     : piece
                 }
+
+                totalActionMinutes={totalActionMinutes}
 
                 combinePreviewRole={combinePreviewRole}
 
