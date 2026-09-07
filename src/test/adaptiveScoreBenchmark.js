@@ -1,4 +1,5 @@
 import { runAdaptiveScoreBenchmark } from "../ai/eightPalaceScoreAI";
+import { formatDisplayReport } from "../utils/formatDisplayNumber";
 
 const games = Number(process.argv[2] ?? 100);
 const result = await runAdaptiveScoreBenchmark({games});
@@ -45,8 +46,8 @@ const printable = summary => ({
   singleFlavorTriggerRate: summary.singleFlavorTriggerRate
 });
 
-console.log(JSON.stringify({
+console.log(JSON.stringify(formatDisplayReport({
   config: {games, seeds: `${result.seeds[0]}..${result.seeds.at(-1)}`},
   baseline: printable(result.baseline),
   adaptive: printable(result.adaptive)
-}, null, 2));
+}), null, 2));

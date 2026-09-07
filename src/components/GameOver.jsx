@@ -2,6 +2,7 @@ import { useState } from "react";
 import { getScoreEfficiency } from "../game/scoreEfficiency";
 import { isPrime } from "../game/prime";
 import { BASE_FOOD_TYPES } from "../game/rules";
+import { formatDisplayNumber } from "../utils/formatDisplayNumber";
 
 export default function GameOver({
 
@@ -46,7 +47,7 @@ export default function GameOver({
   const normalFoodTypeCount = new Set(safeCollection.map(card => card?.foodType).filter(type => BASE_FOOD_TYPES.includes(type))).size;
   const lastCollectionStep = safeCollection.reduce((latest, card) => Math.max(latest, card?.step ?? -1), -1);
   const snapshots = Array.isArray(recapSnapshots) ? recapSnapshots.slice(-6) : [];
-  const recapValue = value => value == null ? "—" : value;
+  const recapValue = value => value == null ? "—" : formatDisplayNumber(value);
 
 
   return (
@@ -174,15 +175,15 @@ export default function GameOver({
         {reason === "checkpoint_failed" && checkpointResult && <p className="mt-3 text-sm font-bold text-gray-600">
           {checkpointResult.type === "collection"
             ? `Step ${checkpointResult.step} · 任务：售出至少 1 个料理`
-            : `Step ${checkpointResult.step} · 最终积分 ${checkpointResult.currentScore} · 目标积分 ${checkpointResult.requiredScore} · 还差 ${Math.max(0, checkpointResult.requiredScore - checkpointResult.currentScore)} 分`}
+            : `Step ${checkpointResult.step} · 最终积分 ${formatDisplayNumber(checkpointResult.currentScore)} · 目标积分 ${formatDisplayNumber(checkpointResult.requiredScore)} · 还差 ${formatDisplayNumber(Math.max(0, checkpointResult.requiredScore - checkpointResult.currentScore))} 分`}
         </p>}
 
         {isDayFailure && daySettlement && <div className="mt-5 rounded-2xl bg-amber-50/70 px-5 py-4 text-left text-sm font-bold text-gray-600">
           <div className="mb-3 text-center text-xs tracking-[.14em] text-amber-700">DAY {daySettlement.day} · 打烊</div>
-          <div className="flex justify-between py-1"><span>最终积分</span><strong>{daySettlement.finalScore}</strong></div>
-          <div className="flex justify-between py-1"><span>今日获得积分</span><strong>+{daySettlement.scoreGainToday}</strong></div>
-          <div className="flex justify-between py-1"><span>营业额</span><strong>{daySettlement.dailyRevenue} / {daySettlement.targetScore} {daySettlement.scoreTargetMet ? "✓" : "✕"}</strong></div>
-          <div className="flex justify-between py-1"><span>今日效率</span><strong>{daySettlement.efficiency.toFixed(2)}</strong></div>
+          <div className="flex justify-between py-1"><span>最终积分</span><strong>{formatDisplayNumber(daySettlement.finalScore)}</strong></div>
+          <div className="flex justify-between py-1"><span>今日获得积分</span><strong>+{formatDisplayNumber(daySettlement.scoreGainToday)}</strong></div>
+          <div className="flex justify-between py-1"><span>营业额</span><strong>{formatDisplayNumber(daySettlement.dailyRevenue)} / {formatDisplayNumber(daySettlement.targetScore)} {daySettlement.scoreTargetMet ? "✓" : "✕"}</strong></div>
+          <div className="flex justify-between py-1"><span>今日效率</span><strong>{formatDisplayNumber(daySettlement.efficiency)}</strong></div>
           <div className="flex justify-between py-1"><span>今日售出</span><strong>{daySettlement.collectionGainToday}</strong></div>
         </div>}
 
@@ -239,7 +240,7 @@ export default function GameOver({
 
           >
 
-            {score}
+            {formatDisplayNumber(score)}
 
           </div>
 
@@ -250,7 +251,7 @@ export default function GameOver({
           <div className="mt-7 grid grid-cols-3 gap-3">
             <div className="rounded-2xl bg-gray-50 py-4">
               <div className="text-xs text-gray-400">积分</div>
-              <div className="mt-1 text-xl font-black text-gray-700">{score}</div>
+              <div className="mt-1 text-xl font-black text-gray-700">{formatDisplayNumber(score)}</div>
             </div>
             <div className="rounded-2xl bg-gray-50 py-4">
               <div className="text-xs text-gray-400">Step</div>
@@ -276,27 +277,27 @@ export default function GameOver({
           <div className="grid grid-cols-2 gap-x-4 gap-y-2">
             <span>最终积分 <strong>{recapValue(score)}</strong></span>
             <span>最终 Step <strong>{recapValue(steps)}</strong></span>
-            <span>最终效率 <strong>{totalActionMinutes > 0 ? getScoreEfficiency(score, totalActionMinutes).toFixed(2) : "—"}</strong></span>
+            <span>最终效率 <strong>{totalActionMinutes > 0 ? formatDisplayNumber(getScoreEfficiency(score, totalActionMinutes)) : "—"}</strong></span>
             <span>实际动作耗时 <strong>{recapValue(totalActionMinutes)} 分钟</strong></span>
             <span>售出数量 <strong>{safeCollection.length}</strong></span>
             <span>通过检查站 <strong>{recapValue(passedCheckpointCount)}</strong></span>
             <span>失败检查站 <strong>{reason === "checkpoint_failed" ? `第 ${recapValue(checkpointResult?.index)} 站` : "—"}</strong></span>
-            <span>实际分 / 目标分 <strong>{checkpointResult?.type === "score" ? `${checkpointResult.currentScore} / ${checkpointResult.requiredScore}` : "—"}</strong></span>
-            <span>差多少分 <strong>{checkpointResult?.type === "score" ? Math.max(0, checkpointResult.requiredScore - checkpointResult.currentScore) : "—"}</strong></span>
+            <span>实际分 / 目标分 <strong>{checkpointResult?.type === "score" ? `${formatDisplayNumber(checkpointResult.currentScore)} / ${formatDisplayNumber(checkpointResult.requiredScore)}` : "—"}</strong></span>
+            <span>差多少分 <strong>{checkpointResult?.type === "score" ? formatDisplayNumber(Math.max(0, checkpointResult.requiredScore - checkpointResult.currentScore)) : "—"}</strong></span>
             <span>最后新增售出 Step <strong>{lastCollectionStep >= 0 ? lastCollectionStep : "—"}</strong></span>
             <span>最终搭配数量 <strong>{recapValue(recapActionCounts?.combine)}</strong></span>
             <span>最终处理数量 <strong>{recapValue(recapActionCounts?.reduce)}</strong></span>
             <span>质数 / 合数售出 <strong>{primeCollectionCount} / {compositeCollectionCount}</strong></span>
             <span>普通料理系数量 <strong>{normalFoodTypeCount}</strong></span>
             <span>全局最高连击 <strong>{maxCombo ?? 0}</strong></span>
-            <span>累计连击奖励 <strong>+{comboBonusTotal ?? 0}</strong></span>
+            <span>累计连击奖励 <strong>+{formatDisplayNumber(comboBonusTotal ?? 0)}</strong></span>
           </div>
           <div className="mt-3 border-t border-gray-200 pt-3 leading-5">
             {snapshots.length === 0 ? <div>阶段快照：—</div> : <>
               <div>处理：{snapshots.map(item => item.legalReduceCount).join(" → ")}</div>
               <div>搭配：{snapshots.map(item => item.legalCombineCount).join(" → ")}</div>
               <div>售出：{snapshots.map(item => item.collectionCount).join(" → ")}</div>
-              <div>积分：{snapshots.map(item => item.score).join(" → ")}</div>
+              <div>积分：{snapshots.map(item => formatDisplayNumber(item.score)).join(" → ")}</div>
             </>}
           </div>
         </section>}

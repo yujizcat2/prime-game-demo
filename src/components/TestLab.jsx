@@ -24,6 +24,7 @@ import {
 } from "../ai/eightPalaceScoreAI";
 import { FOOD_TYPE_LABELS } from "../data/specialOneRegistry";
 import { getDayTime } from "../game/dayCycle";
+import { formatDisplayNumber } from "../utils/formatDisplayNumber";
 
 import "./TestLab.css";
 
@@ -1197,7 +1198,7 @@ function ProgressPanel({
         progress.currentGame &&
 
         <div>
-          当前积分 <strong>{progress.currentScore}</strong>
+          当前积分 <strong>{formatDisplayNumber(progress.currentScore)}</strong>
           {" · "}
           售出 <strong>{progress.currentCollection}</strong>
           {" · "}
@@ -1350,11 +1351,11 @@ function ScoreSummaryGrid({result}){
     <>
     <div className="test-lab-result-grid">
       <ResultItem label="测试局数" value={result.games ?? result.attempts} />
-      <ResultItem label="平均最终积分" value={result.averageFinalScore.toFixed(2)} highlight />
-      <ResultItem label="平均得分效率" value={result.averageScoreEfficiency.toFixed(2)} highlight />
+      <ResultItem label="平均最终积分" value={formatDisplayNumber(result.averageFinalScore)} highlight />
+      <ResultItem label="平均得分效率" value={formatDisplayNumber(result.averageScoreEfficiency)} highlight />
       <ResultItem label="平均实际动作耗时" value={`${(result.averageTotalActionMinutes ?? 0).toFixed(1)} 分钟`} />
-      <ResultItem label="最高积分" value={result.highestScore} highlight />
-      <ResultItem label="最低积分" value={result.lowestScore} />
+      <ResultItem label="最高积分" value={formatDisplayNumber(result.highestScore)} highlight />
+      <ResultItem label="最低积分" value={formatDisplayNumber(result.lowestScore)} />
       <ResultItem label="平均售出数量" value={result.averageCollectionCount.toFixed(2)} />
       <ResultItem label="每局过期料理" value={(result.averageExpiredFoodCount ?? 0).toFixed(2)} />
       <ResultItem label="过期后继续使用" value={(result.averageExpiredFoodUseCount ?? 0).toFixed(2)} />
@@ -1401,8 +1402,8 @@ function ScoreSummaryGrid({result}){
     <div className="test-lab-timeline">
       {(result.daySummaries ?? []).map(day => <div key={day.day}>
           Day {day.day} · 到达 {day.reachedCount}/{result.games ?? result.attempts} · 通过 {day.passedCount}/{day.reachedCount} ({(day.passRate * 100).toFixed(1)}%)
-          {` · 营业额目标 ${day.targetScore} · 平均打烊营业额 ${day.averageClosingRevenue.toFixed(1)}`}
-          {` · 平均当日新增积分 +${day.averageScoreGainToday.toFixed(1)} · 平均售出数量 ${day.averageCollectionCount.toFixed(1)} · 平均打烊盘面总和 ${day.averageBoardSum.toFixed(1)} · 平均日内盘面总和 ${(day.averageDayBoardSum ?? 0).toFixed(1)}`}
+          {` · 营业额目标 ${formatDisplayNumber(day.targetScore)} · 平均打烊营业额 ${formatDisplayNumber(day.averageClosingRevenue)}`}
+          {` · 平均当日新增积分 +${formatDisplayNumber(day.averageScoreGainToday)} · 平均售出数量 ${formatDisplayNumber(day.averageCollectionCount)} · 平均打烊盘面总和 ${formatDisplayNumber(day.averageBoardSum)} · 平均日内盘面总和 ${formatDisplayNumber(day.averageDayBoardSum ?? 0)}`}
           {` · 平均最高连击 ${day.averageMaxCombo.toFixed(1)} · 平均连击奖励 +${day.averageComboBonus.toFixed(1)}`}
       </div>)}
     </div>
@@ -1416,7 +1417,7 @@ function CollectionEfficiencyTimeline({timeline = []}){
     {timeline.length === 0
       ? <div>尚无营业快照</div>
       : timeline.map(snapshot => <div key={snapshot.step}>
-        {formatDayClock(snapshot.step)} · 积分 {snapshot.cumulativeScore} · 售出 {snapshot.cumulativeCollections} · 效率 {snapshot.collectionEfficiency.toFixed(2)} · 近期 +{snapshot.recent10Collections}
+        {formatDayClock(snapshot.step)} · 积分 {formatDisplayNumber(snapshot.cumulativeScore)} · 售出 {snapshot.cumulativeCollections} · 效率 {formatDisplayNumber(snapshot.collectionEfficiency)} · 近期 +{snapshot.recent10Collections}
       </div>)}
   </div>;
 }
@@ -1426,7 +1427,7 @@ function AverageCollectionEfficiency({timeline = []}){
   return <div className="test-lab-record">
     <div className="test-lab-record-title">平均效率</div>
     {timeline.map(snapshot => <div key={snapshot.step}>
-      {formatDayClock(snapshot.step)} · 平均效率 {snapshot.averageCollectionEfficiency.toFixed(2)} · 样本 {snapshot.sampleCount}/{snapshot.gameCount}
+      {formatDayClock(snapshot.step)} · 平均效率 {formatDisplayNumber(snapshot.averageCollectionEfficiency)} · 样本 {snapshot.sampleCount}/{snapshot.gameCount}
     </div>)}
   </div>;
 }
@@ -1434,7 +1435,7 @@ function AverageCollectionEfficiency({timeline = []}){
 function formatFoodTypeCounts(counts = {}){
   return Object.entries(counts)
     .filter(([, count]) => count > 0)
-    .map(([foodType, count]) => `${FOOD_TYPE_LABELS[foodType] ?? (foodType === "drink" ? "饮品" : foodType)}${count}`)
+    .map(([foodType, count]) => `${FOOD_TYPE_LABELS[foodType] ?? (foodType === "drink" ? "饮品" : foodType)}${formatDisplayNumber(count)}`)
     .join(" / ") || "无普通料理";
 }
 
@@ -1502,8 +1503,8 @@ function FoodTypeTelemetrySummary({result}){
 function RandomSummaryGrid({result}){
   return (
     <div className="test-lab-result-grid">
-      <ResultItem label="平均最终积分" value={result.averageFinalScore.toFixed(2)} />
-      <ResultItem label="平均得分效率" value={result.averageScoreEfficiency.toFixed(2)} />
+      <ResultItem label="平均最终积分" value={formatDisplayNumber(result.averageFinalScore)} />
+      <ResultItem label="平均得分效率" value={formatDisplayNumber(result.averageScoreEfficiency)} />
       <ResultItem label="平均售出数量" value={result.averageCollectionCount.toFixed(2)} />
       <ResultItem label="质数售出" value={result.averagePrimeCollectionCount.toFixed(2)} />
       <ResultItem label="合数售出" value={result.averageCompositeCollectionCount.toFixed(2)} />
@@ -1547,11 +1548,11 @@ function formatMarketPeriod(period){
 }
 
 function formatMarketPrices(periods = []){
-  return periods.map(period => `${formatMarketPeriod(period)} ×${period.multiplier.toFixed(2)}`).join(" · ");
+  return periods.map(period => `${formatMarketPeriod(period)} ×${formatDisplayNumber(period.multiplier)}`).join(" · ");
 }
 
 function formatMarketSales(periods = [], saleScores = {}){
-  return periods.map(period => `${formatMarketPeriod(period)} ${saleScores[period.startMinutes] ?? 0}`).join(" · ");
+  return periods.map(period => `${formatMarketPeriod(period)} ${formatDisplayNumber(saleScores[period.startMinutes] ?? 0)}`).join(" · ");
 }
 
 function DayHistory({game}){
@@ -1559,23 +1560,23 @@ function DayHistory({game}){
     <strong>每日营业记录</strong>
     {(game.dayRecords ?? []).map(record => <details key={record.day} className="test-lab-day-record">
       <summary>
-        Day {record.day} · {record.settlement ? `${record.settlement.passed ? "通过" : "未通过"} · 打烊营业额 ${record.settlement.dailyRevenue}` : `营业中 · ${record.actions.length} 次行动`}
+        Day {record.day} · {record.settlement ? `${record.settlement.passed ? "通过" : "未通过"} · 打烊营业额 ${formatDisplayNumber(record.settlement.dailyRevenue)}` : `营业中 · ${record.actions.length} 次行动`}
       </summary>
       {record.opening && <div className="test-lab-day-section">
-        <strong>开店 · 00:00</strong> · 积分 {record.opening.score} · 售出 {record.opening.collectionCount}
+        <strong>开店 · 00:00</strong> · 积分 {formatDisplayNumber(record.opening.score)} · 售出 {record.opening.collectionCount}
         <CompactBoard board={record.opening.board} />
       </div>}
       {record.market && <div className="test-lab-day-section">
         <div><strong>Day {record.day} 价格：</strong>{formatMarketPrices(record.market.periods)}</div>
         <div><strong>Day {record.day} 销售：</strong>{formatMarketSales(record.market.periods, record.market.saleScores)}</div>
-        <div>价格总量 {record.market.priceTotal.toFixed(2)} · 平均倍率 ×{record.market.averageMultiplier.toFixed(2)}</div>
+        <div>价格总量 {formatDisplayNumber(record.market.priceTotal)} · 平均倍率 ×{formatDisplayNumber(record.market.averageMultiplier)}</div>
         {record.market.nextPeriods.length > 0 && <div><strong>→ Day {record.day + 1} 价格：</strong>{formatMarketPrices(record.market.nextPeriods)}</div>}
       </div>}
       <div className="test-lab-day-section">
         <strong>行动状态（{record.actions.length}）</strong>
         {record.actions.map(snapshot => <details key={snapshot.actionIndex} className="test-lab-action-snapshot">
-          <summary>{snapshot.time} · {formatScoreAction(snapshot.action)} · 积分 {snapshot.scoreBefore} → {snapshot.score}{snapshot.scoreGain ? `（+${snapshot.scoreGain}）` : ""}</summary>
-          <div>售出 {snapshot.collectionCount}{snapshot.collectionGain ? `（+${snapshot.collectionGain}）` : ""} · 盘面 {snapshot.boardCount} 张 / 总和 {snapshot.boardSum}</div>
+          <summary>{snapshot.time} · {formatScoreAction(snapshot.action)} · 积分 {formatDisplayNumber(snapshot.scoreBefore)} → {formatDisplayNumber(snapshot.score)}{snapshot.scoreGain ? `（+${formatDisplayNumber(snapshot.scoreGain)}）` : ""}</summary>
+          <div>售出 {snapshot.collectionCount}{snapshot.collectionGain ? `（+${snapshot.collectionGain}）` : ""} · 盘面 {snapshot.boardCount} 张 / 总和 {formatDisplayNumber(snapshot.boardSum)}</div>
           <div>合法动作 {snapshot.legalActionCount} · 合并 {snapshot.combineCount} · 处理 {snapshot.reduceCount} · 料理系 {formatFoodTypeCounts(snapshot.foodTypeCounts)}</div>
           {snapshot.collections.length > 0 && <div>本次售出：{snapshot.collections.map(formatCard).join(" / ")}</div>}
           {snapshot.toolsUsedSincePreviousAction.length > 0 && <div>此前道具：{snapshot.toolsUsedSincePreviousAction.map(tool => formatScoreAction(tool)).join(" / ")}</div>}
@@ -1587,13 +1588,13 @@ function DayHistory({game}){
         {record.actions.length === 0
           ? <div>无成功动作</div>
           : record.actions.map(snapshot => <div key={`board-sum-${snapshot.actionIndex}`}>
-              Step {snapshot.actionIndex} · {snapshot.time} · 盘面总和 {snapshot.boardSum}
+              Step {snapshot.actionIndex} · {snapshot.time} · 盘面总和 {formatDisplayNumber(snapshot.boardSum)}
             </div>)}
       </div>
       {record.settlement && <div className="test-lab-day-section">
         <strong>打烊 · 24:00</strong>
-        {` · 营业额 ${record.settlement.dailyRevenue} / ${record.settlement.targetScore} · 当日积分 +${record.settlement.scoreGainToday} · 效率 ${record.settlement.efficiency.toFixed(2)}`}
-        {` · 售出 +${record.settlement.collectionGainToday} · 打烊盘面总和 ${record.settlement.boardSum} · 当日平均盘面总和 ${(record.dayAverageBoardSum ?? 0).toFixed(1)} · ${record.settlement.passed ? "通过" : "未通过"}`}
+        {` · 营业额 ${formatDisplayNumber(record.settlement.dailyRevenue)} / ${formatDisplayNumber(record.settlement.targetScore)} · 当日积分 +${formatDisplayNumber(record.settlement.scoreGainToday)} · 效率 ${formatDisplayNumber(record.settlement.efficiency)}`}
+        {` · 售出 +${record.settlement.collectionGainToday} · 打烊盘面总和 ${formatDisplayNumber(record.settlement.boardSum)} · 当日平均盘面总和 ${formatDisplayNumber(record.dayAverageBoardSum ?? 0)} · ${record.settlement.passed ? "通过" : "未通过"}`}
       </div>}
       {record.collectionSequence.length > 0 && <div className="test-lab-day-section">
         <strong>当日售出顺序：</strong>{record.collectionSequence.map(formatCard).join(" → ")}
@@ -1610,15 +1611,15 @@ function ScoreRecord({title, game}){
       <div className="test-lab-record-title">{title}</div>
       <div>开局 #{game.gameIndex ?? game.attemptIndex ?? 1}</div>
       <div className="test-lab-record-collection">
-        最终积分 <strong>{game.finalScore}</strong>
+        最终积分 <strong>{formatDisplayNumber(game.finalScore)}</strong>
         {` · 经营至 Day ${game.finalDay} · 完成 ${game.completedDayCount} 天 · ${getDayTime({dayMinutesElapsed:game.finalDayMinutesElapsed})}`}
         <br />结束原因：<strong>{getScoreGameEndReason(game)}</strong>
       </div>
       <div className="test-lab-record-collection">开局：{formatScoreBoard(game.initialBoard)}</div>
       <div>
-        积分 <strong>{game.finalScore}</strong>
+        积分 <strong>{formatDisplayNumber(game.finalScore)}</strong>
         {" · "}
-        得分效率 <strong>{game.scoreEfficiency.toFixed(2)}</strong>
+        得分效率 <strong>{formatDisplayNumber(game.scoreEfficiency)}</strong>
         {" · "}
         售出 <strong>{game.collectionCount}</strong>
         {" · "}<strong>Day {game.finalDay} · {getDayTime({dayMinutesElapsed:game.finalDayMinutesElapsed})}</strong>
@@ -1640,7 +1641,7 @@ function ScoreRecord({title, game}){
       </div>
       <div className="test-lab-record-collection">全局最高连击：{game.maxCombo ?? 0} · 连击奖励总分：+{game.comboBonusTotal ?? 0}</div>
       {(game.dayRecords ?? []).filter(record => record.settlement).map(record => <div key={`board-day-${record.day}`} className="test-lab-record-collection">
-        Day {record.day} · 当日 +{record.settlement.scoreGainToday} · 新增售出 {record.settlement.collectionGainToday} · 打烊盘面总和 {record.settlement.boardSum} · 当日平均盘面总和 {(record.dayAverageBoardSum ?? 0).toFixed(1)}
+        Day {record.day} · 当日 +{formatDisplayNumber(record.settlement.scoreGainToday)} · 新增售出 {record.settlement.collectionGainToday} · 打烊盘面总和 {formatDisplayNumber(record.settlement.boardSum)} · 当日平均盘面总和 {formatDisplayNumber(record.dayAverageBoardSum ?? 0)}
       </div>)}
       {(game.dayHistory ?? []).map(day => <div key={`combo-day-${day.day}`} className="test-lab-record-collection">
         Day {day.day} · 最高连击 {day.maxComboToday ?? 0} · 连击奖励 +{day.comboBonusToday ?? 0}
@@ -1676,8 +1677,8 @@ function ScoreRecord({title, game}){
               {" · "}
               Day {action.dayBefore} · {action.timeBefore} → {action.timeAfter}
               {" · "}
-              积分 {action.scoreBefore} → {action.scoreAfter}
-              {action.scoreGain > 0 && <>（+{action.scoreGain}）</>}
+              积分 {formatDisplayNumber(action.scoreBefore)} → {formatDisplayNumber(action.scoreAfter)}
+              {action.scoreGain > 0 && <>（+{formatDisplayNumber(action.scoreGain)}）</>}
               {action.collectionEvents.map(event => (
                 <span key={event.id}>
                   {" · 售出 "}{event.value}{FOOD_TYPE_LABELS[event.foodType] ?? event.foodType}
@@ -1685,7 +1686,7 @@ function ScoreRecord({title, game}){
                 </span>
               ))}
               {" · "}
-              效率 {action.scoreEfficiencyAfter.toFixed(2)}
+              效率 {formatDisplayNumber(action.scoreEfficiencyAfter)}
             </li>
           ))}
         </ol>
@@ -1738,7 +1739,7 @@ function AllScoreRecords({title = "全部测试记录", games = []}){
             onToggle={event => setGameExpanded(gameKey, event.currentTarget.open)}
           >
             <summary>
-              开局 #{gameKey} · {game.finalScore}分 · 售出{game.collectionCount} · Day {game.finalDay} · {getDayTime({dayMinutesElapsed:game.finalDayMinutesElapsed})}
+              开局 #{gameKey} · {formatDisplayNumber(game.finalScore)}分 · 售出{game.collectionCount} · Day {game.finalDay} · {getDayTime({dayMinutesElapsed:game.finalDayMinutesElapsed})}
               {` · 经营至 Day ${game.finalDay} · 完成 ${game.completedDayCount} 天`}
               {status ? ` · ${status}` : ""}
             </summary>
@@ -1760,8 +1761,8 @@ function AllScoreRecords({title = "全部测试记录", games = []}){
                     {" · "}
                     Day {action.dayBefore} · {action.timeBefore} → {action.timeAfter}
                     {" · "}
-                    积分 {action.scoreBefore} → {action.scoreAfter}
-                    {action.scoreGain > 0 && <>（+{action.scoreGain}）</>}
+                    积分 {formatDisplayNumber(action.scoreBefore)} → {formatDisplayNumber(action.scoreAfter)}
+                    {action.scoreGain > 0 && <>（+{formatDisplayNumber(action.scoreGain)}）</>}
                     {action.collectionEvents.map(event => (
                       <span key={event.id}>
                         {" · 售出 "}{event.value}{FOOD_TYPE_LABELS[event.foodType] ?? event.foodType}
@@ -1769,7 +1770,7 @@ function AllScoreRecords({title = "全部测试记录", games = []}){
                       </span>
                     ))}
                     {" · "}
-                    效率 {action.scoreEfficiencyAfter.toFixed(2)}
+                    效率 {formatDisplayNumber(action.scoreEfficiencyAfter)}
                   </li>
                 ))}
               </ol>
@@ -1800,7 +1801,7 @@ function ScoreResults({result}){
           <div className="test-lab-section-title">Score + Heater AI</div>
           <ScoreSummaryGrid result={heater} />
           <div className="test-lab-record">
-            平均积分差（Heater - Score）：<strong>{result.heaterAverageScoreDifference.toFixed(2)}</strong>
+            平均积分差（Heater - Score）：<strong>{formatDisplayNumber(result.heaterAverageScoreDifference)}</strong>
           </div>
           <AverageCollectionEfficiency timeline={heater.averageCollectionEfficiencyTimeline} />
         </div>
@@ -2436,6 +2437,10 @@ function ResultItem({
 
 }){
 
+  const displayValue = typeof value === "number"
+    ? formatDisplayNumber(value)
+    : value;
+
 
   return (
 
@@ -2469,7 +2474,7 @@ function ResultItem({
         "
       >
 
-        {value}
+        {displayValue}
 
       </div>
 
@@ -3909,17 +3914,7 @@ function formatNumber(
 
 
 
-  return (
-
-    value
-      ?.toLocaleString
-      ?.()
-
-    ??
-
-    value
-
-  );
+  return formatDisplayNumber(value);
 
 }
 

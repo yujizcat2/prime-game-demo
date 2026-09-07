@@ -1,4 +1,5 @@
 import { runScoreGames } from "../ai/eightPalaceScoreAI";
+import { formatDisplayReport } from "../utils/formatDisplayNumber";
 
 const report = await runScoreGames({
   games: 100,
@@ -45,4 +46,4 @@ const output = {
   dominantFoodTypeRatioDistributionAtSteps: report.dominantFoodTypeRatioDistributionAtSteps
 };
 
-console.log(JSON.stringify(output, null, 2));
+console.log(JSON.stringify(formatDisplayReport(output), null, 2));

@@ -1,4 +1,5 @@
 import { createSeededScoreOpenings, runScoreGames } from "../ai/eightPalaceScoreAI";
+import { formatDisplayReport } from "../utils/formatDisplayNumber";
 
 const games = 100;
 const report = await runScoreGames({
@@ -11,7 +12,7 @@ const report = await runScoreGames({
   openings: createSeededScoreOpenings(Array.from({length: games}, (_, index) => index + 1))
 });
 
-console.log(JSON.stringify({
+console.log(JSON.stringify(formatDisplayReport({
   games: report.games,
   depth: report.depth,
   beamWidth: report.beamWidth,
@@ -29,4 +30,4 @@ console.log(JSON.stringify({
     passedCount: day.passedCount,
     passRate: day.passRate
   }))
-}, null, 2));
+}), null, 2));

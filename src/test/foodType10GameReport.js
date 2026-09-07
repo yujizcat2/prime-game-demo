@@ -1,5 +1,6 @@
 import { runScoreGames, SCORE_AI_DEFAULTS } from "../ai/eightPalaceScoreAI";
 import { BASE_FOOD_TYPES } from "../game/rules";
+import { formatDisplayReport } from "../utils/formatDisplayNumber";
 
 const report = await runScoreGames({
   games: 10,
@@ -28,7 +29,7 @@ const firstSteps = Object.fromEntries([5, 6, 7, 8].map(target => {
   return [target, steps.length ? average(steps) : null];
 }));
 
-console.log(JSON.stringify({
+console.log(JSON.stringify(formatDisplayReport({
   config: {games: 10, ...SCORE_AI_DEFAULTS},
   averageFinalScore: report.averageFinalScore,
   highestScore: report.highestScore,
@@ -42,4 +43,4 @@ console.log(JSON.stringify({
   averageBoardPowerBonus: report.averageBoardPowerBonus,
   largeCollectionSummary: report.largeCollectionSummary,
   lowestScore: report.lowestScore
-}, null, 2));
+}), null, 2));
