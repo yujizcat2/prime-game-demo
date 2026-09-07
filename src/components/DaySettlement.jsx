@@ -44,7 +44,7 @@ export default function DaySettlement({settlement, onContinue}){
               : row.nextMultiplier < row.multiplier - 1e-9 ? "↓" : "—";
             return <div className="day-settlement-market-row" key={row.startMinutes}>
               <strong>{row.displayName}</strong>
-              <span>销售 {numberFormatter.format(row.saleScore)}分 · {numberFormatter.format(row.saleIntensity)}分/h</span>
+              <span>销售 {formatDisplayNumber(row.saleScore)}分 · {formatDisplayNumber(row.saleIntensity)}分/h</span>
               <span>今日 ×{formatMultiplier(row.multiplier)}　明日 {trend} ×{formatMultiplier(row.nextMultiplier)}</span>
             </div>;
           })}
