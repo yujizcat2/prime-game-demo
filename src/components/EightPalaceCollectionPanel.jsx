@@ -6,6 +6,7 @@ import {
 } from "./foodCardDisplay";
 import { getFoodTypeShortName } from "../data/food/foodRegistry";
 import { getSaleSummary, SALE_FOOD_TYPES } from "./saleSummary";
+import { formatDisplayNumber } from "../utils/formatDisplayNumber";
 
 export default function EightPalaceCollectionPanel({cards = [], score = 0}){
   const saleSummary = getSaleSummary(cards);
@@ -14,10 +15,9 @@ export default function EightPalaceCollectionPanel({cards = [], score = 0}){
     <section className="eight-collection-panel">
       <div className="eight-collection-heading">
         <div>
-          <div className="eight-collection-kicker">100 STEP SALES</div>
           <h2>本局销售记录</h2>
         </div>
-        <strong>{cards.length} 张 · {score} 分</strong>
+        <strong>{cards.length} 张 · {formatDisplayNumber(score)} 分</strong>
       </div>
 
       <div className="eight-collection-summary" aria-label="各系销售汇总">
