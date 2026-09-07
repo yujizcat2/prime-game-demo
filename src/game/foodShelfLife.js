@@ -1,4 +1,4 @@
-export const FOOD_SHELF_LIFE_MINUTES = 10 * 60;
+export const FOOD_SHELF_LIFE_MINUTES = 24 * 60;
 export const FOOD_EXPIRY_WARNING_MINUTES = 2 * 60;
 
 export function getGameElapsedMinutes(state){
