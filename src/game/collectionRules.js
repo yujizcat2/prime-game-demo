@@ -1644,7 +1644,10 @@ export function applyEightPalaceCollection(
   const dailyCollectionBonus = isNewCollection && state.dayCycleEnabled
     ? getDailyCollectionBonus(todayCollectionNumber)
     : 0;
-  const totalScore = rewardSettlement.totalScore + dailyCollectionBonus;
+  const shelfLifeSaleRevenue = Math.round(
+    rewardSettlement.totalScore * expiryState.multiplier
+  );
+  const totalScore = shelfLifeSaleRevenue + dailyCollectionBonus;
   const salePointScore = expiryState.expired
     ? 0
     : isNewCollection && state.dayCycleEnabled
@@ -1656,7 +1659,9 @@ export function applyEightPalaceCollection(
     : totalScore;
   const collectionReward = {
     ...rewardSettlement,
-    saleScore: rewardSettlement.totalScore,
+    saleScore: shelfLifeSaleRevenue,
+    shelfLifeStatus: expiryState.status,
+    shelfLifeMultiplier: expiryState.multiplier,
     todayCollectionNumber,
     dailyCollectionBonus,
     salePointScore,
@@ -1665,7 +1670,7 @@ export function applyEightPalaceCollection(
   const timeSalePeriod = getTimeSalePeriod(gameTime, state.timeSalePeriods);
   const timeSalePeriodIndex = (state.timeSalePeriods ?? [])
     .findIndex(period => period.startMinutes === timeSalePeriod.startMinutes);
-  const normalizedSale = rewardSettlement.totalScore / timeSalePeriod.multiplier;
+  const normalizedSale = shelfLifeSaleRevenue / timeSalePeriod.multiplier;
 
   const parentFoods = createConcreteParentSnapshots(record);
   const collectionStep = (state.steps ?? 0) + 1;
@@ -1687,7 +1692,9 @@ export function applyEightPalaceCollection(
     isFirstNumber: rewardSettlement.isFirstNumber ?? false,
     existingFoodTypeCountForSameNumber: rewardSettlement.existingFoodTypeCountForSameNumber,
     bonusScore: rewardSettlement.bonusScore,
-    saleScore: rewardSettlement.totalScore,
+    saleScore: shelfLifeSaleRevenue,
+    shelfLifeStatus: expiryState.status,
+    shelfLifeMultiplier: expiryState.multiplier,
     dailyCollectionBonus,
     salePointScore,
     todayCollectionNumber,

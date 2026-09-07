@@ -1197,7 +1197,9 @@ export default function BoardCell({
           </div>
 
           <div className={`board-piece-shelf-life ${expiryState.expired ? "board-piece-shelf-life--expired" : expiryState.warning ? "board-piece-shelf-life--warning" : ""}`}>
-            {expiryState.expired ? "已过期 · 0营业额" : formatShelfLife(expiryState.remainingMinutes)}
+            {expiryState.expired
+              ? "过期 · 0营业额"
+              : `${expiryState.status} · ${formatShelfLife(expiryState.remainingMinutes)}`}
           </div>
 
 
