@@ -1,5 +1,4 @@
 import { gcd } from "../utils/math";
-import { getCombinedFoodType } from "./foodTypeCombination";
 
 export const FOOD_TYPES = Object.freeze({ LAND:"land", AQUATIC:"aquatic", VEGETABLE:"vegetable", GRAIN_BEAN:"grainBean", DAIRY_EGG:"dairyEgg", FRUIT:"fruit", SEASONING:"seasoning", SPICE:"spice", DRINK:"drink", MEAT:"land" });
 export const BASE_FOOD_TYPES = Object.freeze([FOOD_TYPES.LAND,FOOD_TYPES.AQUATIC,FOOD_TYPES.VEGETABLE,FOOD_TYPES.GRAIN_BEAN,FOOD_TYPES.DAIRY_EGG,FOOD_TYPES.FRUIT,FOOD_TYPES.SEASONING,FOOD_TYPES.SPICE]);
@@ -12,7 +11,6 @@ export const FOOD_TYPE_META = Object.freeze({
 export const FOOD_PURITY=Object.freeze({PURE:"pure",MIXED:"mixed"});
 export const SPECIAL_ONE_KINDS=Object.freeze({KEY:"key",FUNCTION:"function"});
 export function canReduce(a,b){return gcd(a.value,b.value)>1;}
-export function isCrossing101(a,b){return a+b>=102;}
 export function combineValue(a,b){return a+b;}
 export function isNormalFoodType(type){return BASE_FOOD_TYPES.includes(type);}
 export function isDrinkFoodPair(a,b){return Boolean(a&&b&&(a.foodType===FOOD_TYPES.DRINK)!==(b.foodType===FOOD_TYPES.DRINK));}
@@ -20,16 +18,7 @@ export function hasDrinkIngredientValue(drink,value){return Boolean(drink?.foodT
 export function flipFoodType(){return null;}
 export function getDessertMutationFoodType(){return null;}
 
-// Player, preview and AI share this rule. Drink behavior remains outside the normal eight-type matrix.
-export function combineFoodType(front,back){
-  if(!front||!back||!front.foodType||!back.foodType)return null;
-  const a=front.foodType==="meat"?FOOD_TYPES.LAND:front.foodType,b=back.foodType==="meat"?FOOD_TYPES.LAND:back.foodType;
-  if(a===FOOD_TYPES.DRINK&&b===FOOD_TYPES.DRINK)return null;
-  if(a===FOOD_TYPES.DRINK||b===FOOD_TYPES.DRINK)return FOOD_TYPES.DRINK;
-  if(!isNormalFoodType(a)||!isNormalFoodType(b))return null;
-  return isCrossing101(front.value,back.value)?FOOD_TYPES.DRINK:getCombinedFoodType(a,b);
-}
-export function combineFoodPurity(front,back,resultFoodType=combineFoodType(front,back)){const result=resultFoodType;if(!result||result===FOOD_TYPES.DRINK)return null;return front.foodType===back.foodType&&result===front.foodType?FOOD_PURITY.PURE:FOOD_PURITY.MIXED;}
+export function combineFoodPurity(front,back,resultFoodType){const result=resultFoodType;if(!result||result===FOOD_TYPES.DRINK)return null;return front.foodType===back.foodType&&result===front.foodType?FOOD_PURITY.PURE:FOOD_PURITY.MIXED;}
 export function createSpecialOne(sourceTypeA,sourceTypeB){
   if(sourceTypeA==="meat")sourceTypeA=FOOD_TYPES.LAND;
   if(sourceTypeB==="meat")sourceTypeB=FOOD_TYPES.LAND;

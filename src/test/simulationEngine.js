@@ -6,7 +6,6 @@ import {
   FOOD_TYPES,
   FOOD_PURITY,
   combineValue,
-  combineFoodType,
   combineFoodPurity,
   BASE_FOOD_TYPES,
   canReduce,
@@ -31,7 +30,7 @@ import {
   addCombinePair,
   hasCombinePair
 } from "../game/combineHistory";
-import { getNativeFoodType, getReductionFoodTypes } from "../game/nativeFoodTypes";
+import { getFoodTypeForPosition, getNativeFoodType, getReductionFoodTypes } from "../game/nativeFoodTypes";
 import { applyHeaterIncrement, isHeaterTarget } from "../game/heater";
 import { getCombineDurationMinutes, getReduceDurationMinutes, TOOL_DURATION_MINUTES } from "../game/actionDuration";
 import { isFoodExpired } from "../game/foodShelfLife";
@@ -953,7 +952,7 @@ function applyCombine(
 
 
 
-  const value =
+  const baseValue =
 
     combineValue(
 
@@ -963,39 +962,21 @@ function applyCombine(
 
     );
 
-  const actionSignature = createCombineActionSignature(a.value, b.value, value);
   const bornAt = (state.totalActionMinutes ?? 0) + getCombineDurationMinutes(a.value, b.value);
-
-
-
-
-
-  const foodType=combineFoodType(front,back);
-
-
-
-  if(
-    !foodType
-  ){
-
-
-    return false;
-
-  }
 
   const drinkIndex=a.foodType===FOOD_TYPES.DRINK?indexA:b.foodType===FOOD_TYPES.DRINK?indexB:null;
   if(isDrinkFoodPair(a,b)){
     const ingredient=drinkIndex===indexA?b:a;
     state.board[drinkIndex]={
       ...state.board[drinkIndex],
-      value,
+      value:baseValue,
       bornAt,
       drinkOriginValue:state.board[drinkIndex].drinkOriginValue??state.board[drinkIndex].value,
       drinkIngredients:[...(state.board[drinkIndex].drinkIngredients??[]),{value:ingredient.value,foodType:ingredient.foodType}]
     };
     state.steps++;
     state.combineHistoryKeys=addCombinePair(state.combineHistoryKeys,a,b);
-    state.recentActionSignatures=appendRecentActionSignature(state.recentActionSignatures,actionSignature);
+    state.recentActionSignatures=appendRecentActionSignature(state.recentActionSignatures,createCombineActionSignature(a.value,b.value,baseValue));
     state.usedCombinationPairs=[...(state.usedCombinationPairs??[]),createCombinationPairKey(a.value,b.value)];
     return true;
   }
@@ -1003,6 +984,13 @@ function applyCombine(
 
 
 
+
+  const targetIndex=getNextEmptyIndex(state.board);
+  if(targetIndex===-1)return false;
+  const foodType=getFoodTypeForPosition(targetIndex);
+  if(!foodType)return false;
+  const value=targetIndex===4?baseValue+100:baseValue;
+  const actionSignature=createCombineActionSignature(a.value,b.value,value);
 
   const resultPiece = {
 
@@ -1013,7 +1001,7 @@ function applyCombine(
     foodType,
 
     crossed101:
-      front.value + back.value > 101,
+      targetIndex === 4,
 
     purity:
 
@@ -1077,8 +1065,6 @@ function applyCombine(
     ...(foodType===FOOD_TYPES.DRINK?{drinkOriginValue:value,drinkIngredients:[]}:null)
 
   };
-  const targetIndex=getNextEmptyIndex(state.board);
-  if(targetIndex===-1)return false;
   state.board[targetIndex]=resultPiece;
 
 
@@ -1256,7 +1242,7 @@ function applyReduce(
   const actionSignature = createReduceActionSignature(oldA, oldB, firstResult, secondResult);
   const reductionDuration = getReduceDurationMinutes((firstResult === 1 ? 1 : 0) + (secondResult === 1 ? 1 : 0));
   if(oldA===oldB){
-    state.board[indexA]={...first,foodType:getNativeFoodType(indexA)??first.foodType};
+    state.board[indexA]={...first,foodType:getNativeFoodType(indexA)===FOOD_TYPES.DRINK?first.foodType:getNativeFoodType(indexA)??first.foodType};
     state.board[indexB]=null;
     state.lastCollectionEvents=[];
     state.steps++;
@@ -1784,7 +1770,7 @@ export function applySimulationAction(
     Number.isInteger(index) && isFoodExpired(state.board?.[index], previousMinutes)
   ).length;
   let durationMinutes = TOOL_DURATION_MINUTES;
-  if(action.type === "combine" || action.type === "combine_ordered"){
+  if(action.type === "combine"){
     durationMinutes = getCombineDurationMinutes(
       state.board?.[action.indexes?.[0]]?.value,
       state.board?.[action.indexes?.[1]]?.value
@@ -1808,7 +1794,6 @@ export function applySimulationAction(
 
 
     case "combine":
-    case "combine_ordered":
 
 
       applied =

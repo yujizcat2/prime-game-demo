@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { BASE_FOOD_TYPES, FOOD_TYPES as T, combineFoodType, combineValue } from "../game/rules";
+import { BASE_FOOD_TYPES, FOOD_TYPES as T, combineValue } from "../game/rules";
 import { DRINK_DATA } from "../data/ingredients/drinkData";
 import { LAND_DATA } from "../data/ingredients/landData";
 import { AQUATIC_DATA } from "../data/ingredients/aquaticData";
@@ -14,17 +14,7 @@ import { createEightPalaceInitialValues, createRandomInitialValues } from "../ga
 import { applyCollection } from "../game/collectionRules";
 
 const p=(foodType,value=10)=>({foodType,value});
-for(const a of BASE_FOOD_TYPES)for(const b of BASE_FOOD_TYPES){assert.equal(combineFoodType(p(a),p(b)),combineFoodType(p(b),p(a)));}
-assert.equal(combineFoodType(p(T.LAND,58),p(T.VEGETABLE,67)),T.DRINK);
 assert.equal(combineValue(58,67),125);
-assert.equal(combineFoodType(p(T.LAND,50),p(T.VEGETABLE,51)),T.GRAIN_BEAN);
-assert.equal(combineFoodType(p(T.LAND,50),p(T.VEGETABLE,52)),T.DRINK);
-assert.equal(combineFoodType(p(T.DRINK,120),p(T.LAND)),T.DRINK);
-assert.equal(combineFoodType(p(T.LAND),p(T.DRINK,120)),T.DRINK);
-assert.equal(combineFoodType(p(T.DRINK,120),p(T.DAIRY_EGG)),T.DRINK);
-assert.equal(combineFoodType(p(T.DRINK,70),p(T.FRUIT,40)),T.DRINK);
-assert.equal(combineFoodType(p(T.FRUIT,40),p(T.DRINK,70)),T.DRINK);
-assert.equal(combineFoodType(p(T.DRINK,120),p(T.DRINK,180)),null);
 assert.equal(Object.keys(DRINK_DATA).length,100);
 const baseNames=new Set([LAND_DATA,AQUATIC_DATA,VEGETABLE_DATA,GRAIN_BEAN_DATA,DAIRY_EGG_DATA,FRUIT_DATA,SEASONING_DATA,SPICE_DATA].flatMap(data=>Object.values(data)));
 assert.deepEqual(Object.entries(DRINK_DATA).filter(([,name])=>baseNames.has(name)),[],"drink names must not duplicate frozen base names");

@@ -33,7 +33,7 @@ function SingleHint({item,candidateCounts}){
     : getTypeShortName(item?.foodType);
   const combinationHint=item?.foodType==="drink"
     ? "饮品继续使用现有的吸收规则。"
-    : "不同料理系搭配会生成固定的第三料理系，结果与点击顺序无关。";
+    : "搭配后的料理系由新料理生成的位置决定。";
 
   return (
     <div className="cooking-hint cooking-hint--single" key={item?.id}>
@@ -122,16 +122,8 @@ function PairHint({status,keyOutcome,preview}){
 
   if(canCombine&&preview?.combine){
     const result=preview.combine;
-    const drink=first.foodType==="drink"?first:second.foodType==="drink"?second:null;
-    const normal=drink===first?second:drink===second?first:null;
     const resultName=getFoodName(result.value,result.foodType);
     const resultType=getTypeShortName(result.foodType);
-    if(result.kind==="wrap")return (
-      <div className="cooking-hint cooking-hint--pair cooking-hint--combine-detail">
-        <div className="cooking-hint__dish cooking-hint__dish--pair-detail"><strong>这杯饮品会回到普通料理</strong><span>饮品　<b>{getItemName(drink)} {drink.value}</b></span><span>加入　<b>{getItemName(normal)} {normal.value} · {getTypeShortName(normal.foodType)}</b></span></div>
-        <div className="cooking-hint__next"><small>将得到</small><span><b>{result.value} · {resultName} · {resultType}</b></span><span>新料理会在原饮品的位置，加入的料理会留在原位。</span></div>
-      </div>
-    );
     const becameDrink=result.foodType==="drink";
     return (
       <div className="cooking-hint cooking-hint--pair cooking-hint--combine-detail">
@@ -143,7 +135,7 @@ function PairHint({status,keyOutcome,preview}){
         <div className="cooking-hint__next">
           <small>将得到</small>
           <span><b>{result.value} · {resultName} · {resultType}</b></span>
-          <span>{becameDrink?"两道料理调在一起，成为一杯新的饮品。":first.foodType===second.foodType?`同系搭配保持${resultType}系。`:`不同料理系会固定生成${resultType}系，结果与点击顺序无关。`}</span>
+          <span>{becameDrink?"新料理出生在中央位置，成为饮品。":`搭配后的料理系由新料理生成的位置决定。`}</span>
         </div>
       </div>
     );

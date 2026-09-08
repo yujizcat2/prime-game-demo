@@ -21,7 +21,7 @@ export function getReduceDurationMinutes(removedCardCount = 0){
 
 export function getActionDurationMinutes(previousState, action, actionState){
   if(!previousState || !action || !actionState || actionState === previousState) return 0;
-  if(action.type === "combine" || action.type === "combine_ordered"){
+  if(action.type === "combine"){
     const [leftIndex, rightIndex] = action.indexes ?? [];
     return getCombineDurationMinutes(
       previousState.board?.[leftIndex]?.value,

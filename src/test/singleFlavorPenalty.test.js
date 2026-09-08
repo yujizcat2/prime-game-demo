@@ -67,7 +67,7 @@ for(const ignored of [
     piece(1, 4, grainBean, {singleFlavorPenalty: true}),
     piece(2, 6, dairyEgg, {singleFlavorPenalty: true})
   ]);
-  const combined = applyAction(state, {type: "combine_ordered", indexes: [0, 1]});
+  const combined = applyAction(state, {type: "combine", indexes: [0, 1]});
   const created = combined.board.find(card => card?.id === state.nextId);
   assert.equal(created.singleFlavorPenalty, false);
 }

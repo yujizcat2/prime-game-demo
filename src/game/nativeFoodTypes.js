@@ -6,7 +6,7 @@ export const BOARD_NATIVE_FOOD_TYPES = Object.freeze([
   FOOD_TYPES.AQUATIC,
   FOOD_TYPES.VEGETABLE,
   FOOD_TYPES.GRAIN_BEAN,
-  null,
+  FOOD_TYPES.DRINK,
   FOOD_TYPES.DAIRY_EGG,
   FOOD_TYPES.FRUIT,
   FOOD_TYPES.SEASONING,
@@ -15,8 +15,8 @@ export const BOARD_NATIVE_FOOD_TYPES = Object.freeze([
 
 if(
   BOARD_NATIVE_FOOD_TYPES.length !== 9
-  || BOARD_NATIVE_FOOD_TYPES[4] !== null
-  || new Set(BOARD_NATIVE_FOOD_TYPES.filter((_, index) => index !== 4)).size !== BASE_FOOD_TYPES.length
+  || BOARD_NATIVE_FOOD_TYPES[4] !== FOOD_TYPES.DRINK
+  || new Set(BOARD_NATIVE_FOOD_TYPES).size !== BASE_FOOD_TYPES.length + 1
   || !BASE_FOOD_TYPES.every(type => BOARD_NATIVE_FOOD_TYPES.includes(type))
 ){
   throw new Error("Invalid native food type board layout");
@@ -24,6 +24,10 @@ if(
 
 export function getNativeFoodType(index){
   return BOARD_NATIVE_FOOD_TYPES[index] ?? null;
+}
+
+export function getFoodTypeForPosition(index){
+  return getNativeFoodType(index);
 }
 
 export function getNativeBoardIndex(foodType){
@@ -38,8 +42,9 @@ export function getReductionFoodTypes(first,second,firstResult,secondResult,inde
   const normal=drinkIsFirst?second:first;
   const normalResult=drinkIsFirst?secondResult:firstResult;
   const drinkIndex=drinkIsFirst?indexA:indexB;
+  const nativeFoodType=getNativeFoodType(drinkIndex);
   const drinkFoodType=normalResult===1
-    ? getNativeFoodType(drinkIndex)??normal.foodType
+    ? nativeFoodType===FOOD_TYPES.DRINK?normal.foodType:nativeFoodType??normal.foodType
     : normal.foodType;
   return drinkIsFirst
     ? [drinkFoodType,normal.foodType]

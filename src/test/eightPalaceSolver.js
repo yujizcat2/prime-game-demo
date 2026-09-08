@@ -133,7 +133,6 @@ export function getActionIndexes(action){
     case "claim_key": return action.index===undefined?[...(action.indexes??[])]:[action.index];
     case "apply_one": return action.oneIndex===undefined?[...(action.indexes??[])]:[action.oneIndex,action.targetIndex].filter(index=>index!==undefined);
     case "combine":
-    case "combine_ordered":
     case "reduce":
     default: return [...(action?.indexes??[])];
   }

@@ -3,6 +3,7 @@
 import {
   BASE_FOOD_TYPES
 } from "./rules";
+import { getNativeBoardIndex } from "./nativeFoodTypes";
 
 
 // ============================================================
@@ -35,13 +36,11 @@ function shuffle(items, random){
 
 export function createStandardInitialValues(random = Math.random){
   const foodTypes = shuffle(BASE_FOOD_TYPES, random).slice(0, STANDARD_OPENING_COUNT);
-  const boardIndexes = shuffle(Array.from({length: 9}, (_, index) => index), random)
-    .slice(0, STANDARD_OPENING_COUNT);
 
-  return foodTypes.map((foodType, index) => ({
+  return foodTypes.map(foodType => ({
     value: INITIAL_VALUE_POOL[Math.floor(random() * INITIAL_VALUE_POOL.length)],
     foodType,
-    boardIndex: boardIndexes[index]
+    boardIndex: getNativeBoardIndex(foodType)
   }));
 }
 
@@ -130,18 +129,6 @@ export function createEightPalaceInitialValues(){
   ];
 
 
-  const boardIndexes = [
-    0,
-    1,
-    2,
-    3,
-    5,
-    6,
-    7,
-    8
-  ];
-
-
   for(
     let i = foodTypes.length - 1;
     i > 0;
@@ -190,19 +177,19 @@ export function createEightPalaceInitialValues(){
     values[right] = nextRight;
   }
 
-  return boardIndexes.map(
+  return foodTypes.map(
     (
-      boardIndex,
+      foodType,
       index
     ) => ({
 
       value:
         values[index],
 
-      foodType:
-        foodTypes[index],
+      foodType,
 
-      boardIndex
+      boardIndex:
+        getNativeBoardIndex(foodType)
 
     })
   );

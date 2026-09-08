@@ -5,7 +5,6 @@ import {
 import {
   FOOD_TYPES,
   combineValue,
-  combineFoodType,
   combineFoodPurity,
   FOOD_PURITY,
   SPECIAL_ONE_KINDS,
@@ -49,7 +48,7 @@ import {
 import { applyEightPalaceCollection } from "./collectionRules";
 import { getCreatedScoreValue } from "./scoreValue";
 import { isHeaterTarget } from "./heater";
-import { getNativeFoodType, getReductionFoodTypes } from "./nativeFoodTypes";
+import { getFoodTypeForPosition, getNativeFoodType, getReductionFoodTypes } from "./nativeFoodTypes";
 import { getReduceDurationMinutes } from "./actionDuration";
 
 import {
@@ -259,7 +258,7 @@ export function createReduceOutcome(state,indexA,indexB){
     kind:"equalRetype",
     divisor,
     results:[
-      {...first,foodType:getNativeFoodType(indexA)??first.foodType,autoCollect:false},
+      {...first,foodType:getNativeFoodType(indexA)===FOOD_TYPES.DRINK?first.foodType:getNativeFoodType(indexA)??first.foodType,autoCollect:false},
       {...second,clear:true,autoCollect:false}
     ]
   };
@@ -289,22 +288,25 @@ export function createCombineOutcome(state,indexA,indexB){
   if(!canCombine(main,pairing,getBoardPieces(state.board)))return null;
   if(main.foodType===FOOD_TYPES.DRINK&&pairing.foodType===FOOD_TYPES.DRINK)return null;
   const drinkIndex=main.foodType===FOOD_TYPES.DRINK?indexA:pairing.foodType===FOOD_TYPES.DRINK?indexB:null;
-  const value=combineValue(main.value,pairing.value);
-  const foodType=combineFoodType(main,pairing);
-  if(!foodType)return null;
+  const baseValue=combineValue(main.value,pairing.value);
   const ingredientIndex=drinkIndex===null?null:drinkIndex===indexA?indexB:indexA;
   if(isDrinkFoodPair(main,pairing)){
     const drink=getPieceAt(state,drinkIndex);
     const ingredient=getPieceAt(state,ingredientIndex);
     const piece={
       ...drink,
-      value,
+      value:baseValue,
       bornAt: state.totalActionMinutes ?? 0,
       drinkOriginValue:drink.drinkOriginValue??drink.value,
       drinkIngredients:[...(drink.drinkIngredients??[]),{value:ingredient.value,foodType:ingredient.foodType}]
     };
-    return {kind:"absorb",value,foodType:FOOD_TYPES.DRINK,purity:piece.purity,piece,drinkIndex,ingredientIndex,targetIndex:drinkIndex};
+    return {kind:"absorb",value:baseValue,foodType:FOOD_TYPES.DRINK,purity:piece.purity,piece,drinkIndex,ingredientIndex,targetIndex:drinkIndex};
   }
+  const targetIndex=getNextEmptyIndex(state.board);
+  if(targetIndex===-1)return null;
+  const foodType=getFoodTypeForPosition(targetIndex);
+  if(!foodType)return null;
+  const value=targetIndex===4?baseValue+100:baseValue;
   const piece={
     id:state.nextId,
     bornAt: state.totalActionMinutes ?? 0,
@@ -315,7 +317,7 @@ export function createCombineOutcome(state,indexA,indexB){
     parents:[main.value,pairing.value],
     sourceKey:[main.value,pairing.value].sort((left,right)=>left-right).join("|"),
     parentFoods:[main,pairing].map(piece=>({value:piece.value,foodType:piece.foodType,purity:piece.purity??null})),
-    crossed101:main.value+pairing.value>101,
+    crossed101:targetIndex===4,
     origin:createCombineOrigin(value,main,pairing),
     singleFlavorPenalty:false,
     ...(foodType===FOOD_TYPES.DRINK?{drinkOriginValue:value,drinkIngredients:[]}:null)
@@ -323,7 +325,7 @@ export function createCombineOutcome(state,indexA,indexB){
   return {
     kind:"new",
     drinkMix:drinkIndex!==null,
-    value,foodType,piece,drinkIndex,ingredientIndex,targetIndex:null
+    value,foodType,piece,drinkIndex,ingredientIndex,targetIndex
   };
 }
 
@@ -408,7 +410,7 @@ export function combineCells(
   if(outcome.kind==="absorb"){
     nextBoard[outcome.drinkIndex]=outcome.piece;
   }else{
-    const targetIndex=getNextEmptyIndex(state.board);
+    const targetIndex=outcome.targetIndex;
     if(targetIndex===-1)return state;
     nextBoard[targetIndex]=outcome.piece;
   }

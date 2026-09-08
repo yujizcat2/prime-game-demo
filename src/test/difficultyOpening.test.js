@@ -28,6 +28,7 @@ for(let attempt = 0; attempt < 250; attempt++){
       if(!card) continue;
       assert.equal(card.scoreValue, getBaseScore(card.value));
       assert.equal(card.foodType, opening.find(item => item.boardIndex === boardIndex).foodType);
+      assert.equal(card.foodType, BOARD_NATIVE_FOOD_TYPES[boardIndex]);
       assert.equal(card.purity, FOOD_PURITY.PURE);
       assert.equal(card.origin, null);
       assert.ok(Object.hasOwn(card, "id"));
@@ -40,14 +41,14 @@ for(let attempt = 0; attempt < 250; attempt++){
 
 const controlledOpening = createStandardInitialValues(() => 0);
 assert.deepEqual(controlledOpening.map(card => card.value), [2, 2, 2, 2], "duplicate values are supported");
-assert.ok(controlledOpening.some(card => card.boardIndex === 4), "center is an available opening position");
 assert.ok(
-  controlledOpening.some(card => card.boardIndex !== getNativeBoardIndex(card.foodType)),
-  "food types can start outside their native positions"
+  controlledOpening.every(card => card.boardIndex === getNativeBoardIndex(card.foodType)),
+  "food types start in their fixed positions"
 );
 const controlledState = createGameState(controlledOpening);
 assert.ok(controlledOpening.every(card => controlledState.board[card.boardIndex].foodType === card.foodType));
-assert.equal(BOARD_NATIVE_FOOD_TYPES[4], null);
+assert.equal(controlledState.board[4],null);
+assert.equal(BOARD_NATIVE_FOOD_TYPES[4], FOOD_TYPES.DRINK);
 
 const startScreenSource = readFileSync("src/components/StartScreen.jsx", "utf8");
 assert.doesNotMatch(startScreenSource, /随机探索|新手入门/);

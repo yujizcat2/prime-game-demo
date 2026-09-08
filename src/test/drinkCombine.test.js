@@ -99,7 +99,7 @@ const normalState=positionedState([
   {value:23,foodType:T.AQUATIC,boardIndex:7}
 ]);
 const normalOutcome=createCombineOutcome(normalState,1,7);
-const normalAfter=applyAction(normalState,{type:"combine_ordered",indexes:[1,7]});
+const normalAfter=applyAction(normalState,{type:"combine",indexes:[1,7]});
 assert.equal(normalOutcome.kind,"new");
 assert.equal(normalAfter.board.filter(Boolean).length,3);
 assert.equal(normalAfter.board[0].value,42);

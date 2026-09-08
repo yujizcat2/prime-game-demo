@@ -233,7 +233,6 @@ export function applyAction(
     // ========================================================
 
     case "combine":
-    case "combine_ordered":
 
 
       actionState =
@@ -370,7 +369,7 @@ export function applyAction(
   const expiredFoodUseCount = actionIndexes.filter((index, position, indexes) =>
     Number.isInteger(index) && indexes.indexOf(index) === position && isFoodExpired(state.board?.[index], state)
   ).length;
-  const refreshedBoard = (action.type === "combine" || action.type === "combine_ordered")
+  const refreshedBoard = action.type === "combine"
     ? durationState.board.map(piece => {
         if(!piece) return piece;
         const isNewPiece = piece.id === state.nextId;
@@ -427,7 +426,7 @@ export function applyAction(
   const countedState = {
     ...efficiencyState,
     recapActionCounts: {
-      combine: recapActionCounts.combine + (action.type === "combine" || action.type === "combine_ordered" ? 1 : 0),
+      combine: recapActionCounts.combine + (action.type === "combine" ? 1 : 0),
       reduce: recapActionCounts.reduce + (action.type === "reduce" ? 1 : 0)
     }
   };

@@ -152,7 +152,7 @@ function createTimedActionSnapshot(state, nextState, describedAction, toolsUsedS
     penalizedPieceCount: foodTypes.penalizedPieceCount,
     singleFlavor: foodTypes.singleFlavor,
     legalActionCount: legalActions.length,
-    combineCount: legalActions.filter(action => action.type === "combine" || action.type === "combine_ordered").length,
+    combineCount: legalActions.filter(action => action.type === "combine").length,
     reduceCount: legalActions.filter(action => action.type === "reduce").length,
     action: {
       type: describedAction.type,
@@ -380,7 +380,7 @@ export function isPrematureDeadlock(state){
 export function getScoreSurvivalValue(state, legalActions = state.gameOver ? [] : getLegalActions(state)){
   const boardCount = getBoardCount(state.board ?? []);
   const reduceCount = legalActions.filter(action => action.type === "reduce").length;
-  const combineCount = legalActions.filter(action => action.type === "combine" || action.type === "combine_ordered").length;
+  const combineCount = legalActions.filter(action => action.type === "combine").length;
   const boardRisk = boardCount <= 1 ? -50_000_000
     : boardCount === 2 ? -8_000_000
       : boardCount === 3 ? -500_000
@@ -492,8 +492,7 @@ function scoreSuperHeaterCandidate(state, action){
   const count = (actions, type) => actions.filter(candidate => candidate.type === type).length;
   return (after.length - before.length) * 10
     + (count(after, "reduce") - count(before, "reduce")) * 80
-    + (count(after, "combine") + count(after, "combine_ordered")
-      - count(before, "combine") - count(before, "combine_ordered")) * 20;
+    + (count(after, "combine") - count(before, "combine")) * 20;
 }
 
 function scoreNormalCandidate(state, action, facts){
@@ -511,7 +510,7 @@ function scoreNormalCandidate(state, action, facts){
     }
     return score;
   }
-  if(action.type === "combine" || action.type === "combine_ordered"){
+  if(action.type === "combine"){
     const value = left.value + right.value;
     let futureDivisors = 0;
     for(const piece of state.board){

@@ -1855,7 +1855,7 @@ function formatScoreBoard(board){
 }
 
 function formatScoreAction(action){
-  const label = {combine: "合成", combine_ordered: "合成", reduce: "约分", apply_one: "特殊 1", heater: "加热器", super_heater: "超级加热器"}[action.type] ?? action.type;
+  const label = {combine: "合成", reduce: "约分", apply_one: "特殊 1", heater: "加热器", super_heater: "超级加热器"}[action.type] ?? action.type;
   const inputs = (action.inputs ?? []).map(piece => `格${piece.index + 1} ${formatFoodType(piece.foodType)}${piece.value}`).join(" + ");
   return inputs ? `${label}：${inputs}` : label;
 }
