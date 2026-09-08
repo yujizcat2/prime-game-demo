@@ -24,6 +24,7 @@ import {
 } from "../ai/eightPalaceScoreAI";
 import { FOOD_TYPE_LABELS } from "../data/specialOneRegistry";
 import { getDayTime } from "../game/dayCycle";
+import { BOARD_NATIVE_FOOD_TYPES } from "../game/nativeFoodTypes";
 import { formatDisplayNumber } from "../utils/formatDisplayNumber";
 
 import "./TestLab.css";
@@ -1347,6 +1348,7 @@ function ProgressPanel({
 }
 
 function ScoreSummaryGrid({result}){
+  const spatial=result.spatialPlaySummary??{};
   return (
     <>
     <div className="test-lab-result-grid">
@@ -1398,6 +1400,25 @@ function ScoreSummaryGrid({result}){
       <ResultItem label="Heater 候选（生成/保留）" value={`${Math.round(result.averageHeaterCandidatesGenerated ?? 0)} / ${Math.round(result.averageHeaterCandidatesKept ?? 0)}`} />
       <ResultItem label="Super Heater 候选（生成/保留）" value={`${Math.round(result.averageSuperHeaterCandidatesGenerated ?? 0)} / ${Math.round(result.averageSuperHeaterCandidatesKept ?? 0)}`} />
       <ResultItem label="平均耗时" value={`${(result.averageElapsedMs ?? 0).toFixed(1)}ms`} />
+    </div>
+    <div className="test-lab-record">
+      <div className="test-lab-record-title">空间玩法</div>
+      <div className="test-lab-result-grid">
+        <ResultItem label="交换总量 / 平均" value={`${spatial.totalSwapCount??0} / ${(spatial.averageSwapCount??0).toFixed(2)}`} />
+        <ResultItem label="平均交换耗时" value={`${(spatial.averageSwapMinutes??0).toFixed(1)} 分钟`} />
+        <ResultItem label="交换耗时占比" value={`${((spatial.swapTimeRatio??0)*100).toFixed(1)}%`} />
+        <ResultItem label="平均直接交换回转" value={(spatial.averageDirectSwapReturnCount??0).toFixed(2)} />
+        <ResultItem label="平均中央普通出生" value={(spatial.averageCenterNormalBirthCount??0).toFixed(2)} />
+        <ResultItem label="平均中央顺序定系利用" value={(spatial.averageCenterOrderedTypeUsageCount??0).toFixed(2)} />
+        <ResultItem label="平均自然饮品生成" value={(spatial.averageNaturalDrinkBirthCount??0).toFixed(2)} />
+        <ResultItem label="平均中央自然饮品出生" value={(spatial.averageCenterNaturalDrinkBirthCount??0).toFixed(2)} />
+      </div>
+      <div className="test-lab-record-collection">
+        <strong>外围出生：</strong>{BOARD_NATIVE_FOOD_TYPES.map((foodType,index)=>foodType&&`${FOOD_TYPE_LABELS[foodType]??foodType}位 ${(spatial.averagePositionBirthCounts?.[index]??0).toFixed(2)}`).filter(Boolean).join(" · ")}
+      </div>
+      <div className="test-lab-record-collection">
+        <strong>新生料理系：</strong>{Object.entries(spatial.averageNewbornFoodTypeCounts??{}).map(([foodType,count])=>`${FOOD_TYPE_LABELS[foodType]??(foodType==="drink"?"饮品":foodType)} ${count.toFixed(2)}`).join(" · ")}
+      </div>
     </div>
     <div className="test-lab-timeline">
       {(result.daySummaries ?? []).map(day => <div key={day.day}>

@@ -25,6 +25,7 @@ import {
   createDayMarketRecord,
   runScoreGames,
   scoreAITestUtils,
+  summarizeSpatialPlay,
   summarizeScoreResults
 } from "../ai/eightPalaceScoreAI";
 import { applyAction, createGameState, getBoardCount, getLegalActions, resolveGameOver } from "../game/gameEngine";
@@ -40,6 +41,26 @@ import { advanceToNextDay } from "../game/dayCycle";
 import { TIME_SALE_PERIODS } from "../game/timeSaleMultiplier";
 
 assert.equal(getScoreEfficiency(60, 600), 6);
+
+{
+  const spatial=summarizeSpatialPlay([
+    {type:"swap",indexes:[0,1]},
+    {type:"swap",indexes:[1,0]},
+    {type:"combine",indexes:[0,1],inputs:[{foodType:"land"},{foodType:"fruit"}],combineResult:{targetIndex:4,value:12,foodType:"land"}},
+    {type:"combine",indexes:[0,1],inputs:[{foodType:"land"},{foodType:"fruit"}],combineResult:{targetIndex:6,value:18,foodType:"fruit"}},
+    {type:"combine",indexes:[0,1],inputs:[{foodType:"land"},{foodType:"fruit"}],combineResult:{targetIndex:6,value:118,foodType:"drink"}},
+    {type:"combine",indexes:[0,1],inputs:[{foodType:"drink"},{foodType:"fruit"}],combineResult:null}
+  ],60);
+  assert.equal(spatial.swapCount,2);
+  assert.equal(spatial.swapMinutes,30);
+  assert.equal(spatial.directSwapReturnCount,1);
+  assert.equal(spatial.centerNormalBirthCount,1);
+  assert.equal(spatial.centerOrderedTypeUsageCount,1);
+  assert.equal(spatial.positionBirthCounts[6],2);
+  assert.equal(spatial.newbornFoodTypeCounts.fruit,1);
+  assert.equal(spatial.naturalDrinkBirthCount,1);
+  assert.equal(spatial.swapTimeRatio,.5);
+}
 assert.equal(getScoreEfficiency(100, 600), 10);
 assert.equal(getScoreEfficiency(2400, 0), 0);
 assert.equal(getScoreEfficiency(0, 0).toFixed(2), "0.00");
@@ -507,11 +528,11 @@ assert.ok(
   "after both goals, survival and action space beat a small amount of surplus score"
 );
 
-const lowMarketPeriods = TIME_SALE_PERIODS.map(period => period.startMinutes === 18 * 60
+const lowMarketPeriods = TIME_SALE_PERIODS.map(period => period.startMinutes <= 18 * 60 && period.endMinutes > 18 * 60
   ? {...period, multiplier: .8}
   : period
 );
-const highMarketPeriods = TIME_SALE_PERIODS.map(period => period.startMinutes === 18 * 60
+const highMarketPeriods = TIME_SALE_PERIODS.map(period => period.startMinutes <= 18 * 60 && period.endMinutes > 18 * 60
   ? {...period, multiplier: 1.2}
   : period
 );
@@ -614,7 +635,8 @@ const marketClosedDayOne = resolveGameOver({
   score: 1000,
   dayRevenue: 1000,
   collectionCards: Array.from({length: 8}, (_, index) => ({value: index + 20, foodType: BASE_FOOD_TYPES[index % 2]})),
-  timeSaleScores: {0: 80, 240: 700, 660: 110, 720: 400, 960: 230, 1080: 40, 1200: 400}
+  dayPeriodSales: [80, 700, 110, 400, 230, 40],
+  timeSaleScores: {0: 80, 240: 700, 480: 110, 720: 400, 960: 230, 1200: 40}
 });
 const dayOneMarketRecord = createDayMarketRecord(marketClosedDayOne.daySettlement);
 assert.deepEqual(

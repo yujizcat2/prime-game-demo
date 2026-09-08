@@ -60,7 +60,7 @@ assert.equal(crossFamilyWithSeries.baseScore, 100);
 assert.equal(crossFamilyWithSeries.preCuisineSaleScore, 50);
 assert.equal(crossFamilyWithSeries.cuisineScoreMultiplier, 1, "cross-family adjustment skips the duplicate series half-price");
 assert.equal(crossFamilyWithSeries.collectionScore, 50, "100 becomes 50 only once");
-assert.equal(crossFamilyWithSeries.totalScore, 55, "50 × 110% rounds to 55");
+assert.equal(crossFamilyWithSeries.totalScore, 50, "50 × 90% × 110% rounds to 50 at 12:00");
 assert.equal(crossFamilyWithSeries.saleBreakdown.at(-1).result, crossFamilyWithSeries.totalScore);
 assert.deepEqual(
   crossFamilyWithSeries.saleBreakdown.map(step => step.label),
@@ -77,7 +77,7 @@ const normalSeriesSale = createCollectionRewardSettlement({
   cuisineSequenceIndex: 2, gameTime: "12:00"
 });
 assert.equal(normalSeriesSale.cuisineScoreMultiplier, 1);
-assert.equal(normalSeriesSale.totalScore, 100, "food-type sale order never discounts a first sale of this value");
+assert.equal(normalSeriesSale.totalScore, 90, "food-type sale order does not discount; the 12:00 market multiplier still applies");
 assert.deepEqual(
   normalSeriesSale.saleBreakdown.map(step => step.label),
   ["基础售价", "当前时段", "2级奖励", "最终结算"]
@@ -99,7 +99,7 @@ const firstDairyEight = createCollectionRewardSettlement({
 });
 assert.equal(firstDairyEight.hasCrossFamilyDiscount, false);
 assert.equal(firstDairyEight.collectionScore, firstDairyEight.baseScore);
-assert.equal(firstDairyEight.totalScore, 100);
+assert.equal(firstDairyEight.totalScore, 90);
 assert.doesNotMatch(firstDairyEight.saleBreakdown.map(step => step.label).join(" "), /系列调整|同款半价/);
 assert.equal(getCollectionBaseSalePrice(priorSevenAndThree, 8, BASE_FOOD_TYPES[4]), 100);
 

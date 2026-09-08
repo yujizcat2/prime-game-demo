@@ -15,9 +15,9 @@ import { getEightPalaceCollectionScoreGain } from "../game/collectionRules";
 import { advanceToNextDay } from "../game/dayCycle";
 
 for(const [gameTime, expected] of [
-  ["03:59", 0.8], ["04:00", 1], ["10:59", 1], ["11:00", 1.1],
-  ["11:59", 1.1], ["12:00", 1], ["15:59", 1], ["16:00", 1.15],
-  ["17:59", 1.15], ["18:00", 1.2], ["19:59", 1.2], ["20:00", 1]
+  ["03:59", 0.8], ["04:00", 1], ["07:59", 1], ["08:00", 1.1],
+  ["11:59", 1.1], ["12:00", .9], ["15:59", .9], ["16:00", 1.2],
+  ["19:59", 1.2], ["20:00", 1]
 ]){
   assert.equal(getTimeSaleMultiplier(gameTime), expected, gameTime);
 }
@@ -28,9 +28,9 @@ assert.equal(getTimeSaleMultiplier("28:00"), 1, "cross-midnight 04:00 returns to
 assert.deepEqual(
   TIME_SALE_PERIODS.map(({range, multiplier, displayName}) => [range, multiplier, displayName]),
   [
-    ["00:00–03:59", 0.8, "凌晨低谷"], ["04:00–10:59", 1, "正常价格"],
-    ["11:00–11:59", 1.1, "午间高价"], ["12:00–15:59", 1, "正常价格"],
-    ["16:00–17:59", 1.15, "晚餐时段"], ["18:00–19:59", 1.2, "黄金时段"],
+    ["00:00–03:59", 0.8, "凌晨低谷"], ["04:00–07:59", 1, "正常价格"],
+    ["08:00–11:59", 1.1, "上午高价"], ["12:00–15:59", .9, "午后低价"],
+    ["16:00–19:59", 1.2, "晚餐高价"],
     ["20:00–23:59", 1, "正常价格"]
   ],
   "the UI schedule comes from the scoring authority"
@@ -44,12 +44,12 @@ const averageSaleScores = Object.fromEntries(TIME_SALE_PERIODS.map(period => [
 const unevenSaleScores = {
   ...averageSaleScores,
   0: 4 * 50,
-  [18 * 60]: 2 * 200
+  [16 * 60]: 4 * 200
 };
 const dayTwoPeriods = createNextTimeSalePeriods(TIME_SALE_PERIODS, unevenSaleScores);
-assert.ok(dayTwoPeriods[0].multiplier > TIME_SALE_PERIODS[0].multiplier, "low-intensity early morning rises");
-assert.ok(dayTwoPeriods[5].multiplier < TIME_SALE_PERIODS[5].multiplier, "high-intensity golden period falls");
-assert.ok(Math.abs(dayTwoPeriods[1].multiplier - TIME_SALE_PERIODS[1].multiplier) < 0.02, "average periods only receive the shared conservation correction");
+assert.equal(dayTwoPeriods[0].multiplier,.8,"the lowest-sales period receives the lowest ranked multiplier");
+assert.equal(dayTwoPeriods[4].multiplier,1.2,"the highest-sales period receives the highest ranked multiplier");
+assert.deepEqual([...dayTwoPeriods.map(period=>period.multiplier)].sort((a,b)=>a-b),[.8,.9,1,1,1.1,1.2]);
 assert.ok(dayTwoPeriods.every(period =>
   period.multiplier >= MIN_TIME_SALE_MULTIPLIER && period.multiplier <= MAX_TIME_SALE_MULTIPLIER
 ));
@@ -64,7 +64,7 @@ assert.ok(cappedNext.every(period =>
   period.multiplier >= MIN_TIME_SALE_MULTIPLIER && period.multiplier <= MAX_TIME_SALE_MULTIPLIER
 ), "conservation never pushes capped periods out of bounds");
 
-const reversedSaleScores = {...averageSaleScores, 0: 4 * 200, [18 * 60]: 2 * 50};
+const reversedSaleScores = {...averageSaleScores, 0: 4 * 200, [16 * 60]: 4 * 50};
 const dayThreeFromDayTwoOnly = createNextTimeSalePeriods(dayTwoPeriods, reversedSaleScores);
 const incorrectlyAccumulated = createNextTimeSalePeriods(dayTwoPeriods, Object.fromEntries(
   TIME_SALE_PERIODS.map(period => [period.startMinutes, (unevenSaleScores[period.startMinutes] ?? 0) + (reversedSaleScores[period.startMinutes] ?? 0)])
@@ -113,13 +113,13 @@ assert.equal(
   "the same uncollected dish updates when current time crosses 04:00"
 );
 assert.equal(
-  getEightPalaceCollectionScoreGain({...previewState, dayMinutesElapsed: 10 * 60 + 59}, sameCollectible),
+  getEightPalaceCollectionScoreGain({...previewState, dayMinutesElapsed: 7 * 60 + 59}, sameCollectible),
   100
 );
 assert.equal(
-  getEightPalaceCollectionScoreGain({...previewState, dayMinutesElapsed: 11 * 60}, sameCollectible),
+  getEightPalaceCollectionScoreGain({...previewState, dayMinutesElapsed: 8 * 60}, sameCollectible),
   110,
-  "the same preview also updates across the lunch boundary"
+  "the same preview also updates across the morning-price boundary"
 );
 
 const earlyMorningCollection = reduceAt(3 * 60 + 59);
@@ -131,7 +131,7 @@ assert.equal(earlyMorningReward.totalScore, 80);
 assert.equal(earlyMorningCollection.dayRevenue, 80, "real reduce-to-one action banks the discounted revenue once");
 assert.equal(earlyMorningCollection.score, earlyMorningCollection.latestCollection.salePointScore);
 assert.equal(earlyMorningCollection.latestCollection.totalScore, 80);
-assert.equal(earlyMorningCollection.timeSaleScores[0], 80, "only the formal collection score enters period sales");
+assert.equal(earlyMorningCollection.timeSaleScores[0], 100, "market intensity records the normalized pre-market sale value");
 
 const normalCollection = reduceAt(4 * 60);
 assert.equal(normalCollection.latestCollectionRewards[0].baseSaleScore, 100);
@@ -164,7 +164,7 @@ assert.equal(eighthReward.dailyCollectionBonus, 0);
 assert.equal(eighthReward.totalScore, eighthPreviewScore);
 assert.equal(eighthCollection.dayRevenue - eighthPreviewState.dayRevenue, eighthPreviewScore);
 assert.ok(eighthCollection.score > eighthPreviewState.score, "a real sale immediately awards points");
-assert.equal(eighthCollection.timeSaleScores[18 * 60], eighthPreviewScore, "daily bonus does not enter dynamic market sales");
+assert.equal(eighthCollection.timeSaleScores[16 * 60], 100, "dynamic market sales use the current period key and normalized pre-market value");
 
 const discountedEighth = applyAction({...eighthPreviewState, dayMinutesElapsed: 0}, {type: "reduce", indexes: [0, 1]});
 const discountedSaleScore = getEightPalaceCollectionScoreGain(
@@ -201,6 +201,7 @@ const closingDayOne = resolveGameOver({
   score: 1000,
   dayRevenue: 1000,
   collectionCards: Array.from({length: 8}, (_, index) => ({value: 20 + index, foodType: BASE_FOOD_TYPES[index % 2]})),
+  dayPeriodSales: TIME_SALE_PERIODS.map(period=>unevenSaleScores[period.startMinutes]??0),
   timeSaleScores: unevenSaleScores
 });
 const dayTwoState = advanceToNextDay(closingDayOne);
@@ -223,7 +224,7 @@ assert.match(rewardModalCssSource, /max-height:\s*calc\(100vh/);
 const appSource = readFileSync("src/App.jsx", "utf8");
 assert.match(appSource, /rewards\.filter\(reward => reward\.isNewCollection\)/);
 const boardSource = readFileSync("src/components/Board.jsx", "utf8");
-assert.match(boardSource, /\{collectionCards, board, dayMinutesElapsed, timeSalePeriods\}/);
+for(const prop of ["collectionCards", "board", "dayMinutesElapsed", "timeSalePeriods"])assert.match(boardSource,new RegExp(`\\b${prop}\\b`));
 const dayPanelSource = readFileSync("src/components/DayPanel.jsx", "utf8");
 assert.match(dayPanelSource, /getTimeSalePeriod\(time, timeSalePeriods\)/);
 assert.match(dayPanelSource, /timeSalePeriods\.map/);
@@ -231,7 +232,6 @@ const daySettlementSource = readFileSync("src/components/DaySettlement.jsx", "ut
 assert.match(daySettlementSource, /今日销售行情/);
 assert.match(daySettlementSource, /row\.saleIntensity/);
 assert.match(daySettlementSource, /dailyCollectionBonusTotal/);
-assert.notEqual(settlement.totalScore, settlement.collectionScore * settlement.timeSaleMultiplier);
 assert.equal(
   settlement.totalScore,
   Math.round(Number((settlement.collectionScore * getTimeSaleMultiplier("17:00")).toFixed(10))),

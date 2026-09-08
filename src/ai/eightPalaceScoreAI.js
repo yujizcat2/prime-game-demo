@@ -3,6 +3,7 @@ import {
 } from "../game/initialValues";
 import {
   applyAction,
+  createCombineOutcome,
   createGameState,
   getBoardCount,
   getLegalActions,
@@ -13,7 +14,8 @@ import { unscaleScore } from "../game/scoreScale";
 import { getScoreEfficiency } from "../game/scoreEfficiency";
 import { isPrime } from "../game/prime";
 import { summarizeCollectionEfficiencyTimelines } from "../game/collectionEfficiency";
-import { BASE_FOOD_TYPES, FOOD_TYPES } from "../game/rules";
+import { BASE_FOOD_TYPES, FOOD_TYPES, isNaturalDrinkValue } from "../game/rules";
+import { SWAP_DURATION_MINUTES } from "../game/actionDuration";
 import { getBoardSum } from "../game/scoreValue";
 import {
   createCollectionFoodTypeTimeline,
@@ -775,6 +777,9 @@ function describeAction(state, action, nextState, number){
       collectionBoardState,
       preActionBoardAverage
     }));
+  const combineOutcome = action.type === "combine"
+    ? createCombineOutcome(state, ...(action.indexes ?? []))
+    : null;
 
   return {
     number,
@@ -820,8 +825,43 @@ function describeAction(state, action, nextState, number){
     collectionEvents,
     foodTypeBoardState: collectionBoardState,
     collectionCountAfter: nextState.collectionCards.length,
-    boardCountAfter: getBoardCount(nextState.board)
+    boardCountAfter: getBoardCount(nextState.board),
+    combineResult: combineOutcome?.kind === "new" ? {
+      targetIndex: combineOutcome.targetIndex,
+      value: combineOutcome.value,
+      foodType: combineOutcome.foodType
+    } : null
   };
+}
+
+export function summarizeSpatialPlay(actionPath = [], totalActionMinutes = 0){
+  const positionBirthCounts = Object.fromEntries([0,1,2,3,5,6,7,8].map(index => [index,0]));
+  const newbornFoodTypeCounts = Object.fromEntries([...BASE_FOOD_TYPES,FOOD_TYPES.DRINK].map(type => [type,0]));
+  let swapCount=0,directSwapReturnCount=0,centerNormalBirthCount=0,centerOrderedTypeUsageCount=0,naturalDrinkBirthCount=0,centerNaturalDrinkBirthCount=0;
+  let previousAction=null;
+  for(const action of actionPath){
+    if(action.type==="swap"){
+      swapCount++;
+      const key=[...(action.indexes??[])].sort((a,b)=>a-b).join("|");
+      const previousKey=previousAction?.type==="swap"?[...(previousAction.indexes??[])].sort((a,b)=>a-b).join("|"):null;
+      if(key&&key===previousKey)directSwapReturnCount++;
+    }
+    const result=action.combineResult;
+    if(result){
+      newbornFoodTypeCounts[result.foodType]=(newbornFoodTypeCounts[result.foodType]??0)+1;
+      if(result.targetIndex===4){
+        if(result.foodType===FOOD_TYPES.DRINK&&isNaturalDrinkValue(result.value))centerNaturalDrinkBirthCount++;
+        else if(result.foodType!==FOOD_TYPES.DRINK){
+          centerNormalBirthCount++;
+          if(action.inputs?.[0]?.foodType&&action.inputs?.[1]?.foodType&&action.inputs[0].foodType!==action.inputs[1].foodType)centerOrderedTypeUsageCount++;
+        }
+      }else if(Object.hasOwn(positionBirthCounts,result.targetIndex))positionBirthCounts[result.targetIndex]++;
+      if(result.foodType===FOOD_TYPES.DRINK&&isNaturalDrinkValue(result.value))naturalDrinkBirthCount++;
+    }
+    previousAction=action;
+  }
+  const swapMinutes=swapCount*SWAP_DURATION_MINUTES;
+  return {swapCount,swapMinutes,swapTimeRatio:totalActionMinutes?swapMinutes/totalActionMinutes:0,directSwapReturnCount,centerNormalBirthCount,centerOrderedTypeUsageCount,naturalDrinkBirthCount,centerNaturalDrinkBirthCount,positionBirthCounts,newbornFoodTypeCounts};
 }
 
 export async function runScoreGame({
@@ -953,6 +993,7 @@ export async function runScoreGame({
   const finalDay = state.day ?? 1;
   const collectedAges = (state.collectionTimeline ?? []).map(card => card.foodAgeMinutes ?? 0);
   const finalExpiredFoodCount = state.board.filter(piece => piece && isFoodExpired(piece, state)).length;
+  const spatialPlay=summarizeSpatialPlay(actionPath,state.totalActionMinutes??0);
 
   return {
     strategy,
@@ -997,6 +1038,7 @@ export async function runScoreGame({
       : 0,
     maximumCollectedFoodAgeMinutes: collectedAges.length ? Math.max(...collectedAges) : 0,
     finalExpiredFoodCount,
+    spatialPlay,
     maxCombo: state.maxCombo ?? 0,
     comboBonusTotal: state.comboBonusTotal ?? 0,
     comboTimeline: structuredClone(state.comboTimeline ?? []),
@@ -1183,9 +1225,34 @@ export function summarizeScoreResults(results){
     atLeast12000: scores.filter(score => score >= 12000).length
   };
   const sumSearch = field => results.reduce((sum, result) => sum + (result.searchTelemetry?.[field] ?? 0), 0);
+  const spatialTotals=results.reduce((totals,result)=>{
+    const spatial=result.spatialPlay??summarizeSpatialPlay(result.actionPath??[],result.totalActionMinutes??0);
+    for(const field of ["swapCount","swapMinutes","directSwapReturnCount","centerNormalBirthCount","centerOrderedTypeUsageCount","naturalDrinkBirthCount","centerNaturalDrinkBirthCount"]){
+      totals[field]+=(spatial[field]??0);
+    }
+    for(const [index,count] of Object.entries(spatial.positionBirthCounts??{}))totals.positionBirthCounts[index]=(totals.positionBirthCounts[index]??0)+count;
+    for(const [type,count] of Object.entries(spatial.newbornFoodTypeCounts??{}))totals.newbornFoodTypeCounts[type]=(totals.newbornFoodTypeCounts[type]??0)+count;
+    return totals;
+  },{swapCount:0,swapMinutes:0,directSwapReturnCount:0,centerNormalBirthCount:0,centerOrderedTypeUsageCount:0,naturalDrinkBirthCount:0,centerNaturalDrinkBirthCount:0,positionBirthCounts:{},newbornFoodTypeCounts:{}});
+  const perGame=value=>results.length?value/results.length:0;
+  const totalActionMinutes=results.reduce((sum,result)=>sum+(result.totalActionMinutes??0),0);
+  const spatialPlaySummary={
+    totalSwapCount:spatialTotals.swapCount,
+    averageSwapCount:perGame(spatialTotals.swapCount),
+    averageSwapMinutes:perGame(spatialTotals.swapMinutes),
+    swapTimeRatio:totalActionMinutes?spatialTotals.swapMinutes/totalActionMinutes:0,
+    averageDirectSwapReturnCount:perGame(spatialTotals.directSwapReturnCount),
+    averageCenterNormalBirthCount:perGame(spatialTotals.centerNormalBirthCount),
+    averageCenterOrderedTypeUsageCount:perGame(spatialTotals.centerOrderedTypeUsageCount),
+    averageNaturalDrinkBirthCount:perGame(spatialTotals.naturalDrinkBirthCount),
+    averageCenterNaturalDrinkBirthCount:perGame(spatialTotals.centerNaturalDrinkBirthCount),
+    averagePositionBirthCounts:Object.fromEntries(Object.entries(spatialTotals.positionBirthCounts).map(([index,count])=>[index,perGame(count)])),
+    averageNewbornFoodTypeCounts:Object.fromEntries([...BASE_FOOD_TYPES,FOOD_TYPES.DRINK].map(type=>[type,perGame(spatialTotals.newbornFoodTypeCounts[type]??0)]))
+  };
 
   return {
     ...foodTypeTelemetry,
+    spatialPlaySummary,
     games: results.length,
     averageFinalScore: meanScore,
     medianFinalScore: percentile(scores, .5),
