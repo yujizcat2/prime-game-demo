@@ -1,7 +1,7 @@
 .action-toolbar {
   display: grid;
   width: 100%;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
 }
 
@@ -64,6 +64,12 @@
   background: linear-gradient(135deg, rgba(231, 242, 236, .96), rgba(210, 228, 218, .84));
   color: #446c5c;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .76), 0 5px 14px rgba(64, 105, 90, .09);
+}
+
+.action-toolbar-button--swap-active {
+  border-color: rgba(76, 104, 164, .25);
+  background: linear-gradient(135deg, rgba(235, 240, 252, .96), rgba(216, 226, 246, .84));
+  color: #496496;
 }
 
 .action-toolbar-button--disabled,

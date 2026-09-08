@@ -31,8 +31,10 @@ import {
   canCombineCells,
   createCombineOutcome,
   canReduceCells,
+  canSwapCells,
   createReduceOutcome,
   getReduceSalePreviewRewards,
+  getLegalSwapActions,
 
   applyAction,
   resolveGameOver
@@ -603,6 +605,17 @@ export default function useGame(){
     setGameState(nextState);
     clearSelection();
     return nextState.latestSuperHeaterUse;
+  }
+
+  function swapSelectedCells(){
+    if(!gameState)return false;
+    if(selectedIndexes.length!==2)return false;
+    const [indexA,indexB]=selectedIndexes;
+    const nextState=applyAction(gameState,{type:"swap",indexes:[indexA,indexB]});
+    if(nextState===gameState)return false;
+    setGameState(nextState);
+    clearSelection();
+    return true;
   }
 
   function startNextDay(){
@@ -1474,6 +1487,7 @@ export default function useGame(){
 
     useHeaterOnCell,
     useSuperHeater,
+    swapSelectedCells,
     startNextDay,
 
     combineNumbers,
@@ -1488,7 +1502,9 @@ export default function useGame(){
     // UI 辅助
     getCell,
 
-    isCellSelected
+    isCellSelected,
+    legalSwapCount: gameState ? getLegalSwapActions(gameState).length : 0,
+    canSwapSelected: Boolean(gameState&&selectedIndexes.length===2&&canSwapCells(gameState,selectedIndexes[0],selectedIndexes[1]))
 
   };
 

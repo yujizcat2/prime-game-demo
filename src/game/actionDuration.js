@@ -1,6 +1,7 @@
 import { getBoardCount } from "./boardRules";
 
 export const TOOL_DURATION_MINUTES = 30;
+export const SWAP_DURATION_MINUTES = 15;
 export const REDUCE_DURATION_MINUTES = 45;
 export const REDUCE_WITH_REMOVAL_DURATION_MINUTES = 60;
 
@@ -33,6 +34,7 @@ export function getActionDurationMinutes(previousState, action, actionState){
       Math.max(0, getBoardCount(previousState.board) - getBoardCount(actionState.board))
     );
   }
+  if(action.type === "swap") return SWAP_DURATION_MINUTES;
   return TOOL_DURATION_MINUTES;
 }
 

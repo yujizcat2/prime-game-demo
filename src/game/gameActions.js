@@ -26,6 +26,7 @@ import {
   isBoardFull,
   getNextEmptyIndex,
   getPieceAt,
+  areOrthogonallyAdjacent,
   BOARD_CONFIG
 } from "./boardRules";
 
@@ -247,6 +248,22 @@ export function canReduceCells(
     b
   );
 
+}
+
+export function canSwapCells(state,indexA,indexB){
+  return Boolean(
+    state && !state.gameOver
+    && areOrthogonallyAdjacent(indexA,indexB)
+    && state.board?.[indexA]
+    && state.board?.[indexB]
+  );
+}
+
+export function swapCells(state,indexA,indexB){
+  if(!canSwapCells(state,indexA,indexB))return state;
+  const board=[...state.board];
+  [board[indexA],board[indexB]]=[board[indexB],board[indexA]];
+  return consumeStep({...state,board});
 }
 
 export function createReduceOutcome(state,indexA,indexB){
@@ -1277,6 +1294,17 @@ export function getLegalApplyOneActions(state){
   return actions;
 }
 
+export function getLegalSwapActions(state){
+  if(!state||state.gameOver)return [];
+  const actions=[];
+  for(let indexA=0;indexA<BOARD_CONFIG.SIZE;indexA++){
+    for(let indexB=indexA+1;indexB<BOARD_CONFIG.SIZE;indexB++){
+      if(canSwapCells(state,indexA,indexB))actions.push({type:"swap",indexes:[indexA,indexB]});
+    }
+  }
+  return actions;
+}
+
 
 
 
@@ -1316,6 +1344,7 @@ export function getLegalActions(
       state
     ),
     ...getLegalApplyOneActions(state),
+    ...getLegalSwapActions(state),
     ...(state.heaterCount ?? 0) > 0
       ? state.board.flatMap((piece, index) => isHeaterTarget(piece) ? [{type: "heater", indexes: [index]}] : [])
       : [],

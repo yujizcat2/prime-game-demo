@@ -312,7 +312,8 @@ export function getActivityStatus(
   numbers = [],
   primeDensity = 0,
   steps = 0,
-  combineHistoryKeys = {}
+  combineHistoryKeys = {},
+  swapLegal = 0
 ) {
 
 
@@ -440,6 +441,8 @@ export function getActivityStatus(
       reduceTotal: 0,
 
       reduceActivity: 0,
+
+      swapLegal: 0,
 
 
       removeLegal: 0,
@@ -765,7 +768,8 @@ export function getActivityStatus(
   const legal =
 
     combineLegal +
-    reduceLegal;
+    reduceLegal +
+    swapLegal;
 
 
 
@@ -990,7 +994,9 @@ export function getActivityStatus(
 
     reduceTotal,
 
-    reduceActivity,
+      reduceActivity,
+
+      swapLegal,
 
 
     // ========================

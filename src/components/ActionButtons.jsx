@@ -13,6 +13,9 @@ export default function ActionButtons({
 
   onReduce,
 
+  onSwap,
+  canSwap = false,
+
   gameOver,
 
   removingId = null,
@@ -190,6 +193,16 @@ export default function ActionButtons({
         </span>
 
 
+      </button>
+
+      <button
+        type="button"
+        onClick={canSwap ? onSwap : undefined}
+        disabled={!canSwap}
+        className={`action-toolbar-button ${canSwap?"action-toolbar-button--swap-active":"action-toolbar-button--disabled"}`}
+      >
+        <span className="action-toolbar-icon">⇄</span>
+        <span className="action-toolbar-label">{canSwap?"交换 · 15分钟":"交换"}</span>
       </button>
 
     </div>

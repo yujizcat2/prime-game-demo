@@ -81,6 +81,7 @@ export default function BoardCell({
           board-cell
           board-cell--empty
           ${nativeCellClass}
+          ${selected?"board-cell--selected":""}
           ${
             clearFeedback
               ? `board-cell--cleared board-cell--cleared-${clearFeedback.foodType ?? "default"}`
@@ -91,6 +92,7 @@ export default function BoardCell({
         data-index={
           index
         }
+
 
       >
 
@@ -493,7 +495,7 @@ export default function BoardCell({
     !reducing;
 
 
-  const combineMotionStyle =
+  const operationMotionStyle =
 
     animationState?.type === "combine" &&
     animationState.targetIndex !== undefined
@@ -503,7 +505,15 @@ export default function BoardCell({
           "--combine-shift-y": `${Math.sign(Math.floor(animationState.targetIndex / 3) - Math.floor(index / 3)) * 10}px`
         }
 
-      : undefined;
+      : animationState?.type==="swap"&&animationState.indexes?.includes(index)
+        ? (()=>{
+            const otherIndex=animationState.indexes.find(candidate=>candidate!==index);
+            return {
+              "--swap-from-x":`${((otherIndex%3)-(index%3))*100}%`,
+              "--swap-from-y":`${(Math.floor(otherIndex/3)-Math.floor(index/3))*100}%`
+            };
+          })()
+        : undefined;
 
 
 
@@ -676,7 +686,7 @@ export default function BoardCell({
           }
 
           style={
-            combineMotionStyle
+            operationMotionStyle
           }
 
           className={`
@@ -731,6 +741,8 @@ export default function BoardCell({
 
 
             ${animationState?.type==="super-heater"?"board-piece--super-heating":""}
+
+            ${animationState?.type==="swap"?"board-piece--swapping":""}
 
             ${
               autoCollectPreview &&

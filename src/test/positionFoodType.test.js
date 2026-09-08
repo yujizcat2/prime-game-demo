@@ -10,11 +10,10 @@ assert.equal(getFoodTypeForPosition(4),T.DRINK);
 for(const opening of [createStandardInitialValues(()=>0.25),createEightPalaceInitialValues()]){
   const state=createGameState(opening.map(card=>({...card,gameMode:"eightPalace"})));
   for(const card of opening){
-    assert.equal(card.boardIndex,BOARD_NATIVE_FOOD_TYPES.indexOf(card.foodType));
-    assert.equal(state.board[card.boardIndex].foodType,getFoodTypeForPosition(card.boardIndex));
+    assert.equal(state.board[card.boardIndex].foodType,card.foodType);
   }
-  assert.equal(state.board[4],null,"center starts empty");
 }
+assert.equal(createGameState(createEightPalaceInitialValues()).board[4],null,"eight-palace center starts empty");
 
 function stateWithOnlyPositionEmpty(targetIndex,leftType=T.LAND,rightType=T.AQUATIC){
   const inputIndexes=[0,1].includes(targetIndex)?[2,3]:[0,1];

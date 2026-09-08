@@ -15,6 +15,13 @@ export const BOARD_CONFIG = {
 
 };
 
+export function areOrthogonallyAdjacent(indexA,indexB){
+  if(!Number.isInteger(indexA)||!Number.isInteger(indexB)||indexA<0||indexB<0||indexA>=BOARD_CONFIG.SIZE||indexB>=BOARD_CONFIG.SIZE)return false;
+  const rowA=Math.floor(indexA/BOARD_CONFIG.COLS),rowB=Math.floor(indexB/BOARD_CONFIG.COLS);
+  const colA=indexA%BOARD_CONFIG.COLS,colB=indexB%BOARD_CONFIG.COLS;
+  return Math.abs(rowA-rowB)+Math.abs(colA-colB)===1;
+}
+
 
 
 

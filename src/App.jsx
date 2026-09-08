@@ -101,6 +101,13 @@ function App(){
     setHeaterSelectMode(true);
   }
 
+  function handleSwap(){
+    const indexes=[...game.selectedIndexes];
+    if(!game.canSwapSelected||!game.swapSelectedCells())return;
+    beginInstantAnimation({type:"swap",indexes,sourceIndexes:indexes,targetIndexes:indexes},320);
+    showActionToast("交换完成","消耗 15 分钟");
+  }
+
   function handleSuperHeater(){
     if(!game.superHeaterAvailable){
       showActionToast("无法超级加热", game.superHeaterCount === 0 ? "今日已使用" : "没有可加热的料理");
@@ -733,7 +740,8 @@ function App(){
       game.numbers,
       game.primeDensity,
       game.steps
-      ,game.combineHistoryKeys
+      ,game.combineHistoryKeys,
+      game.legalSwapCount
     );
 
 
@@ -980,6 +988,8 @@ function App(){
                   onCombine={handleCombine}
                   onBlockedCombine={handleBlockedCombine}
                   onReduce={handleReduce}
+                  onSwap={handleSwap}
+                  canSwap={!game.gameOver&&!game.daySettlement&&game.canSwapSelected}
                   gameOver={game.gameOver || Boolean(game.daySettlement) || heaterSelectMode}
                   removingId={removingIndex ?? ((activeAnimation?.phase === "exit" || activeAnimation?.phase === "compress") ? activeAnimation.token : null)}
                 />

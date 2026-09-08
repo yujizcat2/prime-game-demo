@@ -100,6 +100,22 @@
 
 /* Core operation feedback */
 
+.board-piece.board-piece--swapping {
+  pointer-events: none;
+  position: relative;
+  z-index: 20;
+  animation: boardPieceSwap .22s cubic-bezier(.2,.8,.25,1) both;
+}
+
+@keyframes boardPieceSwap {
+  from {
+    transform: translate(var(--swap-from-x,0),var(--swap-from-y,0)) scale(.96);
+  }
+  to {
+    transform: translate(0,0) scale(1);
+  }
+}
+
 .board-piece.board-piece--combine-source {
   pointer-events: none;
   animation: boardPieceCombineSource .16s ease-in forwards;

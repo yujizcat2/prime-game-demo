@@ -31,8 +31,9 @@ import {
   hasCombinePair
 } from "../game/combineHistory";
 import { getFoodTypeForPosition, getNativeFoodType, getReductionFoodTypes } from "../game/nativeFoodTypes";
+import { canSwapCells } from "../game/gameActions";
 import { applyHeaterIncrement, isHeaterTarget } from "../game/heater";
-import { getCombineDurationMinutes, getReduceDurationMinutes, TOOL_DURATION_MINUTES } from "../game/actionDuration";
+import { getCombineDurationMinutes, getReduceDurationMinutes, SWAP_DURATION_MINUTES, TOOL_DURATION_MINUTES } from "../game/actionDuration";
 import { isFoodExpired } from "../game/foodShelfLife";
 
 
@@ -777,6 +778,10 @@ function canReduceIndexes(
 // 获取全部合法动作
 // ============================================================
 
+export function canSimulationSwap(state,indexA,indexB){
+  return canSwapCells(state,indexA,indexB);
+}
+
 export function getSimulationLegalActions(
   state
 ){
@@ -888,6 +893,12 @@ export function getSimulationLegalActions(
 
   }
 
+  for(let indexA=0;indexA<SIM_BOARD_SIZE;indexA++){
+    for(let indexB=indexA+1;indexB<SIM_BOARD_SIZE;indexB++){
+      if(canSimulationSwap(state,indexA,indexB))actions.push({type:"swap",indexes:[indexA,indexB]});
+    }
+  }
+
   const pieces = board.filter(Boolean);
   if(
     pieces.length > 0
@@ -906,6 +917,13 @@ export function getSimulationLegalActions(
 // ============================================================
 // 组合
 // ============================================================
+
+function applySwap(state,indexA,indexB){
+  if(!canSimulationSwap(state,indexA,indexB))return false;
+  [state.board[indexA],state.board[indexB]]=[state.board[indexB],state.board[indexA]];
+  state.steps++;
+  return true;
+}
 
 function applyCombine(
   state,
@@ -1782,7 +1800,7 @@ export function applySimulationAction(
     durationMinutes = getReduceDurationMinutes(divisor > 1
       ? ((left / divisor === 1 ? 1 : 0) + (right / divisor === 1 ? 1 : 0))
       : 0);
-  }
+  }else if(action.type === "swap") durationMinutes=SWAP_DURATION_MINUTES;
 
 
 
@@ -1813,6 +1831,10 @@ export function applySimulationAction(
         );
 
 
+      break;
+
+    case "swap":
+      applied=applySwap(state,action.indexes?.[0],action.indexes?.[1]);
       break;
 
     case "reduce":

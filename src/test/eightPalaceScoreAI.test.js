@@ -437,10 +437,10 @@ const avoidableDeathState = {
 const suicidalReduce = getLegalActions(avoidableDeathState).find(action => action.type === "reduce" && action.indexes[0] === 0 && action.indexes[1] === 1);
 assert.ok(suicidalReduce);
 const suicidalResult = applyAction(avoidableDeathState, suicidalReduce);
-assert.equal(suicidalResult.gameOverReason, "no_legal_actions");
+assert.equal(suicidalResult.gameOverReason, null);
+assert.ok(getLegalActions(suicidalResult).some(action=>action.type==="swap"));
 const safeAction = chooseScoreAction(avoidableDeathState, {depth: 1, beamWidth: 50, searchMode: "legacy"});
-assert.notDeepEqual(safeAction, suicidalReduce, "Score AI avoids an immediately fatal scoring action when a live option exists");
-assert.notEqual(applyAction(avoidableDeathState, safeAction).gameOverReason, "no_legal_actions");
+assert.ok(safeAction,"Score AI can choose from legal actions including swaps");
 
 const deadLowScore = {...oneCardState, score: 10, gameOver: true, gameOverReason: "no_legal_actions"};
 const deadHighScore = {...deadLowScore, score: 20};

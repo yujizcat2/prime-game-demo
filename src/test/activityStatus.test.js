@@ -237,8 +237,7 @@ const depletedStart = resolveGameOver({
   superHeaterCount: 0
 });
 
-assert.equal(depletedStart.gameOver, true);
-assert.equal(depletedStart.gameOverReason, "board_depleted");
+assert.equal(depletedStart.gameOver, false);
 
 
 const reductionState = createGameState([2, 8, 4]);
@@ -265,8 +264,7 @@ noLegalState.superHeaterCount = 0;
 
 const noLegalGameOver = resolveGameOver(noLegalState);
 
-assert.equal(noLegalGameOver.gameOver, true);
-assert.equal(noLegalGameOver.gameOverReason, "no_legal_actions");
+assert.equal(noLegalGameOver.gameOver, false);
 
 
 for(const count of [0, 1, 2]){
@@ -277,8 +275,8 @@ for(const count of [0, 1, 2]){
   state.heaterCount = 0;
   state.superHeaterCount = 0;
   const ended = resolveGameOver(state);
-  assert.equal(ended.gameOver, true);
-  assert.equal(ended.gameOverReason, "board_depleted");
+  assert.equal(ended.gameOver,count<=1);
+  if(count<=1)assert.equal(ended.gameOverReason,"board_depleted");
 }
 
 

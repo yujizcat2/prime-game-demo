@@ -19,16 +19,19 @@ import {
 import {
   canCombineCells,
   canReduceCells,
+  canSwapCells,
   createReduceOutcome,
   combineCells,
   createCombineOutcome,
   createCombinedPiece,
   reduceCells,
+  swapCells,
   removeOne,
   applyFunctionOne,
   getLegalCombineActions,
   getLegalReduceActions,
   getLegalRemoveActions,
+  getLegalSwapActions,
   getLegalActions
 } from "./gameActions";
 
@@ -116,6 +119,7 @@ export {
   canCombineCells,
 
   canReduceCells,
+  canSwapCells,
   createReduceOutcome,
 
   combineCells,
@@ -123,6 +127,7 @@ export {
   createCombinedPiece,
 
   reduceCells,
+  swapCells,
 
   removeOne,
 
@@ -133,6 +138,7 @@ export {
   getLegalReduceActions,
 
   getLegalRemoveActions,
+  getLegalSwapActions,
 
   getLegalActions,
 
@@ -248,6 +254,10 @@ export function applyAction(
         );
 
 
+      break;
+
+    case "swap":
+      actionState=swapCells(state,action.indexes?.[0],action.indexes?.[1]);
       break;
 
 
@@ -512,6 +522,7 @@ export function resolveGameOver(
     !isEightPalace
     && !isSimpleEightPalace
     && boardCount <= 2
+    && getLegalSwapActions(activeState).length===0
     && !canUseHeater(activeState)
     && !getLegalActions(activeState).some(action => action.type === "super_heater")
   ){
