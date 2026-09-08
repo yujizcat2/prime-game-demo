@@ -917,8 +917,8 @@ export function reduceCells(
       (firstResult === 1 ? 1 : 0) + (secondResult === 1 ? 1 : 0)
     );
     nextState = {...nextState, totalActionMinutes: collectionTime};
-    if(firstResult === 1) nextState = applyEightPalaceCollection(nextState, firstReducedPiece, collectionBoardBeforeAction);
-    if(secondResult === 1) nextState = applyEightPalaceCollection(nextState, secondReducedPiece, collectionBoardBeforeAction);
+    if(firstResult === 1) nextState = applyEightPalaceCollection(nextState, firstReducedPiece, collectionBoardBeforeAction, indexA);
+    if(secondResult === 1) nextState = applyEightPalaceCollection(nextState, secondReducedPiece, collectionBoardBeforeAction, indexB);
     nextState = applyEightPalaceKeyFromReduction(nextState,first,second,firstResult,secondResult);
   }
 

@@ -9,6 +9,7 @@ import {
 import { getSpecialOneName } from "../data/specialOneRegistry";
 import { getFoodCardDisplayName, getFoodCardDisplayValue, getFoodOriginDescription } from "./foodCardDisplay";
 import { getNativeFoodType } from "../game/nativeFoodTypes";
+import { getCookingMethod } from "../game/cookingMethods";
 import { formatShelfLife, getFoodExpiryState } from "../game/foodShelfLife";
 
 import "./Board.css";
@@ -59,7 +60,10 @@ export default function BoardCell({
 }) {
   const nativeFoodType = getNativeFoodType(index);
   const nativeFoodTypeName = getFoodTypeShortName(nativeFoodType);
-  const nativePositionLabel = nativeFoodType ? `原 · ${nativeFoodTypeName}` : "中心";
+  const cookingMethod = getCookingMethod(index);
+  const nativePositionLabel = nativeFoodType
+    ? `原 · ${nativeFoodTypeName} · ${cookingMethod}`
+    : `中心 · ${cookingMethod}`;
   const nativeCellClass = nativeFoodType
     ? `board-cell--native-${nativeFoodType}`
     : "board-cell--native-neutral";

@@ -19,6 +19,7 @@ import { getTimeSalePeriod } from "./timeSaleMultiplier";
 import { getCollectionRewardMultiplier } from "./collectionRewardLevel";
 import { getSaleScore } from "./saleScore";
 import { getFoodExpiryState } from "./foodShelfLife";
+import { getCookedFoodName, getCookingMethod } from "./cookingMethods";
 
 
 // ============================================================
@@ -1604,7 +1605,8 @@ export function getEightPalaceCollectionBaseSalePrice(state, piece){
 export function applyEightPalaceCollection(
   state,
   piece,
-  settlementBoard = state?.board
+  settlementBoard = state?.board,
+  boardIndex = null
 ){
   const record = getCollectionRecord(piece);
   if(!record) return state;
@@ -1617,6 +1619,8 @@ export function applyEightPalaceCollection(
   const isNewCollection = !alreadyCollected;
   const sequenceIndex = getCuisineSequenceIndex(state.collectionCards, record.foodType);
   const name = getFoodName(value, record.foodType);
+  const cookingMethod = getCookingMethod(boardIndex);
+  const cookedName = getCookedFoodName(name, cookingMethod);
   const gameTime = getDayTime(state);
   const expiryState = getFoodExpiryState(record, state);
   const rawRewardSettlement = createCollectionRewardSettlement({
@@ -1672,6 +1676,9 @@ export function applyEightPalaceCollection(
     : totalScore;
   const collectionReward = {
     ...rewardSettlement,
+    name: cookedName,
+    originalName: name,
+    cookingMethod,
     saleScore: shelfLifeSaleRevenue,
     shelfLifeStatus: expiryState.status,
     shelfLifeMultiplier: expiryState.multiplier,
@@ -1693,7 +1700,9 @@ export function applyEightPalaceCollection(
     collectionKey,
     value,
     cuisineSequenceIndex: sequenceIndex,
-    name,
+    name: cookedName,
+    originalName: name,
+    cookingMethod,
     foodType: record.foodType ?? null,
     parents: parentFoods,
     parentFoods,

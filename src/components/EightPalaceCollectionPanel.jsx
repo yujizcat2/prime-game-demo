@@ -40,7 +40,7 @@ export default function EightPalaceCollectionPanel({cards = [], score = 0}){
               ...card,
               parentFoods: card.parentFoods ?? card.parents ?? null
             };
-            const name = getFoodCardDisplayName(displayCard) ?? card.name;
+            const name = card.name ?? getFoodCardDisplayName(displayCard);
             return <article className="eight-collection-card" key={card.id}>
               <div className="eight-collection-card-heading">
                 <strong>{name} {card.value}</strong>
