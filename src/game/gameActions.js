@@ -1093,10 +1093,7 @@ export function getLegalCombineActions(
       ){
 
 
-        const a=state.board[i],b=state.board[j];
-        if(combineFoodType(a,b)!==combineFoodType(b,a)){
-          actions.push({type:"combine_ordered",indexes:[i,j]},{type:"combine_ordered",indexes:[j,i]});
-        }else actions.push({type:"combine",indexes:[i,j]});
+        actions.push({type:"combine",indexes:[i,j]});
 
       }
 

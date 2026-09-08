@@ -14,10 +14,10 @@ import { createEightPalaceInitialValues, createRandomInitialValues } from "../ga
 import { applyCollection } from "../game/collectionRules";
 
 const p=(foodType,value=10)=>({foodType,value});
-for(const a of BASE_FOOD_TYPES)for(const b of BASE_FOOD_TYPES){assert.equal(combineFoodType(p(a),p(b)),a);}
+for(const a of BASE_FOOD_TYPES)for(const b of BASE_FOOD_TYPES){assert.equal(combineFoodType(p(a),p(b)),combineFoodType(p(b),p(a)));}
 assert.equal(combineFoodType(p(T.LAND,58),p(T.VEGETABLE,67)),T.DRINK);
 assert.equal(combineValue(58,67),125);
-assert.equal(combineFoodType(p(T.LAND,50),p(T.VEGETABLE,51)),T.LAND);
+assert.equal(combineFoodType(p(T.LAND,50),p(T.VEGETABLE,51)),T.GRAIN_BEAN);
 assert.equal(combineFoodType(p(T.LAND,50),p(T.VEGETABLE,52)),T.DRINK);
 assert.equal(combineFoodType(p(T.DRINK,120),p(T.LAND)),T.DRINK);
 assert.equal(combineFoodType(p(T.LAND),p(T.DRINK,120)),T.DRINK);

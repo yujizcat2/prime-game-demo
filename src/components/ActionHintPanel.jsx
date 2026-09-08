@@ -31,6 +31,9 @@ function SingleHint({item,candidateCounts}){
   const typeName = item?.value === 1
     ? "水"
     : getTypeShortName(item?.foodType);
+  const combinationHint=item?.foodType==="drink"
+    ? "饮品继续使用现有的吸收规则。"
+    : "不同料理系搭配会生成固定的第三料理系，结果与点击顺序无关。";
 
   return (
     <div className="cooking-hint cooking-hint--single" key={item?.id}>
@@ -43,12 +46,12 @@ function SingleHint({item,candidateCounts}){
           </span>
           <small>{details?.kind}</small>
         </div>
-        <p>以「{name} {item?.value}」作为主料理</p>
+        <p>已选择「{name} {item?.value}」</p>
         <div className="cooking-hint__sources"><span className="cooking-hint__source-label">接下来选择另一道可以搭配的料理</span></div>
       </div>
 
       <div className="cooking-hint__next">
-        <span>新料理会保留 <b>{typeName}系</b> 风格。可搭配 {candidateCounts?.combine??0} 张，可处理 {candidateCounts?.reduce??0} 张。</span>
+        <span>{combinationHint}可搭配 {candidateCounts?.combine??0} 张，可处理 {candidateCounts?.reduce??0} 张。</span>
       </div>
     </div>
   );
@@ -134,13 +137,13 @@ function PairHint({status,keyOutcome,preview}){
       <div className="cooking-hint cooking-hint--pair cooking-hint--combine-detail">
         <div className="cooking-hint__dish cooking-hint__dish--pair-detail">
           <strong>{becameDrink?"准备调成一杯新的饮品":"准备一起烹制"}</strong>
-          <span>主料理　<b>{firstName} {first.value} · {getTypeShortName(first.foodType)}</b></span>
-          <span>搭配　　<b>{secondName} {second.value} · {getTypeShortName(second.foodType)}</b></span>
+          <span>料理 A　<b>{firstName} {first.value} · {getTypeShortName(first.foodType)}</b></span>
+          <span>料理 B　<b>{secondName} {second.value} · {getTypeShortName(second.foodType)}</b></span>
         </div>
         <div className="cooking-hint__next">
           <small>将得到</small>
           <span><b>{result.value} · {resultName} · {resultType}</b></span>
-          <span>{becameDrink?"两道料理调在一起，成为一杯新的饮品。":`因为 ${firstName} 是这次的主料理，新料理会继续保持${resultType}系。想做成另一系？取消后先选择另一道料理。`}</span>
+          <span>{becameDrink?"两道料理调在一起，成为一杯新的饮品。":first.foodType===second.foodType?`同系搭配保持${resultType}系。`:`不同料理系会固定生成${resultType}系，结果与点击顺序无关。`}</span>
         </div>
       </div>
     );

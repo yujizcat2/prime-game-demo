@@ -1,4 +1,5 @@
 import { gcd } from "../utils/math";
+import { getCombinedFoodType } from "./foodTypeCombination";
 
 export const FOOD_TYPES = Object.freeze({ LAND:"land", AQUATIC:"aquatic", VEGETABLE:"vegetable", GRAIN_BEAN:"grainBean", DAIRY_EGG:"dairyEgg", FRUIT:"fruit", SEASONING:"seasoning", SPICE:"spice", DRINK:"drink", MEAT:"land" });
 export const BASE_FOOD_TYPES = Object.freeze([FOOD_TYPES.LAND,FOOD_TYPES.AQUATIC,FOOD_TYPES.VEGETABLE,FOOD_TYPES.GRAIN_BEAN,FOOD_TYPES.DAIRY_EGG,FOOD_TYPES.FRUIT,FOOD_TYPES.SEASONING,FOOD_TYPES.SPICE]);
@@ -19,14 +20,14 @@ export function hasDrinkIngredientValue(drink,value){return Boolean(drink?.foodT
 export function flipFoodType(){return null;}
 export function getDessertMutationFoodType(){return null;}
 
-// Ordered type rule shared by player and AI.
+// Player, preview and AI share this rule. Drink behavior remains outside the normal eight-type matrix.
 export function combineFoodType(front,back){
   if(!front||!back||!front.foodType||!back.foodType)return null;
   const a=front.foodType==="meat"?FOOD_TYPES.LAND:front.foodType,b=back.foodType==="meat"?FOOD_TYPES.LAND:back.foodType;
   if(a===FOOD_TYPES.DRINK&&b===FOOD_TYPES.DRINK)return null;
   if(a===FOOD_TYPES.DRINK||b===FOOD_TYPES.DRINK)return FOOD_TYPES.DRINK;
   if(!isNormalFoodType(a)||!isNormalFoodType(b))return null;
-  return isCrossing101(front.value,back.value)?FOOD_TYPES.DRINK:a;
+  return isCrossing101(front.value,back.value)?FOOD_TYPES.DRINK:getCombinedFoodType(a,b);
 }
 export function combineFoodPurity(front,back,resultFoodType=combineFoodType(front,back)){const result=resultFoodType;if(!result||result===FOOD_TYPES.DRINK)return null;return front.foodType===back.foodType&&result===front.foodType?FOOD_PURITY.PURE:FOOD_PURITY.MIXED;}
 export function createSpecialOne(sourceTypeA,sourceTypeB){

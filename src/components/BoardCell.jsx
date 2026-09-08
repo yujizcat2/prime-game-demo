@@ -817,7 +817,7 @@ export default function BoardCell({
 
             <>
               <div className="board-piece-selected-ring" />
-              {selectionRole&&<span className={`board-piece-selection-role board-piece-selection-role--${selectionRole}`}>{selectionRole==="main"?"主料理":"搭配"}</span>}
+              {selectionRole&&<span className={`board-piece-selection-role board-piece-selection-role--${selectionRole}`}>{selectionRole==="main"?"已选择":"搭配"}</span>}
             </>
 
           }
