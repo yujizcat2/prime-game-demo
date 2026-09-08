@@ -24,7 +24,7 @@ for(const field of ["value","foodType","purity","crossed101"])assert.deepEqual(c
 assert.deepEqual(committedOrdered.parents,mainFirst.parents);assert.deepEqual(committedOrdered.parentFoods,mainFirst.parentFoods);assert.deepEqual(committedOrdered.origin,mainFirst.origin);
 let selection=getNextSelectionIndexes([],0);selection=getNextSelectionIndexes(selection,1);selection=getNextSelectionIndexes(selection,2);assert.deepEqual(selection,[0,2]);assert.deepEqual(getNextSelectionIndexes(selection,0),[]);
 assert.equal(combine({value:64,foodType:T.LAND},{value:37,foodType:T.FRUIT}).board[2].foodType,T.VEGETABLE);
-const crossed=combine({value:64,foodType:T.LAND},{value:38,foodType:T.FRUIT}); assert.equal(crossed.board[2].value,102); assert.equal(crossed.board[2].foodType,T.VEGETABLE);
+const crossed=combine({value:64,foodType:T.LAND},{value:38,foodType:T.FRUIT}); assert.equal(crossed.board[2].value,102); assert.equal(crossed.board[2].foodType,T.DRINK);
 assert.equal(combine({value:101,foodType:T.LAND},{value:101,foodType:T.FRUIT}).board[2].value,202);
 const drinkPair=stateWith([{value:120,foodType:T.DRINK},{value:180,foodType:T.DRINK}]);assert.equal(getLegalActions(drinkPair).some(action=>action.type.startsWith("combine")||action.type==="reduce"),false);
 const equalDrinkState=stateWith([{value:120,foodType:T.DRINK},{value:120,foodType:T.DRINK}]);assert.equal(createCombineOutcome(equalDrinkState,0,1),null);assert.equal(createReduceOutcome(equalDrinkState,0,1),null);assert.deepEqual(applyAction(equalDrinkState,{type:"reduce",indexes:[0,1]}).board,equalDrinkState.board);
@@ -94,7 +94,7 @@ const earlierGrain=positionedEight({value:41,foodType:T.GRAIN_BEAN},1,{value:20,
 assert.equal(applyAction(earlierGrain,{type:"combine",indexes:[1,7]}).board[0].foodType,T.LAND);
 assert.equal(applyAction(earlierGrain,{type:"combine",indexes:[7,1]}).board[0].foodType,T.LAND);
 assert.equal(getLegalActions(earlierGrain).filter(action=>action.type.startsWith("combine")&&action.indexes.includes(1)&&action.indexes.includes(7)).length,1);
-const crossedPosition=positionedEight({value:80,foodType:T.FRUIT},1,{value:30,foodType:T.LAND},7);const crossedPositionResult=applyAction(crossedPosition,{type:"combine",indexes:[7,1]}).board[0];assert.equal(crossedPositionResult.value,110);assert.equal(crossedPositionResult.foodType,T.LAND);
+const crossedPosition=positionedEight({value:80,foodType:T.FRUIT},1,{value:30,foodType:T.LAND},7);const crossedPositionResult=applyAction(crossedPosition,{type:"combine",indexes:[7,1]}).board[0];assert.equal(crossedPositionResult.value,110);assert.equal(crossedPositionResult.foodType,T.DRINK);
 const belowCrossing=positionedEight({value:28,foodType:T.VEGETABLE},0,{value:61,foodType:T.GRAIN_BEAN},8);assert.equal(applyAction(belowCrossing,{type:"combine",indexes:[8,0]}).board[1].foodType,T.AQUATIC);
 const classicOrder={...stateWith([{value:41,foodType:T.GRAIN_BEAN},{value:20,foodType:T.FRUIT}]),gameMode:"classic"};assert.equal(applyAction(classicOrder,{type:"combine",indexes:[1,0]}).board[2].foodType,T.VEGETABLE);
 

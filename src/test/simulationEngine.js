@@ -11,6 +11,7 @@ import {
   canReduce,
   canCombine,
   isDrinkFoodPair,
+  isNaturalDrinkValue,
   getDessertMutationFoodType
 } from "../game/rules";
 import { markSingleFlavorBoardPieces } from "../game/singleFlavorPenalty";
@@ -30,8 +31,8 @@ import {
   addCombinePair,
   hasCombinePair
 } from "../game/combineHistory";
-import { getFoodTypeForPosition, getNativeFoodType, getReductionFoodTypes } from "../game/nativeFoodTypes";
-import { canSwapCells } from "../game/gameActions";
+import { getNativeFoodType, getReductionFoodTypes } from "../game/nativeFoodTypes";
+import { canSwapCells, getCombinedResultIdentity } from "../game/gameActions";
 import { applyHeaterIncrement, isHeaterTarget } from "../game/heater";
 import { getCombineDurationMinutes, getReduceDurationMinutes, SWAP_DURATION_MINUTES, TOOL_DURATION_MINUTES } from "../game/actionDuration";
 import { isFoodExpired } from "../game/foodShelfLife";
@@ -861,6 +862,11 @@ export function getSimulationLegalActions(
         )
       ){
         actions.push({type:"combine",indexes:[i,j]});
+        const targetIndex=getNextEmptyIndex(board);
+        const baseValue=combineValue(a.value,b.value);
+        if(targetIndex===4&&!isNaturalDrinkValue(baseValue)&&a.foodType!==b.foodType){
+          actions.push({type:"combine",indexes:[j,i]});
+        }
 
       }
 
@@ -1005,9 +1011,9 @@ function applyCombine(
 
   const targetIndex=getNextEmptyIndex(state.board);
   if(targetIndex===-1)return false;
-  const foodType=getFoodTypeForPosition(targetIndex);
-  if(!foodType)return false;
-  const value=targetIndex===4?baseValue+100:baseValue;
+  const identity=getCombinedResultIdentity(baseValue,targetIndex,a.foodType);
+  if(!identity)return false;
+  const {value,foodType}=identity;
   const actionSignature=createCombineActionSignature(a.value,b.value,value);
 
   const resultPiece = {
@@ -1019,7 +1025,7 @@ function applyCombine(
     foodType,
 
     crossed101:
-      targetIndex === 4,
+      isNaturalDrinkValue(value),
 
     purity:
 
@@ -1260,7 +1266,7 @@ function applyReduce(
   const actionSignature = createReduceActionSignature(oldA, oldB, firstResult, secondResult);
   const reductionDuration = getReduceDurationMinutes((firstResult === 1 ? 1 : 0) + (secondResult === 1 ? 1 : 0));
   if(oldA===oldB){
-    state.board[indexA]={...first,foodType:getNativeFoodType(indexA)===FOOD_TYPES.DRINK?first.foodType:getNativeFoodType(indexA)??first.foodType};
+    state.board[indexA]={...first,foodType:getNativeFoodType(indexA)??first.foodType};
     state.board[indexB]=null;
     state.lastCollectionEvents=[];
     state.steps++;

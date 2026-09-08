@@ -12,6 +12,7 @@ export const FOOD_PURITY=Object.freeze({PURE:"pure",MIXED:"mixed"});
 export const SPECIAL_ONE_KINDS=Object.freeze({KEY:"key",FUNCTION:"function"});
 export function canReduce(a,b){return gcd(a.value,b.value)>1;}
 export function combineValue(a,b){return a+b;}
+export function isNaturalDrinkValue(value){return Number.isFinite(value)&&value>101;}
 export function isNormalFoodType(type){return BASE_FOOD_TYPES.includes(type);}
 export function isDrinkFoodPair(a,b){return Boolean(a&&b&&(a.foodType===FOOD_TYPES.DRINK)!==(b.foodType===FOOD_TYPES.DRINK));}
 export function hasDrinkIngredientValue(drink,value){return Boolean(drink?.foodType===FOOD_TYPES.DRINK&&drink.drinkIngredients?.some(ingredient=>ingredient.value===value));}

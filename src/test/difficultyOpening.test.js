@@ -44,7 +44,7 @@ assert.ok(controlledOpening.some(card => card.boardIndex === 4), "center is an a
 assert.ok(controlledOpening.some(card => card.boardIndex !== getNativeBoardIndex(card.foodType)),"food types can start outside their native positions");
 const controlledState = createGameState(controlledOpening);
 assert.ok(controlledOpening.every(card => controlledState.board[card.boardIndex].foodType === card.foodType));
-assert.equal(BOARD_NATIVE_FOOD_TYPES[4], FOOD_TYPES.DRINK);
+assert.equal(BOARD_NATIVE_FOOD_TYPES[4], null);
 
 const startScreenSource = readFileSync("src/components/StartScreen.jsx", "utf8");
 assert.doesNotMatch(startScreenSource, /随机探索|新手入门/);

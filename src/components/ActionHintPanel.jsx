@@ -135,7 +135,11 @@ function PairHint({status,keyOutcome,preview}){
         <div className="cooking-hint__next">
           <small>将得到</small>
           <span><b>{result.value} · {resultName} · {resultType}</b></span>
-          <span>{becameDrink?"新料理出生在中央位置，成为饮品。":`搭配后的料理系由新料理生成的位置决定。`}</span>
+          <span>{becameDrink
+            ? "数字结果进入饮品范围，成为饮品。"
+            : result.targetIndex===4
+              ? `中央的新料理继承第一张料理的${resultType}系。`
+              : "搭配后的料理系由新料理生成的外围位置决定。"}</span>
         </div>
       </div>
     );

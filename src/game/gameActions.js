@@ -13,6 +13,7 @@ import {
   canReduce,
   canCombine,
   isDrinkFoodPair,
+  isNaturalDrinkValue,
   getDessertMutationFoodType
 } from "./rules";
 
@@ -275,7 +276,7 @@ export function createReduceOutcome(state,indexA,indexB){
     kind:"equalRetype",
     divisor,
     results:[
-      {...first,foodType:getNativeFoodType(indexA)===FOOD_TYPES.DRINK?first.foodType:getNativeFoodType(indexA)??first.foodType,autoCollect:false},
+      {...first,foodType:getNativeFoodType(indexA)??first.foodType,autoCollect:false},
       {...second,clear:true,autoCollect:false}
     ]
   };
@@ -299,6 +300,12 @@ export function createReduceOutcome(state,indexA,indexB){
 // ============================================================
 
 // Preview 与正式执行共用：new = 第三格新卡；absorb = 饮品原位吸收非饮品数值。
+export function getCombinedResultIdentity(baseValue,targetIndex,firstFoodType){
+  if(isNaturalDrinkValue(baseValue))return {value:baseValue,foodType:FOOD_TYPES.DRINK};
+  const foodType=targetIndex===4?firstFoodType:getFoodTypeForPosition(targetIndex);
+  return foodType?{value:baseValue,foodType}:null;
+}
+
 export function createCombineOutcome(state,indexA,indexB){
   const main=getPieceAt(state,indexA),pairing=getPieceAt(state,indexB);
   if(!main||!pairing)return null;
@@ -321,9 +328,9 @@ export function createCombineOutcome(state,indexA,indexB){
   }
   const targetIndex=getNextEmptyIndex(state.board);
   if(targetIndex===-1)return null;
-  const foodType=getFoodTypeForPosition(targetIndex);
-  if(!foodType)return null;
-  const value=targetIndex===4?baseValue+100:baseValue;
+  const identity=getCombinedResultIdentity(baseValue,targetIndex,main.foodType);
+  if(!identity)return null;
+  const {value,foodType}=identity;
   const piece={
     id:state.nextId,
     bornAt: state.totalActionMinutes ?? 0,
@@ -334,7 +341,7 @@ export function createCombineOutcome(state,indexA,indexB){
     parents:[main.value,pairing.value],
     sourceKey:[main.value,pairing.value].sort((left,right)=>left-right).join("|"),
     parentFoods:[main,pairing].map(piece=>({value:piece.value,foodType:piece.foodType,purity:piece.purity??null})),
-    crossed101:targetIndex===4,
+    crossed101:isNaturalDrinkValue(value),
     origin:createCombineOrigin(value,main,pairing),
     singleFlavorPenalty:false,
     ...(foodType===FOOD_TYPES.DRINK?{drinkOriginValue:value,drinkIngredients:[]}:null)
@@ -1113,6 +1120,10 @@ export function getLegalCombineActions(
 
 
         actions.push({type:"combine",indexes:[i,j]});
+        const outcome=createCombineOutcome(state,i,j);
+        if(outcome?.kind==="new"&&outcome.targetIndex===4&&outcome.foodType!==FOOD_TYPES.DRINK&&state.board[i].foodType!==state.board[j].foodType){
+          actions.push({type:"combine",indexes:[j,i]});
+        }
 
       }
 
