@@ -362,6 +362,8 @@ export function applyAction(
 
   }
 
+  if(action.type!=="swap")actionState={...actionState,lastSwappedCardIds:null};
+
 
 
 

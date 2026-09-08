@@ -60,4 +60,66 @@ assert.deepEqual(simulation.board[1],simulationCard);
 assert.deepEqual(simulation.board[0],simulationOther);
 assert.equal(simulation.totalActionMinutes,15);
 
+function fourCardState(cValue=5,dValue=7){
+  return stateWith([
+    {id:401,value:17,foodType:T.LAND,boardIndex:0},
+    {id:402,value:23,foodType:T.AQUATIC,boardIndex:1},
+    {id:403,value:cValue,foodType:T.FRUIT,boardIndex:3},
+    {id:404,value:dValue,foodType:T.SPICE,boardIndex:4}
+  ]);
+}
+
+{
+  const before=fourCardState();
+  const lockedIds=[before.board[0].id,before.board[1].id].sort((a,b)=>a-b);
+  const once=applyAction(before,{type:"swap",indexes:[0,1]});
+  assert.deepEqual(once.lastSwappedCardIds,lockedIds);
+  for(const indexes of [[0,1],[1,0]]){
+    assert.equal(canSwapCells(once,...indexes),false);
+    const rejected=applyAction(once,{type:"swap",indexes});
+    assert.equal(rejected,once);
+    assert.equal(rejected.totalActionMinutes,once.totalActionMinutes,"blocked return costs no time");
+  }
+  assert.equal(getLegalActions(once).some(action=>action.type==="swap"&&action.indexes.includes(0)&&action.indexes.includes(1)),false);
+
+  const afterIllegal=applyAction(once,{type:"swap",indexes:[0,4]});
+  assert.equal(afterIllegal,once,"an illegal action neither applies nor clears the lock");
+  assert.equal(canSwapCells(afterIllegal,0,1),false);
+
+  const afterCombine=applyAction(once,{type:"combine",indexes:[3,4]});
+  assert.equal(afterCombine.lastSwappedCardIds,null);
+  assert.equal(canSwapCells(afterCombine,0,1),true,"a successful combine clears the lock");
+}
+
+{
+  const once=applyAction(fourCardState(6,9),{type:"swap",indexes:[0,1]});
+  const afterReduce=applyAction(once,{type:"reduce",indexes:[3,4]});
+  assert.equal(afterReduce.lastSwappedCardIds,null);
+  assert.equal(canSwapCells(afterReduce,0,1),true,"a successful reduce clears the lock");
+}
+
+{
+  const once=applyAction(fourCardState(),{type:"swap",indexes:[0,1]});
+  const otherIds=[once.board[3].id,once.board[4].id].sort((a,b)=>a-b);
+  const otherSwap=applyAction(once,{type:"swap",indexes:[3,4]});
+  assert.deepEqual(otherSwap.lastSwappedCardIds,otherIds);
+  assert.equal(canSwapCells(otherSwap,0,1),true,"another pair swap replaces the lock");
+}
+
+{
+  const once=applyAction(fourCardState(),{type:"swap",indexes:[0,1]});
+  const replacement={...once,board:[...once.board]};
+  replacement.board[0]={...replacement.board[0],id:501};
+  replacement.board[1]={...replacement.board[1],id:502};
+  assert.equal(canSwapCells(replacement,0,1),true,"the lock follows card ids rather than cell indexes");
+}
+
+{
+  const lockedSimulation=createSimulationState([7,11,13],"eightPalace");
+  assert.equal(applySimulationAction(lockedSimulation,{type:"swap",indexes:[0,1]}),true);
+  assert.equal(applySimulationAction(lockedSimulation,{type:"swap",indexes:[1,0]}),false);
+  assert.equal(getSimulationLegalActions(lockedSimulation).some(action=>action.type==="swap"&&action.indexes.includes(0)&&action.indexes.includes(1)),false);
+  assert.equal(lockedSimulation.totalActionMinutes,15);
+}
+
 console.log("swap tests passed");

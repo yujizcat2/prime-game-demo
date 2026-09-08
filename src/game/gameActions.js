@@ -252,19 +252,26 @@ export function canReduceCells(
 }
 
 export function canSwapCells(state,indexA,indexB){
+  const first=state?.board?.[indexA],second=state?.board?.[indexB];
+  const pair=first?.id!=null&&second?.id!=null?[first.id,second.id].sort((a,b)=>String(a).localeCompare(String(b))):null;
+  const locked=pair&&Array.isArray(state.lastSwappedCardIds)
+    && pair.length===state.lastSwappedCardIds.length
+    && pair.every((id,index)=>id===state.lastSwappedCardIds[index]);
   return Boolean(
     state && !state.gameOver
     && areOrthogonallyAdjacent(indexA,indexB)
-    && state.board?.[indexA]
-    && state.board?.[indexB]
+    && first
+    && second
+    && !locked
   );
 }
 
 export function swapCells(state,indexA,indexB){
   if(!canSwapCells(state,indexA,indexB))return state;
   const board=[...state.board];
+  const lastSwappedCardIds=[board[indexA].id,board[indexB].id].sort((a,b)=>String(a).localeCompare(String(b)));
   [board[indexA],board[indexB]]=[board[indexB],board[indexA]];
-  return consumeStep({...state,board});
+  return consumeStep({...state,board,lastSwappedCardIds});
 }
 
 export function createReduceOutcome(state,indexA,indexB){

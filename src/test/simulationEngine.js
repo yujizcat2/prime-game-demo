@@ -346,6 +346,7 @@ export function createSimulationState(
         index
       ] = {
 
+        id:index+1,
         value,
 
         bornAt: 0,
@@ -383,6 +384,7 @@ export function createSimulationState(
     gameMode,
 
     board,
+    nextId:initialValues.length+1,
 
 
 
@@ -926,6 +928,7 @@ export function getSimulationLegalActions(
 
 function applySwap(state,indexA,indexB){
   if(!canSimulationSwap(state,indexA,indexB))return false;
+  state.lastSwappedCardIds=[state.board[indexA].id,state.board[indexB].id].sort((a,b)=>String(a).localeCompare(String(b)));
   [state.board[indexA],state.board[indexB]]=[state.board[indexB],state.board[indexA]];
   state.steps++;
   return true;
@@ -1018,6 +1021,7 @@ function applyCombine(
 
   const resultPiece = {
 
+    id:state.nextId++,
     value,
 
     bornAt,
@@ -1903,6 +1907,8 @@ export function applySimulationAction(
     return false;
 
   }
+
+  if(action.type!=="swap")state.lastSwappedCardIds=null;
 
 
 
