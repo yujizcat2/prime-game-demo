@@ -54,8 +54,7 @@ const bothOne = reduce(
   {value: 7, foodType: FOOD_TYPES.FRUIT},
   {value: 7, foodType: FOOD_TYPES.FRUIT}
 );
-assert.equal(bothOne.board[0].value,7);
-assert.equal(bothOne.board[0].foodType,FOOD_TYPES.LAND);
+assert.equal(bothOne.board[0],null);
 assert.equal(bothOne.board[1],null);
 assert.equal(bothOne.eightPalaceKeys[FOOD_TYPES.FRUIT],null);
 

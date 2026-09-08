@@ -50,7 +50,7 @@ import {
 import { applyEightPalaceCollection } from "./collectionRules";
 import { getCreatedScoreValue } from "./scoreValue";
 import { isHeaterTarget } from "./heater";
-import { getFoodTypeForPosition, getNativeFoodType, getReductionFoodTypes } from "./nativeFoodTypes";
+import { getFoodTypeForPosition, getReductionFoodTypes } from "./nativeFoodTypes";
 import { getReduceDurationMinutes } from "./actionDuration";
 
 import {
@@ -280,10 +280,10 @@ export function createReduceOutcome(state,indexA,indexB){
   const divisor=gcd(first.value,second.value);
   if(divisor<=1)return null;
   if(first.value===second.value)return {
-    kind:"equalRetype",
+    kind:"equalEliminate",
     divisor,
     results:[
-      {...first,foodType:getNativeFoodType(indexA)??first.foodType,autoCollect:false},
+      {...first,clear:true,autoCollect:false},
       {...second,clear:true,autoCollect:false}
     ]
   };
@@ -641,9 +641,9 @@ export function reduceCells(
     actionSignature
   );
 
-  if(reductionOutcome.kind==="equalRetype"){
+  if(reductionOutcome.kind==="equalEliminate"){
     const board=[...state.board];
-    board[indexA]={...first,foodType:firstOutcome.foodType};
+    board[indexA]=null;
     board[indexB]=null;
     return consumeStep({
       ...state,

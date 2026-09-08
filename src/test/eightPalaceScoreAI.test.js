@@ -383,11 +383,11 @@ assert.equal(atStep100.steps, 100);
 assert.notEqual(atStep100.gameOverReason, "step_limit");
 assert.notEqual(chooseScoreAction(atStep100), null, "Score AI remains playable at Step 100");
 
-const equalRetypeState=createGameState([
+const equalEliminateState=createGameState([
   {value:43,foodType:BASE_FOOD_TYPES[0],boardIndex:0},
   {value:43,foodType:BASE_FOOD_TYPES[1],boardIndex:1}
 ]);
-assert.deepEqual(scoreAITestUtils.getImmediateScorePotential(equalRetypeState),{total:0,best:0},"equal-value processing has no predicted collection reward");
+assert.deepEqual(scoreAITestUtils.getImmediateScorePotential(equalEliminateState),{total:0,best:0},"equal-value processing has no predicted collection reward");
 
 const base = createGameState(opening);
 assert.notEqual(

@@ -751,10 +751,10 @@ export default function useGame(){
 
               divisor,
               kind:reduceOutcome.kind,
-              equalRetype:reduceOutcome.kind==="equalRetype",
+              equalEliminate:reduceOutcome.kind==="equalEliminate",
               createsEffectiveSale: reduceCreatesEffectiveSale,
               durationMinutes:getReduceDurationMinutes(
-                reduceOutcome.kind==="equalRetype"
+                reduceOutcome.kind==="equalEliminate"
                   ? 2
                   : ["eightPalace","simpleEightPalace"].includes(gameState?.gameMode)
                     ? reduceOutcome.results.filter(result=>result.value===1).length
@@ -763,7 +763,7 @@ export default function useGame(){
 
               keyOutcome:(()=>{
                 if(!["eightPalace","simpleEightPalace"].includes(gameState?.gameMode))return null;
-                if(reduceOutcome.kind==="equalRetype")return null;
+                if(reduceOutcome.kind==="equalEliminate")return null;
                 const firstResult=first.piece.value/divisor,secondResult=second.piece.value/divisor;
                 const triggerPiece=firstResult===1?first.piece:secondResult===1?second.piece:null;
                 if(!triggerPiece)return null;

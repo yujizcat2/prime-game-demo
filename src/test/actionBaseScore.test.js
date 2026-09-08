@@ -77,11 +77,11 @@ assert.equal(
   "a reduce-to-one duplicate with zero formal sale value stays processing"
 );
 
-const equalRetypeState = createState([
+const equalEliminateState = createState([
   {value: 8, foodType: BASE_FOOD_TYPES[0], boardIndex: 0},
   {value: 8, foodType: BASE_FOOD_TYPES[0], boardIndex: 1}
 ]);
-assert.equal(doesReduceCreateEffectiveSale(equalRetypeState, [0, 1]), false, "equal-value processing is not presented as a sale");
+assert.equal(doesReduceCreateEffectiveSale(equalEliminateState, [0, 1]), false, "equal-value processing is not presented as a sale");
 
 const bonusCollections = Array.from({length: 10}, (_, index) => ({
   value: index + 20,

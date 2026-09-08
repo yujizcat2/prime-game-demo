@@ -371,9 +371,9 @@ function App(){
       ...game.selectedIndexes
     ];
 
-    const reduceToast=game.preview.reduce.equalRetype
+    const reduceToast=game.preview.reduce.equalEliminate
       ? {
-          title:`转为${FOOD_TYPE_LABELS[game.preview.reduce.results[0].foodType] ?? "饮品"}系 · ${game.board[indexes[0]].value}`,
+          title:`同数消除 · ${game.board[indexes[0]].value}`,
           message:"处理完成"
         }
       : {
@@ -384,8 +384,8 @@ function App(){
         };
 
 
-    const removedIndexes = game.preview.reduce.equalRetype
-      ? [indexes[1]]
+    const removedIndexes = game.preview.reduce.equalEliminate
+      ? indexes
       : indexes.filter((_,position)=>game.preview.reduce.results?.[position]?.autoCollect);
 
 

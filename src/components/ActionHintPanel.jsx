@@ -105,15 +105,13 @@ function PairHint({status,keyOutcome,preview}){
     description = "原汁暂时不能参与普通料理。";
   }
 
-  if(canReduce&&preview?.reduce?.equalRetype){
-    const targetFoodType=preview.reduce.results[0].foodType;
-    const sameType=first.foodType===targetFoodType;
+  if(canReduce&&preview?.reduce?.equalEliminate){
     return (
     <div className="cooking-hint cooking-hint--pair cooking-hint--combine-detail">
       <div className="cooking-hint__dish cooking-hint__dish--pair-detail">
-        <strong>{sameType?`同系处理：保留 ${first.value} ${getTypeShortName(first.foodType)}，另一份将被处理`:`转系处理：保留 ${first.value}，转为${getTypeShortName(targetFoodType)}系`}</strong>
+        <strong>同数处理：两份料理都将消除</strong>
         <span><b>{firstName} {first.value}</b> 与 <b>{secondName} {second.value}</b></span>
-        <span>第一份保留原位和数字，第二份消失</span>
+        <span>两张卡都会离开料理台，不产生新料理</span>
       </div>
       <div className="cooking-hint__next"><small>同数处理</small><span>不会售出或收藏新料理。</span></div>
     </div>
