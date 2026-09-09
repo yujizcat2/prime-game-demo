@@ -1065,18 +1065,7 @@ export default function Board({
 
 
               if(
-                !piece
-              ){
-
-
-                return;
-
-              }
-
-
-
-              if(
-                piece.value === 1
+                piece?.value === 1
               ){
 
 

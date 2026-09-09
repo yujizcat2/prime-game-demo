@@ -36,6 +36,7 @@ import { canSwapCells, getCombinedResultIdentity } from "../game/gameActions";
 import { applyHeaterIncrement, isHeaterTarget } from "../game/heater";
 import { getCombineDurationMinutes, getReduceDurationMinutes, SWAP_DURATION_MINUTES, TOOL_DURATION_MINUTES } from "../game/actionDuration";
 import { isFoodExpired } from "../game/foodShelfLife";
+import { applyFridgeAction, getLegalFridgeRetrieveActions, getLegalFridgeStoreActions } from "../game/fridge";
 
 
 
@@ -384,6 +385,8 @@ export function createSimulationState(
     gameMode,
 
     board,
+    fridgeCards: [],
+    fridgeBatchActive: false,
     nextId:initialValues.length+1,
 
 
@@ -796,6 +799,8 @@ export function getSimulationLegalActions(
 
   const board =
     state.board;
+
+  actions.push(...getLegalFridgeStoreActions(state), ...getLegalFridgeRetrieveActions(state));
 
 
   // ==========================================================
@@ -1787,6 +1792,13 @@ export function applySimulationAction(
 
   }
 
+  if(action.type === "fridge_store" || action.type === "fridge_retrieve"){
+    const nextState = applyFridgeAction(state, action);
+    if(nextState === state) return false;
+    Object.assign(state, nextState);
+    return true;
+  }
+
 
 
   let applied =
@@ -1954,6 +1966,10 @@ function clonePiece(
 
   return {
 
+    id: piece.id,
+    bornAt: piece.bornAt,
+    fridgeStoredAt: piece.fridgeStoredAt,
+
     value:
       piece.value,
 
@@ -2051,6 +2067,9 @@ export function cloneSimulationState(
       state.board.map(
         clonePiece
       ),
+
+    fridgeCards: (state.fridgeCards ?? []).map(clonePiece),
+    fridgeBatchActive: state.fridgeBatchActive === true,
 
 
 

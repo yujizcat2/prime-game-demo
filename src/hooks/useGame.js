@@ -42,6 +42,7 @@ import {
 } from "../game/gameEngine";
 import { advanceToNextDay, getDayPeriod, getDayStep, getDayTime, getWeekday } from "../game/dayCycle";
 import { getCombineDurationMinutes, getReduceDurationMinutes } from "../game/actionDuration";
+import { getLegalFridgeStoreActions } from "../game/fridge";
 
 
 export default function useGame(){
@@ -94,6 +95,8 @@ export default function useGame(){
     setFunctionOneIndex
   ] = useState(null);
 
+  const [selectedFridgeIndex, setSelectedFridgeIndex] = useState(null);
+
 
   // ==========================================================
   // 开始游戏
@@ -124,6 +127,7 @@ export default function useGame(){
     setSelectedIndexes(
       []
     );
+    setSelectedFridgeIndex(null);
 
 
 
@@ -506,6 +510,16 @@ export default function useGame(){
         index
       );
 
+    if(selectedFridgeIndex !== null){
+      if(target) return false;
+      const nextState = applyAction(gameState, {type: "fridge_retrieve", fridgeIndex: selectedFridgeIndex, boardIndex: index});
+      if(nextState === gameState) return false;
+      setGameState(nextState);
+      setSelectedFridgeIndex(null);
+      setSelectedIndexes([]);
+      return true;
+    }
+
 
     // 空格不能选择
     if(
@@ -587,6 +601,24 @@ export default function useGame(){
   function clearSelection(){
     setSelectedIndexes([]);
     setFunctionOneIndex(null);
+    setSelectedFridgeIndex(null);
+  }
+
+  function storeInFridge(indexes){
+    if(!gameState) return false;
+    const nextState = applyAction(gameState, {type: "fridge_store", indexes});
+    if(nextState === gameState) return false;
+    setGameState(nextState);
+    clearSelection();
+    return true;
+  }
+
+  function selectFridgeCard(index){
+    if(!gameState?.fridgeCards?.[index] || !board.some(piece => !piece)) return false;
+    setSelectedIndexes([]);
+    setFunctionOneIndex(null);
+    setSelectedFridgeIndex(current => current === index ? null : index);
+    return true;
   }
 
   function useHeaterOnCell(index){
@@ -1370,6 +1402,9 @@ export default function useGame(){
 
     // 棋盘
     board,
+    fridgeCards: gameState?.fridgeCards ?? [],
+    fridgeStoreActions: gameState ? getLegalFridgeStoreActions(gameState) : [],
+    selectedFridgeIndex,
 
     numbers,
 
@@ -1484,6 +1519,8 @@ export default function useGame(){
     selectCell,
 
     clearSelection,
+    storeInFridge,
+    selectFridgeCard,
 
     useHeaterOnCell,
     useSuperHeater,

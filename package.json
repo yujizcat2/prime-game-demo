@@ -17,6 +17,7 @@
     "test:day-cycle": "vite build --ssr src/test/dayCycle.test.js --outDir /tmp/prime-game-day-cycle-test --emptyOutDir && node /tmp/prime-game-day-cycle-test/dayCycle.test.js",
     "test:position-food-type": "vite build --ssr src/test/positionFoodType.test.js --outDir /tmp/prime-game-position-food-type-test --emptyOutDir && node /tmp/prime-game-position-food-type-test/positionFoodType.test.js",
     "test:swap": "vite build --ssr src/test/swap.test.js --outDir /tmp/prime-game-swap-test --emptyOutDir && node /tmp/prime-game-swap-test/swap.test.js",
+    "test:fridge": "vite build --ssr src/test/fridge.test.js --outDir /tmp/prime-game-fridge-test --emptyOutDir && node /tmp/prime-game-fridge-test/fridge.test.js",
     "test:combo": "npm run test:score-scale && vite build --ssr src/test/scoreCombo.test.js --outDir /tmp/prime-game-score-combo-test --emptyOutDir && node /tmp/prime-game-score-combo-test/scoreCombo.test.js",
     "test:action-score": "vite build --ssr src/test/actionBaseScore.test.js --outDir /tmp/prime-game-action-score-test --emptyOutDir && node /tmp/prime-game-action-score-test/actionBaseScore.test.js && vite build --ssr src/test/actionDuration.test.js --outDir /tmp/prime-game-action-duration-test --emptyOutDir && node /tmp/prime-game-action-duration-test/actionDuration.test.js",
     "test:score-scale": "vite build --ssr src/test/scoreScale.test.js --outDir /tmp/prime-game-score-scale-test --emptyOutDir && node /tmp/prime-game-score-scale-test/scoreScale.test.js",

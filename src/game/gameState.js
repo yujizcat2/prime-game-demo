@@ -216,6 +216,9 @@ export function createGameState(
 
     board,
 
+    fridgeCards: [],
+    fridgeBatchActive: false,
+
     gameMode:
       suppliedGameMode===GAME_MODES.SIMPLE_EIGHT_PALACE
         ? GAME_MODES.SIMPLE_EIGHT_PALACE

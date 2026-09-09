@@ -52,6 +52,7 @@ import { getCreatedScoreValue } from "./scoreValue";
 import { isHeaterTarget } from "./heater";
 import { getFoodTypeForPosition, getReductionFoodTypes } from "./nativeFoodTypes";
 import { getReduceDurationMinutes } from "./actionDuration";
+import { getLegalFridgeRetrieveActions, getLegalFridgeStoreActions } from "./fridge";
 
 import {
   addCombinePair,
@@ -1363,6 +1364,8 @@ export function getLegalActions(
     ),
     ...getLegalApplyOneActions(state),
     ...getLegalSwapActions(state),
+    ...getLegalFridgeStoreActions(state),
+    ...getLegalFridgeRetrieveActions(state),
     ...(state.heaterCount ?? 0) > 0
       ? state.board.flatMap((piece, index) => isHeaterTarget(piece) ? [{type: "heater", indexes: [index]}] : [])
       : [],

@@ -24,6 +24,7 @@ import ActionToast from "./components/ActionToast";
 import CollectionRewardModal from "./components/CollectionRewardModal";
 import BoardTypeTotals from "./components/BoardTypeTotals";
 import ItemBar from "./components/ItemBar";
+import Fridge from "./components/Fridge";
 
 import useGame from "./hooks/useGame";
 
@@ -979,6 +980,16 @@ function App(){
                 clearedCells={
                   clearedCells
                 }
+              />
+
+              <Fridge
+                cards={game.fridgeCards}
+                storeActions={game.fridgeStoreActions}
+                selectedIndex={game.selectedFridgeIndex}
+                canRetrieve={game.board.some(piece => !piece)}
+                disabled={game.gameOver || Boolean(game.daySettlement) || Boolean(activeAnimation)}
+                onStore={game.storeInFridge}
+                onSelectCard={game.selectFridgeCard}
               />
 
               <div className="game-board-actions">

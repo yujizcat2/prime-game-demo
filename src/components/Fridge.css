@@ -1,0 +1,7 @@
+.fridge{width:min(100%,447px);margin:8px auto 0;padding:8px 10px;box-sizing:border-box;border:1px solid rgba(56,189,248,.28);border-radius:14px;background:rgba(240,249,255,.78)}
+.fridge-header{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:13px;font-weight:800;color:#0c4a6e}
+.fridge-store-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:5px}
+.fridge-store-actions button{border:1px solid rgba(2,132,199,.3);border-radius:8px;padding:4px 7px;background:#fff;color:#075985;font-size:11px;font-weight:700;cursor:pointer}
+.fridge-slots{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:7px}
+.fridge-slot{min-height:48px;border:1px dashed rgba(14,116,144,.32);border-radius:10px;background:rgba(255,255,255,.7);color:#155e75;display:flex;align-items:center;justify-content:center;gap:6px}
+.fridge-slot strong{font-size:19px}.fridge-slot small{font-size:10px}.fridge-slot:disabled{cursor:not-allowed;opacity:.58}.fridge-slot--selected{outline:2px solid #0284c7;background:#e0f2fe}.fridge-help{margin-top:5px;text-align:center;color:#0369a1;font-size:11px}

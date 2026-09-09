@@ -97,6 +97,8 @@ export default function BoardCell({
           index
         }
 
+        onClick={onClick}
+
 
       >
 

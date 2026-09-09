@@ -54,6 +54,7 @@ import { applyActionBaseScore } from "./actionBaseScore";
 import { applyActionDuration } from "./actionDuration";
 import { recordCollectionEfficiencySnapshot } from "./collectionEfficiency";
 import { isFoodExpired } from "./foodShelfLife";
+import { applyFridgeAction } from "./fridge";
 
 
 
@@ -216,6 +217,11 @@ export function applyAction(
 
     return state;
 
+  }
+
+  if(action.type === "fridge_store" || action.type === "fridge_retrieve"){
+    const fridgeState = applyFridgeAction(state, action);
+    return fridgeState === state ? state : resolveGameOver(fridgeState);
   }
 
 
@@ -527,6 +533,7 @@ export function resolveGameOver(
     && getLegalSwapActions(activeState).length===0
     && !canUseHeater(activeState)
     && !getLegalActions(activeState).some(action => action.type === "super_heater")
+    && !getLegalActions(activeState).some(action => action.type.startsWith("fridge_"))
   ){
 
     return {
