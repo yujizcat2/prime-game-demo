@@ -21,7 +21,7 @@
 //
 //    A + B = C
 //
-//    底层保存 A、B 完整来源。
+//    底层保存 A、B 的直接来源身份。
 //
 //    同时指定一个 mainParent
 //    作为玩家默认看到的“父系”。
@@ -56,10 +56,10 @@
 //
 //
 //
-// 5. 完整父母树仍然保留
+// 5. 完整主路径仍然保留
 //
-//    当前 UI 暂时不显示完整树，
-//    但底层数据继续保存。
+//    每代的直接父母仍保留；非主分支不再递归保存，
+//    避免长局来源树指数膨胀。
 //
 //
 //
@@ -155,6 +155,23 @@ export function createOriginSnapshot(
 
 }
 
+// Combination rules and cooking copy only need the two immediate parents.
+// Keeping their recursive origins as well as mainParent duplicated the whole
+// ancestry at every generation (and mainParent duplicated the first parent a
+// second time). Keep recursion on the displayed main lineage only.
+function createDirectOriginSnapshot(number){
+  if(!number) return null;
+  return {
+    value: number.value,
+    scoreValue: number.scoreValue ?? null,
+    bornAt: number.bornAt ?? null,
+    singleFlavorPenalty: number.singleFlavorPenalty === true,
+    foodType: number.foodType ?? null,
+    purity: number.purity ?? null,
+    origin: null
+  };
+}
+
 
 
 
@@ -185,21 +202,20 @@ export function createOriginSnapshot(
 //
 // 38 ⇐ 20
 //
-// 18 仍然完整保存在 parents 中。
+// 18 的直接身份仍然保存在 parents 中。
 //
 //
 // ------------------------------------------------------------
 // 类型 / 纯度
 //
-// father 和 otherParent 的快照
-// 都会完整保存：
+// father 和 otherParent 的直接快照保存：
 //
 // value
 // foodType
 // purity
-// origin
+// origin: null
 //
-// 因此以后可以恢复完整食物族谱。
+// 父系的递归来源单独保存在 mainParent。
 // ============================================================
 
 export function createCombineOrigin(
@@ -211,7 +227,7 @@ export function createCombineOrigin(
 
   const fatherSnapshot =
 
-    createOriginSnapshot(
+    createDirectOriginSnapshot(
       father
     );
 
@@ -219,7 +235,7 @@ export function createCombineOrigin(
 
   const otherSnapshot =
 
-    createOriginSnapshot(
+    createDirectOriginSnapshot(
       otherParent
     );
 
@@ -266,7 +282,7 @@ export function createCombineOrigin(
     // ========================================================
 
     mainParent:
-      fatherSnapshot
+      createOriginSnapshot(father)
 
   };
 
@@ -349,7 +365,7 @@ export function createReduceOrigin(
 
 
 // ============================================================
-// 深复制来源
+// 紧凑复制来源（递归仅沿主路径）
 // ============================================================
 
 export function cloneOrigin(
@@ -388,7 +404,7 @@ export function cloneOrigin(
         origin.parents.map(
 
           parent =>
-            cloneRecord(
+            createDirectOriginSnapshot(
               parent
             )
 
@@ -497,7 +513,7 @@ export function cloneOrigin(
 
 
 // ============================================================
-// 深复制一个来源记录
+// 复制一个主路径来源记录
 //
 // 每一个来源记录现在保存：
 //
@@ -554,13 +570,13 @@ function cloneRecord(
 
 
 // ============================================================
-// 获取某个数字完整来源记录
+// 获取某个数字主路径来源记录
 //
-// 【完整来源树接口】
+// 【主路径来源接口】
 //
 // 当前简化 UI 暂时不直接使用。
 //
-// 未来完整族谱 / 高级详情
+// 来源详情
 // 可以直接通过这里读取：
 //
 // value
