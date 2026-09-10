@@ -6140,10 +6140,16 @@
   pointer-events: none;
 }
 
-.board-piece-origin { bottom: 28px; }
+.board-piece-origin { display:none; bottom:28px; }
+.board-piece-shelf-life { display:none; }
 
 .board-piece-shelf-life--warning { color: #d97706; }
 .board-piece-shelf-life--expired { color: #9f3f55; }
 .board-piece--selected .board-piece-shelf-life { color: rgba(255,255,255,.9); background: rgba(31,41,55,.3); }
 .board-piece--selected .board-piece-shelf-life--warning { color: #fde68a; }
 .board-piece--selected .board-piece-shelf-life--expired { color: #fecdd3; }
+
+.board-piece-info{position:absolute;top:8px;right:8px;z-index:40;width:22px;height:22px;padding:0;border:0;border-radius:50%;background:rgba(255,255,255,.84);color:#617067;font-family:inherit;font-size:13px;font-weight:900;line-height:22px;cursor:pointer;box-shadow:0 1px 4px rgba(30,41,35,.12)}
+.board-piece-info:focus-visible{outline:2px solid #557968;outline-offset:1px}
+.board-cell--occupied .board-piece-cuisine-mark{display:none}
+@media(max-width:560px){.board-piece-info{top:5px;right:5px;width:19px;height:19px;font-size:11px;line-height:19px}}

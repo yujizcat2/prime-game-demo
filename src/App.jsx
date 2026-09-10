@@ -11,7 +11,6 @@ import TestLab from "./components/TestLab";
 
 import Board from "./components/Board";
 import ActionButtons from "./components/ActionButtons";
-import ActionHintPanel from "./components/ActionHintPanel";
 import CollectionPanel from "./components/CollectionPanel";
 import EightPalaceCollectionPanel from "./components/EightPalaceCollectionPanel";
 import StepPanel from "./components/StepPanel";
@@ -25,6 +24,8 @@ import CollectionRewardModal from "./components/CollectionRewardModal";
 import BoardTypeTotals from "./components/BoardTypeTotals";
 import ItemBar from "./components/ItemBar";
 import Fridge from "./components/Fridge";
+import SelectionBar from "./components/SelectionBar";
+import FoodDetailModal from "./components/FoodDetailModal";
 
 import useGame from "./hooks/useGame";
 
@@ -68,6 +69,8 @@ function App(){
   const [actionToast,setActionToast] = useState(null);
   const [collectionRewardQueue,setCollectionRewardQueue] = useState([]);
   const [heaterSelectMode,setHeaterSelectMode] = useState(false);
+  const [showFridge,setShowFridge] = useState(false);
+  const [foodDetail,setFoodDetail] = useState(null);
 
   const animationTimersRef = useRef([]);
   const animationTokenRef = useRef(0);
@@ -829,79 +832,6 @@ function App(){
         </section>
 
 
-        <section className="game-info-row">
-
-          <div className="game-situation-hint">
-            <ActionHintPanel
-              numbers={
-                game.numbers
-              }
-              selected={
-                selectedIdsForLegacyUI
-              }
-              keyOutcome={game.preview?.reduce?.keyOutcome??null}
-              preview={game.preview}
-              candidateCounts={{
-                combine:Object.values(game.actionCandidates).filter(item=>item.combine).length,
-                reduce:Object.values(game.actionCandidates).filter(item=>item.reduce).length
-              }}
-              combineHistoryKeys={game.combineHistoryKeys}
-            />
-          </div>
-
-          <div className="game-situation-meta">
-            <BoardStatus
-              activity={
-                activityStatus.activity
-              }
-              activityCombineLegal={
-                activityStatus.combineLegal
-              }
-              activityReduceLegal={
-                activityStatus.reduceLegal
-              }
-              numberCount={
-                game.numbers.length
-              }
-              nonDrinkBoardSum={nonDrinkBoardSum}
-              dead={
-                activityStatus.dead
-              }
-            />
-
-            <ItemBar
-              heaterCount={game.heaterCount}
-              heaterAvailable={game.heaterAvailable && !game.daySettlement}
-              heaterActive={heaterSelectMode}
-              onHeaterClick={toggleHeaterMode}
-              superHeaterCount={game.superHeaterCount}
-              superHeaterAvailable={game.superHeaterAvailable && !game.daySettlement}
-              onSuperHeaterClick={handleSuperHeater}
-            />
-
-            <div className="game-meta-buttons">
-              <button
-                type="button"
-                className="combine-history-trigger"
-                onClick={() => setShowCombineHistory(true)}
-              >
-                历史合成
-                <span>{game.combineHistory.length}</span>
-              </button>
-              <button
-                type="button"
-                className="combine-history-trigger"
-                onClick={() => setShowCollection(true)}
-              >
-                销售记录
-                <span>{collectionCount}</span>
-              </button>
-            </div>
-          </div>
-
-        </section>
-
-
         <section className="game-board-section">
 
           <div className="game-board-toolbar">
@@ -980,17 +910,10 @@ function App(){
                 clearedCells={
                   clearedCells
                 }
+                onOpenDetails={(piece,index) => setFoodDetail({piece,index})}
               />
 
-              <Fridge
-                cards={game.fridgeCards}
-                storeActions={game.fridgeStoreActions}
-                selectedIndex={game.selectedFridgeIndex}
-                canRetrieve={game.board.some(piece => !piece)}
-                disabled={game.gameOver || Boolean(game.daySettlement) || Boolean(activeAnimation)}
-                onStore={game.storeInFridge}
-                onSelectCard={game.selectFridgeCard}
-              />
+              <SelectionBar board={game.board} selectedIndexes={game.selectedIndexes} />
 
               <div className="game-board-actions">
                 <ActionButtons
@@ -1001,10 +924,24 @@ function App(){
                   onReduce={handleReduce}
                   onSwap={handleSwap}
                   canSwap={!game.gameOver&&!game.daySettlement&&game.canSwapSelected}
+                  onFridge={() => setShowFridge(true)}
+                  fridgeCount={game.fridgeCards.length}
+                  fridgeActionCount={game.fridgeStoreActions.length}
                   gameOver={game.gameOver || Boolean(game.daySettlement) || heaterSelectMode}
                   removingId={removingIndex ?? ((activeAnimation?.phase === "exit" || activeAnimation?.phase === "compress") ? activeAnimation.token : null)}
                 />
               </div>
+
+              <section className="game-info-row game-info-row--secondary">
+                <div className="game-situation-meta">
+                  <BoardStatus activity={activityStatus.activity} activityCombineLegal={activityStatus.combineLegal} activityReduceLegal={activityStatus.reduceLegal} numberCount={game.numbers.length} nonDrinkBoardSum={nonDrinkBoardSum} dead={activityStatus.dead} />
+                  <ItemBar heaterCount={game.heaterCount} heaterAvailable={game.heaterAvailable && !game.daySettlement} heaterActive={heaterSelectMode} onHeaterClick={toggleHeaterMode} superHeaterCount={game.superHeaterCount} superHeaterAvailable={game.superHeaterAvailable && !game.daySettlement} onSuperHeaterClick={handleSuperHeater} />
+                  <div className="game-meta-buttons">
+                    <button type="button" className="combine-history-trigger" onClick={() => setShowCombineHistory(true)}>历史<span>{game.combineHistory.length}</span></button>
+                    <button type="button" className="combine-history-trigger" onClick={() => setShowCollection(true)}>销售<span>{collectionCount}</span></button>
+                  </div>
+                </div>
+              </section>
 
             </div>
 
@@ -1034,6 +971,17 @@ function App(){
           </div>
         </div>
       )}
+
+      {showFridge && (
+        <div className="fridge-overlay" onClick={() => setShowFridge(false)}>
+          <div className="fridge-dialog" role="dialog" aria-modal="true" onClick={event => event.stopPropagation()}>
+            <button type="button" className="fridge-dialog-close" aria-label="关闭冰箱" onClick={() => setShowFridge(false)}>×</button>
+            <Fridge cards={game.fridgeCards} storeActions={game.fridgeStoreActions} selectedIndex={game.selectedFridgeIndex} canRetrieve={game.board.some(piece => !piece)} disabled={game.gameOver || Boolean(game.daySettlement) || Boolean(activeAnimation)} onStore={game.storeInFridge} onSelectCard={index => { game.selectFridgeCard(index); setShowFridge(false); }} />
+          </div>
+        </div>
+      )}
+
+      <FoodDetailModal piece={foodDetail?.piece} index={foodDetail?.index} totalActionMinutes={game.totalActionMinutes} onClose={() => setFoodDetail(null)} />
 
 
       {

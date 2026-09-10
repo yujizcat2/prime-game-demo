@@ -58,7 +58,7 @@
     0 4px;
 
   margin-bottom:
-    14px;
+    7px;
 
 }
 
@@ -1485,6 +1485,12 @@
   margin: 7px auto 0;
 }
 
+.game-info-row.game-info-row--secondary{box-sizing:border-box;width:min(100%,560px);height:auto;min-height:0;max-height:none;margin:8px auto 0;padding:6px 8px;border-radius:13px;background:rgba(255,255,255,.38);box-shadow:none}
+.game-info-row--secondary .game-situation-meta{width:100%;grid-template-columns:minmax(0,1fr) auto auto}
+.fridge-overlay{position:fixed;inset:0;z-index:1050;display:grid;place-items:center;padding:16px;background:rgba(28,39,33,.26)}
+.fridge-dialog{position:relative;box-sizing:border-box;width:min(470px,100%);padding:38px 12px 12px;border-radius:20px;background:#f8fbfc;box-shadow:0 20px 52px rgba(33,49,40,.22)}
+.fridge-dialog-close{position:absolute;top:9px;right:10px;width:29px;height:29px;border:0;border-radius:50%;background:#e4eef1;color:#466572;font-size:19px;cursor:pointer}.fridge-dialog .fridge{width:100%;margin:0}
+
 @media (max-width: 560px) {
   .game-board-section { margin-top: 7px; }
   .game-board-toolbar { min-height: 27px; gap: 5px; margin-bottom: 5px; }
@@ -2298,3 +2304,5 @@
     font-size: 9px;
   }
 }
+
+@media(max-width:480px){.game-page{padding-top:7px}.game-header-kicker,.game-header-status{display:none}.game-header-title{font-size:19px}.game-header{margin-bottom:5px}.game-info-row.game-info-row--secondary{height:auto;min-height:0;max-height:none;padding:4px 5px}.game-info-row--secondary .combine-history-trigger{min-height:34px}.game-info-row--secondary .game-situation-meta{height:34px}}

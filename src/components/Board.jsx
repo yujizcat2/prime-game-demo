@@ -41,6 +41,8 @@ export default function Board({
 
   onSelectCell,
 
+  onOpenDetails,
+
   onRemoveOne,
 
   onCombine,
@@ -1112,6 +1114,8 @@ export default function Board({
                     ? combinePreviewPlacement.resultPiece
                     : piece
                 }
+
+                onOpenDetails={onOpenDetails}
 
                 totalActionMinutes={totalActionMinutes}
 

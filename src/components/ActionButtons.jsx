@@ -16,6 +16,10 @@ export default function ActionButtons({
   onSwap,
   canSwap = false,
 
+  onFridge,
+  fridgeCount = 0,
+  fridgeActionCount = 0,
+
   gameOver,
 
   removingId = null,
@@ -203,6 +207,11 @@ export default function ActionButtons({
       >
         <span className="action-toolbar-icon">⇄</span>
         <span className="action-toolbar-label">{canSwap?"交换 · 15分钟":"交换"}</span>
+      </button>
+
+      <button type="button" onClick={onFridge} className="action-toolbar-button action-toolbar-button--fridge">
+        <span className="action-toolbar-icon">▣</span>
+        <span className="action-toolbar-label">冰箱<small>{fridgeActionCount > 0 ? `可存 ${fridgeActionCount}` : `${fridgeCount}/3`}</small></span>
       </button>
 
     </div>

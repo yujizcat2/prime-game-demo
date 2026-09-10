@@ -1,7 +1,7 @@
 .action-toolbar {
   display: grid;
   width: 100%;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
 }
 
@@ -51,6 +51,8 @@
   line-height: 1;
   letter-spacing: .08em;
 }
+.action-toolbar-label small{display:block;margin-top:4px;font-size:8px;font-weight:750;letter-spacing:0;opacity:.72}
+.action-toolbar-button--fridge{color:#35677c;border-color:rgba(14,116,144,.18);background:linear-gradient(145deg,rgba(240,249,255,.92),rgba(224,242,254,.72))}
 
 .action-toolbar-button--combine-active {
   border-color: rgba(176, 113, 72, .24);
@@ -102,6 +104,7 @@
   .action-toolbar-icon { font-size: 16px; }
   .action-toolbar-label { font-size: 12px; }
 }
+@media(max-width:350px){.action-toolbar{grid-template-columns:repeat(2,minmax(0,1fr))}}
 
 @media (prefers-reduced-motion: reduce) {
   .action-toolbar-button { transition-duration: .01ms !important; }

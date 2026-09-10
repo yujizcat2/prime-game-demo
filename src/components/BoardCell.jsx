@@ -57,6 +57,8 @@ export default function BoardCell({
 
   onClick,
 
+  onOpenDetails,
+
 }) {
   const nativeFoodType = getNativeFoodType(index);
   const nativeFoodTypeName = getFoodTypeShortName(nativeFoodType);
@@ -585,6 +587,13 @@ export default function BoardCell({
     >
 
       <span className="board-native-label">{nativePositionLabel}</span>
+
+      <button
+        type="button"
+        className="board-piece-info"
+        aria-label={`查看${foodName}详情`}
+        onClick={event => { event.stopPropagation(); onOpenDetails?.(piece, index); }}
+      >ⓘ</button>
 
       <div
 

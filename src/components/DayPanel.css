@@ -51,10 +51,13 @@
 .day-panel--urgent .day-panel-remaining, .day-panel--urgent .day-panel-remaining strong { color: #875f34; }
 
 @media (max-width: 480px) {
-  .day-panel { padding: 11px 14px 9px; border-radius: 16px; }
-  .day-panel-clock > strong { font-size: 26px; }
-  .day-panel-business { margin-top: 8px; }
-  .day-panel-business { align-items: flex-start; flex-wrap: wrap; gap: 8px 14px; }
+  .day-panel { padding: 7px 10px 6px; border-radius: 13px; }
+  .day-panel-heading>div{flex-direction:row;align-items:center;gap:6px}.day-panel-clock{flex-direction:row;align-items:center;gap:6px}
+  .day-panel-clock > strong { font-size: 21px; }
+  .day-panel-price-button{margin-top:0}.day-panel-heading span{font-size:9px}
+  .day-panel-business { margin-top: 5px; }
+  .day-panel-business { align-items: center; flex-wrap: nowrap; gap: 7px 11px; }
   .day-panel-business .day-panel-complete { margin-left: auto; }
-  .day-panel-business > div > strong { font-size: 18px; }
+  .day-panel-business > div > strong { font-size: 15px; }
+  .day-panel-business small{font-size:9px}.day-panel-progress{height:4px;margin-top:5px}.day-panel-remaining{margin-top:3px;font-size:9px}.day-panel-combo{margin-top:5px;padding:4px 8px;font-size:11px}
 }
