@@ -12,6 +12,7 @@ import {
   createSimulationState,
   getSimulationLegalActions
 } from "./simulationEngine";
+import { getMergeHistory } from "../game/mergeHistory";
 
 function positionedState(cards){
   const state=createGameState(cards.map(card=>({...card,gameMode:"eightPalace"})));
@@ -82,13 +83,11 @@ assert.deepEqual(after31.board[1].drinkIngredients,[
   {value:23,foodType:T.AQUATIC},
   {value:31,foodType:T.GRAIN_BEAN}
 ]);
-assert.deepEqual(after31.board[6],{
-  ...food31Before,
-  mergeHistory:[
+assert.deepEqual(after31.board[6],food31Before);
+assert.deepEqual(getMergeHistory(after31.mergeHistoryByIdentity,after31.board[6]),[
     {value:140,foodType:T.DRINK,name:"香草奶昔",role:"partner"},
     {value:171,foodType:T.DRINK,name:"阿萨姆茶",role:"result"}
-  ]
-});
+]);
 
 const newSameValue=positionedState([
   {value:171,foodType:T.DRINK,boardIndex:1},

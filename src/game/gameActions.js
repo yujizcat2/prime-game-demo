@@ -54,7 +54,7 @@ import { getFoodTypeForPosition, getReductionFoodTypes } from "./nativeFoodTypes
 import { getReduceDurationMinutes } from "./actionDuration";
 import { getFoodAgeMinutes } from "./foodShelfLife";
 import { getLegalFridgeRetrieveActions, getLegalFridgeStoreActions } from "./fridge";
-import { createMergedHistory, hasMergeHistoryFoodType, updateMergeHistory } from "./mergeHistory";
+import { hasMergeHistoryFoodType, updateMergeHistoryByIdentity } from "./mergeHistory";
 
 import {
   addCombinePair,
@@ -154,7 +154,7 @@ export function canCombineCells(
   const resultFoodType=isDrinkFoodPair(a,b)
     ? FOOD_TYPES.DRINK
     : getCombinedResultIdentity(combineValue(a.value,b.value),getNextEmptyIndex(state.board),a.foodType)?.foodType;
-  if(!resultFoodType||(!isDrinkFoodPair(a,b)&&(hasMergeHistoryFoodType(a,resultFoodType)||hasMergeHistoryFoodType(b,resultFoodType))))return false;
+  if(!resultFoodType||(!isDrinkFoodPair(a,b)&&(hasMergeHistoryFoodType(state.mergeHistoryByIdentity,a,resultFoodType)||hasMergeHistoryFoodType(state.mergeHistoryByIdentity,b,resultFoodType))))return false;
 
   return canCombine(
 
@@ -341,7 +341,7 @@ export function createCombineOutcome(state,indexA,indexB){
       drinkOriginValue:drink.drinkOriginValue??drink.value,
       drinkIngredients:[...(drink.drinkIngredients??[]),{value:ingredient.value,foodType:ingredient.foodType}]
     };
-    const piece={...pieceBase,mergeHistory:updateMergeHistory(drink,{...ingredient,role:"partner"},{...pieceBase,role:"result"})};
+    const piece=pieceBase;
     return {kind:"absorb",value:baseValue,foodType:FOOD_TYPES.DRINK,purity:piece.purity,piece,drinkIndex,ingredientIndex,targetIndex:drinkIndex};
   }
   const targetIndex=getNextEmptyIndex(state.board);
@@ -349,7 +349,7 @@ export function createCombineOutcome(state,indexA,indexB){
   const identity=getCombinedResultIdentity(baseValue,targetIndex,main.foodType);
   if(!identity)return null;
   const {value,foodType}=identity;
-  if(hasMergeHistoryFoodType(main,foodType)||hasMergeHistoryFoodType(pairing,foodType))return null;
+  if(hasMergeHistoryFoodType(state.mergeHistoryByIdentity,main,foodType)||hasMergeHistoryFoodType(state.mergeHistoryByIdentity,pairing,foodType))return null;
   const piece={
     id:state.nextId,
     bornAt: state.totalActionMinutes ?? 0,
@@ -360,7 +360,6 @@ export function createCombineOutcome(state,indexA,indexB){
     parents:[main.value,pairing.value],
     sourceKey:[main.value,pairing.value].sort((left,right)=>left-right).join("|"),
     parentFoods:[main,pairing].map(piece=>({value:piece.value,foodType:piece.foodType,purity:piece.purity??null})),
-    mergeHistory:createMergedHistory(foodType,main,pairing),
     crossed101:isNaturalDrinkValue(value),
     origin:createCombineOrigin(value,main,pairing),
     singleFlavorPenalty:false,
@@ -451,8 +450,6 @@ export function combineCells(
     ...state.board
 
   ];
-  nextBoard[indexA]={...a,mergeHistory:updateMergeHistory(a,{...b,role:"partner"},{...outcome.piece,role:"result"})};
-  nextBoard[indexB]={...b,mergeHistory:updateMergeHistory(b,{...a,role:"partner"},{...outcome.piece,role:"result"})};
   if(outcome.kind==="absorb"){
     nextBoard[outcome.drinkIndex]=outcome.piece;
   }else{
@@ -473,6 +470,12 @@ export function combineCells(
     nextId: state.nextId + (outcome.kind==="absorb"?0:1)
 
   };
+
+  let mergeHistoryByIdentity=state.mergeHistoryByIdentity??{};
+  mergeHistoryByIdentity=updateMergeHistoryByIdentity(mergeHistoryByIdentity,a,{...b,role:"partner"},{...outcome.piece,role:"result"});
+  mergeHistoryByIdentity=updateMergeHistoryByIdentity(mergeHistoryByIdentity,b,{...a,role:"partner"},{...outcome.piece,role:"result"});
+  mergeHistoryByIdentity=updateMergeHistoryByIdentity(mergeHistoryByIdentity,outcome.piece,{...a,role:"parent"},{...b,role:"parent"});
+  nextState.mergeHistoryByIdentity=mergeHistoryByIdentity;
 
 
 

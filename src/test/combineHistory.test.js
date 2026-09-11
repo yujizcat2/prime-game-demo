@@ -7,6 +7,7 @@ import { getActivityStatus } from "../game/activityStatus";
 import { getActionStatus } from "../game/actionStatus";
 import { FOOD_TYPES as T } from "../game/rules";
 import { createSimulationState, getSimulationLegalActions, applySimulationAction } from "./simulationEngine";
+import { getMergeHistory } from "../game/mergeHistory";
 
 const piece=(value,foodType,extra={})=>({value,foodType,purity:"pure",parents:null,parentFoods:null,...extra});
 const placed=(items)=>{
@@ -14,6 +15,7 @@ const placed=(items)=>{
   state.board=state.board.map((card,index)=>card?{...card,...items[index]}:null);
   return state;
 };
+const historyOf=(state,card)=>getMergeHistory(state.mergeHistoryByIdentity,card);
 
 const a=piece(12,T.VEGETABLE,{id:11,purity:"mixed",parents:[6,2]});
 const b=piece(17,T.FRUIT,{id:22,purity:"pure",parents:[1,17]});
@@ -39,14 +41,14 @@ assert.equal(canCombineCells(fresh,0,1),true);
 
 let cardHistory=placed([piece(3,T.VEGETABLE,{id:301}),piece(7,T.DAIRY_EGG,{id:307}),piece(11,T.LAND,{id:311})]);
 cardHistory=applyAction(cardHistory,{type:"combine",indexes:[0,1]});
-assert.deepEqual(cardHistory.board[0].mergeHistory.map(item=>item.value),[7,10],"first parent records its partner and the generated dish");
-assert.deepEqual(cardHistory.board[1].mergeHistory.map(item=>item.value),[3,10],"second parent records its partner and the generated dish");
-assert.ok(cardHistory.board[0].mergeHistory.every(item=>typeof item.name==="string"&&item.name.length>0),"names are captured when the relationship is created");
+assert.deepEqual(historyOf(cardHistory,cardHistory.board[0]).map(item=>item.value),[7,10],"first identity records its partner and the generated dish");
+assert.deepEqual(historyOf(cardHistory,cardHistory.board[1]).map(item=>item.value),[3,10],"second identity records its partner and the generated dish");
+assert.ok(historyOf(cardHistory,cardHistory.board[0]).every(item=>typeof item.name==="string"&&item.name.length>0),"names are captured when the relationship is created");
 const generated=cardHistory.board.find(card=>card?.id===cardHistory.nextId-1);
-assert.deepEqual(cardHistory.board[0].mergeHistory.map(item=>item.role),["partner","result"],"parent history distinguishes partner and result roles");
-assert.equal(cardHistory.board[0].mergeHistory[1].foodType,generated?.foodType,"result history captures the generated food type");
-assert.deepEqual(generated.mergeHistory.map(item=>item.value),[3,7],"generated card inherits the relationship history");
-assert.ok(generated.mergeHistory.every(item=>item.role==="parent"),"generated card marks both direct ingredients as parents");
+assert.deepEqual(historyOf(cardHistory,cardHistory.board[0]).map(item=>item.role),["partner","result"],"parent history distinguishes partner and result roles");
+assert.equal(historyOf(cardHistory,cardHistory.board[0])[1].foodType,generated?.foodType,"result history captures the generated food type");
+assert.deepEqual(historyOf(cardHistory,generated).map(item=>item.value),[3,7],"generated identity records the direct relationship");
+assert.ok(historyOf(cardHistory,generated).every(item=>item.role==="parent"),"generated identity marks both direct ingredients as parents");
 
 const sameNumber=placed([piece(5,T.GRAIN_BEAN,{id:551}),piece(5,T.AQUATIC,{id:552}),piece(11,T.LAND)]);
 assert.equal(canCombineCells(sameNumber,0,1),true,"the same number remains combinable across different food types");
@@ -55,25 +57,25 @@ let sameValueParents=placed([piece(3,T.VEGETABLE,{id:531}),piece(3,T.SEASONING,{
 sameValueParents=applyAction(sameValueParents,{type:"combine",indexes:[0,1]});
 const sameValueChild=sameValueParents.board.find(card=>card?.id===sameValueParents.nextId-1);
 assert.deepEqual(
-  sameValueChild.mergeHistory.map(item=>[item.value,item.foodType,item.role]),
+  historyOf(sameValueParents,sameValueChild).map(item=>[item.value,item.foodType,item.role]),
   [[3,T.VEGETABLE,"parent"],[3,T.SEASONING,"parent"]],
   "a child keeps same-value parents from different food types"
 );
-assert.ok(sameValueChild.mergeHistory.every(item=>typeof item.name==="string"&&item.name.length>0),"both same-value parent names are captured");
-assert.deepEqual(sameValueParents.board[0].mergeHistory.map(item=>[item.value,item.foodType]),[[3,T.SEASONING],[6,sameValueChild.foodType]],"first same-value parent records partner and result");
-assert.deepEqual(sameValueParents.board[1].mergeHistory.map(item=>[item.value,item.foodType]),[[3,T.VEGETABLE],[6,sameValueChild.foodType]],"second same-value parent records partner and result");
+assert.ok(historyOf(sameValueParents,sameValueChild).every(item=>typeof item.name==="string"&&item.name.length>0),"both same-value parent names are captured");
+assert.deepEqual(historyOf(sameValueParents,sameValueParents.board[0]).map(item=>[item.value,item.foodType]),[[3,T.SEASONING],[6,sameValueChild.foodType]],"first same-value identity records partner and result");
+assert.deepEqual(historyOf(sameValueParents,sameValueParents.board[1]).map(item=>[item.value,item.foodType]),[[3,T.VEGETABLE],[6,sameValueChild.foodType]],"second same-value identity records partner and result");
 
 const generatedTypeLocked=placed([piece(5,T.GRAIN_BEAN,{id:561}),piece(5,T.AQUATIC,{id:562}),piece(11,T.LAND)]);
 const predicted=createCombineOutcome(generatedTypeLocked,0,1).foodType;
-generatedTypeLocked.board[0].mergeHistory=[{value:2,foodType:predicted,name:"旧料理",role:"result"}];
+generatedTypeLocked.mergeHistoryByIdentity={"5:grainBean":[{value:2,foodType:predicted,name:"旧料理",role:"result"}]};
 assert.equal(canCombineCells(generatedTypeLocked,0,1),false,"a card cannot reuse a food type previously generated by its combinations");
-generatedTypeLocked.board[0].mergeHistory=[{value:2,foodType:predicted,name:"旧搭档",role:"partner"}];
+generatedTypeLocked.mergeHistoryByIdentity={"5:grainBean":[{value:2,foodType:predicted,name:"旧搭档",role:"partner"}]};
 assert.equal(canCombineCells(generatedTypeLocked,0,1),true,"partner food types do not trigger the generated-type lock");
 
 const accumulated={...cardHistory,gameOver:false,combineHistoryKeys:{},board:[...cardHistory.board]};
 accumulated.board[2]=piece(11,T.LAND,{id:311});
 const afterSecond=applyAction(accumulated,{type:"combine",indexes:[0,2]});
-assert.deepEqual(afterSecond.board[0].mergeHistory.map(item=>item.value),[7,10,11,14],"parent history accumulates direct partners and generated dishes");
+assert.deepEqual(historyOf(afterSecond,afterSecond.board[0]).map(item=>item.value),[7,10,11,14],"identity history accumulates direct partners and generated dishes");
 
 const directOnly=placed([
   piece(2,T.FRUIT,{id:621,mergeHistory:[{value:13,foodType:T.AQUATIC,name:"青蟹"}]}),
@@ -82,9 +84,37 @@ const directOnly=placed([
 ]);
 const directOnlyResult=applyAction(directOnly,{type:"combine",indexes:[0,1]});
 const directOnlyChild=directOnlyResult.board.find(card=>card?.id===directOnlyResult.nextId-1);
-assert.deepEqual(directOnlyChild.mergeHistory.map(item=>item.value),[2,7],"a new card only records its two direct ingredients");
-assert.equal(directOnlyChild.mergeHistory.some(item=>item.name==="青蟹"||item.name==="鲑鱼"),false,"parent histories do not propagate to a child");
-assert.deepEqual(directOnlyResult.board[0].mergeHistory.map(item=>item.value),[13,7,9],"the parent keeps its history and appends the direct partner and generated dish");
+assert.deepEqual(historyOf(directOnlyResult,directOnlyChild).map(item=>item.value),[2,7],"a new identity records its two direct ingredients");
+assert.equal(historyOf(directOnlyResult,directOnlyChild).some(item=>item.name==="青蟹"||item.name==="鲑鱼"),false,"parent histories do not propagate to a child identity");
+assert.deepEqual(historyOf(directOnlyResult,directOnlyResult.board[0]).map(item=>item.value),[7,9],"card-local legacy history is not authoritative");
+
+let reducedIdentity=placed([piece(12,T.GRAIN_BEAN,{id:1201}),piece(3,T.AQUATIC,{id:1202}),piece(11,T.LAND)]);
+reducedIdentity.mergeHistoryByIdentity={
+  "12:grainBean":[{value:99,foodType:T.FRUIT,name:"旧十二历史",role:"partner"}],
+  "4:grainBean":[{value:5,foodType:T.VEGETABLE,name:"既有四历史",role:"partner"}]
+};
+reducedIdentity=applyAction(reducedIdentity,{type:"reduce",indexes:[0,1]});
+assert.equal(reducedIdentity.board[0].value,4);
+assert.deepEqual(historyOf(reducedIdentity,reducedIdentity.board[0]).map(item=>item.name),["既有四历史"],"reduction switches to the new value-and-type identity history");
+assert.equal(historyOf(reducedIdentity,reducedIdentity.board[0]).some(item=>item.name==="旧十二历史"),false,"reduction does not carry the old value history");
+
+const sharedIdentity=placed([piece(4,T.GRAIN_BEAN,{id:4101}),piece(4,T.GRAIN_BEAN,{id:4102}),piece(5,T.FRUIT,{id:5101})]);
+const sharedResultType=createCombineOutcome(sharedIdentity,0,2).foodType;
+sharedIdentity.mergeHistoryByIdentity={"4:grainBean":[{value:8,foodType:sharedResultType,name:"既有结果",role:"result"}]};
+assert.equal(canCombineCells(sharedIdentity,0,2),false,"the first card instance reads the shared identity lock");
+assert.equal(canCombineCells(sharedIdentity,1,2),false,"a different card id reads the same identity lock");
+assert.deepEqual(historyOf(sharedIdentity,sharedIdentity.board[0]),historyOf(sharedIdentity,sharedIdentity.board[1]),"same value and food type share one history");
+
+let existingResultIdentity=placed([piece(3,T.VEGETABLE),piece(7,T.DAIRY_EGG),piece(11,T.LAND)]);
+const existingOutcome=createCombineOutcome(existingResultIdentity,0,1);
+const existingKey=`${existingOutcome.value}:${existingOutcome.foodType}`;
+existingResultIdentity.mergeHistoryByIdentity={[existingKey]:[{value:19,foodType:T.SPICE,name:"既有身份历史",role:"partner"}]};
+existingResultIdentity=applyAction(existingResultIdentity,{type:"combine",indexes:[0,1]});
+const existingChild=existingResultIdentity.board.find(card=>card?.id===existingResultIdentity.nextId-1);
+assert.equal(historyOf(existingResultIdentity,existingChild)[0].name,"既有身份历史","generating an existing identity preserves its shared history");
+
+const separatedTypes={...sharedIdentity,mergeHistoryByIdentity:{"4:grainBean":[{value:8,foodType:T.LAND,name:"谷物历史",role:"partner"}]}};
+assert.deepEqual(historyOf(separatedTypes,piece(4,T.AQUATIC)),[],"the same value in a different food type does not share history");
 
 let samePair=placed([piece(8,T.VEGETABLE),piece(8,T.VEGETABLE),piece(7,T.LAND)]);
 samePair=applyAction(samePair,{type:"combine",indexes:[0,1]});
@@ -112,7 +142,7 @@ sameValueSim.board[0].foodType=T.VEGETABLE;
 sameValueSim.board[1].foodType=T.SEASONING;
 assert.equal(applySimulationAction(sameValueSim,{type:"combine",indexes:[0,1]}),true);
 const sameValueSimChild=sameValueSim.board.find(card=>card?.value===6&&card?.parents);
-assert.deepEqual(sameValueSimChild.mergeHistory.map(item=>[item.value,item.foodType]),[[3,T.VEGETABLE],[3,T.SEASONING]],"simulation keeps both same-value, different-type parents");
-assert.deepEqual(sameValueSim.board[0].mergeHistory.map(item=>[item.value,item.foodType]),[[3,T.SEASONING],[6,sameValueSimChild.foodType]],"simulation records the full direct triangle");
+assert.deepEqual(historyOf(sameValueSim,sameValueSimChild).map(item=>[item.value,item.foodType]),[[3,T.VEGETABLE],[3,T.SEASONING]],"simulation keeps both same-value, different-type parents");
+assert.deepEqual(historyOf(sameValueSim,sameValueSim.board[0]).map(item=>[item.value,item.foodType]),[[3,T.SEASONING],[6,sameValueSimChild.foodType]],"simulation records the full direct triangle");
 
 console.log("combine history tests passed");

@@ -4,6 +4,7 @@ import { getCookingMethod } from "../game/cookingMethods";
 import { formatShelfLife, getFoodExpiryState } from "../game/foodShelfLife";
 import "./FoodDetailModal.css";
 import "./FoodDetailHistory.css";
+import { getMergeHistory } from "../game/mergeHistory";
 
 function parentLabel(parent){
   if(parent == null) return null;
@@ -11,11 +12,11 @@ function parentLabel(parent){
   return String(parent);
 }
 
-export default function FoodDetailModal({piece, index, totalActionMinutes = 0, onClose}){
+export default function FoodDetailModal({piece, index, totalActionMinutes = 0, mergeHistoryByIdentity, onClose}){
   if(!piece) return null;
   const expiry = getFoodExpiryState(piece, totalActionMinutes);
   const parents = (piece.parentFoods ?? piece.parents ?? piece.origin?.parents ?? []).map(parentLabel).filter(Boolean);
-  const mergeHistoryNames = (piece.mergeHistory ?? []).map(item => item?.name).filter(Boolean);
+  const mergeHistoryNames = getMergeHistory(mergeHistoryByIdentity,piece).map(item=>item?.name).filter(Boolean);
   const price = piece.baseSalePrice ?? piece.salePrice ?? piece.scoreValue ?? null;
   return <div className="food-detail-overlay" onClick={onClose}>
     <section className="food-detail-dialog" role="dialog" aria-modal="true" aria-label="料理详情" onClick={event => event.stopPropagation()}>

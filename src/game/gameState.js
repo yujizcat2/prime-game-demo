@@ -350,6 +350,9 @@ export function createGameState(
     combineHistory:
       [],
 
+    mergeHistoryByIdentity:
+      {},
+
 
 
 

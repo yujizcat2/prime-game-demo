@@ -1482,6 +1482,7 @@ export default function useGame(){
     combineHistoryKeys,
 
     combineHistory,
+    mergeHistoryByIdentity: gameState?.mergeHistoryByIdentity ?? {},
 
 
     // 迷宫回转

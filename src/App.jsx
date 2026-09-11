@@ -887,7 +887,7 @@ function App(){
         </div>
       )}
 
-      <FoodDetailModal piece={foodDetail?.piece} index={foodDetail?.index} totalActionMinutes={game.totalActionMinutes} onClose={() => setFoodDetail(null)} />
+      <FoodDetailModal piece={foodDetail?.piece} index={foodDetail?.index} totalActionMinutes={game.totalActionMinutes} mergeHistoryByIdentity={game.mergeHistoryByIdentity} onClose={() => setFoodDetail(null)} />
 
 
       {

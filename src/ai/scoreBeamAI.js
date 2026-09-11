@@ -101,7 +101,6 @@ function getStateKey(state) {
             (item.specialOne?.identity??"-") +
             ":" +
             parents +
-            `:${(item.mergeHistory ?? []).map(entry => `${entry.value}:${entry.foodType}:${entry.role}`).join(",")}` +
             ":" +
             (
               item.reduceFrom ??
@@ -134,6 +133,8 @@ function getStateKey(state) {
     numbers,
 
     Object.keys(state.eightPalaceKeys??{}).filter(type=>state.eightPalaceKeys[type]).sort().join(","),
+
+    JSON.stringify(Object.entries(state.mergeHistoryByIdentity??{}).sort(([left],[right])=>left.localeCompare(right))),
 
     collection,
 

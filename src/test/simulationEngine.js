@@ -38,7 +38,7 @@ import { applyHeaterIncrement, isHeaterTarget } from "../game/heater";
 import { getCombineDurationMinutes, getReduceDurationMinutes, getSellDurationMinutes, SWAP_DURATION_MINUTES, TOOL_DURATION_MINUTES } from "../game/actionDuration";
 import { getFoodAgeMinutes, isFoodExpired } from "../game/foodShelfLife";
 import { applyFridgeAction, getLegalFridgeRetrieveActions, getLegalFridgeStoreActions } from "../game/fridge";
-import { createMergedHistory, hasMergeHistoryFoodType, updateMergeHistory } from "../game/mergeHistory";
+import { hasMergeHistoryFoodType, updateMergeHistoryByIdentity } from "../game/mergeHistory";
 
 
 
@@ -429,6 +429,9 @@ export function createSimulationState(
     combineHistoryKeys:
       {},
 
+    mergeHistoryByIdentity:
+      {},
+
     latestCollectionReward:
       0,
 
@@ -703,7 +706,7 @@ function canCombineIndexes(
   const resultFoodType=isDrinkFoodPair(a,b)
     ? FOOD_TYPES.DRINK
     : getCombinedResultIdentity(combineValue(a.value,b.value),targetIndex,a.foodType)?.foodType;
-  if(!resultFoodType||(!isDrinkFoodPair(a,b)&&(hasMergeHistoryFoodType(a,resultFoodType)||hasMergeHistoryFoodType(b,resultFoodType))))return false;
+  if(!resultFoodType||(!isDrinkFoodPair(a,b)&&(hasMergeHistoryFoodType(state.mergeHistoryByIdentity,a,resultFoodType)||hasMergeHistoryFoodType(state.mergeHistoryByIdentity,b,resultFoodType))))return false;
 
 
 
@@ -999,8 +1002,9 @@ function applyCombine(
   const drinkIndex=a.foodType===FOOD_TYPES.DRINK?indexA:b.foodType===FOOD_TYPES.DRINK?indexB:null;
   if(isDrinkFoodPair(a,b)){
     const resultDrink={...state.board[drinkIndex],value:baseValue,foodType:FOOD_TYPES.DRINK};
-    state.board[indexA]={...a,mergeHistory:updateMergeHistory(a,{...b,role:"partner"},{...resultDrink,role:"result"})};
-    state.board[indexB]={...b,mergeHistory:updateMergeHistory(b,{...a,role:"partner"},{...resultDrink,role:"result"})};
+    state.mergeHistoryByIdentity=updateMergeHistoryByIdentity(state.mergeHistoryByIdentity,a,{...b,role:"partner"},{...resultDrink,role:"result"});
+    state.mergeHistoryByIdentity=updateMergeHistoryByIdentity(state.mergeHistoryByIdentity,b,{...a,role:"partner"},{...resultDrink,role:"result"});
+    state.mergeHistoryByIdentity=updateMergeHistoryByIdentity(state.mergeHistoryByIdentity,resultDrink,{...a,role:"parent"},{...b,role:"parent"});
     const ingredient=drinkIndex===indexA?b:a;
     state.board[drinkIndex]={
       ...state.board[drinkIndex],
@@ -1092,7 +1096,6 @@ function applyCombine(
 
     ],
 
-    mergeHistory:createMergedHistory(foodType,a,b),
 
     previousValue:
       null,
@@ -1103,8 +1106,9 @@ function applyCombine(
     ...(foodType===FOOD_TYPES.DRINK?{drinkOriginValue:value,drinkIngredients:[]}:null)
 
   };
-  state.board[indexA]={...a,mergeHistory:updateMergeHistory(a,{...b,role:"partner"},{...resultPiece,role:"result"})};
-  state.board[indexB]={...b,mergeHistory:updateMergeHistory(b,{...a,role:"partner"},{...resultPiece,role:"result"})};
+  state.mergeHistoryByIdentity=updateMergeHistoryByIdentity(state.mergeHistoryByIdentity,a,{...b,role:"partner"},{...resultPiece,role:"result"});
+  state.mergeHistoryByIdentity=updateMergeHistoryByIdentity(state.mergeHistoryByIdentity,b,{...a,role:"partner"},{...resultPiece,role:"result"});
+  state.mergeHistoryByIdentity=updateMergeHistoryByIdentity(state.mergeHistoryByIdentity,resultPiece,{...a,role:"parent"},{...b,role:"parent"});
   state.board[targetIndex]=resultPiece;
 
 
@@ -2014,8 +2018,6 @@ function clonePiece(
 
           null,
 
-    mergeHistory: (piece.mergeHistory ?? []).map(item=>({...item})),
-
     previousValue:
       piece.previousValue
       ?? null,
@@ -2104,6 +2106,10 @@ export function cloneSimulationState(
 
     combineHistoryKeys:
       {...(state.combineHistoryKeys ?? {})},
+
+    mergeHistoryByIdentity: Object.fromEntries(
+      Object.entries(state.mergeHistoryByIdentity ?? {}).map(([key,history])=>[key,history.map(item=>({...item}))])
+    ),
 
     latestCollectionReward:
       state.latestCollectionReward ?? 0,

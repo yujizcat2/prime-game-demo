@@ -222,8 +222,7 @@ function getStateKey(state){
     piece.specialOne?.identity ?? null,
     piece.singleFlavorPenalty === true,
     (piece.parents ?? []).join(","),
-    (piece.parentFoods ?? []).map(parent => `${parent.value}:${parent.foodType}`).join(","),
-    (piece.mergeHistory ?? []).map(item => `${item.value}:${item.foodType}:${item.role}`).join(",")
+    (piece.parentFoods ?? []).map(parent => `${parent.value}:${parent.foodType}`).join(",")
   ] : null);
 
   return JSON.stringify({
@@ -241,6 +240,7 @@ function getStateKey(state){
     fridgeBatchActive: state.fridgeBatchActive === true,
     collectionCards: (state.collectionCards ?? []).map(card => [card.value, card.foodType]).sort(),
     combineHistoryKeys: Object.keys(state.combineHistoryKeys ?? {}).sort(),
+    mergeHistoryByIdentity: Object.entries(state.mergeHistoryByIdentity ?? {}).sort(([left],[right])=>left.localeCompare(right)),
     recentActionSignatures: [...(state.recentActionSignatures ?? [])],
     usedCombinationPairs: [...(state.usedCombinationPairs ?? [])].sort(),
     usedKeyTriggerValues: [...(state.usedKeyTriggerValues ?? [])].sort((a, b) => a - b)
