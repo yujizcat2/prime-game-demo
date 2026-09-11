@@ -34,8 +34,8 @@ assert.equal(ordinary.totalActionMinutes, 45);
 
 const collecting = applyAction(createState(collectingReduceCards), {type: "reduce", indexes: [0, 1]});
 assert.equal(collecting.latestActionDurationMinutes, 30);
-assert.equal(collecting.board[0].value,1);
-assert.equal(collecting.collectionTimeline.length,0);
+assert.equal(collecting.board[0],null);
+assert.equal(collecting.collectionTimeline.length,1);
 
 const equalEliminated=applyAction(createState([
   {value:6,foodType:BASE_FOOD_TYPES[0],boardIndex:0},

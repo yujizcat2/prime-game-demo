@@ -32,7 +32,8 @@ import {
   hasCombinePair
 } from "../game/combineHistory";
 import { getNativeFoodType, getReductionFoodTypes } from "../game/nativeFoodTypes";
-import { canSwapCells, getCombinedResultIdentity } from "../game/gameActions";
+import { canSwapCells, createReduceOutcome, getCombinedResultIdentity } from "../game/gameActions";
+import { applyCollection } from "../game/collectionRules";
 import { applyHeaterIncrement, isHeaterTarget } from "../game/heater";
 import { getCombineDurationMinutes, getReduceDurationMinutes, getSellDurationMinutes, SWAP_DURATION_MINUTES, TOOL_DURATION_MINUTES } from "../game/actionDuration";
 import { getFoodAgeMinutes, isFoodExpired } from "../game/foodShelfLife";
@@ -1273,6 +1274,8 @@ function applyReduce(
     oldB /
     divisor;
 
+  const reductionOutcome = createReduceOutcome(state,indexA,indexB);
+
   const actionSignature = createReduceActionSignature(oldA, oldB, firstResult, secondResult);
   const reductionDuration = getReduceDurationMinutes(0, firstResult === 1 || secondResult === 1);
   if(oldA===oldB){
@@ -1431,6 +1434,15 @@ function applyReduce(
     second.processedFromValue=oldB;
     second.processedAt=(state.totalActionMinutes??0)+reductionDuration;
     second.processedAgeMinutes=getFoodAgeMinutes(second,second.processedAt);
+  }
+
+  if(reductionOutcome?.results?.[0]?.clear){
+    applyCollection(state, first);
+    state.board[indexA]=null;
+  }
+  if(reductionOutcome?.results?.[1]?.clear){
+    applyCollection(state, second);
+    state.board[indexB]=null;
   }
 
 

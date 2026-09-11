@@ -53,11 +53,11 @@ const collectionState = createState([
   {value: 4, foodType: BASE_FOOD_TYPES[1], boardIndex: 1}
 ], {comboCount: 1});
 const collected = applyAction(collectionState, {type: "reduce", indexes: [0, 1]});
-assert.equal(collected.collectionCards.length, 0);
-assert.equal(collected.board[0].value,1);
+assert.equal(collected.collectionCards.length, 1);
+assert.equal(collected.board[0], null);
 assert.equal(collected.latestActionBaseScore, null, "a reduce-to-finished action does not receive sale points");
-assert.equal(doesReduceCreateEffectiveSale(collectionState, [0, 1]), false);
-assert.deepEqual(getReduceSalePreviewRewards(collectionState, [0, 1]),[]);
+assert.equal(doesReduceCreateEffectiveSale(collectionState, [0, 1]), true);
+assert.equal(getReduceSalePreviewRewards(collectionState, [0, 1]).length, 1);
 assert.equal(
   getReduceButtonLabel([0, 1], {reduce: {createsEffectiveSale: true}}),
   "处理",
@@ -85,7 +85,7 @@ const bonusCollections = Array.from({length: 10}, (_, index) => ({
   foodType: BASE_FOOD_TYPES[index % 2]
 }));
 const bonusPreviewState = {...collectionState, collectionCards: bonusCollections};
-assert.deepEqual(getReduceSalePreviewRewards(bonusPreviewState, [0, 1]),[]);
+assert.equal(getReduceSalePreviewRewards(bonusPreviewState, [0, 1]).length,1);
 
 assert.equal(hasEffectiveSaleReward([
   {duplicate: true, saleScore: 0},

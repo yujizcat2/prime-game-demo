@@ -113,10 +113,8 @@ const ordinaryGcdState = createGameState([
 ]);
 const ordinaryGcdProcessed = applyAction(ordinaryGcdState, {type: "reduce", indexes: [0, 1]});
 assert.equal(ordinaryGcdProcessed.board[0].value, 2, "different values keep the ordinary gcd result");
-assert.equal(ordinaryGcdProcessed.board[1].value, 1, "ordinary reduce-to-one leaves a finished dish");
-assert.equal(ordinaryGcdProcessed.collectionCards.length,0);
-const ordinarySold=applyAction(ordinaryGcdProcessed,{type:"sell",indexes:[1]});
-assert.ok(ordinarySold.collectionCards.some(item => item.value === 10 && item.foodType === land));
+assert.equal(ordinaryGcdProcessed.board[1], null, "ordinary reduce-to-one clears the finished dish");
+assert.ok(ordinaryGcdProcessed.collectionCards.some(item => item.value === 10 && item.foodType === land));
 
 for(const [otherValue, expectedLevel, expectedRate] of [
   [10, 2, 1], [15, 3, 1.05], [20, 4, 1.1], [35, 7, 1.25], [60, 12, 1.5], [100, 20, 1.5]
@@ -126,10 +124,9 @@ for(const [otherValue, expectedLevel, expectedRate] of [
     {value: 5, foodType: fruit, boardIndex: 1, gameMode: "eightPalace"}
   ]);
   const processed = applyAction(rewardState, {type: "reduce", indexes: [0, 1]});
-  const sellIndex=processed.board.findIndex(piece=>piece?.value===1);
-  const sold=applyAction(processed,{type:"sell",indexes:[sellIndex]});
-  assert.equal(sold.latestCollection.collectionRewardLevel, expectedLevel);
-  assert.equal(sold.latestCollection.collectionMultiplierRate, expectedRate);
+  assert.equal(processed.board[1], null);
+  assert.equal(processed.latestCollection.collectionRewardLevel, expectedLevel);
+  assert.equal(processed.latestCollection.collectionMultiplierRate, expectedRate);
 }
 
 const leveledPiece = collectible(5, fruit);

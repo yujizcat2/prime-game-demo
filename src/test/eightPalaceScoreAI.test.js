@@ -567,11 +567,8 @@ const formalSaleAction = getLegalActions(formalSaleState).find(action =>
 );
 const formalPotential = getImmediateCollectionPotential(formalSaleState, [formalSaleAction]);
 const formalFinishedResult = applyAction(formalSaleState, formalSaleAction);
-assert.equal(formalFinishedResult.dayRevenue,formalSaleState.dayRevenue);
-const formalSellIndex=formalFinishedResult.board.findIndex(piece=>piece?.value===1);
-const formalSaleResult = applyAction(formalFinishedResult,{type:"sell",indexes:[formalSellIndex]});
 assert.equal(
-  formalSaleResult.dayRevenue - formalSaleState.dayRevenue,
+  formalFinishedResult.dayRevenue - formalSaleState.dayRevenue,
   formalPotential.bestScore,
   "AI preview reuses the formal reward result without changing it"
 );

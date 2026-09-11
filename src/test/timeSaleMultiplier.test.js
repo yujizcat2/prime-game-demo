@@ -88,12 +88,8 @@ assert.equal(
   "final score uses Math.round"
 );
 
-const reduceAndSell = (state, saleDayMinutes = state.dayMinutesElapsed) => {
-  const reduced=applyAction(state,{type:"reduce",indexes:[0,1]});
-  const sellIndex=reduced.board.findIndex(piece=>piece?.value===1);
-  assert.notEqual(sellIndex,-1);
-  return applyAction({...reduced,dayMinutesElapsed:saleDayMinutes},{type:"sell",indexes:[sellIndex]});
-};
+const reduceAndSell = (state, saleDayMinutes = state.dayMinutesElapsed) =>
+  applyAction({...state,dayMinutesElapsed:saleDayMinutes},{type:"reduce",indexes:[0,1]});
 
 const reduceAt = dayMinutesElapsed => reduceAndSell({
   ...createGameState([

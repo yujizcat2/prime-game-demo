@@ -297,8 +297,8 @@ export function createReduceOutcome(state,indexA,indexB){
   if(first.foodType===FOOD_TYPES.DESSERT&&firstResult===1)secondFoodType=getDessertMutationFoodType(second.foodType)??secondFoodType;
   if(second.foodType===FOOD_TYPES.DESSERT&&secondResult===1)firstFoodType=getDessertMutationFoodType(first.foodType)??firstFoodType;
   return {kind:"reduce",divisor,results:[
-    {...first,value:firstResult,foodType:firstFoodType,purity:template?.purity??first.purity??null},
-    {...second,value:secondResult,foodType:secondFoodType,purity:template?.purity??second.purity??null}
+    {...first,value:firstResult,foodType:firstFoodType,purity:template?.purity??first.purity??null,clear:firstResult===1},
+    {...second,value:secondResult,foodType:secondFoodType,purity:template?.purity??second.purity??null,clear:secondResult===1}
   ]};
 }
 
@@ -892,11 +892,11 @@ export function reduceCells(
     if(secondResult === 1)secondReducedPiece.specialOne=specialOne;
   }
 
-  nextBoard[indexA] = firstReducedPiece;
+  nextBoard[indexA] = firstOutcome.clear ? null : firstReducedPiece;
 
 
 
-  nextBoard[indexB] = secondReducedPiece;
+  nextBoard[indexB] = secondOutcome.clear ? null : secondReducedPiece;
 
 
 
@@ -917,6 +917,19 @@ export function reduceCells(
 
   if(eightPalace){
     nextState = applyEightPalaceKeyFromReduction(nextState,first,second,firstResult,secondResult);
+  }
+
+  const settlementBoard = [...nextBoard];
+  settlementBoard[indexA] = firstReducedPiece;
+  settlementBoard[indexB] = secondReducedPiece;
+  for(const [piece, index, shouldClear] of [
+    [firstReducedPiece, indexA, firstOutcome.clear],
+    [secondReducedPiece, indexB, secondOutcome.clear]
+  ]){
+    if(!shouldClear) continue;
+    nextState = eightPalace
+      ? applyEightPalaceCollection(nextState, piece, settlementBoard, index)
+      : applyCollection(nextState, piece);
   }
 
 

@@ -1,4 +1,5 @@
 import { getBoardCount } from "./boardRules";
+import { gcd } from "../utils/math";
 
 export const TOOL_DURATION_MINUTES = 30;
 export const SWAP_DURATION_MINUTES = 15;
@@ -39,9 +40,11 @@ export function getActionDurationMinutes(previousState, action, actionState){
     const [leftIndex, rightIndex] = action.indexes ?? [];
     const left = previousState.board?.[leftIndex];
     const right = previousState.board?.[rightIndex];
+    const divisor = left && right ? gcd(left.value, right.value) : 1;
     const createsFinishedDish = Boolean(
       left && right && left.value !== right.value
-      && [leftIndex, rightIndex].some(index => actionState.board?.[index]?.value === 1)
+      && divisor > 1
+      && (left.value / divisor === 1 || right.value / divisor === 1)
     );
     return getReduceDurationMinutes(
       Math.max(0, getBoardCount(previousState.board) - getBoardCount(actionState.board)),
