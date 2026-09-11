@@ -139,18 +139,6 @@ export default function ActionButtons({
 
       <button
         type="button"
-        onClick={canReduce ? onReduce : undefined}
-        disabled={!canReduce}
-        className={`action-toolbar-button ${canReduce ? "action-toolbar-button--reduce-active" : "action-toolbar-button--disabled"}`}
-      >
-        <span className="action-toolbar-icon">↓</span>
-        <span className="action-toolbar-label">
-          {canReduce ? `${reduceLabel} · ${preview.reduce.durationMinutes}分钟` : reduceLabel}
-        </span>
-      </button>
-
-      <button
-        type="button"
         onClick={canSwap ? onSwap : undefined}
         disabled={!canSwap}
         className={`action-toolbar-button ${canSwap?"action-toolbar-button--swap-active":"action-toolbar-button--disabled"}`}
@@ -162,6 +150,18 @@ export default function ActionButtons({
       <button type="button" onClick={onFridge} className="action-toolbar-button action-toolbar-button--fridge">
         <span className="action-toolbar-icon">▣</span>
         <span className="action-toolbar-label">冰箱<small>{fridgeActionCount > 0 ? `可存 ${fridgeActionCount}` : `${fridgeCount}/3`}</small></span>
+      </button>
+
+      <button
+        type="button"
+        onClick={canReduce ? onReduce : undefined}
+        disabled={!canReduce}
+        className={`action-toolbar-button ${canReduce ? "action-toolbar-button--reduce-active" : "action-toolbar-button--disabled"}`}
+      >
+        <span className="action-toolbar-icon">↓</span>
+        <span className="action-toolbar-label">
+          {canReduce ? `${reduceLabel} · ${preview.reduce.durationMinutes}分钟` : reduceLabel}
+        </span>
       </button>
 
     </div>
