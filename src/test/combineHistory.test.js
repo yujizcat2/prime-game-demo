@@ -51,6 +51,18 @@ assert.ok(generated.mergeHistory.every(item=>item.role==="parent"),"generated ca
 const sameNumber=placed([piece(5,T.GRAIN_BEAN,{id:551}),piece(5,T.AQUATIC,{id:552}),piece(11,T.LAND)]);
 assert.equal(canCombineCells(sameNumber,0,1),true,"the same number remains combinable across different food types");
 
+let sameValueParents=placed([piece(3,T.VEGETABLE,{id:531}),piece(3,T.SEASONING,{id:532}),piece(11,T.LAND)]);
+sameValueParents=applyAction(sameValueParents,{type:"combine",indexes:[0,1]});
+const sameValueChild=sameValueParents.board.find(card=>card?.id===sameValueParents.nextId-1);
+assert.deepEqual(
+  sameValueChild.mergeHistory.map(item=>[item.value,item.foodType,item.role]),
+  [[3,T.VEGETABLE,"parent"],[3,T.SEASONING,"parent"]],
+  "a child keeps same-value parents from different food types"
+);
+assert.ok(sameValueChild.mergeHistory.every(item=>typeof item.name==="string"&&item.name.length>0),"both same-value parent names are captured");
+assert.deepEqual(sameValueParents.board[0].mergeHistory.map(item=>[item.value,item.foodType]),[[3,T.SEASONING],[6,sameValueChild.foodType]],"first same-value parent records partner and result");
+assert.deepEqual(sameValueParents.board[1].mergeHistory.map(item=>[item.value,item.foodType]),[[3,T.VEGETABLE],[6,sameValueChild.foodType]],"second same-value parent records partner and result");
+
 const generatedTypeLocked=placed([piece(5,T.GRAIN_BEAN,{id:561}),piece(5,T.AQUATIC,{id:562}),piece(11,T.LAND)]);
 const predicted=createCombineOutcome(generatedTypeLocked,0,1).foodType;
 generatedTypeLocked.board[0].mergeHistory=[{value:2,foodType:predicted,name:"旧料理",role:"result"}];
@@ -94,5 +106,13 @@ sim.board[0]=piece(12,T.VEGETABLE,{id:700,purity:"mixed"});
 sim.board[1]=piece(17,T.FRUIT,{id:701,parents:[4]});
 assert.equal(getSimulationLegalActions(sim).some(action=>action.type.startsWith("combine")&&action.indexes.includes(0)&&action.indexes.includes(1)),false,"simulation shares history lock");
 assert.equal(applySimulationAction(sim,{type:"combine",indexes:[1,0]}),false);
+
+const sameValueSim=createSimulationState([3,3,11]);
+sameValueSim.board[0].foodType=T.VEGETABLE;
+sameValueSim.board[1].foodType=T.SEASONING;
+assert.equal(applySimulationAction(sameValueSim,{type:"combine",indexes:[0,1]}),true);
+const sameValueSimChild=sameValueSim.board.find(card=>card?.value===6&&card?.parents);
+assert.deepEqual(sameValueSimChild.mergeHistory.map(item=>[item.value,item.foodType]),[[3,T.VEGETABLE],[3,T.SEASONING]],"simulation keeps both same-value, different-type parents");
+assert.deepEqual(sameValueSim.board[0].mergeHistory.map(item=>[item.value,item.foodType]),[[3,T.SEASONING],[6,sameValueSimChild.foodType]],"simulation records the full direct triangle");
 
 console.log("combine history tests passed");

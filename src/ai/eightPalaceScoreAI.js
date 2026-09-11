@@ -223,7 +223,7 @@ function getStateKey(state){
     piece.singleFlavorPenalty === true,
     (piece.parents ?? []).join(","),
     (piece.parentFoods ?? []).map(parent => `${parent.value}:${parent.foodType}`).join(","),
-    (piece.mergeHistory ?? []).map(item => item.value).join(",")
+    (piece.mergeHistory ?? []).map(item => `${item.value}:${item.foodType}:${item.role}`).join(",")
   ] : null);
 
   return JSON.stringify({

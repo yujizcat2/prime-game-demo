@@ -101,7 +101,7 @@ function getStateKey(state) {
             (item.specialOne?.identity??"-") +
             ":" +
             parents +
-            `:${(item.mergeHistory ?? []).map(entry => entry.value).join(",")}` +
+            `:${(item.mergeHistory ?? []).map(entry => `${entry.value}:${entry.foodType}:${entry.role}`).join(",")}` +
             ":" +
             (
               item.reduceFrom ??
