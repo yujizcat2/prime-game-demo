@@ -10,8 +10,8 @@ assert.deepEqual(
 );
 assert.equal(getReduceDurationMinutes(0), 45);
 assert.equal(getReduceDurationMinutes(1), 60);
-assert.equal(getReduceDurationMinutes(0, true), 30);
-assert.deepEqual([1,2,3].map(getSellDurationMinutes),[20,30,40]);
+assert.equal(getReduceDurationMinutes(0, true), 60);
+assert.deepEqual([1,2,3].map(getSellDurationMinutes),[60,120,180]);
 
 const createState = (cards, overrides = {}) => ({
   ...createGameState(cards, {dayCycleEnabled: true}),
@@ -33,7 +33,7 @@ assert.equal(ordinary.dayMinutesElapsed, 45);
 assert.equal(ordinary.totalActionMinutes, 45);
 
 const collecting = applyAction(createState(collectingReduceCards), {type: "reduce", indexes: [0, 1]});
-assert.equal(collecting.latestActionDurationMinutes, 30);
+assert.equal(collecting.latestActionDurationMinutes, 60);
 assert.equal(collecting.board[0],null);
 assert.equal(collecting.collectionTimeline.length,1);
 
@@ -81,8 +81,8 @@ const overtime60Base = createState(collectingReduceCards, {
   collectionCards: dailyCollections
 });
 const overtime60 = applyAction(overtime60Base, {type: "reduce", indexes: [0, 1]});
-assert.equal(getDayTime(overtime60), "24:20");
-assert.equal(overtime60.daySettlement.minutesToday, 1460);
+assert.equal(getDayTime(overtime60), "24:50");
+assert.equal(overtime60.daySettlement.minutesToday, 1490);
 assert.equal(overtime60.daySettlement.scoreGainToday, 1000);
 
 const closed = {...overtime45Base, dayMinutesElapsed: 1440};

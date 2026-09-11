@@ -5,10 +5,10 @@ export const TOOL_DURATION_MINUTES = 30;
 export const SWAP_DURATION_MINUTES = 15;
 export const REDUCE_DURATION_MINUTES = 45;
 export const REDUCE_WITH_REMOVAL_DURATION_MINUTES = 60;
-export const REDUCE_TO_FINISHED_DURATION_MINUTES = 30;
+export const REDUCE_TO_FINISHED_DURATION_MINUTES = 60;
 
 export function getSellDurationMinutes(count = 0){
-  return count > 0 ? 10 + count * 10 : 0;
+  return Math.max(0,Math.floor(count))*60;
 }
 
 export function getCombineDurationMinutes(a, b){

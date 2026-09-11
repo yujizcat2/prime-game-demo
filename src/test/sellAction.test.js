@@ -43,12 +43,12 @@ assert.equal(getLegalFridgeStoreActions({...muchLater,board:[muchLater.board[1],
 
 const sold=applyAction({...muchLater,dayMinutesElapsed:600},{type:"sell",indexes:[1]});
 assert.equal(sold.board[1],null);
-assert.equal(sold.totalActionMinutes,3020);
+assert.equal(sold.totalActionMinutes,3060);
 assert.equal(sold.collectionTimeline.length,1);
 assert.equal(sold.collectionTimeline[0].foodAgeMinutes,630);
 assert.equal(sold.recapActionCounts.sellCount,1);
 assert.equal(sold.recapActionCounts.sellCardsCount,1);
-assert.equal(sold.recapActionCounts.sellMinutes,20);
+assert.equal(sold.recapActionCounts.sellMinutes,60);
 
 const invalid=applyAction(finished,{type:"sell",indexes:[0]});
 assert.equal(invalid,finished,"selling a value greater than one is a no-op");
@@ -62,12 +62,12 @@ const secondFinished={
 };
 const batchState={...finished,board:[finished.board[1],secondFinished,...finished.board.slice(2)],gameOver:false};
 const batchSold=applyAction(batchState,{type:"sell",indexes:[0,1]});
-assert.equal(batchSold.totalActionMinutes,batchState.totalActionMinutes+30);
+assert.equal(batchSold.totalActionMinutes,batchState.totalActionMinutes+120);
 assert.equal(batchSold.collectionTimeline.length,2,"batch sale settles every card separately");
 assert.equal(batchSold.recapActionCounts.sellCount,1);
 assert.equal(batchSold.recapActionCounts.sellCardsCount,2);
-assert.equal(batchSold.recapActionCounts.sellMinutes,30);
-assert.deepEqual([1,2,3].map(getSellDurationMinutes),[20,30,40]);
+assert.equal(batchSold.recapActionCounts.sellMinutes,120);
+assert.deepEqual([1,2,3].map(getSellDurationMinutes),[60,120,180]);
 
 const thirdFinished={
   ...secondFinished,
@@ -80,7 +80,7 @@ const thirdFinished={
 const tripleState={...finished,board:[finished.board[1],secondFinished,thirdFinished,...finished.board.slice(3)],gameOver:false};
 const tripleSold=applyAction(tripleState,{type:"sell",indexes:[0,1,2]});
 assert.ok(tripleSold.board.slice(0,3).every(piece=>piece===null));
-assert.equal(tripleSold.totalActionMinutes,tripleState.totalActionMinutes+40);
+assert.equal(tripleSold.totalActionMinutes,tripleState.totalActionMinutes+180);
 assert.equal(tripleSold.collectionTimeline.length,3);
 
 console.log("sell action tests passed");
