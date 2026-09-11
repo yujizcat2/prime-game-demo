@@ -101,6 +101,7 @@ function getStateKey(state) {
             (item.specialOne?.identity??"-") +
             ":" +
             parents +
+            `:${(item.mergeHistory ?? []).map(entry => entry.value).join(",")}` +
             ":" +
             (
               item.reduceFrom ??

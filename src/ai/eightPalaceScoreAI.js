@@ -222,7 +222,8 @@ function getStateKey(state){
     piece.specialOne?.identity ?? null,
     piece.singleFlavorPenalty === true,
     (piece.parents ?? []).join(","),
-    (piece.parentFoods ?? []).map(parent => `${parent.value}:${parent.foodType}`).join(",")
+    (piece.parentFoods ?? []).map(parent => `${parent.value}:${parent.foodType}`).join(","),
+    (piece.mergeHistory ?? []).map(item => item.value).join(",")
   ] : null);
 
   return JSON.stringify({
