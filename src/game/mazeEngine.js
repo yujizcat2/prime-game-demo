@@ -126,6 +126,8 @@ export function applyMazeTurn(
 
         }
 
+        if(piece.value === 1) return piece;
+
 
 
         return {

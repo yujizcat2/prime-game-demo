@@ -94,8 +94,14 @@ const collectible = (value, foodType, singleFlavorPenalty) => ({
   const penalizedState = baseState([
     piece(1, 14, land), piece(2, 2, aquatic, {singleFlavorPenalty: true})
   ]);
-  const normal = applyAction(normalState, {type: "reduce", indexes: [0, 1]});
-  const penalized = applyAction(penalizedState, {type: "reduce", indexes: [0, 1]});
+  const normalReduced = applyAction(normalState, {type: "reduce", indexes: [0, 1]});
+  const penalizedReduced = applyAction(penalizedState, {type: "reduce", indexes: [0, 1]});
+  assert.equal(normalReduced.latestCollection,null);
+  assert.equal(penalizedReduced.latestCollection,null);
+  assert.equal(normalReduced.board[1].value,1);
+  assert.equal(penalizedReduced.board[1].value,1);
+  const normal=applyAction(normalReduced,{type:"sell",indexes:[1]});
+  const penalized=applyAction(penalizedReduced,{type:"sell",indexes:[1]});
   const rawBaseScore = getRawBaseScore(2);
   assert.equal(normal.latestCollection.baseScore, rawBaseScore);
   assert.equal(normal.latestCollection.collectionScore, rawBaseScore);

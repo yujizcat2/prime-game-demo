@@ -37,7 +37,7 @@ const sameType = reduce(
   {value: 3, foodType: FOOD_TYPES.LAND}
 );
 assert.equal(sameType.board[0].value, 2);
-assert.equal(sameType.board[1], null);
+assert.equal(sameType.board[1].value, 1);
 assert.equal(getEightPalaceKeyCount(sameType.eightPalaceKeys), 1);
 assert.equal(sameType.latestEightPalaceKey.foodType,FOOD_TYPES.LAND);
 const claimed=sameType;
@@ -47,7 +47,7 @@ const crossType = reduce(
   {value: 3, foodType: FOOD_TYPES.LAND}
 );
 assert.equal(crossType.board[0].value, 2);
-assert.equal(crossType.board[1], null);
+assert.equal(crossType.board[1].value, 1);
 assert.equal(getEightPalaceKeyCount(crossType.eightPalaceKeys), 0);
 
 const bothOne = reduce(
@@ -63,7 +63,7 @@ const simpleBase=createTypedState([
   opening({value:6,foodType:FOOD_TYPES.DAIRY_EGG},{value:3,foodType:FOOD_TYPES.DAIRY_EGG})[1]
 ]);
 const simpleResult=applyAction(simpleBase,{type:"reduce",indexes:[0,1]});
-assert.equal(simpleResult.board[1],null);
+assert.equal(simpleResult.board[1].value,1);
 assert.equal(simpleResult.eightPalaceKeys[FOOD_TYPES.DAIRY_EGG].value,1);
 
 const noOne = reduce(

@@ -88,13 +88,20 @@ assert.equal(
   "final score uses Math.round"
 );
 
-const reduceAt = dayMinutesElapsed => applyAction({
+const reduceAndSell = (state, saleDayMinutes = state.dayMinutesElapsed) => {
+  const reduced=applyAction(state,{type:"reduce",indexes:[0,1]});
+  const sellIndex=reduced.board.findIndex(piece=>piece?.value===1);
+  assert.notEqual(sellIndex,-1);
+  return applyAction({...reduced,dayMinutesElapsed:saleDayMinutes},{type:"sell",indexes:[sellIndex]});
+};
+
+const reduceAt = dayMinutesElapsed => reduceAndSell({
   ...createGameState([
     {value: 2, foodType: BASE_FOOD_TYPES[0], boardIndex: 0, gameMode: "eightPalace"},
     {value: 4, foodType: BASE_FOOD_TYPES[1], boardIndex: 1, gameMode: "eightPalace"}
   ], {dayCycleEnabled: true}),
   dayMinutesElapsed
-}, {type: "reduce", indexes: [0, 1]});
+},dayMinutesElapsed);
 
 const sameCollectible = {
   value: 1,
@@ -156,7 +163,7 @@ const eighthPreviewState = {
   dayMinutesElapsed: 18 * 60
 };
 const eighthPreviewScore = getEightPalaceCollectionScoreGain(eighthPreviewState, sameCollectible);
-const eighthCollection = applyAction(eighthPreviewState, {type: "reduce", indexes: [0, 1]});
+const eighthCollection = reduceAndSell(eighthPreviewState);
 const eighthReward = eighthCollection.latestCollectionRewards[0];
 assert.equal(eighthReward.saleScore, eighthPreviewScore, "pre-collection preview remains the unmodified dish sale price");
 assert.equal(eighthReward.todayCollectionNumber, 8);
@@ -166,7 +173,7 @@ assert.equal(eighthCollection.dayRevenue - eighthPreviewState.dayRevenue, eighth
 assert.ok(eighthCollection.score > eighthPreviewState.score, "a real sale immediately awards points");
 assert.equal(eighthCollection.timeSaleScores[16 * 60], 100, "dynamic market sales use the current period key and normalized pre-market value");
 
-const discountedEighth = applyAction({...eighthPreviewState, dayMinutesElapsed: 0}, {type: "reduce", indexes: [0, 1]});
+const discountedEighth = reduceAndSell({...eighthPreviewState, dayMinutesElapsed: 0});
 const discountedSaleScore = getEightPalaceCollectionScoreGain(
   {...eighthPreviewState, dayMinutesElapsed: 0},
   sameCollectible
@@ -183,7 +190,7 @@ const leveledEighthState = {
     ...eighthPreviewState.board.slice(2)
   ]
 };
-const leveledEighth = applyAction(leveledEighthState, {type: "reduce", indexes: [0, 1]});
+const leveledEighth = reduceAndSell(leveledEighthState);
 assert.equal(leveledEighth.latestCollectionRewards[0].collectionRewardLevel, 2);
 assert.equal(leveledEighth.latestCollectionRewards[0].collectionMultiplierRate, 1);
 assert.equal(leveledEighth.latestCollectionRewards[0].dailyCollectionBonus, 0, "reward-level multiplier never changes the daily sale bonus");
@@ -208,7 +215,7 @@ const dayTwoState = advanceToNextDay(closingDayOne);
 assert.deepEqual(dayTwoState.timeSalePeriods, closingDayOne.daySettlement.nextTimeSalePeriods);
 assert.deepEqual(dayTwoState.timeSaleScores, {}, "new day starts a fresh sales statistic");
 const dayTwoPreview = getEightPalaceCollectionScoreGain(dayTwoState, sameCollectible);
-const dayTwoCollected = applyAction(dayTwoState, {type: "reduce", indexes: [0, 1]});
+const dayTwoCollected = reduceAndSell(dayTwoState);
 assert.equal(dayTwoCollected.dayRevenue - dayTwoState.dayRevenue, dayTwoPreview, "Day 2 preview and formal revenue use the generated price");
 assert.equal(dayTwoCollected.latestCollectionRewards[0].timeSaleMultiplier, dayTwoPeriods[0].multiplier);
 

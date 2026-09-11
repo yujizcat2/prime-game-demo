@@ -8,6 +8,7 @@ import {
 import {
   applyAction,
   createGameState,
+  getLegalActions,
   resolveGameOver
 } from "../game/gameEngine";
 
@@ -248,7 +249,8 @@ const settledDepletion = applyAction(reductionState, {
 
 assert.equal(settledDepletion.steps, 1);
 assert.equal(settledDepletion.board.filter(Boolean).length, 3);
-assert.equal(settledDepletion.board[2].specialOne.kind,"function");
+assert.equal(settledDepletion.board[2].value,1);
+assert.equal(getLegalActions(settledDepletion).some(action=>action.type==="sell"),true);
 assert.equal(settledDepletion.gameOver, false);
 
 
@@ -289,8 +291,9 @@ assert.equal(
   true
 );
 assert.equal(simulationState.steps, 1);
-assert.equal(simulationState.board.filter(Boolean).length, 2);
+assert.equal(simulationState.board.filter(Boolean).length, 3);
 assert.equal(getSimulationLegalActions(simulationState).some(action=>action.type==="apply_one"),false);
+assert.equal(getSimulationLegalActions(simulationState).some(action=>action.type==="sell"),true);
 
 
 console.log("activityStatus tests passed");

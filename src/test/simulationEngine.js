@@ -34,8 +34,8 @@ import {
 import { getNativeFoodType, getReductionFoodTypes } from "../game/nativeFoodTypes";
 import { canSwapCells, getCombinedResultIdentity } from "../game/gameActions";
 import { applyHeaterIncrement, isHeaterTarget } from "../game/heater";
-import { getCombineDurationMinutes, getReduceDurationMinutes, SWAP_DURATION_MINUTES, TOOL_DURATION_MINUTES } from "../game/actionDuration";
-import { isFoodExpired } from "../game/foodShelfLife";
+import { getCombineDurationMinutes, getReduceDurationMinutes, getSellDurationMinutes, SWAP_DURATION_MINUTES, TOOL_DURATION_MINUTES } from "../game/actionDuration";
+import { getFoodAgeMinutes, isFoodExpired } from "../game/foodShelfLife";
 import { applyFridgeAction, getLegalFridgeRetrieveActions, getLegalFridgeStoreActions } from "../game/fridge";
 
 
@@ -801,6 +801,7 @@ export function getSimulationLegalActions(
     state.board;
 
   actions.push(...getLegalFridgeStoreActions(state), ...getLegalFridgeRetrieveActions(state));
+  actions.push(...board.flatMap((piece,index)=>piece?.value===1?[{type:"sell",indexes:[index]}]:[]));
 
 
   // ==========================================================
@@ -1273,7 +1274,7 @@ function applyReduce(
     divisor;
 
   const actionSignature = createReduceActionSignature(oldA, oldB, firstResult, secondResult);
-  const reductionDuration = getReduceDurationMinutes((firstResult === 1 ? 1 : 0) + (secondResult === 1 ? 1 : 0));
+  const reductionDuration = getReduceDurationMinutes(0, firstResult === 1 || secondResult === 1);
   if(oldA===oldB){
     state.board[indexA]=null;
     state.board[indexB]=null;
@@ -1337,32 +1338,6 @@ function applyReduce(
 
 
 
-  const collectionEvents = [];
-
-  if(firstResult === 1 && firstFoodType !== FOOD_TYPES.DESSERT){
-    const key = `${oldA}:${firstFoodType}`;
-    collectionEvents.push({
-      foodType: firstFoodType,
-      key,
-      repeated: state.collection.has(key),
-      expired: isFoodExpired(first, (state.totalActionMinutes ?? 0) + reductionDuration)
-    });
-  }
-
-  if(secondResult === 1 && secondFoodType !== FOOD_TYPES.DESSERT){
-    const key = `${oldB}:${secondFoodType}`;
-    collectionEvents.push({
-      foodType: secondFoodType,
-      key,
-      repeated: state.collection.has(key),
-      expired: isFoodExpired(second, (state.totalActionMinutes ?? 0) + reductionDuration)
-    });
-  }
-
-
-
-
-
   // ==========================================================
   // second 是甜食
   //
@@ -1419,19 +1394,16 @@ function applyReduce(
   if(reductionTemplate)first.purity=reductionPurity;
 
 
-  first.parents =
-    null;
-
-
-  first.parentFoods =
-    null;
-
-
   first.previousValue =
     oldA;
 
   first.sourceKey =
     firstResult === 1 ? (first.sourceKey ?? null) : null;
+  if(firstResult===1){
+    first.processedFromValue=oldA;
+    first.processedAt=(state.totalActionMinutes??0)+reductionDuration;
+    first.processedAgeMinutes=getFoodAgeMinutes(first,first.processedAt);
+  }
 
 
 
@@ -1450,19 +1422,16 @@ function applyReduce(
   if(reductionTemplate)second.purity=reductionPurity;
 
 
-  second.parents =
-    null;
-
-
-  second.parentFoods =
-    null;
-
-
   second.previousValue =
     oldB;
 
   second.sourceKey =
     secondResult === 1 ? (second.sourceKey ?? null) : null;
+  if(secondResult===1){
+    second.processedFromValue=oldB;
+    second.processedAt=(state.totalActionMinutes??0)+reductionDuration;
+    second.processedAgeMinutes=getFoodAgeMinutes(second,second.processedAt);
+  }
 
 
 
@@ -1473,28 +1442,6 @@ function applyReduce(
     state.latestEightPalaceKey=state.eightPalaceKeys[firstFoodType];
     state.usedKeyTriggerValues=[...(state.usedKeyTriggerValues??[]),keyTriggerValue];
   }
-
-  if(firstResult===1){
-    state.board[indexA]=null;
-  }
-  if(secondResult===1){
-    state.board[indexB]=null;
-  }
-
-  for(const event of collectionEvents){
-    state.collectionEventHistory.push(event);
-
-    if(event.repeated){
-      state.repeatCollectionCount++;
-    }
-    if(event.expired) state.shelfLifeMetrics.expiredZeroScoreCollectionCount++;
-  }
-
-  state.collectionEventHistory = state.collectionEventHistory.slice(-12);
-
-
-
-
 
   // ==========================================================
   // purity 当前保持不变
@@ -1574,9 +1521,7 @@ function applyMazeTurn(
 
 
 
-    if(
-      piece
-    ){
+    if(piece && piece.value !== 1){
 
 
       piece.value =
@@ -1819,10 +1764,11 @@ export function applySimulationAction(
     const left = state.board?.[action.indexes?.[0]]?.value;
     const right = state.board?.[action.indexes?.[1]]?.value;
     const divisor = gcd(left ?? 0, right ?? 0);
-    durationMinutes = getReduceDurationMinutes(divisor > 1
-      ? ((left / divisor === 1 ? 1 : 0) + (right / divisor === 1 ? 1 : 0))
-      : 0);
+    const equalEliminate=divisor>1&&left===right;
+    const createsFinishedDish=divisor>1&&!equalEliminate&&(left/divisor===1||right/divisor===1);
+    durationMinutes = getReduceDurationMinutes(equalEliminate ? 2 : 0, createsFinishedDish);
   }else if(action.type === "swap") durationMinutes=SWAP_DURATION_MINUTES;
+  else if(action.type === "sell") durationMinutes=getSellDurationMinutes(action.indexes?.length??0);
 
 
 
@@ -1880,6 +1826,26 @@ export function applySimulationAction(
 
 
       break;
+
+    case "sell": {
+      const indexes=[...new Set(action.indexes??[])];
+      if(indexes.length===0||indexes.some(index=>state.board?.[index]?.value!==1))break;
+      const events=indexes.map(index=>{
+        const piece=state.board[index];
+        const key=`${piece.previousValue??piece.origin?.parent?.value}:${piece.foodType}`;
+        return {foodType:piece.foodType,key,repeated:state.collection.has(key),expired:false};
+      });
+      indexes.forEach(index=>{state.board[index]=null;});
+      for(const event of events){
+        state.collectionEventHistory.push(event);
+        if(event.repeated)state.repeatCollectionCount++;
+      }
+      state.collectionEventHistory=state.collectionEventHistory.slice(-12);
+      state.lastCollectionEvents=events;
+      state.steps++;
+      applied=true;
+      break;
+    }
 
     case "super_heater": {
       const pieces = state.board.filter(Boolean);

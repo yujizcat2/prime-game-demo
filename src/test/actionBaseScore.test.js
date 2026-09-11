@@ -39,8 +39,8 @@ assert.equal(reduced.collectionCards.length, 0);
 assert.equal(reduced.latestActionBaseScore, null);
 assert.equal(reduced.comboCount, 0);
 assert.equal(reduced.comboBonusTotal, 0);
-assert.equal(getReduceButtonLabel([], null), "处理/售出");
-assert.equal(getReduceButtonLabel([0], null), "处理/售出");
+assert.equal(getReduceButtonLabel([], null), "处理");
+assert.equal(getReduceButtonLabel([0], null), "处理");
 assert.equal(doesReduceCreateEffectiveSale(reduceState, [0, 1]), false);
 assert.equal(
   getReduceButtonLabel([0, 1], {reduce: {createsEffectiveSale: false}}),
@@ -53,18 +53,15 @@ const collectionState = createState([
   {value: 4, foodType: BASE_FOOD_TYPES[1], boardIndex: 1}
 ], {comboCount: 1});
 const collected = applyAction(collectionState, {type: "reduce", indexes: [0, 1]});
-assert.equal(collected.collectionCards.length, 1);
-assert.equal(collected.latestActionBaseScore, null, "a collecting reduce does not also receive +2");
-assert.equal(collected.comboCount, 2, "collection tracking keeps the existing combo behavior");
-assert.equal(collected.latestComboEvent.comboBonus, 0, "Day mode points use only the sale formula");
-assert.equal(collected.score, collected.collectionCards[0].salePointScore);
-assert.equal(doesReduceCreateEffectiveSale(collectionState, [0, 1]), true);
-const salePreview = getReduceSalePreviewRewards(collectionState, [0, 1])[0];
-assert.equal(salePreview.totalScore, collected.latestCollectionRewards[0].totalScore, "sale preview matches the modal total");
+assert.equal(collected.collectionCards.length, 0);
+assert.equal(collected.board[0].value,1);
+assert.equal(collected.latestActionBaseScore, null, "a reduce-to-finished action does not receive sale points");
+assert.equal(doesReduceCreateEffectiveSale(collectionState, [0, 1]), false);
+assert.deepEqual(getReduceSalePreviewRewards(collectionState, [0, 1]),[]);
 assert.equal(
   getReduceButtonLabel([0, 1], {reduce: {createsEffectiveSale: true}}),
-  "售出",
-  "a formal positive new sale uses the sale label"
+  "处理",
+  "processing remains separate from selling"
 );
 
 const duplicateSaleState = {
@@ -88,10 +85,7 @@ const bonusCollections = Array.from({length: 10}, (_, index) => ({
   foodType: BASE_FOOD_TYPES[index % 2]
 }));
 const bonusPreviewState = {...collectionState, collectionCards: bonusCollections};
-const bonusPreview = getReduceSalePreviewRewards(bonusPreviewState, [0, 1])[0];
-const bonusSettled = applyAction(bonusPreviewState, {type: "reduce", indexes: [0, 1]});
-assert.ok(bonusPreview.dailyCollectionBonus > 0, "later daily sales include their formal daily bonus in preview");
-assert.equal(bonusPreview.totalScore, bonusSettled.latestCollectionRewards[0].totalScore);
+assert.deepEqual(getReduceSalePreviewRewards(bonusPreviewState, [0, 1]),[]);
 
 assert.equal(hasEffectiveSaleReward([
   {duplicate: true, saleScore: 0},

@@ -1,10 +1,21 @@
 import { getFoodDisplayName, getFoodName, getFoodTypeShortName } from "../data/food/foodRegistry";
 import { getSpecialOneDisplayName } from "../data/specialOneRegistry";
 import { FOOD_TYPES } from "../game/rules";
+import { getCookedFoodName, getCookingMethod } from "../game/cookingMethods";
 
 export function getFoodCardDisplayName(piece){
+  if(piece?.value === 1 && piece?.origin?.type === "reduce"){
+    const parent = piece.origin.parent;
+    return getFoodName(parent?.value, parent?.foodType ?? piece.foodType);
+  }
   if(piece?.value === 1 && piece?.specialOne) return getSpecialOneDisplayName(piece);
   return getFoodDisplayName(piece);
+}
+
+export function getFinishedFoodCardDisplayName(piece,index){
+  const name=getFoodCardDisplayName(piece);
+  if(piece?.value!==1)return name;
+  return getCookedFoodName(name,getCookingMethod(index));
 }
 
 export function getFoodCardDisplayValue(piece, _reducePreview = null){

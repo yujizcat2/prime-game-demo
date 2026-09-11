@@ -957,6 +957,9 @@
 
 }
 
+.board-piece--finished {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--cuisine-primary) 18%, transparent);
+}
 
 .board-piece--one::before {
 
@@ -6153,3 +6156,143 @@
 .board-piece-info:focus-visible{outline:2px solid #557968;outline-offset:1px}
 .board-cell--occupied .board-piece-cuisine-mark{display:none}
 @media(max-width:560px){.board-piece-info{top:5px;right:5px;width:19px;height:19px;font-size:11px;line-height:19px}}
+
+.board-piece.board-piece--finished {
+  overflow: hidden;
+  border-width: 2px;
+  border-color: color-mix(in srgb, var(--cuisine-border) 82%, #7b5b2d 18%);
+  background-image:
+    linear-gradient(180deg, color-mix(in srgb, var(--cuisine-primary) 9%, transparent) 0 31px, transparent 31px),
+    var(--cuisine-pattern);
+  box-shadow:
+    inset 0 0 0 3px color-mix(in srgb, var(--cuisine-primary) 10%, transparent),
+    0 0 0 2px color-mix(in srgb, var(--cuisine-primary) 18%, transparent),
+    0 7px 16px color-mix(in srgb, var(--cuisine-glow) 42%, transparent);
+}
+
+.board-piece--finished .board-piece-type-bar {
+  top: 31px;
+  left: 0;
+  bottom: 0;
+  width: 4px;
+  border-radius: 0;
+}
+
+.board-piece--finished .board-piece-number {
+  top: 38px;
+  left: 12px;
+  min-width: 54px;
+  padding: 4px 9px 5px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--cuisine-primary) 11%, rgba(255,255,255,.7));
+  line-height: .9;
+}
+
+.board-piece--finished .board-piece-main {
+  top: 73px;
+  bottom: 35px;
+}
+
+.board-piece--finished .board-piece-name {
+  font-size: clamp(17px, 2.1vw, 23px);
+  letter-spacing: -.04em;
+}
+
+.board-piece-finished-status {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 15;
+  display: flex;
+  height: 31px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 38px 0 12px;
+  border-bottom: 1px solid color-mix(in srgb, var(--cuisine-border) 28%, transparent);
+  color: color-mix(in srgb, var(--cuisine-primary) 82%, #28352f 18%);
+  background: color-mix(in srgb, var(--cuisine-surface) 84%, rgba(255,255,255,.75));
+  pointer-events: none;
+}
+
+.board-piece-finished-status span {
+  font-size: 8px;
+  font-weight: 750;
+  letter-spacing: .12em;
+  opacity: .68;
+}
+
+.board-piece-finished-status strong {
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: var(--cuisine-primary);
+  color: #fff;
+  font-size: 9px;
+  line-height: 1;
+  letter-spacing: .08em;
+}
+
+.board-piece-finished-origin-value {
+  position: absolute;
+  top: 43px;
+  right: 11px;
+  z-index: 12;
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  color: color-mix(in srgb, var(--cuisine-primary) 74%, #4b5563 26%);
+  pointer-events: none;
+}
+
+.board-piece-finished-origin-value span { font-size: 8px; opacity: .62; }
+.board-piece-finished-origin-value strong { font-size: 13px; font-weight: 900; }
+
+.board-piece-finished-mark {
+  position: absolute;
+  top: 40px;
+  left: 63px;
+  z-index: 14;
+  display: grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  border: 2px solid color-mix(in srgb, var(--cuisine-surface) 80%, white);
+  border-radius: 50%;
+  color: #fff;
+  background: var(--cuisine-primary);
+  font-size: 13px;
+  font-weight: 950;
+  line-height: 1;
+  box-shadow: 0 2px 6px color-mix(in srgb, var(--cuisine-primary) 25%, transparent);
+  pointer-events: none;
+}
+
+.board-piece--finished.board-piece--selected {
+  outline: 3px solid color-mix(in srgb, var(--cuisine-secondary) 72%, white);
+  outline-offset: 2px;
+  box-shadow:
+    inset 0 0 0 2px rgba(255,255,255,.28),
+    0 0 0 5px color-mix(in srgb, var(--cuisine-primary) 20%, transparent),
+    0 9px 18px color-mix(in srgb, var(--cuisine-primary) 28%, transparent) !important;
+}
+
+.board-piece--finished.board-piece--selected .board-piece-finished-status {
+  color: #fff;
+  border-bottom-color: rgba(255,255,255,.2);
+  background: rgba(255,255,255,.12);
+}
+
+.board-piece--finished.board-piece--selected .board-piece-finished-status strong {
+  color: var(--cuisine-primary);
+  background: #fff;
+}
+
+.board-piece--finished.board-piece--selected .board-piece-finished-origin-value {
+  color: rgba(255,255,255,.9);
+}
+
+.board-piece--finished.board-piece--selected .board-piece-finished-mark {
+  color: var(--cuisine-primary);
+  background: #fff;
+  border-color: rgba(255,255,255,.42);
+}

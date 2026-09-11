@@ -24,6 +24,9 @@ export function getGameElapsedMinutes(state){
 }
 
 export function getFoodAgeMinutes(piece, stateOrMinutes){
+  if(Number.isFinite(piece?.processedAgeMinutes)){
+    return Math.max(0, piece.processedAgeMinutes);
+  }
   const now = typeof stateOrMinutes === "number"
     ? stateOrMinutes
     : getGameElapsedMinutes(stateOrMinutes);

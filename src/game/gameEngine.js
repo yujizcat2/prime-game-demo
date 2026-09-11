@@ -32,6 +32,8 @@ import {
   getLegalReduceActions,
   getLegalRemoveActions,
   getLegalSwapActions,
+  getLegalSellActions,
+  sellCells,
   getLegalActions
 } from "./gameActions";
 
@@ -140,6 +142,7 @@ export {
 
   getLegalRemoveActions,
   getLegalSwapActions,
+  getLegalSellActions,
 
   getLegalActions,
 
@@ -264,6 +267,10 @@ export function applyAction(
 
     case "swap":
       actionState=swapCells(state,action.indexes?.[0],action.indexes?.[1]);
+      break;
+
+    case "sell":
+      actionState=sellCells(state,action.indexes);
       break;
 
 
@@ -440,12 +447,15 @@ export function applyAction(
     timedState = {...timedState, dayTargetReachedAtMinutes: timedState.dayMinutesElapsed ?? 0};
   }
   const efficiencyState = recordCollectionEfficiencySnapshot(timedState);
-  const recapActionCounts = state.recapActionCounts ?? {combine: 0, reduce: 0};
+  const recapActionCounts = state.recapActionCounts ?? {combine: 0, reduce: 0, sellCount: 0, sellCardsCount: 0, sellMinutes: 0};
   const countedState = {
     ...efficiencyState,
     recapActionCounts: {
       combine: recapActionCounts.combine + (action.type === "combine" ? 1 : 0),
-      reduce: recapActionCounts.reduce + (action.type === "reduce" ? 1 : 0)
+      reduce: recapActionCounts.reduce + (action.type === "reduce" ? 1 : 0),
+      sellCount: (recapActionCounts.sellCount ?? 0) + (action.type === "sell" ? 1 : 0),
+      sellCardsCount: (recapActionCounts.sellCardsCount ?? 0) + (action.type === "sell" ? action.indexes?.length ?? 0 : 0),
+      sellMinutes: (recapActionCounts.sellMinutes ?? 0) + (action.type === "sell" ? durationState.latestActionDurationMinutes ?? 0 : 0)
     }
   };
   const settledState = recordGameRecapSnapshot(
@@ -533,7 +543,7 @@ export function resolveGameOver(
     && getLegalSwapActions(activeState).length===0
     && !canUseHeater(activeState)
     && !getLegalActions(activeState).some(action => action.type === "super_heater")
-    && !getLegalActions(activeState).some(action => action.type.startsWith("fridge_"))
+    && !getLegalActions(activeState).some(action => action.type.startsWith("fridge_") || action.type === "sell")
   ){
 
     return {

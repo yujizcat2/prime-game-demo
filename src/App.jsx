@@ -93,6 +93,7 @@ function App(){
   }
 
   function toggleHeaterMode(){
+    if(game.sellMode)return;
     if(heaterSelectMode){
       setHeaterSelectMode(false);
       return;
@@ -112,7 +113,25 @@ function App(){
     showActionToast("交换完成","消耗 15 分钟");
   }
 
+  function handleSell(){
+    if(!game.sellMode){
+      if(game.startSellMode()) showActionToast("选择待售料理","可连续选择多个完成品 1");
+      return;
+    }
+    if(game.selectedIndexes.length === 0){
+      game.clearSelection();
+      return;
+    }
+    const result=game.sellSelected();
+    if(!result)return;
+    const newRewards=(result.collectionRewards ?? []).filter(reward=>reward.isNewCollection);
+    if(newRewards.length)setCollectionRewardQueue(queue=>[...queue,...newRewards]);
+    playSound("collect");
+    showActionToast(`卖出 ${result.collectionRewards?.length ?? 0} 张`,`消耗 ${result.durationMinutes} 分钟`);
+  }
+
   function handleSuperHeater(){
+    if(game.sellMode)return;
     if(!game.superHeaterAvailable){
       showActionToast("无法超级加热", game.superHeaterCount === 0 ? "今日已使用" : "没有可加热的料理");
       return;
@@ -607,97 +626,6 @@ function App(){
   }
 
 
-  function handleSpecialOne(
-    index
-  ){
-
-    if(
-      removingIndex !== null ||
-      activeAnimation?.type === "remove"
-    ){
-      return;
-    }
-
-
-    const piece =
-      game.board[index];
-
-
-    if(
-      piece?.specialOne?.kind === "function"
-    ){
-
-      const activated = game.activateOne(
-        index
-      );
-
-      if(activated) playSound("click");
-
-      return;
-
-    }
-
-
-    const removedCell = {
-      index,
-      foodType:
-        game.board[index]?.foodType ?? null
-    };
-
-
-    clearAnimationTimers();
-
-    setClearedCells([]);
-
-
-    setActiveAnimation({
-      type: "remove",
-      phase:"exit",
-      index,
-      sourceIndexes:[index],
-      targetIndexes:[],
-      beforeValues:[piece.value],
-      afterValues:[],
-      startedAt:Date.now(),
-      token:
-        ++animationTokenRef.current
-    });
-
-
-    scheduleAnimation(
-      () => {
-
-        const removed = game.activateOne(
-          index
-        );
-
-        if(removed) playSound("collect");
-
-
-        setClearedCells([
-          removedCell
-        ]);
-
-
-        scheduleAnimation(
-          () =>
-            setClearedCells([]),
-          360
-        );
-
-      },
-      240
-    );
-
-
-    scheduleAnimation(
-      () =>
-        setActiveAnimation(null),
-      300
-    );
-
-  }
-
   function handleSelectCell(index){
     if(game.selectCell(index)) playSound("click");
   }
@@ -863,15 +791,13 @@ function App(){
                   game.functionOneIndex
                 }
                 heaterSelectMode={heaterSelectMode}
+                sellMode={game.sellMode}
                 onSelectCell={
                   game.daySettlement || activeAnimation?.phase === "exit" || activeAnimation?.phase === "compress"
                     ? undefined
                     : heaterSelectMode
                       ? handleHeaterTarget
                       : handleSelectCell
-                }
-                onRemoveOne={
-                  handleSpecialOne
                 }
                 onCombine={
                   handleCombine
@@ -923,10 +849,15 @@ function App(){
                   onBlockedCombine={handleBlockedCombine}
                   onReduce={handleReduce}
                   onSwap={handleSwap}
-                  canSwap={!game.gameOver&&!game.daySettlement&&game.canSwapSelected}
-                  onFridge={() => setShowFridge(true)}
+                  canSwap={!game.sellMode&&!game.gameOver&&!game.daySettlement&&game.canSwapSelected}
+                  onFridge={() => { if(!game.sellMode)setShowFridge(true); }}
                   fridgeCount={game.fridgeCards.length}
                   fridgeActionCount={game.fridgeStoreActions.length}
+                  sellMode={game.sellMode}
+                  sellCount={game.sellMode ? game.selectedIndexes.length : 0}
+                  sellMinutes={game.sellMinutes}
+                  canStartSell={!game.gameOver&&!game.daySettlement&&game.board.some(piece=>piece?.value===1)}
+                  onSell={handleSell}
                   gameOver={game.gameOver || Boolean(game.daySettlement) || heaterSelectMode}
                   removingId={removingIndex ?? ((activeAnimation?.phase === "exit" || activeAnimation?.phase === "compress") ? activeAnimation.token : null)}
                 />
@@ -935,7 +866,7 @@ function App(){
               <section className="game-info-row game-info-row--secondary">
                 <div className="game-situation-meta">
                   <BoardStatus activity={activityStatus.activity} activityCombineLegal={activityStatus.combineLegal} activityReduceLegal={activityStatus.reduceLegal} numberCount={game.numbers.length} nonDrinkBoardSum={nonDrinkBoardSum} dead={activityStatus.dead} />
-                  <ItemBar heaterCount={game.heaterCount} heaterAvailable={game.heaterAvailable && !game.daySettlement} heaterActive={heaterSelectMode} onHeaterClick={toggleHeaterMode} superHeaterCount={game.superHeaterCount} superHeaterAvailable={game.superHeaterAvailable && !game.daySettlement} onSuperHeaterClick={handleSuperHeater} />
+                  <ItemBar heaterCount={game.heaterCount} heaterAvailable={!game.sellMode&&game.heaterAvailable && !game.daySettlement} heaterActive={heaterSelectMode} onHeaterClick={toggleHeaterMode} superHeaterCount={game.superHeaterCount} superHeaterAvailable={!game.sellMode&&game.superHeaterAvailable && !game.daySettlement} onSuperHeaterClick={handleSuperHeater} />
                   <div className="game-meta-buttons">
                     <button type="button" className="combine-history-trigger" onClick={() => setShowCombineHistory(true)}>历史<span>{game.combineHistory.length}</span></button>
                     <button type="button" className="combine-history-trigger" onClick={() => setShowCollection(true)}>销售<span>{collectionCount}</span></button>

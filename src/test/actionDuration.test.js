@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { getCombineDurationMinutes, getReduceDurationMinutes } from "../game/actionDuration";
+import { getCombineDurationMinutes, getReduceDurationMinutes, getSellDurationMinutes } from "../game/actionDuration";
 import { advanceToNextDay, getDayTime } from "../game/dayCycle";
 import { applyAction, createGameState } from "../game/gameEngine";
 import { BASE_FOOD_TYPES } from "../game/rules";
@@ -10,6 +10,8 @@ assert.deepEqual(
 );
 assert.equal(getReduceDurationMinutes(0), 45);
 assert.equal(getReduceDurationMinutes(1), 60);
+assert.equal(getReduceDurationMinutes(0, true), 30);
+assert.deepEqual([1,2,3].map(getSellDurationMinutes),[20,30,40]);
 
 const createState = (cards, overrides = {}) => ({
   ...createGameState(cards, {dayCycleEnabled: true}),
@@ -31,16 +33,17 @@ assert.equal(ordinary.dayMinutesElapsed, 45);
 assert.equal(ordinary.totalActionMinutes, 45);
 
 const collecting = applyAction(createState(collectingReduceCards), {type: "reduce", indexes: [0, 1]});
-assert.equal(collecting.latestActionDurationMinutes, 60);
+assert.equal(collecting.latestActionDurationMinutes, 30);
+assert.equal(collecting.board[0].value,1);
+assert.equal(collecting.collectionTimeline.length,0);
 
-const repeatedBase = createState(collectingReduceCards, {
-  collectionCards: [collecting.collectionCards[0]],
-  collectionTimeline: [collecting.collectionTimeline[0]],
-  collectionEventId: 1
-});
-const repeated = applyAction(repeatedBase, {type: "reduce", indexes: [0, 1]});
-assert.equal(repeated.score, 0);
-assert.equal(repeated.latestActionDurationMinutes, 60, "a zero-point repeated collection still uses removal time");
+const equalEliminated=applyAction(createState([
+  {value:6,foodType:BASE_FOOD_TYPES[0],boardIndex:0},
+  {value:6,foodType:BASE_FOOD_TYPES[1],boardIndex:1}
+]),{type:"reduce",indexes:[0,1]});
+assert.equal(equalEliminated.latestActionDurationMinutes,60);
+assert.equal(equalEliminated.board[0],null);
+assert.equal(equalEliminated.board[1],null);
 
 const heaterBase = createState([{value: 6, foodType: BASE_FOOD_TYPES[0], boardIndex: 0}], {comboCount: 2});
 const heated = applyAction(heaterBase, {type: "heater", indexes: [0]});
@@ -78,10 +81,8 @@ const overtime60Base = createState(collectingReduceCards, {
   collectionCards: dailyCollections
 });
 const overtime60 = applyAction(overtime60Base, {type: "reduce", indexes: [0, 1]});
-assert.equal(getDayTime(overtime60), "24:50");
-assert.equal(overtime60.daySettlement.minutesToday, 1490);
-assert.equal(overtime60.comboCount, 0, "an expired zero-value sale does not continue a sales combo");
-assert.equal(overtime60.latestComboEvent.type, "broken");
+assert.equal(getDayTime(overtime60), "24:20");
+assert.equal(overtime60.daySettlement.minutesToday, 1460);
 assert.equal(overtime60.daySettlement.scoreGainToday, 1000);
 
 const closed = {...overtime45Base, dayMinutesElapsed: 1440};

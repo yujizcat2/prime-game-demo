@@ -47,11 +47,12 @@ import {
   applyEightPalaceKeyFromReduction,
   GAME_MODES
 } from "./eightPalaceKeys";
-import { applyEightPalaceCollection } from "./collectionRules";
+import { applyCollection, applyEightPalaceCollection } from "./collectionRules";
 import { getCreatedScoreValue } from "./scoreValue";
 import { isHeaterTarget } from "./heater";
 import { getFoodTypeForPosition, getReductionFoodTypes } from "./nativeFoodTypes";
 import { getReduceDurationMinutes } from "./actionDuration";
+import { getFoodAgeMinutes } from "./foodShelfLife";
 import { getLegalFridgeRetrieveActions, getLegalFridgeStoreActions } from "./fridge";
 
 import {
@@ -263,6 +264,8 @@ export function canSwapCells(state,indexA,indexB){
     && areOrthogonallyAdjacent(indexA,indexB)
     && first
     && second
+    && first.value !== 1
+    && second.value !== 1
     && !locked
   );
 }
@@ -625,7 +628,6 @@ export function reduceCells(
 
   const reductionOutcome=createReduceOutcome(state,indexA,indexB);
   if(!reductionOutcome)return state;
-  const collectionBoardBeforeAction = state.board;
   const [firstOutcome,secondOutcome]=reductionOutcome.results;
   const firstResult=firstOutcome.value;
   const secondResult=secondOutcome.value;
@@ -836,17 +838,17 @@ export function reduceCells(
     sourceKey:
       firstResult === 1 ? (first.sourceKey ?? null) : null,
 
-    parents:
-      null,
-
-    parentFoods:
-      null,
-
     origin:
       firstOrigin,
 
     collectionRewardLevel:
-      firstResult === 1 ? secondResult : null
+      firstResult === 1 ? secondResult : null,
+
+    ...(firstResult === 1 ? {
+      processedFromValue: first.value,
+      processedAt: (state.totalActionMinutes ?? 0) + getReduceDurationMinutes(0, true),
+      processedAgeMinutes: getFoodAgeMinutes(first, (state.totalActionMinutes ?? 0) + getReduceDurationMinutes(0, true))
+    } : {})
 
   };
 
@@ -867,17 +869,17 @@ export function reduceCells(
     sourceKey:
       secondResult === 1 ? (second.sourceKey ?? null) : null,
 
-    parents:
-      null,
-
-    parentFoods:
-      null,
-
     origin:
       secondOrigin,
 
     collectionRewardLevel:
-      secondResult === 1 ? firstResult : null
+      secondResult === 1 ? firstResult : null,
+
+    ...(secondResult === 1 ? {
+      processedFromValue: second.value,
+      processedAt: (state.totalActionMinutes ?? 0) + getReduceDurationMinutes(0, true),
+      processedAgeMinutes: getFoodAgeMinutes(second, (state.totalActionMinutes ?? 0) + getReduceDurationMinutes(0, true))
+    } : {})
 
   };
 
@@ -890,11 +892,11 @@ export function reduceCells(
     if(secondResult === 1)secondReducedPiece.specialOne=specialOne;
   }
 
-  nextBoard[indexA] = eightPalace && firstResult === 1 ? null : firstReducedPiece;
+  nextBoard[indexA] = firstReducedPiece;
 
 
 
-  nextBoard[indexB] = eightPalace && secondResult === 1 ? null : secondReducedPiece;
+  nextBoard[indexB] = secondReducedPiece;
 
 
 
@@ -914,12 +916,6 @@ export function reduceCells(
   };
 
   if(eightPalace){
-    const collectionTime = (state.totalActionMinutes ?? 0) + getReduceDurationMinutes(
-      (firstResult === 1 ? 1 : 0) + (secondResult === 1 ? 1 : 0)
-    );
-    nextState = {...nextState, totalActionMinutes: collectionTime};
-    if(firstResult === 1) nextState = applyEightPalaceCollection(nextState, firstReducedPiece, collectionBoardBeforeAction, indexA);
-    if(secondResult === 1) nextState = applyEightPalaceCollection(nextState, secondReducedPiece, collectionBoardBeforeAction, indexB);
     nextState = applyEightPalaceKeyFromReduction(nextState,first,second,firstResult,secondResult);
   }
 
@@ -943,6 +939,32 @@ export function reduceCells(
 
   return nextState;
 
+}
+
+export function getLegalSellActions(state){
+  if(!state || state.gameOver) return [];
+  return state.board.flatMap((piece, index) => piece?.value === 1
+    ? [{type: "sell", indexes: [index]}]
+    : []
+  );
+}
+
+export function sellCells(state, indexes){
+  const uniqueIndexes = [...new Set(indexes ?? [])];
+  if(!state || state.gameOver || uniqueIndexes.length === 0) return state;
+  if(uniqueIndexes.some(index => !Number.isInteger(index) || state.board?.[index]?.value !== 1)) return state;
+
+  const settlementBoard = state.board;
+  const pieces = uniqueIndexes.map(index => ({piece: state.board[index], index}));
+  const board = [...state.board];
+  uniqueIndexes.forEach(index => { board[index] = null; });
+  let nextState = {...state, board, latestCollectionRewards: []};
+  for(const {piece, index} of pieces){
+    nextState = isEightPalaceMode(state)
+      ? applyEightPalaceCollection(nextState, piece, settlementBoard, index)
+      : applyCollection(nextState, piece);
+  }
+  return consumeStep(nextState);
 }
 
 
@@ -1007,44 +1029,15 @@ export function removeOne(
 
   }
 
-
-
-  if(target.specialOne?.kind!==SPECIAL_ONE_KINDS.KEY)return state;
-  const keyType=target.specialOne.keyType;
-  const keyRecord={foodType:keyType,value:1,parents:null,parentFoods:null};
-  const nextState={...state,eightPalaceKeys:{...state.eightPalaceKeys,[keyType]:state.eightPalaceKeys?.[keyType]??keyRecord},latestEightPalaceKey:keyRecord};
-
-
-
-  const nextBoard = [
-
-    ...nextState.board
-
-  ];
-
-
-
-  nextBoard[
-    index
-  ] =
-    null;
-
-
-
-  return {
-
-    ...nextState,
-
-    board:
-      nextBoard
-
-  };
+  // value 1 is a terminal finished dish; only sellCells may remove it.
+  return state;
 
 }
 
 export function applyFunctionOne(state,oneIndex,targetIndex){
   if(!state||state.gameOver||isEightPalaceMode(state)||oneIndex===targetIndex)return state;
   const one=getPieceAt(state,oneIndex),target=getPieceAt(state,targetIndex);
+  if(one?.value === 1) return state;
   if(one?.specialOne?.kind!==SPECIAL_ONE_KINDS.FUNCTION||!canApplyFunctionOne(target))return state;
   const board=[...state.board];
   board[oneIndex]=null;
@@ -1283,6 +1276,7 @@ export function getLegalRemoveActions(
 
 
     if(
+      state.board[index]?.value !== 1 &&
       state.board[index]?.specialOne?.kind === SPECIAL_ONE_KINDS.KEY
     ){
 
@@ -1309,7 +1303,7 @@ export function getLegalRemoveActions(
 export function getLegalApplyOneActions(state){
   if(isEightPalaceMode(state))return [];
   const actions=[];
-  for(let i=0;i<BOARD_CONFIG.SIZE;i++)if(state.board[i]?.specialOne?.kind===SPECIAL_ONE_KINDS.FUNCTION)for(let j=0;j<BOARD_CONFIG.SIZE;j++)if(canApplyFunctionOne(state.board[j]))actions.push({type:"apply_one",oneIndex:i,targetIndex:j});
+  for(let i=0;i<BOARD_CONFIG.SIZE;i++)if(state.board[i]?.value!==1&&state.board[i]?.specialOne?.kind===SPECIAL_ONE_KINDS.FUNCTION)for(let j=0;j<BOARD_CONFIG.SIZE;j++)if(canApplyFunctionOne(state.board[j]))actions.push({type:"apply_one",oneIndex:i,targetIndex:j});
   return actions;
 }
 
@@ -1364,6 +1358,7 @@ export function getLegalActions(
     ),
     ...getLegalApplyOneActions(state),
     ...getLegalSwapActions(state),
+    ...getLegalSellActions(state),
     ...getLegalFridgeStoreActions(state),
     ...getLegalFridgeRetrieveActions(state),
     ...(state.heaterCount ?? 0) > 0

@@ -4,6 +4,11 @@ export const TOOL_DURATION_MINUTES = 30;
 export const SWAP_DURATION_MINUTES = 15;
 export const REDUCE_DURATION_MINUTES = 45;
 export const REDUCE_WITH_REMOVAL_DURATION_MINUTES = 60;
+export const REDUCE_TO_FINISHED_DURATION_MINUTES = 30;
+
+export function getSellDurationMinutes(count = 0){
+  return count > 0 ? 10 + count * 10 : 0;
+}
 
 export function getCombineDurationMinutes(a, b){
   const sum = (a ?? 0) + (b ?? 0);
@@ -16,7 +21,8 @@ export function getCombineDurationMinutes(a, b){
   return 60;
 }
 
-export function getReduceDurationMinutes(removedCardCount = 0){
+export function getReduceDurationMinutes(removedCardCount = 0, createsFinishedDish = false){
+  if(createsFinishedDish) return REDUCE_TO_FINISHED_DURATION_MINUTES;
   return removedCardCount > 0 ? REDUCE_WITH_REMOVAL_DURATION_MINUTES : REDUCE_DURATION_MINUTES;
 }
 
@@ -30,11 +36,20 @@ export function getActionDurationMinutes(previousState, action, actionState){
     );
   }
   if(action.type === "reduce"){
+    const [leftIndex, rightIndex] = action.indexes ?? [];
+    const left = previousState.board?.[leftIndex];
+    const right = previousState.board?.[rightIndex];
+    const createsFinishedDish = Boolean(
+      left && right && left.value !== right.value
+      && [leftIndex, rightIndex].some(index => actionState.board?.[index]?.value === 1)
+    );
     return getReduceDurationMinutes(
-      Math.max(0, getBoardCount(previousState.board) - getBoardCount(actionState.board))
+      Math.max(0, getBoardCount(previousState.board) - getBoardCount(actionState.board)),
+      createsFinishedDish
     );
   }
   if(action.type === "swap") return SWAP_DURATION_MINUTES;
+  if(action.type === "sell") return getSellDurationMinutes(action.indexes?.length ?? 0);
   return TOOL_DURATION_MINUTES;
 }
 

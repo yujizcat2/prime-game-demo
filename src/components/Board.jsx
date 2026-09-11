@@ -38,12 +38,11 @@ export default function Board({
   selectedIndexes = [],
   functionOneIndex = null,
   heaterSelectMode = false,
+  sellMode = false,
 
   onSelectCell,
 
   onOpenDetails,
-
-  onRemoveOne,
 
   onCombine,
 
@@ -221,7 +220,7 @@ export default function Board({
           preview?.reduce?.results?.[0]
           ?? {
             value: firstResult,
-            autoCollect: firstResult === 1,
+            autoCollect: false,
             collectValue: firstResult === 1
               ? firstPiece.value
               : null,
@@ -237,7 +236,7 @@ export default function Board({
           preview?.reduce?.results?.[1]
           ?? {
             value: secondResult,
-            autoCollect: secondResult === 1,
+            autoCollect: false,
             collectValue: secondResult === 1
               ? secondPiece.value
               : null,
@@ -1066,22 +1065,6 @@ export default function Board({
               }
 
 
-              if(
-                piece?.value === 1
-              ){
-
-
-                onRemoveOne?.(
-                  index
-                );
-
-
-                return;
-
-              }
-
-
-
               onSelectCell?.(
                 index
               );
@@ -1154,6 +1137,7 @@ export default function Board({
                       : "unavailable"
                     : null
                 }
+                sellCandidate={sellMode && piece?.value === 1}
                 reducePreview={
                   reducePreview
                 }

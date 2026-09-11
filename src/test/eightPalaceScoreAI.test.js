@@ -566,7 +566,10 @@ const formalSaleAction = getLegalActions(formalSaleState).find(action =>
   action.type === "reduce" && action.indexes.includes(0) && action.indexes.includes(1)
 );
 const formalPotential = getImmediateCollectionPotential(formalSaleState, [formalSaleAction]);
-const formalSaleResult = applyAction(formalSaleState, formalSaleAction);
+const formalFinishedResult = applyAction(formalSaleState, formalSaleAction);
+assert.equal(formalFinishedResult.dayRevenue,formalSaleState.dayRevenue);
+const formalSellIndex=formalFinishedResult.board.findIndex(piece=>piece?.value===1);
+const formalSaleResult = applyAction(formalFinishedResult,{type:"sell",indexes:[formalSellIndex]});
 assert.equal(
   formalSaleResult.dayRevenue - formalSaleState.dayRevenue,
   formalPotential.bestScore,
@@ -616,7 +619,7 @@ if(firstDayRecord.closing){
   assert.equal(firstDayRecord.actions.at(-1), firstDayRecord.closing, "the overtime action is included in the day's average samples");
 }
 const firstDayCollections = dayCycleScoreGame.dayRecords[0].collectionSequence;
-assert.ok(firstDayCollections.length > 0, "daily collection telemetry remains available");
+assert.ok(Array.isArray(firstDayCollections), "daily collection telemetry remains available even before an explicit sell");
 
 const failedDayOne = resolveGameOver({
   ...createGameState(opening, {dayCycleEnabled: true}),

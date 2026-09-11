@@ -7,7 +7,7 @@ export function getLegalFridgeStoreActions(state){
   if(!state || state.fridgeBatchActive || (state.fridgeCards?.length ?? 0) > 0) return [];
   return FRIDGE_LINES.flatMap(indexes => {
     const cards = indexes.map(index => state.board?.[index]);
-    return cards.every(Boolean) && cards[0].foodType != null && cards.every(card => card.foodType === cards[0].foodType)
+    return cards.every(Boolean) && cards.every(card => card.value !== 1) && cards[0].foodType != null && cards.every(card => card.foodType === cards[0].foodType)
       ? [{type: "fridge_store", indexes: [...indexes]}]
       : [];
   });
@@ -16,7 +16,7 @@ export function getLegalFridgeStoreActions(state){
 export function getLegalFridgeRetrieveActions(state){
   if(!state || !(state.fridgeCards?.length > 0)) return [];
   const emptyIndexes = state.board.flatMap((card, index) => card ? [] : [index]);
-  return state.fridgeCards.flatMap((card, fridgeIndex) => card
+  return state.fridgeCards.flatMap((card, fridgeIndex) => card && card.value !== 1
     ? emptyIndexes.map(boardIndex => ({type: "fridge_retrieve", fridgeIndex, boardIndex}))
     : []
   );

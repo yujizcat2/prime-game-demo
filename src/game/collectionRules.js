@@ -164,15 +164,10 @@ export function getCollectionRecord(
 
 
 
-  return (
-
-    piece.origin.parent
-
-    ??
-
-    null
-
-  );
+  const parent = piece.origin.parent ?? null;
+  return parent && Number.isFinite(piece.processedAgeMinutes)
+    ? {...parent, processedAgeMinutes: piece.processedAgeMinutes, processedAt: piece.processedAt}
+    : parent;
 
 }
 

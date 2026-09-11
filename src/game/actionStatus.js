@@ -581,7 +581,7 @@ export function getActionStatus(
         item,
 
         message:
-          "消除它，获得奖励"
+          "已处理完成，等待卖出"
 
       };
 
@@ -684,7 +684,7 @@ export function getActionStatus(
           : second,
 
       message:
-        "消除它，获得奖励"
+        "已处理完成，等待卖出"
 
     };
 

@@ -7,7 +7,7 @@ import {
   getFoodName
 } from "../data/food/foodRegistry";
 import { getSpecialOneName } from "../data/specialOneRegistry";
-import { getFoodCardDisplayName, getFoodCardDisplayValue, getFoodOriginDescription } from "./foodCardDisplay";
+import { getFinishedFoodCardDisplayName, getFoodCardDisplayName, getFoodCardDisplayValue, getFoodOriginDescription } from "./foodCardDisplay";
 import { getNativeFoodType } from "../game/nativeFoodTypes";
 import { getCookingMethod } from "../game/cookingMethods";
 import { formatShelfLife, getFoodExpiryState } from "../game/foodShelfLife";
@@ -40,6 +40,7 @@ export default function BoardCell({
   removeCandidate = false,
   applyOneCandidate = false,
   heaterTargetState = null,
+  sellCandidate = false,
 
   reducePreview = null,
 
@@ -442,6 +443,7 @@ export default function BoardCell({
   // ==========================================================
 
   const foodName = getFoodCardDisplayName(piece);
+  const displayedName = getFinishedFoodCardDisplayName(piece,index);
 
 
 
@@ -458,13 +460,7 @@ export default function BoardCell({
   // 当前真实类型 class
   // ==========================================================
 
-  const typeClass =
-
-    isOne
-
-      ? "board-piece--one"
-
-      : `board-piece--${displayedFoodType ?? "default"}`;
+  const typeClass = `board-piece--${displayedFoodType ?? "default"}`;
 
 
 
@@ -591,7 +587,7 @@ export default function BoardCell({
       <button
         type="button"
         className="board-piece-info"
-        aria-label={`查看${foodName}详情`}
+        aria-label={`查看${displayedName}详情`}
         onClick={event => { event.stopPropagation(); onOpenDetails?.(piece, index); }}
       >ⓘ</button>
 
@@ -709,6 +705,8 @@ export default function BoardCell({
 
             ${typeClass}
 
+            ${isOne ? "board-piece--finished" : ""}
+
             ${mutationTargetTypeClass}
 
             ${
@@ -749,6 +747,7 @@ export default function BoardCell({
             }
 
             ${applyOneCandidate?"board-piece--apply-one-candidate":""}
+            ${sellCandidate?"board-piece--sell-candidate":""}
 
             ${animationState?.type==="remove"&&animationState.index===index?"board-piece--remove-action":""}
 
@@ -844,7 +843,7 @@ export default function BoardCell({
 
             <>
               <div className="board-piece-selected-ring" />
-              {selectionRole&&<span className={`board-piece-selection-role board-piece-selection-role--${selectionRole}`}>{selectionRole==="main"?"已选择":"搭配"}</span>}
+              {selectionRole&&!isOne&&<span className={`board-piece-selection-role board-piece-selection-role--${selectionRole}`}>{selectionRole==="main"?"已选择":"搭配"}</span>}
             </>
 
           }
@@ -856,7 +855,8 @@ export default function BoardCell({
               showCombineCandidate ||
               showReduceCandidate ||
               showRemoveCandidate ||
-              applyOneCandidate
+              applyOneCandidate ||
+              sellCandidate
             ) &&
 
             <div
@@ -872,6 +872,7 @@ export default function BoardCell({
               }
 
               {applyOneCandidate&&<span className="board-piece-candidate-marker board-piece-candidate-marker--apply-one">+1</span>}
+              {sellCandidate&&<span className="board-piece-candidate-marker board-piece-candidate-marker--remove">¥</span>}
 
               {
                 showRemoveCandidate
@@ -892,7 +893,7 @@ export default function BoardCell({
           />
 
           {
-            !isOne && displayedFoodType &&
+            displayedFoodType &&
             <span
               className="board-piece-cuisine-mark"
               aria-hidden="true"
@@ -1030,6 +1031,20 @@ export default function BoardCell({
             <span>{getSpecialOneName(piece.specialOne)}</span>
           </div>}
 
+          {isOne && <div className="board-piece-finished-status" aria-label="处理完成，等待卖出">
+            <span>处理完成</span>
+            <strong>{selected ? "已选待售" : "待售"}</strong>
+          </div>}
+
+          {isOne && <span className="board-piece-finished-mark" aria-hidden="true">✓</span>}
+
+          {isOne && piece.processedFromValue != null && (
+            <div className="board-piece-finished-origin-value">
+              <span>原值</span>
+              <strong>{piece.processedFromValue}</strong>
+            </div>
+          )}
+
           {
             !isOne &&
             <div className="board-piece-available-score">
@@ -1077,7 +1092,7 @@ export default function BoardCell({
 
             >
 
-              {foodName}
+              {displayedName}
 
             </span>
 
@@ -1231,7 +1246,6 @@ export default function BoardCell({
 
 
           {
-            !isOne &&
             displayedFoodType &&
 
             <div className="board-piece-cuisine-type">
