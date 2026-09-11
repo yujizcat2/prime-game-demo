@@ -38,7 +38,6 @@ export default function Board({
   selectedIndexes = [],
   functionOneIndex = null,
   heaterSelectMode = false,
-  sellMode = false,
 
   onSelectCell,
 
@@ -1137,7 +1136,6 @@ export default function Board({
                       : "unavailable"
                     : null
                 }
-                sellCandidate={sellMode && piece?.value === 1}
                 reducePreview={
                   reducePreview
                 }

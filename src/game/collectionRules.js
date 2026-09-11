@@ -66,10 +66,7 @@ export function isCollectibleFoodType(
 // Simulation 收藏 Key
 // ============================================================
 
-export function getSimulationCollectionKey(
-  value,
-  foodType
-){
+export function getCollectionUniqueKey(foodType,value){
 
 
   if(
@@ -86,8 +83,12 @@ export function getSimulationCollectionKey(
 
 
 
-  return `${value}:${foodType}`;
+  return `${foodType}:${value}`;
 
+}
+
+export function getSimulationCollectionKey(value,foodType){
+  return getCollectionUniqueKey(foodType,value);
 }
 
 
@@ -1558,7 +1559,7 @@ function createConcreteParentSnapshots(record){
 }
 
 function getEightPalaceCollectionKey(record){
-  return `${record?.foodType ?? "default"}:${record?.value ?? ""}`;
+  return getCollectionUniqueKey(record?.foodType,record?.value);
 }
 
 export function getEightPalaceCollectionScoreGain(state, piece, collectionRewardLevel = piece?.collectionRewardLevel){
@@ -1609,7 +1610,7 @@ export function applyEightPalaceCollection(
   const value = record.value;
   const collectionKey = getEightPalaceCollectionKey(record);
   const alreadyCollected = (state.collectionCards ?? []).some(card =>
-    (card.collectionKey ?? getEightPalaceCollectionKey(card)) === collectionKey
+    getEightPalaceCollectionKey(card) === collectionKey
   );
   const isNewCollection = !alreadyCollected;
   const sequenceIndex = getCuisineSequenceIndex(state.collectionCards, record.foodType);

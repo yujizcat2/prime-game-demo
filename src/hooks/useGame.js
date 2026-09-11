@@ -18,7 +18,7 @@ import {
   getPrimeState
 } from "../game/primeStatus";
 
-import { getNextSelectionIndexes, getNextSellSelectionIndexes } from "../game/selection";
+import { getNextSelectionIndexes } from "../game/selection";
 import { canUseHeater } from "../game/heater";
 import { canUseSuperHeater } from "../game/superHeater";
 
@@ -41,7 +41,7 @@ import {
 
 } from "../game/gameEngine";
 import { advanceToNextDay, getDayPeriod, getDayStep, getDayTime, getWeekday } from "../game/dayCycle";
-import { getCombineDurationMinutes, getReduceDurationMinutes, getSellDurationMinutes } from "../game/actionDuration";
+import { getCombineDurationMinutes, getReduceDurationMinutes } from "../game/actionDuration";
 import { getLegalFridgeStoreActions } from "../game/fridge";
 
 
@@ -96,7 +96,6 @@ export default function useGame(){
   ] = useState(null);
 
   const [selectedFridgeIndex, setSelectedFridgeIndex] = useState(null);
-  const [sellMode, setSellMode] = useState(false);
 
 
   // ==========================================================
@@ -582,30 +581,6 @@ export default function useGame(){
     }
 
 
-    if(sellMode){
-      if(target.value !== 1) return false;
-      const next=getNextSellSelectionIndexes(selectedIndexes,index);
-      setSelectedIndexes(next);
-      if(next.length===0)setSellMode(false);
-      return true;
-    }
-
-    // 完成品 1 不进入普通选择逻辑
-    if(
-      target.value ===
-      1
-    ){
-
-
-      setSelectedIndexes([index]);
-      setFunctionOneIndex(null);
-      setSelectedFridgeIndex(null);
-      setSellMode(true);
-      return true;
-
-    }
-
-
     setSelectedIndexes(getNextSelectionIndexes(selectedIndexes,index));
     return true;
 
@@ -615,35 +590,10 @@ export default function useGame(){
     setSelectedIndexes([]);
     setFunctionOneIndex(null);
     setSelectedFridgeIndex(null);
-    setSellMode(false);
-  }
-
-  function startSellMode(){
-    if(!gameState || gameOver || !gameState.board.some(piece => piece?.value === 1)) return false;
-    setSelectedIndexes([]);
-    setFunctionOneIndex(null);
-    setSelectedFridgeIndex(null);
-    setSellMode(true);
-    return true;
-  }
-
-  function sellSelected(){
-    if(!gameState || !sellMode || selectedIndexes.length === 0) return false;
-    const nextState=applyAction(gameState,{type:"sell",indexes:[...selectedIndexes]});
-    if(nextState===gameState)return false;
-    const rewards=nextState.latestCollectionRewards ?? [];
-    const collectionEvents=(nextState.collectionTimeline ?? []).slice(-rewards.length);
-    setGameState(nextState);
-    setSelectedIndexes([]);
-    setSellMode(false);
-    return {
-      durationMinutes:getSellDurationMinutes(selectedIndexes.length),
-      collectionRewards:rewards.map((reward,index)=>({...reward,isNewCollection:collectionEvents[index]?.isNewCollection}))
-    };
   }
 
   function storeInFridge(indexes){
-    if(!gameState || sellMode) return false;
+    if(!gameState) return false;
     const nextState = applyAction(gameState, {type: "fridge_store", indexes});
     if(nextState === gameState) return false;
     setGameState(nextState);
@@ -652,7 +602,7 @@ export default function useGame(){
   }
 
   function selectFridgeCard(index){
-    if(sellMode || !gameState?.fridgeCards?.[index] || !board.some(piece => !piece)) return false;
+    if(!gameState?.fridgeCards?.[index] || !board.some(piece => !piece)) return false;
     setSelectedIndexes([]);
     setFunctionOneIndex(null);
     setSelectedFridgeIndex(current => current === index ? null : index);
@@ -660,7 +610,7 @@ export default function useGame(){
   }
 
   function useHeaterOnCell(index){
-    if(!gameState || sellMode) return null;
+    if(!gameState) return null;
     const nextState = applyAction(gameState, {type: "heater", indexes: [index]});
     if(nextState === gameState) return null;
     setGameState(nextState);
@@ -669,7 +619,7 @@ export default function useGame(){
   }
 
   function useSuperHeater(){
-    if(!gameState || sellMode) return null;
+    if(!gameState) return null;
     const nextState = applyAction(gameState, {type: "super_heater"});
     if(nextState === gameState) return null;
     setGameState(nextState);
@@ -678,7 +628,7 @@ export default function useGame(){
   }
 
   function swapSelectedCells(){
-    if(!gameState||sellMode)return false;
+    if(!gameState)return false;
     if(selectedIndexes.length!==2)return false;
     const [indexA,indexB]=selectedIndexes;
     const nextState=applyAction(gameState,{type:"swap",indexes:[indexA,indexB]});
@@ -1442,8 +1392,6 @@ export default function useGame(){
     fridgeCards: gameState?.fridgeCards ?? [],
     fridgeStoreActions: gameState ? getLegalFridgeStoreActions(gameState) : [],
     selectedFridgeIndex,
-    sellMode,
-    sellMinutes: getSellDurationMinutes(selectedIndexes.length),
 
     numbers,
 
@@ -1556,8 +1504,6 @@ export default function useGame(){
     startGame,
 
     selectCell,
-    startSellMode,
-    sellSelected,
 
     clearSelection,
     storeInFridge,

@@ -40,7 +40,6 @@ export default function BoardCell({
   removeCandidate = false,
   applyOneCandidate = false,
   heaterTargetState = null,
-  sellCandidate = false,
 
   reducePreview = null,
 
@@ -747,7 +746,6 @@ export default function BoardCell({
             }
 
             ${applyOneCandidate?"board-piece--apply-one-candidate":""}
-            ${sellCandidate?"board-piece--sell-candidate":""}
 
             ${animationState?.type==="remove"&&animationState.index===index?"board-piece--remove-action":""}
 
@@ -855,8 +853,7 @@ export default function BoardCell({
               showCombineCandidate ||
               showReduceCandidate ||
               showRemoveCandidate ||
-              applyOneCandidate ||
-              sellCandidate
+              applyOneCandidate
             ) &&
 
             <div
@@ -872,7 +869,6 @@ export default function BoardCell({
               }
 
               {applyOneCandidate&&<span className="board-piece-candidate-marker board-piece-candidate-marker--apply-one">+1</span>}
-              {sellCandidate&&<span className="board-piece-candidate-marker board-piece-candidate-marker--remove">¥</span>}
 
               {
                 showRemoveCandidate

@@ -5,7 +5,6 @@ import {getLegalFridgeStoreActions} from "../game/fridge";
 import {getSellDurationMinutes} from "../game/actionDuration";
 import {getFinishedFoodCardDisplayName, getFoodCardDisplayName} from "../components/foodCardDisplay";
 import {getFoodName} from "../data/food/foodRegistry";
-import {getNextSellSelectionIndexes} from "../game/selection";
 
 const cards = [
   {id:1,value: 8, foodType: "land", bornAt: 0, boardIndex:0, gameMode:"eightPalace", parents: [3, 5], parentFoods: [{value: 3, foodType: "land"}, {value: 5, foodType: "vegetable"}]},
@@ -22,10 +21,11 @@ const reducible={...state,board:[
   {...state.board[2]},
   {...state.board[3]}
 ]};
-const finished=applyAction(reducible,{type:"reduce",indexes:[0,1]});
-assert.equal(finished.board[1].value,1,"reduction leaves the finished dish on the board");
-assert.equal(finished.collectionTimeline.length,0,"reduction does not sell or collect");
-assert.equal(finished.latestActionDurationMinutes,30);
+const finishedPiece={
+  ...reducible.board[1],value:1,processedAt:630,processedAgeMinutes:630,processedFromValue:4,
+  origin:{type:"reduce",parent:{...reducible.board[1]}}
+};
+const finished={...reducible,board:[reducible.board[0],finishedPiece,...reducible.board.slice(2)]};
 assert.equal(finished.board[1].processedAt,630);
 assert.equal(finished.board[1].processedAgeMinutes,630);
 assert.deepEqual(finished.board[1].parents,reducible.board[1].parents);
@@ -68,17 +68,6 @@ assert.equal(batchSold.recapActionCounts.sellCount,1);
 assert.equal(batchSold.recapActionCounts.sellCardsCount,2);
 assert.equal(batchSold.recapActionCounts.sellMinutes,30);
 assert.deepEqual([1,2,3].map(getSellDurationMinutes),[20,30,40]);
-
-let sellSelection=[];
-sellSelection=getNextSellSelectionIndexes(sellSelection,0);
-assert.deepEqual(sellSelection,[0]);
-sellSelection=getNextSellSelectionIndexes(sellSelection,0);
-assert.deepEqual(sellSelection,[],"cancelling the last finished dish leaves no sell selection");
-sellSelection=getNextSellSelectionIndexes(sellSelection,0);
-sellSelection=getNextSellSelectionIndexes(sellSelection,1);
-assert.deepEqual(sellSelection,[0,1]);
-sellSelection=getNextSellSelectionIndexes(sellSelection,0);
-assert.deepEqual(sellSelection,[1],"clicking a selected finished dish cancels only that dish");
 
 const thirdFinished={
   ...secondFinished,

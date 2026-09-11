@@ -33,7 +33,7 @@ import {
 } from "../game/combineHistory";
 import { getNativeFoodType, getReductionFoodTypes } from "../game/nativeFoodTypes";
 import { canSwapCells, createReduceOutcome, getCombinedResultIdentity } from "../game/gameActions";
-import { applyCollection } from "../game/collectionRules";
+import { applyCollection, getCollectionUniqueKey } from "../game/collectionRules";
 import { applyHeaterIncrement, isHeaterTarget } from "../game/heater";
 import { getCombineDurationMinutes, getReduceDurationMinutes, getSellDurationMinutes, SWAP_DURATION_MINUTES, TOOL_DURATION_MINUTES } from "../game/actionDuration";
 import { getFoodAgeMinutes, isFoodExpired } from "../game/foodShelfLife";
@@ -1844,7 +1844,7 @@ export function applySimulationAction(
       if(indexes.length===0||indexes.some(index=>state.board?.[index]?.value!==1))break;
       const events=indexes.map(index=>{
         const piece=state.board[index];
-        const key=`${piece.previousValue??piece.origin?.parent?.value}:${piece.foodType}`;
+        const key=getCollectionUniqueKey(piece.foodType,piece.previousValue??piece.origin?.parent?.value);
         return {foodType:piece.foodType,key,repeated:state.collection.has(key),expired:false};
       });
       indexes.forEach(index=>{state.board[index]=null;});

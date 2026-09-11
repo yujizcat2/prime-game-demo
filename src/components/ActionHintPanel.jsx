@@ -118,6 +118,22 @@ function PairHint({status,keyOutcome,preview}){
     );
   }
 
+  const terminalSale = canReduce
+    && preview?.reduce?.kind !== "equalEliminate"
+    && preview?.reduce?.results?.some(result => result?.value === 1 || result?.clear === true);
+  if(terminalSale){
+    return (
+      <div className="cooking-hint cooking-hint--pair cooking-hint--combine-detail">
+        <div className="cooking-hint__dish cooking-hint__dish--pair-detail">
+          <strong>即将售出</strong>
+          <span><b>{firstName} {first.value}</b> 与 <b>{secondName} {second.value}</b></span>
+          <span>处理后进入终态，对应料理将直接离开料理台</span>
+        </div>
+        <div className="cooking-hint__next"><small>售出</small><span>不会在棋盘上留下 1。</span></div>
+      </div>
+    );
+  }
+
   if(canCombine&&preview?.combine){
     const result=preview.combine;
     const resultName=getFoodName(result.value,result.foodType);

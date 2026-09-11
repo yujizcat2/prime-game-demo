@@ -5,10 +5,3 @@ export function getNextSelectionIndexes(selectedIndexes,index){
   if(selected.length===0)return [index];
   return [selected[0],index];
 }
-
-export function getNextSellSelectionIndexes(selectedIndexes,index){
-  const selected=Array.isArray(selectedIndexes)?selectedIndexes:[];
-  return selected.includes(index)
-    ? selected.filter(selectedIndex=>selectedIndex!==index)
-    : [...selected,index];
-}

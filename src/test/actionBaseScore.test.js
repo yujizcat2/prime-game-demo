@@ -41,6 +41,9 @@ assert.equal(reduced.comboCount, 0);
 assert.equal(reduced.comboBonusTotal, 0);
 assert.equal(getReduceButtonLabel([], null), "处理");
 assert.equal(getReduceButtonLabel([0], null), "处理");
+assert.equal(getReduceButtonLabel([0,1], {reduce:{kind:"reduce",results:[{value:2},{value:1,clear:true}]}}), "售出");
+assert.equal(getReduceButtonLabel([0,1], {reduce:{kind:"reduce",results:[{value:2},{value:5}]}}), "处理");
+assert.equal(getReduceButtonLabel([0,1], {reduce:{kind:"equalEliminate",results:[{clear:true},{clear:true}]}}), "处理");
 assert.equal(doesReduceCreateEffectiveSale(reduceState, [0, 1]), false);
 assert.equal(
   getReduceButtonLabel([0, 1], {reduce: {createsEffectiveSale: false}}),

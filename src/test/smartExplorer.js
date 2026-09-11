@@ -271,24 +271,8 @@ function parseCollectionKey(
 
 
 
-  const value =
-
-    Number(
-
-      key.slice(
-        0,
-        separatorIndex
-      )
-
-    );
-
-
-
-  const foodType =
-
-    key.slice(
-      separatorIndex + 1
-    );
+  const foodType = key.slice(0,separatorIndex);
+  const value = Number(key.slice(separatorIndex+1));
 
 
 
