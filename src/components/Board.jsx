@@ -19,7 +19,7 @@ import {
 
 import BoardCell from "./BoardCell";
 import { getCombinePreviewPlacement } from "../game/combinePreview";
-import { getEightPalaceCollectionBaseSalePrice } from "../game/collectionRules";
+import { getCollectionUniqueKey, getEightPalaceCollectionBaseSalePrice } from "../game/collectionRules";
 
 import "./Board.css";
 
@@ -70,6 +70,12 @@ export default function Board({
   clearedCells = [],
 
 }) {
+
+  const collectedFoodKeys = new Set(
+    collectionCards
+      .map(card => getCollectionUniqueKey(card?.foodType, card?.value))
+      .filter(Boolean)
+  );
 
 
   const cells =
@@ -922,20 +928,8 @@ export default function Board({
 
 
 
-            const discovered =
-
-              piece?.value !==
-              undefined
-
-              &&
-
-              piece.value !== 1
-
-              &&
-
-              collection.includes(
-                piece.value
-              );
+            const collectionKey = getCollectionUniqueKey(piece?.foodType, piece?.value);
+            const isCollected = collectionKey !== null && collectedFoodKeys.has(collectionKey);
 
 
 
@@ -1105,7 +1099,7 @@ export default function Board({
 
                 scoreMode={scoreMode}
 
-                availableScore={availableScore}
+                availableScore={isCollected && availableScore !== null ? 0 : availableScore}
 
                 selected={
                   isSelected
@@ -1152,9 +1146,7 @@ export default function Board({
                   scorePreview
                 }
 
-                discovered={
-                  discovered
-                }
+                isCollected={isCollected}
 
                 removing={
                   removing

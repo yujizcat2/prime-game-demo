@@ -46,6 +46,7 @@ export default function BoardCell({
   mutationPreview = null,
 
   isNewDiscovery = false,
+  isCollected = false,
 
   scorePreview = null,
 
@@ -705,6 +706,8 @@ export default function BoardCell({
 
             ${isOne ? "board-piece--finished" : ""}
 
+            ${isCollected ? "is-collected" : ""}
+
             ${mutationTargetTypeClass}
 
             ${
@@ -880,6 +883,10 @@ export default function BoardCell({
 
           }
 
+          {isCollected && (
+            <span className="board-piece-collected-mark" aria-label="已收藏">✓</span>
+          )}
+
 
           <div
             className="
@@ -1043,7 +1050,7 @@ export default function BoardCell({
           {
             !isOne &&
             <div className="board-piece-available-score">
-              {scoreMode ? `+${availableScore}分` : null}
+              {scoreMode ? `+${availableScore}` : null}
               {scoreMode && piece.singleFlavorPenalty === true && (
                 <span className="board-piece-single-flavor">风味单一</span>
               )}
