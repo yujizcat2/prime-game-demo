@@ -2,18 +2,23 @@
   position: absolute;
   inset: 0;
   z-index: 13;
-  display: grid;
-  place-items: center;
-  padding: 14px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: 12px;
   pointer-events: none;
 }
 
 .collection-sale-toast {
   position: relative;
   box-sizing: border-box;
-  width: min(340px, 100%);
+  display: grid;
+  width: min(300px, 100%);
+  grid-template-columns: minmax(90px, .8fr) minmax(130px, 1.2fr);
+  align-items: center;
+  column-gap: 18px;
   overflow: hidden;
-  padding: 23px 28px 22px;
+  padding: 16px 18px;
   border: 1px solid rgba(226, 244, 226, .72);
   border-radius: 22px;
   background: linear-gradient(145deg, rgba(47, 69, 53, .97), rgba(34, 49, 39, .98));
@@ -34,11 +39,11 @@
 }
 
 .collection-sale-toast > * { position: relative; display: block; }
-.collection-sale-toast__name { color: rgba(239,247,240,.82); font-size: 14px; font-weight: 800; letter-spacing: .01em; }
-.collection-sale-toast__revenue { margin-top: 8px; font-size: 48px; font-weight: 950; letter-spacing: -.045em; line-height: .98; text-shadow: 0 3px 14px rgba(0,0,0,.16); animation: collection-sale-toast-number 1.2s both; }
-.collection-sale-toast__revenue-label { margin-top: 5px; color: rgba(232,243,233,.72); font-size: 12px; font-weight: 800; letter-spacing: .16em; }
-.collection-sale-toast__breakdown { margin-top: 14px; color: rgba(239,247,240,.72); font-size: 12px; font-weight: 700; }
-.collection-sale-toast__points { margin-top: 8px; color: #e7f6d5; font-size: 15px; font-style: normal; font-weight: 900; }
+.collection-sale-toast__name { grid-column: 1 / -1; margin-bottom: 8px; color: rgba(239,247,240,.82); font-size: 13px; font-weight: 800; letter-spacing: .01em; }
+.collection-sale-toast__revenue { grid-column: 1; grid-row: 2 / span 2; font-size: 42px; font-weight: 950; letter-spacing: -.045em; line-height: .98; text-shadow: 0 3px 14px rgba(0,0,0,.16); animation: collection-sale-toast-number 1.2s both; }
+.collection-sale-toast__revenue-label { grid-column: 1; grid-row: 4; margin-top: 3px; color: rgba(232,243,233,.72); font-size: 11px; font-weight: 800; letter-spacing: .16em; }
+.collection-sale-toast__breakdown { grid-column: 2; grid-row: 2; color: rgba(239,247,240,.72); font-size: 11px; font-weight: 700; white-space: nowrap; }
+.collection-sale-toast__points { grid-column: 2; grid-row: 3 / span 2; margin-top: 7px; color: #e7f6d5; font-size: 15px; font-style: normal; font-weight: 900; }
 
 @keyframes collection-sale-toast-life {
   0% { opacity: 0; transform: translateY(10px) scale(.9); }
@@ -60,8 +65,9 @@
 }
 
 @media (max-width: 420px) {
-  .collection-sale-toast { width: min(320px, 100%); padding: 20px 20px 19px; border-radius: 19px; }
-  .collection-sale-toast__revenue { font-size: 43px; }
+  .collection-sale-toast-layer { justify-content: center; padding: 8px; }
+  .collection-sale-toast { width: min(292px, 100%); padding: 14px 16px; border-radius: 18px; column-gap: 13px; }
+  .collection-sale-toast__revenue { font-size: 38px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
