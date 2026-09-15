@@ -53,7 +53,6 @@ import { isHeaterTarget } from "./heater";
 import { getFoodTypeForPosition, getReductionFoodTypes } from "./nativeFoodTypes";
 import { getReduceDurationMinutes } from "./actionDuration";
 import { getFoodAgeMinutes } from "./foodShelfLife";
-import { getLegalFridgeRetrieveActions, getLegalFridgeStoreActions } from "./fridge";
 import { updateMergeHistoryByIdentity } from "./mergeHistory";
 
 import {
@@ -256,27 +255,22 @@ export function canReduceCells(
 
 export function canSwapCells(state,indexA,indexB){
   const first=state?.board?.[indexA],second=state?.board?.[indexB];
-  const pair=first?.id!=null&&second?.id!=null?[first.id,second.id].sort((a,b)=>String(a).localeCompare(String(b))):null;
-  const locked=pair&&Array.isArray(state.lastSwappedCardIds)
-    && pair.length===state.lastSwappedCardIds.length
-    && pair.every((id,index)=>id===state.lastSwappedCardIds[index]);
   return Boolean(
     state && !state.gameOver
+    && (state.swapUsesRemaining ?? 0) > 0
     && areOrthogonallyAdjacent(indexA,indexB)
     && first
     && second
     && first.value !== 1
     && second.value !== 1
-    && !locked
   );
 }
 
 export function swapCells(state,indexA,indexB){
   if(!canSwapCells(state,indexA,indexB))return state;
   const board=[...state.board];
-  const lastSwappedCardIds=[board[indexA].id,board[indexB].id].sort((a,b)=>String(a).localeCompare(String(b)));
   [board[indexA],board[indexB]]=[board[indexB],board[indexA]];
-  return consumeStep({...state,board,lastSwappedCardIds});
+  return consumeStep({...state,board,swapUsesRemaining:(state.swapUsesRemaining ?? 0)-1});
 }
 
 export function createReduceOutcome(state,indexA,indexB){
@@ -1369,8 +1363,6 @@ export function getLegalActions(
     ...getLegalApplyOneActions(state),
     ...getLegalSwapActions(state),
     ...getLegalSellActions(state),
-    ...getLegalFridgeStoreActions(state),
-    ...getLegalFridgeRetrieveActions(state),
     ...(state.heaterCount ?? 0) > 0
       ? state.board.flatMap((piece, index) => isHeaterTarget(piece) ? [{type: "heater", indexes: [index]}] : [])
       : [],

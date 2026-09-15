@@ -42,7 +42,6 @@ import {
 } from "../game/gameEngine";
 import { advanceToNextDay, getDayPeriod, getDayStep, getDayTime, getWeekday } from "../game/dayCycle";
 import { getCombineDurationMinutes, getReduceDurationMinutes } from "../game/actionDuration";
-import { getLegalFridgeStoreActions } from "../game/fridge";
 
 
 export default function useGame(){
@@ -95,7 +94,6 @@ export default function useGame(){
     setFunctionOneIndex
   ] = useState(null);
 
-  const [selectedFridgeIndex, setSelectedFridgeIndex] = useState(null);
 
 
   // ==========================================================
@@ -127,7 +125,6 @@ export default function useGame(){
     setSelectedIndexes(
       []
     );
-    setSelectedFridgeIndex(null);
 
 
 
@@ -510,17 +507,6 @@ export default function useGame(){
         index
       );
 
-    if(selectedFridgeIndex !== null){
-      if(target) return false;
-      const nextState = applyAction(gameState, {type: "fridge_retrieve", fridgeIndex: selectedFridgeIndex, boardIndex: index});
-      if(nextState === gameState) return false;
-      setGameState(nextState);
-      setSelectedFridgeIndex(null);
-      setSelectedIndexes([]);
-      return true;
-    }
-
-
     // 空格不能选择
     if(
       !target
@@ -589,24 +575,6 @@ export default function useGame(){
   function clearSelection(){
     setSelectedIndexes([]);
     setFunctionOneIndex(null);
-    setSelectedFridgeIndex(null);
-  }
-
-  function storeInFridge(indexes){
-    if(!gameState) return false;
-    const nextState = applyAction(gameState, {type: "fridge_store", indexes});
-    if(nextState === gameState) return false;
-    setGameState(nextState);
-    clearSelection();
-    return true;
-  }
-
-  function selectFridgeCard(index){
-    if(!gameState?.fridgeCards?.[index] || !board.some(piece => !piece)) return false;
-    setSelectedIndexes([]);
-    setFunctionOneIndex(null);
-    setSelectedFridgeIndex(current => current === index ? null : index);
-    return true;
   }
 
   function useHeaterOnCell(index){
@@ -627,11 +595,20 @@ export default function useGame(){
     return nextState.latestSuperHeaterUse;
   }
 
-  function swapSelectedCells(){
+  function swapSelectedCells(explicitIndexes = selectedIndexes){
     if(!gameState)return false;
-    if(selectedIndexes.length!==2)return false;
-    const [indexA,indexB]=selectedIndexes;
+    if(explicitIndexes.length!==2)return false;
+    const [indexA,indexB]=explicitIndexes;
     const nextState=applyAction(gameState,{type:"swap",indexes:[indexA,indexB]});
+    if(nextState===gameState)return false;
+    setGameState(nextState);
+    clearSelection();
+    return true;
+  }
+
+  function sellSelectedCell(){
+    if(!gameState || selectedIndexes.length!==1)return false;
+    const nextState=applyAction(gameState,{type:"sell",indexes:[selectedIndexes[0]]});
     if(nextState===gameState)return false;
     setGameState(nextState);
     clearSelection();
@@ -1389,9 +1366,6 @@ export default function useGame(){
 
     // 棋盘
     board,
-    fridgeCards: gameState?.fridgeCards ?? [],
-    fridgeStoreActions: gameState ? getLegalFridgeStoreActions(gameState) : [],
-    selectedFridgeIndex,
 
     numbers,
 
@@ -1450,6 +1424,7 @@ export default function useGame(){
     heaterAvailable,
     superHeaterCount,
     superHeaterAvailable,
+    swapUsesRemaining: gameState?.swapUsesRemaining ?? 0,
     // 分数 / 时间
     score,
     dayRevenue,
@@ -1507,12 +1482,10 @@ export default function useGame(){
     selectCell,
 
     clearSelection,
-    storeInFridge,
-    selectFridgeCard,
-
     useHeaterOnCell,
     useSuperHeater,
     swapSelectedCells,
+    sellSelectedCell,
     startNextDay,
 
     combineNumbers,

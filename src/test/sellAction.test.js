@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import {applyAction, canSwapCells, createGameState, getLegalActions} from "../game/gameEngine";
 import {getFoodExpiryState} from "../game/foodShelfLife";
-import {getLegalFridgeStoreActions} from "../game/fridge";
 import {getSellDurationMinutes} from "../game/actionDuration";
 import {getFinishedFoodCardDisplayName, getFoodCardDisplayName} from "../components/foodCardDisplay";
 import {getFoodName} from "../data/food/foodRegistry";
@@ -39,7 +38,6 @@ assert.equal(canSwapCells(finished,0,1),false);
 
 const muchLater={...finished,totalActionMinutes:3000,dayMinutesElapsed:3000,gameOver:false};
 assert.equal(getFoodExpiryState(muchLater.board[1],muchLater).ageMinutes,630,"finished shelf life is frozen");
-assert.equal(getLegalFridgeStoreActions({...muchLater,board:[muchLater.board[1],muchLater.board[1],muchLater.board[1],...muchLater.board.slice(3)]}).length,0);
 
 const sold=applyAction({...muchLater,dayMinutesElapsed:600},{type:"sell",indexes:[1]});
 assert.equal(sold.board[1],null);

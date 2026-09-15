@@ -206,7 +206,6 @@ function createDayRecords(openings, actionSnapshots, dayHistory, finalDay){
 
 function getActionKey(action){
   if(action.type === "apply_one") return `${action.type}:${action.oneIndex}:${action.targetIndex}`;
-  if(action.type === "fridge_retrieve") return `${action.type}:${action.fridgeIndex}:${action.boardIndex}`;
   if(action.index !== undefined) return `${action.type}:${action.index}`;
   return `${action.type}:${(action.indexes ?? []).join("-")}`;
 }
@@ -236,8 +235,7 @@ function getStateKey(state){
     comboBonusTotal: state.comboBonusTotal ?? 0,
     heaterCount: state.heaterCount ?? 0,
     superHeaterCount: state.superHeaterCount ?? 0,
-    fridgeCards: (state.fridgeCards ?? []).map(card => card ? [card.id, card.value, card.foodType] : null),
-    fridgeBatchActive: state.fridgeBatchActive === true,
+    swapUsesRemaining: state.swapUsesRemaining ?? 0,
     collectionCards: (state.collectionCards ?? []).map(card => [card.value, card.foodType]).sort(),
     combineHistoryKeys: Object.keys(state.combineHistoryKeys ?? {}).sort(),
     mergeHistoryByIdentity: Object.entries(state.mergeHistoryByIdentity ?? {}).sort(([left],[right])=>left.localeCompare(right)),

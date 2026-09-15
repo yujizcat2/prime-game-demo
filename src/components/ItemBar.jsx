@@ -8,7 +8,11 @@ export default function ItemBar({
   onHeaterClick,
   superHeaterCount = 0,
   superHeaterAvailable = false,
-  onSuperHeaterClick
+  onSuperHeaterClick,
+  swapUsesRemaining = 0,
+  swapActive = false,
+  swapAvailable = false,
+  onSwapClick
 }){
   const [open, setOpen] = useState(false);
   const menuRef = useRef(null);
@@ -37,7 +41,20 @@ export default function ItemBar({
     setOpen(false);
   }
 
+  function handleSwapClick(){
+    onSwapClick?.();
+    setOpen(false);
+  }
+
   const items = [{
+    id: "swap",
+    name: "交换",
+    effect: "相邻卡 · 15分钟",
+    count: swapUsesRemaining,
+    active: swapActive,
+    disabled: !swapActive && !swapAvailable,
+    onClick: handleSwapClick
+  }, {
     id: "heater",
     name: "加热器",
     effect: "+1",
@@ -59,13 +76,13 @@ export default function ItemBar({
     <div className="item-bar" ref={menuRef} aria-label="道具栏">
       <button
         type="button"
-        className={`item-bar-trigger${heaterActive ? " item-bar-trigger--active" : ""}`}
+        className={`item-bar-trigger${heaterActive || swapActive ? " item-bar-trigger--active" : ""}`}
         aria-expanded={open}
         aria-haspopup="menu"
         onClick={() => setOpen(current => !current)}
       >
         道具
-        {heaterActive && <span>选择中</span>}
+        {(heaterActive || swapActive) && <span>{swapActive ? `交换 ×${swapUsesRemaining}` : "选择中"}</span>}
       </button>
 
       {open && <div className="item-bar-menu" role="menu" aria-label="可使用道具">
@@ -82,7 +99,9 @@ export default function ItemBar({
           <span className="item-bar-count">×{item.count}</span>
         </button>)}
         <div className={`item-bar-status${heaterAvailable || superHeaterAvailable || heaterActive ? " item-bar-status--ready" : ""}`}>
-          {heaterActive
+          {swapActive
+            ? "依次选择两张正交相邻的料理"
+            : heaterActive
             ? "选择一道料理进行加热"
             : heaterAvailable || superHeaterAvailable
               ? "可使用"

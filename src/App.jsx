@@ -23,7 +23,6 @@ import ActionToast from "./components/ActionToast";
 import CollectionSaleToast from "./components/CollectionSaleToast";
 import BoardTypeTotals from "./components/BoardTypeTotals";
 import ItemBar from "./components/ItemBar";
-import Fridge from "./components/Fridge";
 import SelectionBar from "./components/SelectionBar";
 import FoodDetailModal from "./components/FoodDetailModal";
 
@@ -34,7 +33,6 @@ import {
 } from "./game/activityStatus";
 
 import { FOOD_TYPE_LABELS } from "./data/specialOneRegistry";
-import { getActionStatus } from "./game/actionStatus";
 import { getNonDrinkBoardSum } from "./game/scoreValue";
 import { playSound } from "./audio/sound";
 
@@ -69,7 +67,7 @@ function App(){
   const [actionToast,setActionToast] = useState(null);
   const [collectionRewardQueue,setCollectionRewardQueue] = useState([]);
   const [heaterSelectMode,setHeaterSelectMode] = useState(false);
-  const [showFridge,setShowFridge] = useState(false);
+  const [swapSelectMode,setSwapSelectMode] = useState(false);
   const [foodDetail,setFoodDetail] = useState(null);
 
   const animationTimersRef = useRef([]);
@@ -110,11 +108,16 @@ function App(){
     setHeaterSelectMode(true);
   }
 
-  function handleSwap(){
-    const indexes=[...game.selectedIndexes];
-    if(!game.canSwapSelected||!game.swapSelectedCells())return;
-    beginInstantAnimation({type:"swap",indexes,sourceIndexes:indexes,targetIndexes:indexes},320);
-    showActionToast("交换完成","消耗 15 分钟");
+  function toggleSwapMode(){
+    if(swapSelectMode){
+      setSwapSelectMode(false);
+      game.clearSelection();
+      return;
+    }
+    if(game.swapUsesRemaining<=0)return;
+    setHeaterSelectMode(false);
+    game.clearSelection();
+    setSwapSelectMode(true);
   }
 
   function handleSuperHeater(){
@@ -342,21 +345,6 @@ function App(){
     );
 
   }
-
-  function handleBlockedCombine(){
-    const status=getActionStatus(
-      game.numbers,
-      game.selectedNumbers.map(item=>item.id),
-      game.combineHistoryKeys
-    );
-    if(status.type!=="pair"||status.combine.allowed)return;
-    if(status.combine.reason==="这组料理本局已经搭配过"){
-      showActionToast("已经搭配过","换一种组合试试");
-      return;
-    }
-    showActionToast("暂时无法搭配",status.combine.reason);
-  }
-
 
   // ==========================================================
   // 约分
@@ -613,7 +601,29 @@ function App(){
 
 
   function handleSelectCell(index){
+    if(swapSelectMode){
+      if(game.selectedIndexes.length===0){
+        if(game.selectCell(index))playSound("click");
+        return;
+      }
+      const indexes=[game.selectedIndexes[0],index];
+      if(game.swapSelectedCells(indexes)){
+        playSound("click");
+        beginInstantAnimation({type:"swap",indexes,sourceIndexes:indexes,targetIndexes:indexes},320);
+        showActionToast("交换完成",`剩余 ${game.swapUsesRemaining-1} 次 · 消耗 15 分钟`);
+        setSwapSelectMode(false);
+      }
+      return;
+    }
     if(game.selectCell(index)) playSound("click");
+  }
+
+  function handleSellOrProcess(){
+    if(game.selectedIndexes.length===1){
+      if(game.sellSelectedCell())showActionToast("售出完成","料理已售出");
+      return;
+    }
+    handleReduce();
   }
 
 
@@ -826,14 +836,10 @@ function App(){
                   selected={selectedIdsForLegacyUI}
                   preview={game.preview}
                   onCombine={handleCombine}
-                  onBlockedCombine={handleBlockedCombine}
-                  onReduce={handleReduce}
-                  onSwap={handleSwap}
-                  canSwap={!game.gameOver&&!game.daySettlement&&game.canSwapSelected}
-                  onFridge={() => setShowFridge(true)}
-                  fridgeCount={game.fridgeCards.length}
-                  fridgeActionCount={game.fridgeStoreActions.length}
-                  gameOver={game.gameOver || Boolean(game.daySettlement) || heaterSelectMode}
+                  onSellOrProcess={handleSellOrProcess}
+                  canSellSelected={game.selectedIndexes.length===1&&game.board[game.selectedIndexes[0]]?.value===1}
+                  itemEntry={<ItemBar heaterCount={game.heaterCount} heaterAvailable={game.heaterAvailable && !game.daySettlement} heaterActive={heaterSelectMode} onHeaterClick={toggleHeaterMode} superHeaterCount={game.superHeaterCount} superHeaterAvailable={game.superHeaterAvailable && !game.daySettlement} onSuperHeaterClick={handleSuperHeater} swapUsesRemaining={game.swapUsesRemaining} swapActive={swapSelectMode} swapAvailable={!game.gameOver&&!game.daySettlement&&game.swapUsesRemaining>0&&game.legalSwapCount>0} onSwapClick={toggleSwapMode} />}
+                  gameOver={game.gameOver || Boolean(game.daySettlement) || heaterSelectMode || swapSelectMode}
                   removingId={removingIndex ?? ((activeAnimation?.phase === "exit" || activeAnimation?.phase === "compress") ? activeAnimation.token : null)}
                 />
               </div>
@@ -841,7 +847,6 @@ function App(){
               <section className="game-info-row game-info-row--secondary">
                 <div className="game-situation-meta">
                   <BoardStatus activity={activityStatus.activity} activityCombineLegal={activityStatus.combineLegal} activityReduceLegal={activityStatus.reduceLegal} numberCount={game.numbers.length} nonDrinkBoardSum={nonDrinkBoardSum} dead={activityStatus.dead} />
-                  <ItemBar heaterCount={game.heaterCount} heaterAvailable={game.heaterAvailable && !game.daySettlement} heaterActive={heaterSelectMode} onHeaterClick={toggleHeaterMode} superHeaterCount={game.superHeaterCount} superHeaterAvailable={game.superHeaterAvailable && !game.daySettlement} onSuperHeaterClick={handleSuperHeater} />
                   <div className="game-meta-buttons">
                     <button type="button" className="combine-history-trigger" onClick={() => setShowCombineHistory(true)}>历史<span>{game.combineHistory.length}</span></button>
                     <button type="button" className="combine-history-trigger" onClick={() => setShowCollection(true)}>售出料理<span>{collectionCount}</span></button>
@@ -878,14 +883,6 @@ function App(){
         </div>
       )}
 
-      {showFridge && (
-        <div className="fridge-overlay" onClick={() => setShowFridge(false)}>
-          <div className="fridge-dialog" role="dialog" aria-modal="true" onClick={event => event.stopPropagation()}>
-            <button type="button" className="fridge-dialog-close" aria-label="关闭冰箱" onClick={() => setShowFridge(false)}>×</button>
-            <Fridge cards={game.fridgeCards} storeActions={game.fridgeStoreActions} selectedIndex={game.selectedFridgeIndex} canRetrieve={game.board.some(piece => !piece)} disabled={game.gameOver || Boolean(game.daySettlement) || Boolean(activeAnimation)} onStore={game.storeInFridge} onSelectCard={index => { game.selectFridgeCard(index); setShowFridge(false); }} />
-          </div>
-        </div>
-      )}
 
       <FoodDetailModal piece={foodDetail?.piece} index={foodDetail?.index} totalActionMinutes={game.totalActionMinutes} mergeHistoryByIdentity={game.mergeHistoryByIdentity} onClose={() => setFoodDetail(null)} />
 

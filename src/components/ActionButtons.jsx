@@ -1,6 +1,4 @@
 import "./ActionButtons.css";
-import { getReduceButtonLabel } from "./actionButtonLabel";
-
 export default function ActionButtons({
 
   selected = [],
@@ -9,16 +7,11 @@ export default function ActionButtons({
 
   onCombine,
 
-  onBlockedCombine,
 
-  onReduce,
+  onSellOrProcess,
+  canSellSelected = false,
 
-  onSwap,
-  canSwap = false,
-
-  onFridge,
-  fridgeCount = 0,
-  fridgeActionCount = 0,
+  itemEntry = null,
 
   gameOver,
 
@@ -45,7 +38,7 @@ export default function ActionButtons({
 
 
 
-  const canReduce =
+  const canProcess =
 
     !gameOver &&
 
@@ -54,16 +47,7 @@ export default function ActionButtons({
     selected.length === 2 &&
 
     !!preview?.reduce;
-
-  const canTryBlockedCombine =
-    !gameOver &&
-    !busy &&
-    selected.length === 2 &&
-    !canCombine &&
-    typeof onBlockedCombine === "function";
-  const reduceLabel = getReduceButtonLabel(selected, preview);
-
-
+  const canSell = !gameOver && !busy && selected.length === 1 && canSellSelected;
 
   return (
 
@@ -82,16 +66,10 @@ export default function ActionButtons({
 
         type="button"
 
-        onClick={
-          canCombine
-            ? onCombine
-            : canTryBlockedCombine
-              ? onBlockedCombine
-              : undefined
-        }
+        onClick={canCombine ? onCombine : undefined}
 
         disabled={
-          !canCombine && !canTryBlockedCombine
+          !canCombine
         }
 
         className={`
@@ -130,38 +108,23 @@ export default function ActionButtons({
           "
         >
 
-          {canCombine ? `搭配 · ${preview.combine.durationMinutes}分钟` : "搭配"}
+          {canCombine ? `合成 · ${preview.combine.durationMinutes}分钟` : "合成"}
 
         </span>
 
 
       </button>
 
-      <button
-        type="button"
-        onClick={canSwap ? onSwap : undefined}
-        disabled={!canSwap}
-        className={`action-toolbar-button ${canSwap?"action-toolbar-button--swap-active":"action-toolbar-button--disabled"}`}
-      >
-        <span className="action-toolbar-icon">⇄</span>
-        <span className="action-toolbar-label">{canSwap?"交换 · 15分钟":"交换"}</span>
-      </button>
-
-      <button type="button" onClick={onFridge} className="action-toolbar-button action-toolbar-button--fridge">
-        <span className="action-toolbar-icon">▣</span>
-        <span className="action-toolbar-label">冰箱<small>{fridgeActionCount > 0 ? `可存 ${fridgeActionCount}` : `${fridgeCount}/3`}</small></span>
-      </button>
+      {itemEntry}
 
       <button
         type="button"
-        onClick={canReduce ? onReduce : undefined}
-        disabled={!canReduce}
-        className={`action-toolbar-button ${canReduce ? "action-toolbar-button--reduce-active" : "action-toolbar-button--disabled"}`}
+        onClick={canSell || canProcess ? onSellOrProcess : undefined}
+        disabled={!canSell && !canProcess}
+        className={`action-toolbar-button ${canSell || canProcess ? "action-toolbar-button--reduce-active" : "action-toolbar-button--disabled"}`}
       >
         <span className="action-toolbar-icon">↓</span>
-        <span className="action-toolbar-label">
-          {canReduce ? `${reduceLabel} · ${preview.reduce.durationMinutes}分钟` : reduceLabel}
-        </span>
+        <span className="action-toolbar-label">售出 / 处理</span>
       </button>
 
     </div>

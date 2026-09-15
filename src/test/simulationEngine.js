@@ -37,7 +37,6 @@ import { applyCollection, getCollectionUniqueKey } from "../game/collectionRules
 import { applyHeaterIncrement, isHeaterTarget } from "../game/heater";
 import { getCombineDurationMinutes, getReduceDurationMinutes, getSellDurationMinutes, SWAP_DURATION_MINUTES, TOOL_DURATION_MINUTES } from "../game/actionDuration";
 import { getFoodAgeMinutes, isFoodExpired } from "../game/foodShelfLife";
-import { applyFridgeAction, getLegalFridgeRetrieveActions, getLegalFridgeStoreActions } from "../game/fridge";
 import { updateMergeHistoryByIdentity } from "../game/mergeHistory";
 
 
@@ -387,8 +386,7 @@ export function createSimulationState(
     gameMode,
 
     board,
-    fridgeCards: [],
-    fridgeBatchActive: false,
+    swapUsesRemaining: 5,
     nextId:initialValues.length+1,
 
 
@@ -803,7 +801,6 @@ export function getSimulationLegalActions(
   const board =
     state.board;
 
-  actions.push(...getLegalFridgeStoreActions(state), ...getLegalFridgeRetrieveActions(state));
   actions.push(...board.flatMap((piece,index)=>piece?.value===1?[{type:"sell",indexes:[index]}]:[]));
 
 
@@ -928,8 +925,8 @@ export function getSimulationLegalActions(
 
 function applySwap(state,indexA,indexB){
   if(!canSimulationSwap(state,indexA,indexB))return false;
-  state.lastSwappedCardIds=[state.board[indexA].id,state.board[indexB].id].sort((a,b)=>String(a).localeCompare(String(b)));
   [state.board[indexA],state.board[indexB]]=[state.board[indexB],state.board[indexA]];
+  state.swapUsesRemaining--;
   state.steps++;
   return true;
 }
@@ -1750,14 +1747,6 @@ export function applySimulationAction(
 
   }
 
-  if(action.type === "fridge_store" || action.type === "fridge_retrieve"){
-    const nextState = applyFridgeAction(state, action);
-    if(nextState === state) return false;
-    Object.assign(state, nextState);
-    return true;
-  }
-
-
 
   let applied =
     false;
@@ -1899,9 +1888,6 @@ export function applySimulationAction(
 
   }
 
-  if(action.type!=="swap")state.lastSwappedCardIds=null;
-
-
 
 
 
@@ -1947,7 +1933,6 @@ function clonePiece(
 
     id: piece.id,
     bornAt: piece.bornAt,
-    fridgeStoredAt: piece.fridgeStoredAt,
 
     value:
       piece.value,
@@ -2047,8 +2032,7 @@ export function cloneSimulationState(
         clonePiece
       ),
 
-    fridgeCards: (state.fridgeCards ?? []).map(clonePiece),
-    fridgeBatchActive: state.fridgeBatchActive === true,
+    swapUsesRemaining: state.swapUsesRemaining ?? 0,
 
 
 

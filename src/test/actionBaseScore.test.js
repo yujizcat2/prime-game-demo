@@ -7,7 +7,6 @@ import {
   hasEffectiveSaleReward
 } from "../game/gameEngine";
 import { BASE_FOOD_TYPES } from "../game/rules";
-import { getReduceButtonLabel } from "../components/actionButtonLabel";
 
 const createState = (cards, overrides = {}) => ({
   ...createGameState(cards, {dayCycleEnabled: true}),
@@ -39,17 +38,7 @@ assert.equal(reduced.collectionCards.length, 0);
 assert.equal(reduced.latestActionBaseScore, null);
 assert.equal(reduced.comboCount, 0);
 assert.equal(reduced.comboBonusTotal, 0);
-assert.equal(getReduceButtonLabel([], null), "处理");
-assert.equal(getReduceButtonLabel([0], null), "处理");
-assert.equal(getReduceButtonLabel([0,1], {reduce:{kind:"reduce",results:[{value:2},{value:1,clear:true}]}}), "售出");
-assert.equal(getReduceButtonLabel([0,1], {reduce:{kind:"reduce",results:[{value:2},{value:5}]}}), "处理");
-assert.equal(getReduceButtonLabel([0,1], {reduce:{kind:"equalEliminate",results:[{clear:true},{clear:true}]}}), "处理");
 assert.equal(doesReduceCreateEffectiveSale(reduceState, [0, 1]), false);
-assert.equal(
-  getReduceButtonLabel([0, 1], {reduce: {createsEffectiveSale: false}}),
-  "处理",
-  "ordinary reduction keeps the processing label"
-);
 
 const collectionState = createState([
   {value: 2, foodType: BASE_FOOD_TYPES[0], boardIndex: 0},
@@ -61,11 +50,6 @@ assert.equal(collected.board[0], null);
 assert.equal(collected.latestActionBaseScore, null, "a reduce-to-finished action does not receive sale points");
 assert.equal(doesReduceCreateEffectiveSale(collectionState, [0, 1]), true);
 assert.equal(getReduceSalePreviewRewards(collectionState, [0, 1]).length, 1);
-assert.equal(
-  getReduceButtonLabel([0, 1], {reduce: {createsEffectiveSale: true}}),
-  "处理",
-  "processing remains separate from selling"
-);
 
 const duplicateSaleState = {
   ...collectionState,

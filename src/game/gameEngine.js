@@ -56,7 +56,6 @@ import { applyActionBaseScore } from "./actionBaseScore";
 import { applyActionDuration } from "./actionDuration";
 import { recordCollectionEfficiencySnapshot } from "./collectionEfficiency";
 import { isFoodExpired } from "./foodShelfLife";
-import { applyFridgeAction } from "./fridge";
 
 
 
@@ -222,15 +221,6 @@ export function applyAction(
 
   }
 
-  if(action.type === "fridge_store" || action.type === "fridge_retrieve"){
-    const fridgeState = applyFridgeAction(state, action);
-    return fridgeState === state ? state : resolveGameOver(fridgeState);
-  }
-
-
-
-
-
   let actionState =
     state;
 
@@ -374,12 +364,6 @@ export function applyAction(
     return state;
 
   }
-
-  if(action.type!=="swap")actionState={...actionState,lastSwappedCardIds:null};
-
-
-
-
 
   // ==========================================================
   // 合法动作完成
@@ -551,7 +535,7 @@ export function resolveGameOver(
     && getLegalSwapActions(activeState).length===0
     && !canUseHeater(activeState)
     && !getLegalActions(activeState).some(action => action.type === "super_heater")
-    && !getLegalActions(activeState).some(action => action.type.startsWith("fridge_") || action.type === "sell")
+    && !getLegalActions(activeState).some(action => action.type === "sell")
   ){
 
     return {

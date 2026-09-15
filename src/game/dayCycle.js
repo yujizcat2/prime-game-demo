@@ -206,6 +206,7 @@ export function advanceToNextDay(state){
     latestComboEvent: null,
     heaterCount: 1,
     superHeaterCount: 1,
+    swapUsesRemaining: 5,
     timeSalePeriods: state.daySettlement.nextTimeSalePeriods,
     dayPeriodSales: Array(6).fill(0),
     timeSaleScores: {},
