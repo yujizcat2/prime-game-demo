@@ -113,7 +113,7 @@ function PairHint({status,keyOutcome,preview}){
         <span><b>{firstName} {first.value}</b> 与 <b>{secondName} {second.value}</b></span>
         <span>两张卡都会离开料理台，不产生新料理</span>
       </div>
-      <div className="cooking-hint__next"><small>同数处理</small><span>不会售出或收藏新料理。</span></div>
+      <div className="cooking-hint__next"><small>同数处理</small><span>不会售出新料理。</span></div>
     </div>
     );
   }

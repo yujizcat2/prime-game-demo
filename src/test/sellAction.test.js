@@ -46,9 +46,21 @@ assert.equal(sold.board[1],null);
 assert.equal(sold.totalActionMinutes,3060);
 assert.equal(sold.collectionTimeline.length,1);
 assert.equal(sold.collectionTimeline[0].foodAgeMinutes,630);
+assert.equal(sold.collectionCards[0].firstSaleSnapshot.foodAgeMinutes,630);
+assert.equal(sold.collectionCards[0].firstSaleSnapshot.firstSaleTime,"11:00");
+assert.equal(sold.collectionCards[0].firstSaleSnapshot.finalRevenue,sold.collectionTimeline[0].totalScore);
+assert.equal(
+  sold.collectionCards[0].firstSaleSnapshot.extraRevenue,
+  sold.collectionCards[0].firstSaleSnapshot.finalRevenue-sold.collectionCards[0].firstSaleSnapshot.baseRevenue
+);
 assert.equal(sold.recapActionCounts.sellCount,1);
 assert.equal(sold.recapActionCounts.sellCardsCount,1);
 assert.equal(sold.recapActionCounts.sellMinutes,60);
+
+const repeatPiece={...finishedPiece,id:98};
+const repeatSold=applyAction({...sold,board:[repeatPiece,...sold.board.slice(1)],gameOver:false},{type:"sell",indexes:[0]});
+assert.equal(repeatSold.collectionCards.length,1,"repeat sale does not add a first-sale record");
+assert.deepEqual(repeatSold.collectionCards[0].firstSaleSnapshot,sold.collectionCards[0].firstSaleSnapshot,"repeat sale cannot overwrite the first-sale snapshot");
 
 const invalid=applyAction(finished,{type:"sell",indexes:[0]});
 assert.equal(invalid,finished,"selling a value greater than one is a no-op");

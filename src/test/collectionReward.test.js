@@ -177,7 +177,7 @@ for(const collectionRecord of [
   assert.equal(reward.baseSaleScore, 100, "origin and parent never replace the final value in base lookup");
 }
 
-for(const path of ["src/game/collectionReward.js", "src/components/CollectionRewardModal.jsx"]){
+for(const path of ["src/game/collectionReward.js", "src/components/CollectionSaleToast.jsx"]){
   const source = readFileSync(path, "utf8");
   assert.doesNotMatch(source, /首次发现|新料理系|firstDiscoveryRate|getNewFoodTypeBonus/);
 }

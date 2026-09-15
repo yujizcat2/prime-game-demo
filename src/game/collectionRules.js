@@ -1729,6 +1729,45 @@ export function applyEightPalaceCollection(
     step: collectionStep,
     collectedAt: `第${state.day ?? 1}天 ${getDayTime({...state, steps: collectionStep})}`
   };
+  const sameNumberMultiplier = rewardSettlement.baseScore > 0
+    ? rewardSettlement.collectionScore / rewardSettlement.baseScore
+    : 0;
+  snapshot.firstSaleSnapshot = {
+    foodType: snapshot.foodType,
+    value,
+    name: cookedName,
+    cookingMethod,
+    firstSaleDay: state.day ?? 1,
+    firstSaleTime: gameTime,
+    baseRevenue: rewardSettlement.baseScore,
+    finalRevenue: totalScore,
+    extraRevenue: totalScore - rewardSettlement.baseScore,
+    pointGain: salePointScore,
+    timePeriod: {
+      label: timeSalePeriod.label,
+      range: timeSalePeriod.range,
+      multiplier: timeSalePeriod.multiplier
+    },
+    foodAgeMinutes: expiryState.ageMinutes,
+    shelfLifeStatus: expiryState.status,
+    shelfLifeMultiplier: expiryState.multiplier,
+    rewardLevel: rewardSettlement.collectionRewardLevel,
+    rewardLevelMultiplier: rewardSettlement.collectionMultiplierRate,
+    sameNumberSale: {
+      discounted: rewardSettlement.hasCrossFamilyDiscount === true,
+      existingFoodTypeCount: rewardSettlement.existingFoodTypeCountForSameNumber ?? 0,
+      multiplier: sameNumberMultiplier
+    },
+    singleFlavorPenalty: {
+      triggered: record.singleFlavorPenalty === true,
+      multiplier: 1
+    },
+    dailyFirstSaleBonus: dailyCollectionBonus,
+    expired: expiryState.expired,
+    saleBreakdown: structuredClone(saleBreakdown)
+  };
+  collectionReward.collectionKey = collectionKey;
+  collectionReward.firstSaleSnapshot = snapshot.firstSaleSnapshot;
 
   return {
     ...state,

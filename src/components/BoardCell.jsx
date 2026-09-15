@@ -884,7 +884,7 @@ export default function BoardCell({
           }
 
           {isCollected && (
-            <span className="board-piece-collected-mark" aria-label="已收藏">✓</span>
+            <span className="board-piece-collected-mark" aria-label="已售出料理">✓</span>
           )}
 
 

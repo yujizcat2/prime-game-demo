@@ -412,7 +412,15 @@ export function applyAction(
   );
   const completionTime = getDayTime(durationState);
   const stampCollection = item => newCollectionIds.has(item?.id)
-    ? {...item, collectedAt: `第${durationState.day ?? 1}天 ${completionTime}`}
+    ? {
+        ...item,
+        collectedAt: `第${durationState.day ?? 1}天 ${completionTime}`,
+        firstSaleSnapshot: item.firstSaleSnapshot ? {
+          ...item.firstSaleSnapshot,
+          firstSaleDay: durationState.day ?? 1,
+          firstSaleTime: completionTime
+        } : item.firstSaleSnapshot
+      }
     : item;
   let timedState = newCollectionIds.size > 0 ? {
     ...durationState,

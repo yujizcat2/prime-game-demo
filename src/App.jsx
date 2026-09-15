@@ -20,7 +20,7 @@ import BoardStatus from "./components/BoardStatus";
 import GameOver from "./components/GameOver";
 import CombineHistoryPanel from "./components/CombineHistoryPanel";
 import ActionToast from "./components/ActionToast";
-import CollectionRewardModal from "./components/CollectionRewardModal";
+import CollectionSaleToast from "./components/CollectionSaleToast";
 import BoardTypeTotals from "./components/BoardTypeTotals";
 import ItemBar from "./components/ItemBar";
 import Fridge from "./components/Fridge";
@@ -88,9 +88,14 @@ function App(){
     },1100);
   }
 
-  function closeCollectionReward(){
-    setCollectionRewardQueue(queue => queue.slice(1));
-  }
+  useEffect(()=>{
+    if(!collectionRewardQueue[0]) return undefined;
+    const timer=window.setTimeout(
+      ()=>setCollectionRewardQueue(queue => queue.slice(1)),
+      1200
+    );
+    return ()=>window.clearTimeout(timer);
+  },[collectionRewardQueue[0]]);
 
   function toggleHeaterMode(){
     if(heaterSelectMode){
@@ -754,12 +759,7 @@ function App(){
             <div className="game-board-main">
 
               <ActionToast toast={actionToast} />
-              {collectionRewardQueue[0] && (
-                <CollectionRewardModal
-                  reward={collectionRewardQueue[0]}
-                  onClose={closeCollectionReward}
-                />
-              )}
+              <CollectionSaleToast reward={collectionRewardQueue[0]} />
 
               <Board
                 board={
@@ -844,7 +844,7 @@ function App(){
                   <ItemBar heaterCount={game.heaterCount} heaterAvailable={game.heaterAvailable && !game.daySettlement} heaterActive={heaterSelectMode} onHeaterClick={toggleHeaterMode} superHeaterCount={game.superHeaterCount} superHeaterAvailable={game.superHeaterAvailable && !game.daySettlement} onSuperHeaterClick={handleSuperHeater} />
                   <div className="game-meta-buttons">
                     <button type="button" className="combine-history-trigger" onClick={() => setShowCombineHistory(true)}>历史<span>{game.combineHistory.length}</span></button>
-                    <button type="button" className="combine-history-trigger" onClick={() => setShowCollection(true)}>销售<span>{collectionCount}</span></button>
+                    <button type="button" className="combine-history-trigger" onClick={() => setShowCollection(true)}>售出料理<span>{collectionCount}</span></button>
                   </div>
                 </div>
               </section>
@@ -861,9 +861,9 @@ function App(){
       {showCollection && (
         <div className="collection-panel-overlay" onClick={() => setShowCollection(false)}>
           <div className="collection-panel-dialog" onClick={event => event.stopPropagation()}>
-            <button type="button" className="collection-panel-close" aria-label="关闭销售记录" onClick={() => setShowCollection(false)}>×</button>
+            <button type="button" className="collection-panel-close" aria-label="关闭售出料理记录" onClick={() => setShowCollection(false)}>×</button>
             {["eightPalace", "simpleEightPalace"].includes(game.gameMode) ? (
-              <EightPalaceCollectionPanel cards={game.collectionTimeline} score={game.score} />
+              <EightPalaceCollectionPanel cards={game.collectionCards} score={game.score} />
             ) : (
               <CollectionPanel
                 collection={game.collection}

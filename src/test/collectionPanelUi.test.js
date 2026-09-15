@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { getSaleSummary } from "../components/saleSummary";
 
 const source = readFileSync("src/components/CollectionPanel.jsx", "utf8");
+const eightPalaceSource = readFileSync("src/components/EightPalaceCollectionPanel.jsx", "utf8");
 const appSource = readFileSync("src/App.jsx", "utf8");
 
 const saleSummary = getSaleSummary([
@@ -29,6 +30,8 @@ assert.match(source, /getFoodOriginDescription\(piece, name\)/);
 assert.doesNotMatch(appSource, /<Discovery/);
 assert.match(source, /已售料理详情/);
 assert.match(source, /collection\.map/);
-assert.match(appSource, /cards=\{game\.collectionTimeline\}/);
+assert.match(appSource, /cards=\{game\.collectionCards\}/);
+assert.match(eightPalaceSource, /首次售出/);
+assert.match(eightPalaceSource, /firstSaleSnapshot/);
 
 console.log("Collection panel UI tests passed");

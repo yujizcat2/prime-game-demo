@@ -1,0 +1,75 @@
+.collection-sale-toast-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 13;
+  display: grid;
+  place-items: center;
+  padding: 14px;
+  pointer-events: none;
+}
+
+.collection-sale-toast {
+  position: relative;
+  box-sizing: border-box;
+  width: min(340px, 100%);
+  overflow: hidden;
+  padding: 23px 28px 22px;
+  border: 1px solid rgba(226, 244, 226, .72);
+  border-radius: 22px;
+  background: linear-gradient(145deg, rgba(47, 69, 53, .97), rgba(34, 49, 39, .98));
+  color: #fff;
+  text-align: center;
+  box-shadow: 0 18px 44px rgba(24, 38, 28, .28), inset 0 1px rgba(255, 255, 255, .14);
+  backdrop-filter: blur(9px);
+  animation: collection-sale-toast-life 1.2s both;
+}
+
+.collection-sale-toast::before {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 20%, rgba(255,255,255,.1) 48%, transparent 72%);
+  content: "";
+  transform: translateX(-70%);
+  animation: collection-sale-toast-sheen 1.2s ease-out both;
+}
+
+.collection-sale-toast > * { position: relative; display: block; }
+.collection-sale-toast__name { color: rgba(239,247,240,.82); font-size: 14px; font-weight: 800; letter-spacing: .01em; }
+.collection-sale-toast__revenue { margin-top: 8px; font-size: 48px; font-weight: 950; letter-spacing: -.045em; line-height: .98; text-shadow: 0 3px 14px rgba(0,0,0,.16); animation: collection-sale-toast-number 1.2s both; }
+.collection-sale-toast__revenue-label { margin-top: 5px; color: rgba(232,243,233,.72); font-size: 12px; font-weight: 800; letter-spacing: .16em; }
+.collection-sale-toast__breakdown { margin-top: 14px; color: rgba(239,247,240,.72); font-size: 12px; font-weight: 700; }
+.collection-sale-toast__points { margin-top: 8px; color: #e7f6d5; font-size: 15px; font-style: normal; font-weight: 900; }
+
+@keyframes collection-sale-toast-life {
+  0% { opacity: 0; transform: translateY(10px) scale(.9); }
+  9% { opacity: 1; transform: translateY(-2px) scale(1.03); }
+  12.5%, 79% { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-5px) scale(.99); }
+}
+
+@keyframes collection-sale-toast-number {
+  0%, 7% { opacity: 0; transform: translateY(4px) scale(.9); }
+  15% { opacity: 1; transform: translateY(0) scale(1.04); }
+  20%, 100% { opacity: 1; transform: none; }
+}
+
+@keyframes collection-sale-toast-sheen {
+  0%, 10% { opacity: 0; transform: translateX(-70%); }
+  18% { opacity: 1; }
+  42%, 100% { opacity: 0; transform: translateX(70%); }
+}
+
+@media (max-width: 420px) {
+  .collection-sale-toast { width: min(320px, 100%); padding: 20px 20px 19px; border-radius: 19px; }
+  .collection-sale-toast__revenue { font-size: 43px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .collection-sale-toast { animation-name: collection-sale-toast-fade; }
+  .collection-sale-toast::before { animation: none; }
+  .collection-sale-toast__revenue { animation: none; }
+  @keyframes collection-sale-toast-fade {
+    0%, 100% { opacity: 0; }
+    12.5%, 79% { opacity: 1; }
+  }
+}
