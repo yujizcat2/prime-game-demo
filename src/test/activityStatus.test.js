@@ -86,8 +86,8 @@ const twoRoads = getActivityStatus(
   0
 );
 
-assert.equal(twoRoads.legal, 2);
-assert.ok(twoRoads.activity <= 12);
+assert.equal(twoRoads.legal, 3);
+assert.equal(twoRoads.activity, threeRoads.activity);
 
 
 const oneRoadPieces =
@@ -102,8 +102,8 @@ const oneRoad = getActivityStatus(
   0
 );
 
-assert.equal(oneRoad.legal, 1);
-assert.ok(oneRoad.activity <= 5);
+assert.equal(oneRoad.legal, 3);
+assert.equal(oneRoad.activity, threeRoads.activity);
 
 
 const depletedActivity = getActivityStatus(

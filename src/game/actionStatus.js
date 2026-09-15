@@ -6,7 +6,6 @@ import {
   canReduce,
   canCombine,
   combineValue,
-  hasSameParents,
   isDrinkFoodPair
 } from "./rules";
 
@@ -61,59 +60,6 @@ function getSelectedPair(
       list[1]
 
   };
-
-}
-
-
-
-
-
-// ============================================================
-// 判断是否存在“来源关系”
-//
-// 例如：
-// 6 + 8 -> 14
-//
-// 14 的 parents = [6, 8]
-//
-// 那么：
-// 14 不能再和 6 合成
-// 14 不能再和 8 合成
-// ============================================================
-
-function hasParentRelation(
-  first,
-  second
-){
-
-
-  if(
-    first.parents &&
-    first.parents.includes(
-      second.value
-    )
-  ){
-
-    return true;
-
-  }
-
-
-
-  if(
-    second.parents &&
-    second.parents.includes(
-      first.value
-    )
-  ){
-
-    return true;
-
-  }
-
-
-
-  return false;
 
 }
 
@@ -206,65 +152,6 @@ function getCombineStatus(
   //
   // 都不能继续合成
   // ==========================================================
-
-  if(
-    hasParentRelation(
-      first,
-      second
-    )
-  ){
-
-    return {
-
-      allowed: false,
-
-      result: null,
-
-      reason:
-        "它不能再和组成自己的数字合成"
-
-    };
-
-  }
-
-
-
-
-
-  // ==========================================================
-  // 这两个数字已经合成过一次
-  //
-  // 例如：
-  // 6 + 8 已经生成过一个结果
-  //
-  // 那么原来的 6 和 8
-  // 不能再次重复生成
-  // ==========================================================
-
-  if(
-    hasSameParents(
-      numbers,
-      first.value,
-      second.value
-    )
-  ){
-
-    return {
-
-      allowed: false,
-
-      result: null,
-
-      reason:
-        "这两个数字已经合成过一次"
-
-    };
-
-  }
-
-
-
-
 
   // ==========================================================
   // 最终交给真实规则检查

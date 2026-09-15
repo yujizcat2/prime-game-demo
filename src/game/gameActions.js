@@ -54,7 +54,7 @@ import { getFoodTypeForPosition, getReductionFoodTypes } from "./nativeFoodTypes
 import { getReduceDurationMinutes } from "./actionDuration";
 import { getFoodAgeMinutes } from "./foodShelfLife";
 import { getLegalFridgeRetrieveActions, getLegalFridgeStoreActions } from "./fridge";
-import { hasMergeHistoryFoodType, updateMergeHistoryByIdentity } from "./mergeHistory";
+import { updateMergeHistoryByIdentity } from "./mergeHistory";
 
 import {
   addCombinePair,
@@ -150,11 +150,6 @@ export function canCombineCells(
   }
 
   if(!isDrinkFoodPair(a,b)&&isBoardFull(state.board))return false;
-
-  const resultFoodType=isDrinkFoodPair(a,b)
-    ? FOOD_TYPES.DRINK
-    : getCombinedResultIdentity(combineValue(a.value,b.value),getNextEmptyIndex(state.board),a.foodType)?.foodType;
-  if(!resultFoodType||(!isDrinkFoodPair(a,b)&&(hasMergeHistoryFoodType(state.mergeHistoryByIdentity,a,resultFoodType)||hasMergeHistoryFoodType(state.mergeHistoryByIdentity,b,resultFoodType))))return false;
 
   return canCombine(
 
@@ -349,7 +344,6 @@ export function createCombineOutcome(state,indexA,indexB){
   const identity=getCombinedResultIdentity(baseValue,targetIndex,main.foodType);
   if(!identity)return null;
   const {value,foodType}=identity;
-  if(hasMergeHistoryFoodType(state.mergeHistoryByIdentity,main,foodType)||hasMergeHistoryFoodType(state.mergeHistoryByIdentity,pairing,foodType))return null;
   const piece={
     id:state.nextId,
     bornAt: state.totalActionMinutes ?? 0,

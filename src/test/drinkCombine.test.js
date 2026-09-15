@@ -68,9 +68,9 @@ function withFresh23(foodType){
 }
 for(const foodType of [T.AQUATIC,T.GRAIN_BEAN]){
   const repeated=withFresh23(foodType);
-  assert.equal(createCombineOutcome(repeated,1,6),null);
-  assert.equal(getLegalActions(repeated).some(action=>action.type.startsWith("combine")&&action.indexes.includes(1)&&action.indexes.includes(6)),false);
-  assert.equal(applyAction(repeated,{type:"combine",indexes:[1,6]}),repeated);
+  assert.equal(createCombineOutcome(repeated,1,6)?.kind,"absorb");
+  assert.equal(getLegalActions(repeated).some(action=>action.type.startsWith("combine")&&action.indexes.includes(1)&&action.indexes.includes(6)),true);
+  assert.equal(applyAction(repeated,{type:"combine",indexes:[1,6]}).board[1].value,163);
 }
 
 const before31={...after23,gameOver:false,board:[...after23.board]};
@@ -85,8 +85,8 @@ assert.deepEqual(after31.board[1].drinkIngredients,[
 ]);
 assert.deepEqual(after31.board[6],food31Before);
 assert.deepEqual(getMergeHistory(after31.mergeHistoryByIdentity,after31.board[6]),[
-    {value:140,foodType:T.DRINK,name:"香草奶昔",role:"partner"},
-    {value:171,foodType:T.DRINK,name:"阿萨姆茶",role:"result"}
+    {id:1,value:140,foodType:T.DRINK,name:"香草奶昔",role:"partner"},
+    {id:1,value:171,foodType:T.DRINK,name:"阿萨姆茶",role:"result"}
 ]);
 
 const newSameValue=positionedState([
@@ -135,7 +135,7 @@ assert.equal(applySimulationAction(simulation,{type:"combine",indexes:[1,0]}),tr
 assert.deepEqual(simulation.board[0].drinkIngredients,[{value:23,foodType:T.AQUATIC}]);
 simulation.board[3]={id:403,value:23,foodType:T.SEASONING};
 simulation.combineHistoryKeys={};
-assert.equal(getSimulationLegalActions(simulation).some(action=>action.type.startsWith("combine")&&action.indexes.includes(0)&&action.indexes.includes(3)),false);
+assert.equal(getSimulationLegalActions(simulation).some(action=>action.type.startsWith("combine")&&action.indexes.includes(0)&&action.indexes.includes(3)),true);
 assert.equal(getSimulationLegalActions(simulation).some(action=>action.type.startsWith("combine")&&action.indexes.includes(0)&&action.indexes.includes(2)),true);
 assert.equal(applySimulationAction(simulation,{type:"combine",indexes:[0,2]}),true);
 assert.deepEqual(simulation.board[0].drinkIngredients,[

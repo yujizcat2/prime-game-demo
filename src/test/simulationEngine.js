@@ -38,7 +38,7 @@ import { applyHeaterIncrement, isHeaterTarget } from "../game/heater";
 import { getCombineDurationMinutes, getReduceDurationMinutes, getSellDurationMinutes, SWAP_DURATION_MINUTES, TOOL_DURATION_MINUTES } from "../game/actionDuration";
 import { getFoodAgeMinutes, isFoodExpired } from "../game/foodShelfLife";
 import { applyFridgeAction, getLegalFridgeRetrieveActions, getLegalFridgeStoreActions } from "../game/fridge";
-import { hasMergeHistoryFoodType, updateMergeHistoryByIdentity } from "../game/mergeHistory";
+import { updateMergeHistoryByIdentity } from "../game/mergeHistory";
 
 
 
@@ -701,14 +701,6 @@ function canCombineIndexes(
   if(hasCombinePair(state.combineHistoryKeys, a, b)){
     return false;
   }
-
-  const targetIndex=getNextEmptyIndex(state.board);
-  const resultFoodType=isDrinkFoodPair(a,b)
-    ? FOOD_TYPES.DRINK
-    : getCombinedResultIdentity(combineValue(a.value,b.value),targetIndex,a.foodType)?.foodType;
-  if(!resultFoodType||(!isDrinkFoodPair(a,b)&&(hasMergeHistoryFoodType(state.mergeHistoryByIdentity,a,resultFoodType)||hasMergeHistoryFoodType(state.mergeHistoryByIdentity,b,resultFoodType))))return false;
-
-
 
   return canCombine(
 

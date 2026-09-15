@@ -1,6 +1,6 @@
 export function createCombinePairKey(left, right){
   return [left, right]
-    .map(piece => `${piece?.value}:${piece?.foodType ?? ""}`)
+    .map(piece => piece?.id == null ? `${piece?.value}:${piece?.foodType ?? ""}` : `card:${piece.id}`)
     .sort()
     .join("|");
 }
@@ -21,9 +21,9 @@ export function addCombinePair(historyKeys, left, right){
 export function createCombineHistoryRecord(left, right, result, step){
   return {
     key: createCombinePairKey(left, right),
-    left: {value:left.value, foodType:left.foodType},
-    right: {value:right.value, foodType:right.foodType},
-    result: {value:result.value, foodType:result.foodType},
+    left: {id:left.id, value:left.value, foodType:left.foodType},
+    right: {id:right.id, value:right.value, foodType:right.foodType},
+    result: {id:result.id, value:result.value, foodType:result.foodType},
     step
   };
 }
