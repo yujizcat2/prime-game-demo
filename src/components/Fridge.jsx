@@ -1,4 +1,5 @@
 import { getFoodTypeShortName } from "../data/food/foodRegistry";
+import ShelfLifeMeter from "./ShelfLifeMeter";
 import "./Fridge.css";
 
 export default function Fridge({cards = [], storeActions = [], selectedIndex = null, canRetrieve = false, disabled = false, onStore, onSelectCard}){
@@ -26,7 +27,10 @@ export default function Fridge({cards = [], storeActions = [], selectedIndex = n
             disabled={disabled || !card || !canRetrieve}
             onClick={() => onSelectCard(index)}
           >
-            {card ? <><strong>{card.value}</strong><small>{getFoodTypeShortName(card.foodType)}</small></> : <span>空</span>}
+            {card ? <>
+              <span className="fridge-slot-card"><strong>{card.value}</strong><small>{getFoodTypeShortName(card.foodType)}</small></span>
+              <ShelfLifeMeter piece={card} atMinutes={card.fridgeStoredAt} className="fridge-slot-shelf-life" />
+            </> : <span>空</span>}
           </button>
         ))}
       </div>

@@ -10,7 +10,7 @@ import { getSpecialOneName } from "../data/specialOneRegistry";
 import { getFinishedFoodCardDisplayName, getFoodCardDisplayName, getFoodCardDisplayValue, getFoodOriginDescription } from "./foodCardDisplay";
 import { getNativeFoodType } from "../game/nativeFoodTypes";
 import { getCookingMethod } from "../game/cookingMethods";
-import { formatShelfLife, getFoodExpiryState } from "../game/foodShelfLife";
+import ShelfLifeMeter from "./ShelfLifeMeter";
 
 import "./Board.css";
 
@@ -449,7 +449,6 @@ export default function BoardCell({
 
 
   const originText = getFoodOriginDescription(piece, foodName);
-  const expiryState = getFoodExpiryState(piece, totalActionMinutes);
 
 
 
@@ -1234,11 +1233,11 @@ export default function BoardCell({
             <span>{originText}</span>
           </div>
 
-          <div className={`board-piece-shelf-life ${expiryState.expired ? "board-piece-shelf-life--expired" : expiryState.warning ? "board-piece-shelf-life--warning" : ""}`}>
-            {expiryState.expired
-              ? "过期 · 0营业额"
-              : `${expiryState.status} · ${formatShelfLife(expiryState.remainingMinutes)}`}
-          </div>
+          <ShelfLifeMeter
+            piece={piece}
+            atMinutes={totalActionMinutes}
+            className="board-piece-shelf-life"
+          />
 
 
           {

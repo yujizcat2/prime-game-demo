@@ -1,0 +1,38 @@
+.shelf-life-meter {
+  --shelf-life-color: #4f9d69;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--shelf-life-color);
+  pointer-events: none;
+}
+
+.shelf-life-meter__track {
+  flex: 1;
+  height: 3px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: color-mix(in srgb, currentColor 18%, transparent);
+}
+
+.shelf-life-meter__fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: currentColor;
+  transition: width .2s ease;
+}
+
+.shelf-life-meter__time {
+  min-width: 20px;
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.shelf-life-meter--lime { --shelf-life-color: #84a83f; }
+.shelf-life-meter--warm { --shelf-life-color: #d9902f; }
+.shelf-life-meter--urgent { --shelf-life-color: #d6534d; }
+.shelf-life-meter--expired { --shelf-life-color: #9aa19d; }
