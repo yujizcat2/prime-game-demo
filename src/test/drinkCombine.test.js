@@ -85,8 +85,8 @@ assert.deepEqual(after31.board[1].drinkIngredients,[
 ]);
 assert.deepEqual(after31.board[6],food31Before);
 assert.deepEqual(getMergeHistory(after31.mergeHistoryByIdentity,after31.board[6]),[
-    {id:1,value:140,foodType:T.DRINK,name:"香草奶昔",role:"partner"},
-    {id:1,value:171,foodType:T.DRINK,name:"阿萨姆茶",role:"result"}
+    {value:140,foodType:T.DRINK,name:"香草奶昔",role:"partner"},
+    {value:171,foodType:T.DRINK,name:"阿萨姆茶",role:"result"}
 ]);
 
 const newSameValue=positionedState([
