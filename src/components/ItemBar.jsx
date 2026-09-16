@@ -9,6 +9,10 @@ export default function ItemBar({
   superHeaterCount = 0,
   superHeaterAvailable = false,
   onSuperHeaterClick,
+  freshenerCount = 0,
+  freshenerAvailable = false,
+  freshenerActive = false,
+  onFreshenerClick,
   swapUsesRemaining = 0,
   swapActive = false,
   swapAvailable = false,
@@ -46,6 +50,11 @@ export default function ItemBar({
     setOpen(false);
   }
 
+  function handleFreshenerClick(){
+    onFreshenerClick?.();
+    setOpen(false);
+  }
+
   const items = [{
     id: "swap",
     name: "交换",
@@ -54,6 +63,14 @@ export default function ItemBar({
     active: swapActive,
     disabled: !swapActive && !swapAvailable,
     onClick: handleSwapClick
+  }, {
+    id: "freshener",
+    name: "复鲜",
+    effect: "恢复至 24 小时",
+    count: freshenerCount,
+    active: freshenerActive,
+    disabled: !freshenerActive && !freshenerAvailable,
+    onClick: handleFreshenerClick
   }, {
     id: "heater",
     name: "加热器",
@@ -76,13 +93,13 @@ export default function ItemBar({
     <div className="item-bar" ref={menuRef} aria-label="道具栏">
       <button
         type="button"
-        className={`item-bar-trigger${heaterActive || swapActive ? " item-bar-trigger--active" : ""}`}
+        className={`item-bar-trigger${heaterActive || freshenerActive || swapActive ? " item-bar-trigger--active" : ""}`}
         aria-expanded={open}
         aria-haspopup="menu"
         onClick={() => setOpen(current => !current)}
       >
         道具
-        {(heaterActive || swapActive) && <span>{swapActive ? `交换 ×${swapUsesRemaining}` : "选择中"}</span>}
+        {(heaterActive || freshenerActive || swapActive) && <span>{swapActive ? `交换 ×${swapUsesRemaining}` : freshenerActive ? `复鲜 ×${freshenerCount}` : "选择中"}</span>}
       </button>
 
       {open && <div className="item-bar-menu" role="menu" aria-label="可使用道具">
@@ -98,12 +115,14 @@ export default function ItemBar({
           <span className="item-bar-effect">{item.active ? "选择中" : item.effect}</span>
           <span className="item-bar-count">×{item.count}</span>
         </button>)}
-        <div className={`item-bar-status${heaterAvailable || superHeaterAvailable || heaterActive ? " item-bar-status--ready" : ""}`}>
+        <div className={`item-bar-status${heaterAvailable || superHeaterAvailable || freshenerAvailable || heaterActive || freshenerActive ? " item-bar-status--ready" : ""}`}>
           {swapActive
             ? "依次选择两张正交相邻的料理"
             : heaterActive
             ? "选择一道料理进行加热"
-            : heaterAvailable || superHeaterAvailable
+            : freshenerActive
+              ? "选择一道料理恢复完整 24 小时保质期"
+            : heaterAvailable || superHeaterAvailable || freshenerAvailable
               ? "可使用"
               : "今日已使用或没有适用料理"}
         </div>

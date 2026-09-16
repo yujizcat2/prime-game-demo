@@ -50,6 +50,7 @@ import {
 import { applyCollection, applyEightPalaceCollection } from "./collectionRules";
 import { getCreatedScoreValue } from "./scoreValue";
 import { isHeaterTarget } from "./heater";
+import { isFreshenerTarget } from "./freshener";
 import { getFoodTypeForPosition, getReductionFoodTypes } from "./nativeFoodTypes";
 import { getReduceDurationMinutes } from "./actionDuration";
 import { getFoodAgeMinutes } from "./foodShelfLife";
@@ -1365,6 +1366,9 @@ export function getLegalActions(
     ...getLegalSellActions(state),
     ...(state.heaterCount ?? 0) > 0
       ? state.board.flatMap((piece, index) => isHeaterTarget(piece) ? [{type: "heater", indexes: [index]}] : [])
+      : [],
+    ...(state.freshenerCount ?? 0) > 0
+      ? state.board.flatMap((piece, index) => isFreshenerTarget(piece) ? [{type: "freshener", indexes: [index]}] : [])
       : [],
     ...(
       state.board.some(Boolean)

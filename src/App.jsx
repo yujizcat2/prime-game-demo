@@ -67,6 +67,7 @@ function App(){
   const [actionToast,setActionToast] = useState(null);
   const [collectionRewardQueue,setCollectionRewardQueue] = useState([]);
   const [heaterSelectMode,setHeaterSelectMode] = useState(false);
+  const [freshenerSelectMode,setFreshenerSelectMode] = useState(false);
   const [swapSelectMode,setSwapSelectMode] = useState(false);
   const [foodDetail,setFoodDetail] = useState(null);
 
@@ -105,6 +106,7 @@ function App(){
       return;
     }
     game.clearSelection();
+    setFreshenerSelectMode(false);
     setHeaterSelectMode(true);
   }
 
@@ -116,6 +118,7 @@ function App(){
     }
     if(game.swapUsesRemaining<=0)return;
     setHeaterSelectMode(false);
+    setFreshenerSelectMode(false);
     game.clearSelection();
     setSwapSelectMode(true);
   }
@@ -126,6 +129,7 @@ function App(){
       return;
     }
     setHeaterSelectMode(false);
+    setFreshenerSelectMode(false);
     const result = game.useSuperHeater();
     if(result){
       beginInstantAnimation({
@@ -151,6 +155,29 @@ function App(){
       afterValues: [result.toValue]
     },430);
     showActionToast(`${result.fromValue} → ${result.toValue}`, "加热完成");
+  }
+
+  function toggleFreshenerMode(){
+    if(freshenerSelectMode){
+      setFreshenerSelectMode(false);
+      game.clearSelection();
+      return;
+    }
+    if(!game.freshenerAvailable){
+      showActionToast("无法使用复鲜", game.freshenerCount === 0 ? "今日已使用" : "没有可复鲜的料理");
+      return;
+    }
+    setHeaterSelectMode(false);
+    setSwapSelectMode(false);
+    game.clearSelection();
+    setFreshenerSelectMode(true);
+  }
+
+  function handleFreshenerTarget(index){
+    const result = game.useFreshenerOnCell(index);
+    if(!result) return;
+    setFreshenerSelectMode(false);
+    showActionToast("复鲜完成", "保质期已恢复至 24 小时 · 消耗 10 分钟");
   }
 
   function clearAnimationTimers(){
@@ -782,11 +809,14 @@ function App(){
                   game.functionOneIndex
                 }
                 heaterSelectMode={heaterSelectMode}
+                freshenerSelectMode={freshenerSelectMode}
                 onSelectCell={
                   game.daySettlement || activeAnimation?.phase === "exit" || activeAnimation?.phase === "compress"
                     ? undefined
                     : heaterSelectMode
                       ? handleHeaterTarget
+                      : freshenerSelectMode
+                        ? handleFreshenerTarget
                       : handleSelectCell
                 }
                 onCombine={
@@ -838,8 +868,8 @@ function App(){
                   onCombine={handleCombine}
                   onSellOrProcess={handleSellOrProcess}
                   canSellSelected={game.selectedIndexes.length===1&&game.board[game.selectedIndexes[0]]?.value===1}
-                  itemEntry={<ItemBar heaterCount={game.heaterCount} heaterAvailable={game.heaterAvailable && !game.daySettlement} heaterActive={heaterSelectMode} onHeaterClick={toggleHeaterMode} superHeaterCount={game.superHeaterCount} superHeaterAvailable={game.superHeaterAvailable && !game.daySettlement} onSuperHeaterClick={handleSuperHeater} swapUsesRemaining={game.swapUsesRemaining} swapActive={swapSelectMode} swapAvailable={!game.gameOver&&!game.daySettlement&&game.swapUsesRemaining>0&&game.legalSwapCount>0} onSwapClick={toggleSwapMode} />}
-                  gameOver={game.gameOver || Boolean(game.daySettlement) || heaterSelectMode || swapSelectMode}
+                  itemEntry={<ItemBar heaterCount={game.heaterCount} heaterAvailable={game.heaterAvailable && !game.daySettlement} heaterActive={heaterSelectMode} onHeaterClick={toggleHeaterMode} superHeaterCount={game.superHeaterCount} superHeaterAvailable={game.superHeaterAvailable && !game.daySettlement} onSuperHeaterClick={handleSuperHeater} freshenerCount={game.freshenerCount} freshenerAvailable={game.freshenerAvailable && !game.daySettlement} freshenerActive={freshenerSelectMode} onFreshenerClick={toggleFreshenerMode} swapUsesRemaining={game.swapUsesRemaining} swapActive={swapSelectMode} swapAvailable={!game.gameOver&&!game.daySettlement&&game.swapUsesRemaining>0&&game.legalSwapCount>0} onSwapClick={toggleSwapMode} />}
+                  gameOver={game.gameOver || Boolean(game.daySettlement) || heaterSelectMode || freshenerSelectMode || swapSelectMode}
                   removingId={removingIndex ?? ((activeAnimation?.phase === "exit" || activeAnimation?.phase === "compress") ? activeAnimation.token : null)}
                 />
               </div>

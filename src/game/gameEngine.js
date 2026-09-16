@@ -48,6 +48,7 @@ import { GAME_MODES } from "./eightPalaceKeys";
 import { applyHeater } from "./heater";
 import { canUseHeater } from "./heater";
 import { applySuperHeater } from "./superHeater";
+import { applyFreshener, canUseFreshener } from "./freshener";
 import { markSingleFlavorBoardPieces } from "./singleFlavorPenalty";
 import { resolveCheckpoint } from "./checkpoints";
 import { DAY_DURATION_MINUTES, DAY_REVENUE_TARGET, getDayTime, settleDayIfNeeded } from "./dayCycle";
@@ -326,6 +327,10 @@ export function applyAction(
       actionState = applySuperHeater(state);
       break;
 
+    case "freshener":
+      actionState = applyFreshener(state, action.indexes?.[0] ?? action.index);
+      break;
+
     // ========================================================
     // 未知动作
     // ========================================================
@@ -375,7 +380,7 @@ export function applyAction(
   const scoredState = applyActionBaseScore(state, action, actionState, comboState);
   const durationState = applyActionDuration(state, action, actionState, scoredState);
   const actionIndexes = action.indexes ?? [action.index, action.oneIndex, action.targetIndex];
-  const expiredFoodUseCount = actionIndexes.filter((index, position, indexes) =>
+  const expiredFoodUseCount = action.type === "freshener" ? 0 : actionIndexes.filter((index, position, indexes) =>
     Number.isInteger(index) && indexes.indexOf(index) === position && isFoodExpired(state.board?.[index], state)
   ).length;
   const refreshedBoard = action.type === "combine"
@@ -388,7 +393,15 @@ export function applyAction(
           ? {...piece, bornAt: durationState.totalActionMinutes ?? 0}
           : piece;
       })
-    : durationState.board;
+    : action.type === "freshener"
+      ? durationState.board.map((piece, index) => index === (action.indexes?.[0] ?? action.index)
+        ? {
+            ...piece,
+            bornAt: durationState.totalActionMinutes ?? 0,
+            ...(Number.isFinite(piece?.processedAgeMinutes) ? {processedAgeMinutes: 0} : {})
+          }
+        : piece)
+      : durationState.board;
   const newCollectionIds = new Set(
     (durationState.collectionTimeline ?? [])
       .slice((state.collectionTimeline ?? []).length)
@@ -450,8 +463,9 @@ export function applyAction(
       sellMinutes: (recapActionCounts.sellMinutes ?? 0) + (action.type === "sell" ? durationState.latestActionDurationMinutes ?? 0 : 0)
     }
   };
+  const preparedState = markSingleFlavorBoardPieces(countedState);
   const settledState = recordGameRecapSnapshot(
-    resolveMazeHistoryAfterAction(markSingleFlavorBoardPieces(countedState))
+    action.type === "freshener" ? preparedState : resolveMazeHistoryAfterAction(preparedState)
   );
   const resolvedState = resolveGameOver(settledState);
   if(!resolvedState.gameOver) return resolvedState;
@@ -534,6 +548,7 @@ export function resolveGameOver(
     && boardCount <= 2
     && getLegalSwapActions(activeState).length===0
     && !canUseHeater(activeState)
+    && !canUseFreshener(activeState)
     && !getLegalActions(activeState).some(action => action.type === "super_heater")
     && !getLegalActions(activeState).some(action => action.type === "sell")
   ){

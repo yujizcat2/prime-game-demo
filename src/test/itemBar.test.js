@@ -9,6 +9,7 @@ const actionCss = fs.readFileSync("src/components/ActionButtons.css", "utf8");
 assert.match(source, /name: "加热器"[\s\S]*count: heaterCount/);
 assert.match(source, /name: "超级加热器"[\s\S]*count: superHeaterCount/);
 assert.match(source, /name: "交换"[\s\S]*count: swapUsesRemaining/);
+assert.match(source, /name: "复鲜"[\s\S]*count: freshenerCount/);
 assert.match(source, /×\{item\.count\}/);
 assert.match(actionSource, />售出 \/ 处理</);
 assert.match(actionSource, /selected\.length === 1 && canSellSelected/);

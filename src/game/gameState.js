@@ -334,6 +334,9 @@ export function createGameState(
     superHeaterCount:
       1,
 
+    freshenerCount:
+      1,
+
     recentActionSignatures:
       [],
 

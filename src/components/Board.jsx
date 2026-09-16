@@ -38,6 +38,7 @@ export default function Board({
   selectedIndexes = [],
   functionOneIndex = null,
   heaterSelectMode = false,
+  freshenerSelectMode = false,
 
   onSelectCell,
 
@@ -1052,7 +1053,7 @@ export default function Board({
 
             function handlePieceClick(){
 
-              if(heaterSelectMode){
+              if(heaterSelectMode || freshenerSelectMode){
                 onSelectCell?.(index);
                 return;
               }
@@ -1124,7 +1125,11 @@ export default function Board({
                 }
 
                 heaterTargetState={
-                  heaterSelectMode
+                  freshenerSelectMode
+                    ? piece
+                      ? "available"
+                      : "unavailable"
+                    : heaterSelectMode
                     ? piece?.value >= 2 && piece?.value <= 100
                       ? "available"
                       : "unavailable"

@@ -21,6 +21,7 @@ import {
 import { getNextSelectionIndexes } from "../game/selection";
 import { canUseHeater } from "../game/heater";
 import { canUseSuperHeater } from "../game/superHeater";
+import { canUseFreshener } from "../game/freshener";
 
 import {
   createGameState,
@@ -232,6 +233,8 @@ export default function useGame(){
   const heaterAvailable = canUseHeater(gameState);
   const superHeaterCount = gameState?.superHeaterCount ?? 0;
   const superHeaterAvailable = canUseSuperHeater(gameState);
+  const freshenerCount = gameState?.freshenerCount ?? 0;
+  const freshenerAvailable = canUseFreshener(gameState);
   // ==========================================================
   // 分数 / 时间
   // ==========================================================
@@ -593,6 +596,15 @@ export default function useGame(){
     setGameState(nextState);
     clearSelection();
     return nextState.latestSuperHeaterUse;
+  }
+
+  function useFreshenerOnCell(index){
+    if(!gameState) return null;
+    const nextState = applyAction(gameState, {type: "freshener", indexes: [index]});
+    if(nextState === gameState) return null;
+    setGameState(nextState);
+    clearSelection();
+    return nextState.latestFreshenerUse;
   }
 
   function swapSelectedCells(explicitIndexes = selectedIndexes){
@@ -1424,6 +1436,8 @@ export default function useGame(){
     heaterAvailable,
     superHeaterCount,
     superHeaterAvailable,
+    freshenerCount,
+    freshenerAvailable,
     swapUsesRemaining: gameState?.swapUsesRemaining ?? 0,
     // 分数 / 时间
     score,
@@ -1484,6 +1498,7 @@ export default function useGame(){
     clearSelection,
     useHeaterOnCell,
     useSuperHeater,
+    useFreshenerOnCell,
     swapSelectedCells,
     sellSelectedCell,
     startNextDay,

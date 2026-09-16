@@ -35,7 +35,8 @@ import { getNativeFoodType, getReductionFoodTypes } from "../game/nativeFoodType
 import { canSwapCells, createReduceOutcome, getCombinedResultIdentity } from "../game/gameActions";
 import { applyCollection, getCollectionUniqueKey } from "../game/collectionRules";
 import { applyHeaterIncrement, isHeaterTarget } from "../game/heater";
-import { getCombineDurationMinutes, getReduceDurationMinutes, getSellDurationMinutes, SWAP_DURATION_MINUTES, TOOL_DURATION_MINUTES } from "../game/actionDuration";
+import { isFreshenerTarget } from "../game/freshener";
+import { FRESHENER_DURATION_MINUTES, getCombineDurationMinutes, getReduceDurationMinutes, getSellDurationMinutes, SWAP_DURATION_MINUTES, TOOL_DURATION_MINUTES } from "../game/actionDuration";
 import { getFoodAgeMinutes, isFoodExpired } from "../game/foodShelfLife";
 import { updateMergeHistoryByIdentity } from "../game/mergeHistory";
 
@@ -413,6 +414,9 @@ export function createSimulationState(
       1,
 
     superHeaterCount:
+      1,
+
+    freshenerCount:
       1,
 
     recentActionSignatures:
@@ -905,6 +909,11 @@ export function getSimulationLegalActions(
   }
 
   const pieces = board.filter(Boolean);
+  if((state.freshenerCount ?? 0) > 0){
+    board.forEach((piece, index) => {
+      if(isFreshenerTarget(piece)) actions.push({type: "freshener", indexes: [index]});
+    });
+  }
   if(
     pieces.length > 0
     && pieces.every(isHeaterTarget)
@@ -1753,9 +1762,10 @@ export function applySimulationAction(
   const previousMinutes = state.totalActionMinutes ?? 0;
   const inputIndexes = action.indexes ?? [action.index];
   state.shelfLifeMetrics ??= {expiredFoodCount: 0, expiredFoodUseCount: 0, expiredZeroScoreCollectionCount: 0};
-  state.shelfLifeMetrics.expiredFoodUseCount += inputIndexes.filter(index =>
+  const expiredInputCount = action.type === "freshener" ? 0 : inputIndexes.filter(index =>
     Number.isInteger(index) && isFoodExpired(state.board?.[index], previousMinutes)
   ).length;
+  state.shelfLifeMetrics.expiredFoodUseCount += expiredInputCount;
   let durationMinutes = TOOL_DURATION_MINUTES;
   if(action.type === "combine"){
     durationMinutes = getCombineDurationMinutes(
@@ -1771,6 +1781,7 @@ export function applySimulationAction(
     durationMinutes = getReduceDurationMinutes(equalEliminate ? 2 : 0, createsFinishedDish);
   }else if(action.type === "swap") durationMinutes=SWAP_DURATION_MINUTES;
   else if(action.type === "sell") durationMinutes=getSellDurationMinutes(action.indexes?.length??0);
+  else if(action.type === "freshener") durationMinutes=FRESHENER_DURATION_MINUTES;
 
 
 
@@ -1863,6 +1874,20 @@ export function applySimulationAction(
       break;
     }
 
+    case "freshener": {
+      const targetIndex = action.indexes?.[0] ?? action.index;
+      const piece = state.board?.[targetIndex];
+      if(!piece || (state.freshenerCount ?? 0) <= 0) break;
+      state.board[targetIndex] = {
+        ...piece,
+        bornAt: previousMinutes + durationMinutes,
+        ...(Number.isFinite(piece.processedAgeMinutes) ? {processedAgeMinutes: 0} : {})
+      };
+      state.freshenerCount--;
+      applied = true;
+      break;
+    }
+
 
 
 
@@ -1881,9 +1906,7 @@ export function applySimulationAction(
   if(
     !applied
   ){
-    state.shelfLifeMetrics.expiredFoodUseCount -= inputIndexes.filter(index =>
-      Number.isInteger(index) && isFoodExpired(state.board?.[index], previousMinutes)
-    ).length;
+    state.shelfLifeMetrics.expiredFoodUseCount -= expiredInputCount;
     return false;
 
   }
@@ -2055,6 +2078,9 @@ export function cloneSimulationState(
 
     superHeaterCount:
       state.superHeaterCount ?? 0,
+
+    freshenerCount:
+      state.freshenerCount ?? 0,
 
     singleFlavorTriggered:
       state.singleFlavorTriggered === true,

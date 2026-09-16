@@ -2,6 +2,7 @@ import { getBoardCount } from "./boardRules";
 import { gcd } from "../utils/math";
 
 export const TOOL_DURATION_MINUTES = 30;
+export const FRESHENER_DURATION_MINUTES = 10;
 export const SWAP_DURATION_MINUTES = 15;
 export const REDUCE_DURATION_MINUTES = 45;
 export const REDUCE_WITH_REMOVAL_DURATION_MINUTES = 60;
@@ -53,6 +54,7 @@ export function getActionDurationMinutes(previousState, action, actionState){
   }
   if(action.type === "swap") return SWAP_DURATION_MINUTES;
   if(action.type === "sell") return getSellDurationMinutes(action.indexes?.length ?? 0);
+  if(action.type === "freshener") return FRESHENER_DURATION_MINUTES;
   return TOOL_DURATION_MINUTES;
 }
 
